@@ -1,0 +1,3 @@
+Sitemap: https://www.virya.music/sitemap.xml
+User-agent: *
+Disallow: 

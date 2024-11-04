@@ -1,0 +1,28 @@
+[
+    {
+        "title": "Jakiś test dziś",
+        "alt": "Jakiś test dziś",
+        "date": "11/04/2024",
+        "event": "https://www.facebook.com/events/1738513370226587",
+        "tickets": "https://goingapp.pl/wydarzenie/virya-prey-of-monsoon-vermintide-visions-korba-pub-katowice-2"
+    },
+    {
+        "title": "Virya, Prey of Monsoon, Vermintide Vision | Korba Pub, Katowice",
+        "alt": "Virya, Prey of Monsoon, Vermintide Vision | Korba Pub, Katowice",
+        "date": "11/09/2024",
+        "event": "https://www.facebook.com/events/1738513370226587",
+        "tickets": "https://goingapp.pl/wydarzenie/virya-prey-of-monsoon-vermintide-visions-korba-pub-katowice-2"
+    },
+    {
+        "title": "Virya, Pray For Plagues | Piwiarnia u Bossmana, Ostrów WLKP",
+        "alt": "Virya, Pray For Plagues | Piwiarnia u Bossmana, Ostrów WLKP",
+        "date": "11/16/2024",
+        "event": "https://www.facebook.com/events/933389135502176"
+    },
+    {
+        "title": "Virya, Kingsphere, Mortemorium | Powstańcza, Gliwice",
+        "alt": "Virya, Kingsphere, Mortemorium | Powstańcza, Gliwice",
+        "date": "12/07/2024",
+        "event": "https://www.facebook.com/events/902926308061250"
+    }
+]
