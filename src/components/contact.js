@@ -41,7 +41,7 @@ const Contact = () => {
     }
 
     return <div className="bg-stone-900 py-8 lg:px-8 lg:rounded-t-2xl">
-        <form name="contact" method="POST" netlify data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
+        <form name="contact" method="POST" netlify="true" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
             <input type="hidden" name="form-name" value="contact" />
             <p className="hidden">
                 <label>Human check:

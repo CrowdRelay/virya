@@ -9,7 +9,7 @@ const Shows = () => {
             <p className="text-4xl font-bold leading-tight my-4">Shows</p>
             <p className="italic w-full my-4">Make sure you're not skipping our upcoming shows</p>
             <div className="grid grid-cols-1 gap-4 overflow-hidden relative my-8">
-                {shows.map(item => <ShowItem key={item.link} item={item} />)}
+                {shows.map(item => <ShowItem key={item.event} item={item} />)}
             </div>
         </div>
     </div>
