@@ -10,8 +10,8 @@ export default function Landing() {
         return null;
     }
 
-    return <div className="absolute inset-0 bg-black opacity-80 group-hover:opacity-75 -z-100">
-            <video className="w-auto min-w-full min-h-full max-w-none" autoPlay muted loop id="landingvid">
+    return <div className="absolute inset-0 bg-black lg:mt-0 mt-20 opacity-80 group-hover:opacity-75 -z-100">
+            <video className="lg:w-auto lg:min-w-full lg:min-h-full lg:max-w-none" autoPlay muted loop id="landingvid">
                 <source src="rise.webm" type="video/webm"/>
             </video>
         </div>
