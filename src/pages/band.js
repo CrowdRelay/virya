@@ -14,23 +14,23 @@ const Main = () => {
             <ScrollToTop smooth/>
                 <div className="p-4 pt-20 lg:container lg:mx-auto bg-stone-900">
                     <header className="grid grid-cols-3 py-12 items-center">
-                        <Link title="Homepage" className="justify-self-start lg:text-4xl" to="/">&lArr;</Link>
-                        <h1 itemProp="headline" className="justify-self-center text-4xl lg:my-2">BAND STORY</h1>
+                        <Link title="Homepage" className="justify-self-start lg:text-4xl text-xl" to="/">&lArr;</Link>
+                        <h1 itemProp="headline" className="justify-self-center lg:text-4xl text-xl lg:my-2">BAND STORY</h1>
                         <p className="justify-self-end"></p>
                     </header>
-                    <section className='text-2xl text-justify'>
+                    <section className='lg:text-2xl text-s text-justify'>
                     Virya was founded in 2023 on the initiative of two experienced guitarists Wojciech Bator and Harsha Dasari and drummer Jakub Dąbrowski, who, instead of repeating established patterns, decided to introduce a new approach, combining modern metalcore with non-obvious influences from outside the world of metal. Their combination of strength, technique and emotion brings to mind bands such as Architects, Tesseract or Twelve Foot Ninja, although Virya's music still follows its own, unique path.
                     </section>
                     <br></br>
-                    <section className='text-2xl text-justify'>
+                    <section className='lg:text-2xl text-s text-justify'>
                     After some time, Harsha and us parted ways, and the band was joined by Marek Bienias (vocals), whose energy on stage and strong, characteristic voice brought the band's quality to a new level. In 2024, bassist Lubomyr Kosakovsky joined, completing the lineup and adding even more weight to the band's sound.
                     </section>
                     <br></br>
-                    <section className='text-2xl text-justify'>
+                    <section className='lg:text-2xl text-s text-justify'>
                     The name Virya not only means positive energy and determination, but is also the band's manifesto - the belief that each concert is not only a musical experience, but a real catharsis that is supposed to release energy and power in the audience. In their music you can hear echoes of struggling with the hardships of everyday life, but also the unwavering will to fight and faith that every person has a chance. No pain, no gain.
                     </section>
                     <br></br>
-                    <section className='text-2xl pb-4 text-justify'>
+                    <section className='lg:text-2xl text-s pb-4 text-justify'>
                     Lineup:
                     <br></br>
                     Wojciech Bator (guitar)
