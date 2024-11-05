@@ -31,7 +31,7 @@ const Navbar = ({ displayLinks, portfolioRef, showsRef, contactRef }) => {
 
     return <nav style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 lg:p-3 py-2 z-20 bg-opacity-50 bg-black">
         <div className="container mx-auto flex items-center">
-            <div className="flex-1 flex items-center">
+            <div className="flex-1 flex lg:visible items-center">
                 <Link title="Homepage" className="flex" to="/">
                     <StaticImage
                         src="../images/virya.webp"
@@ -50,22 +50,22 @@ const Navbar = ({ displayLinks, portfolioRef, showsRef, contactRef }) => {
                 <div className="flex items-center">
                     {displayLinks && <>
                     <Link to="/band"
-                        className="cursor-pointer px-4 py-2 text-lg rounded transition duration-500 ease-in-out hover:text-amber-300 hover:bg-stone-900"
+                        className="cursor-pointer lg:px-4 px-2 py-2 text-lg rounded transition duration-500 ease-in-out hover:text-amber-300 hover:bg-stone-900"
                         title="Band">
                         <span>Band</span>
                     </Link>
                     <div onClick={() => handleScroll(portfolioRef.current)}
-                        className="cursor-pointer px-4 py-2 text-lg rounded transition duration-500 ease-in-out hover:text-amber-300 hover:bg-stone-900"
+                        className="cursor-pointer lg:px-4 px-2 py-2 text-lg rounded transition duration-500 ease-in-out hover:text-amber-300 hover:bg-stone-900"
                         title="Portfolio">
                         <span>Portfolio</span>
                     </div>
                     <div onClick={() => handleScroll(showsRef.current)}
-                        className="cursor-pointer px-4 py-2 text-lg rounded transition duration-500 ease-in-out hover:text-amber-300 hover:bg-stone-900"
+                        className="cursor-pointer lg:px-4 px-2 py-2 text-lg rounded transition duration-500 ease-in-out hover:text-amber-300 hover:bg-stone-900"
                         title="Shows">
                         <span>Shows</span>
                     </div>
                     <div onClick={() => handleScroll(contactRef.current)}
-                        className="cursor-pointer px-4 py-2 text-lg rounded transition duration-500 ease-in-out hover:text-amber-300 hover:bg-stone-900"
+                        className="cursor-pointer lg:px-4 px-2 py-2 text-lg rounded transition duration-500 ease-in-out hover:text-amber-300 hover:bg-stone-900"
                         title="Contact">
                         <span>Contact</span>
                     </div>
