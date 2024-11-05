@@ -41,6 +41,16 @@ const Main = () => {
                     <br></br>
                     Lubomyr Kosakovsky (bass)
                     </section>
+                    <br></br>
+                    Essential links:
+                    <a href="https://www.instagram.com/virya.official" title="Instagram" rel="noreferrer" target="_blank" className="block text-amber-300" aria-label="instagram">Instagram</a>
+                    <a href="http://youtube.com/@ViryaOfficial?sub_confirmation=1" title="YouTube" rel="noreferrer" target="_blank" className="block text-amber-300" aria-label="youtube">YouTube</a>
+                    <a href="https://www.facebook.com/ViryaBand" title="Facebook" rel="noreferrer" target="_blank" className="block text-amber-300" aria-label="facebook">Facebook</a>
+                    <a href="https://open.spotify.com/artist/6bbW0jOKAWJWm3h6CTWaAS" title="Spotify" rel="noreferrer" target="_blank" className="block text-amber-300" aria-label="spotify">Spotify</a>
+                    <a href="https://virya.bandcamp.com" title="Bandcamp" rel="noreferrer" target="_blank" className="block text-amber-300" aria-label="bandcamp">Bandcamp</a>
+                    <a href="https://soundcloud.com/viryaofficial" title="SoundCloud" rel="noreferrer" target="_blank" className="block text-amber-300" aria-label="soundcloud">Soundcloud</a>
+                    <a href="https://x.com/viryaofficial" title="Twitter" rel="noreferrer" target="_blank" className="block text-amber-300" aria-label="twitter">Twitter</a>
+                    <a href="https://drive.google.com/drive/folders/1T1ZSioSPB0UYNvSk8YFrwC_1xMFbvUVR?usp=drive_link" title="Twitter" rel="noreferrer" target="_blank" className="block text-amber-300" aria-label="twitter">Press Pack</a>
                     <Footer />
                 </div>
         </div>

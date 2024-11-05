@@ -54,9 +54,6 @@ const Contact = () => {
             <h2 className="text-center text-4xl font-bold leading-tight my-4">Send a message</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
-                    <img className="w-full h-full" src="contact.svg" alt="Kontakt" title="Kontakt" />
-                </div>
-                <div>
                     <div className="mt-8 px-4">
                         <label htmlFor="name" className="uppercase text-sm font-bold">Name</label>
                         <input

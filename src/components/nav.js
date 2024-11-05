@@ -29,7 +29,7 @@ const Navbar = ({ displayLinks, portfolioRef, showsRef, contactRef }) => {
         200
     )
 
-    return <nav style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 lg:p-3 py-2 z-20 bg-opacity-50 bg-black">
+    return <nav style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 bg-opacity-50 bg-black">
         <div className="container mx-auto flex items-center">
             <div className="flex-1 flex lg:visible items-center">
                 <Link title="Homepage" className="flex" to="/">
