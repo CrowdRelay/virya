@@ -11,6 +11,7 @@ const PortfolioItem = ({ item, pictures }) => {
             <p className="text-center leading-normal">{item.text}</p>
             <div>
                 <a title="Listen" href={item.link} rel="noreferrer" target="_blank"><button className="lg:px-6 py-2 mx-2 my-8 btn-outline-primary transition duration-500 ease-in-out focus:outline-none focus:shadow-outline border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal px-4 rounded">Listen</button></a>
+                {item.watch && <a title="Watch" href={item.watch} rel="noreferrer" target="_blank"><button className="lg:px-6 mx-2 py-2 my-8 btn-outline-primary transition duration-500 ease-in-out focus:outline-none focus:shadow-outline border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal px-4 rounded">Watch</button></a>}
                 {item.buy && <a title="Buy" href={item.buy} rel="noreferrer" target="_blank"><button className="lg:px-6 mx-2 py-2 my-8 btn-outline-primary transition duration-500 ease-in-out focus:outline-none focus:shadow-outline border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal px-4 rounded">Buy</button></a>}
             </div>
         </div>
