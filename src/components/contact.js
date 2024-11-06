@@ -40,7 +40,7 @@ const Contact = () => {
         })
     }
 
-    return <div className="bg-stone-900 py-8 lg:px-8 lg:rounded-t-2xl">
+    return <div className="bg-stone-900 py-8 lg:px-8 lg:rounded-t-full">
         <form name="contact" method="POST" netlify="true" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
             <input type="hidden" name="form-name" value="contact" />
             <p className="hidden">
@@ -52,7 +52,7 @@ const Contact = () => {
                 </label>
             </p>
             <h2 className="text-center text-4xl font-bold leading-tight my-4">Send a message</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8">
                 <div>
                     <div className="mt-8 px-4">
                         <label htmlFor="name" className="uppercase text-sm font-bold">Name</label>
