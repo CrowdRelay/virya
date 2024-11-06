@@ -59,4 +59,37 @@ const Main = () => {
     )
 }
 
+export const Head = () => {
+    return (
+        <>
+            <title>Band | Virya - Modern metalcore from Poland</title>
+            <link rel="canonical" href="https://www.virya.music" />
+            <meta name="description"
+                content="A website of Virya, a new modern metalcore powerhorse from Poland. Check out the latest releases and news." />
+            <meta name="og:title" content='Virya | Modern metalcore from Poland' />
+            <meta name="og:image" content='https://www.virya.music/virya.webp' />
+            <meta name="og:url" content="https://www.virya.music" />
+            <meta name="og:type" content='website' />
+            <meta name="og:description"
+                content="A website of Virya, a new modern metalcore powerhorse from Poland. Check out the latest releases and news." />
+            <meta name="keywords"
+                content='Virya, Music, Band, Metalcore, Modern Metal, Modern Metalcore, Heavy, Melodic, Virtuoso, Alternative' />
+            <meta name="facebook:card" content="summary" />
+            <meta name="facebook:creator" content="ViryaBand" />
+            <meta name="facebook:title" content='Virya | Modern metalcore from Poland' />
+            <meta name="facebook:description"
+                content="A website of Virya, a new modern metalcore powerhorse from Poland. Check out the latest releases and news." />
+            <meta name="facebook:image" content="https://www.virya.music/virya.webp" />
+            <meta name="facebook:url" content="https://www.virya.music" />
+            <meta name="twitter:card" content="summary" />
+            <meta name="twitter:title" content='Virya | Modern metalcore from Poland' />
+            <meta name="twitter:url" content="https://www.virya.music" />
+            <meta name="twitter:description"
+                content="A website of Virya, a new modern metalcore powerhorse from Poland. Check out the latest releases and news." />
+            <meta name="twitter:image" content="https://www.virya.music/virya.webp" />
+            <meta name="twitter:creator" content="viryaofficial" />
+        </>
+    )
+}
+
 export default Main
