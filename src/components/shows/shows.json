@@ -1,12 +1,5 @@
 [
     {
-        "title": "Virya, Prey of Monsoon, Vermintide Vision | Korba Pub, Katowice",
-        "alt": "Virya, Prey of Monsoon, Vermintide Vision | Korba Pub, Katowice",
-        "date": "11/09/2024",
-        "event": "https://www.facebook.com/events/1738513370226587",
-        "tickets": "https://goingapp.pl/wydarzenie/virya-prey-of-monsoon-vermintide-visions-korba-pub-katowice-2"
-    },
-    {
         "title": "Virya, Pray For Plagues | Piwiarnia u Bossmana, Ostrów WLKP",
         "alt": "Virya, Pray For Plagues | Piwiarnia u Bossmana, Ostrów WLKP",
         "date": "11/16/2024",
@@ -17,5 +10,20 @@
         "alt": "Virya, Kingsphere, Mortemorium | Powstańcza, Gliwice",
         "date": "12/07/2024",
         "event": "https://www.facebook.com/events/902926308061250"
+    },
+    {
+        "title": "Virya, TBA, TBA | Potok, Warszawa",
+        "alt": "Virya, TBA, TBA | Potok, Warszawa",
+        "date": "03/01/2025"
+    },
+    {
+        "title": "Virya, Iamone, TBA | Liverpool, Wrocław",
+        "alt": "Virya, Iamone, TBA | Liverpool, Wrocław",
+        "date": "04/25/2025"
+    },
+    {
+        "title": "Virya, TBA, TBA | Wooltura, Łódź",
+        "alt": "Virya, TBA, TBA | Wooltura, Łódź",
+        "date": "05/10/2025"
     }
 ]
