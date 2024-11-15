@@ -52,7 +52,7 @@ const Main = () => {
                     <a href="https://virya.bandcamp.com" title="Bandcamp" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="bandcamp">Bandcamp</a>
                     <a href="https://soundcloud.com/viryaofficial" title="SoundCloud" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="soundcloud">Soundcloud</a>
                     <a href="https://x.com/viryaofficial" title="Twitter" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="twitter">Twitter</a>
-                    <a href="https://drive.google.com/drive/folders/1T1ZSioSPB0UYNvSk8YFrwC_1xMFbvUVR?usp=drive_link" title="Twitter" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="twitter">Press Pack</a>
+                    <a href="https://drive.google.com/drive/folders/1M4pgB9goigGUm9tudcQIzORTgILgSABH?usp=drive_link" title="Twitter" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="twitter">Press Pack</a>
                     <Footer />
                 </div>
         </div>
