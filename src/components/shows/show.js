@@ -8,10 +8,7 @@ const ShowItem = ({ item }) => {
         let isToday = d.setHours(0,0,0,0) === today.setHours(0,0,0,0);
         let textDate = isToday ? 'Today - ' : 'Date - ';
         isToday ? baseStyles += " bg-red-900" : baseStyles += " bg-black";
-        return <div onClick={event => {
-            event.preventDefault();
-            item.event && window.open(item.event, '_blank').focus();
-        }} className={baseStyles}>
+        return <div className={baseStyles}>
             <h2 className="lg:text-2xl text-md lg:ml-2">{item.title}</h2>
             <div className='lg:flex lg:flex-row lg:flex-grow place-items-center justify-end'>
                 <h2 className="lg:text-2xl lg:my-8 text-md"><p className='inline'>{textDate}</p> {d.toLocaleDateString("pl-PL")}</h2>
