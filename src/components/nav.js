@@ -13,9 +13,9 @@ const NavLink = memo(({ onClick, title, children }) => (
   >
     <span>{children}</span>
   </button>
-))
+));
 
-const Navbar = memo(({ displayLinks, portfolioRef, showsRef, contactRef }) => {
+const Navbar = ({ displayLinks, portfolioRef, showsRef, contactRef }) => {
   const [headerStyle, setHeaderStyle] = useState({
     transition: 'all 200ms ease-in'
   })
@@ -82,6 +82,6 @@ const Navbar = memo(({ displayLinks, portfolioRef, showsRef, contactRef }) => {
       </div>
     </nav>
   )
-})
+}
 
-export default Navbar
+export default memo(Navbar);

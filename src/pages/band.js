@@ -5,7 +5,7 @@ import Footer from "../components/footer"
 import { Link } from 'gatsby';
 import { ScrollToTop } from "../components/scrollToTop/scroll"
 
-const SocialLink = memo(({ href, title, ariaLabel }) => (
+const SocialLink = ({ href, title, ariaLabel }) => (
   <a 
     href={href}
     title={title} 
@@ -16,13 +16,13 @@ const SocialLink = memo(({ href, title, ariaLabel }) => (
   >
     {title}
   </a>
-));
+);
 
-const BandSection = memo(({ children }) => (
+const BandSection = ({ children }) => (
   <section className='lg:text-2xl text-s text-justify'>
     {children}
   </section>
-));
+);
 
 const Main = () => {
     const socialLinks = [
@@ -161,4 +161,4 @@ export const Head = () => {
     )
 }
 
-export default Main
+export default memo(Main)

@@ -3,14 +3,16 @@ import React, { memo } from "react"
 import { Link } from "gatsby"
 import Layout from "../components/layout"
 
-const NotFoundPage = () => memo(
-  <Layout title="404: Not found | Virya">
-    <p className="p-4 text-2xl">Division 404</p>
-    <p>
-      <Link title="Homepage" className="p-4 text-amber-300 cursor-pointer" to="/">Fly back to the main page</Link>
-    </p>
-  </Layout>
-)
+const NotFoundPage = () => {
+  return (
+    <Layout title="404: Not found | Virya">
+      <p className="p-4 text-2xl">Division 404</p>
+      <p>
+        <Link title="Homepage" className="p-4 text-amber-300 cursor-pointer" to="/">Fly back to the main page</Link>
+      </p>
+    </Layout>
+  )
+}
 
 export const Head = ({ location }) => (
   <>
@@ -38,4 +40,4 @@ export const Head = ({ location }) => (
   </>
 )
 
-export default NotFoundPage
+export default memo(NotFoundPage)

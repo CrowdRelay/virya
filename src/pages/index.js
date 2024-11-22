@@ -17,7 +17,7 @@ const ScrollArrows = memo(({ onClick }) => (
   </svg>
 ));
 
-const Main = memo(() => {
+const Main = () => {
     const portfolioRef = useRef(null);
     const showsRef = useRef(null);
     const contactRef = useRef(null);
@@ -40,7 +40,7 @@ const Main = memo(() => {
             </Layout>
         </>
     )
-});
+};
 
 const metaTags = {
     title: 'Virya | Modern metalcore from Poland',
@@ -78,4 +78,4 @@ export const Head = () => {
     )
 };
 
-export default Main;
+export default memo(Main);
