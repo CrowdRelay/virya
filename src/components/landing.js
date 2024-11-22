@@ -1,19 +1,29 @@
 "use client"
-import React, {useEffect, useState} from 'react';
+import React, { memo } from 'react';
 
-export default function Landing() {
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-    if (!mounted) {
-        return null;
-    }
+const Landing = memo(() => {
+  return (
+    <div className="absolute inset-0 bg-black lg:mt-0 mt-24 lg:p-0 opacity-80 group-hover:opacity-75 -z-100">
+      <video 
+        className="lg:w-auto lg:min-w-full lg:min-h-full lg:max-w-none object-cover h-full w-full"
+        autoPlay
+        muted
+        loop
+        playsInline
+        id="landingvid"
+        aria-label="Background video"
+      >
+        <source src="rise.webm" type="video/webm" />
+        <track 
+          src="captions_en.vtt" 
+          kind="captions" 
+          srcLang="en" 
+          label="English captions"
+          default
+        />
+      </video>
+    </div>
+  );
+});
 
-    return <div className="absolute inset-0 bg-black lg:mt-0 mt-24 lg:p-0 opacity-80 group-hover:opacity-75 -z-100">
-            <video className="lg:w-auto lg:min-w-full lg:min-h-full lg:max-w-none" autoPlay muted loop id="landingvid">
-                <source src="rise.webm" type="video/webm"/>
-                <track src="captions_en.vtt" kind="captions" srcLang="en" label="english_captions"/>
-            </video>
-        </div>
-}
+export default Landing;

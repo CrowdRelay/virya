@@ -1,11 +1,73 @@
 "use client"
-import React from "react"
+import React, { memo } from "react"
 import Navbar from "../components/nav"
 import Footer from "../components/footer"
 import { Link } from 'gatsby';
 import { ScrollToTop } from "../components/scrollToTop/scroll"
 
+const SocialLink = memo(({ href, title, ariaLabel }) => (
+  <a 
+    href={href}
+    title={title} 
+    rel="noreferrer"
+    target="_blank"
+    className="block lg:text-2xl text-amber-300"
+    aria-label={ariaLabel}
+  >
+    {title}
+  </a>
+));
+
+const BandSection = memo(({ children }) => (
+  <section className='lg:text-2xl text-s text-justify'>
+    {children}
+  </section>
+));
+
 const Main = () => {
+    const socialLinks = [
+      {
+        href: "https://www.instagram.com/virya.official",
+        title: "Instagram",
+        ariaLabel: "instagram"
+      },
+      {
+        href: "http://youtube.com/@ViryaOfficial?sub_confirmation=1", 
+        title: "YouTube",
+        ariaLabel: "youtube"
+      },
+      {
+        href: "https://www.facebook.com/ViryaBand",
+        title: "Facebook", 
+        ariaLabel: "facebook"
+      },
+      {
+        href: "https://open.spotify.com/artist/6bbW0jOKAWJWm3h6CTWaAS",
+        title: "Spotify",
+        ariaLabel: "spotify"
+      },
+      {
+        href: "https://virya.bandcamp.com",
+        title: "Bandcamp",
+        ariaLabel: "bandcamp"
+      },
+      {
+        href: "https://soundcloud.com/viryaofficial",
+        title: "SoundCloud",
+        ariaLabel: "soundcloud"
+      },
+      {
+        href: "https://x.com/viryaofficial",
+        title: "Twitter",
+        ariaLabel: "twitter"
+      },
+      {
+        href: "https://drive.google.com/drive/folders/1M4pgB9goigGUm9tudcQIzORTgILgSABH?usp=drive_link",
+        title: "Press Pack",
+        ariaLabel: "press-pack"
+      }
+    ];
+
     return (
         <div>
             <header className="header relative lg:overflow-hidden">
@@ -18,41 +80,48 @@ const Main = () => {
                         <h1 itemProp="headline" className="justify-self-center lg:text-4xl text-xl lg:my-2">BAND STORY</h1>
                         <p className="justify-self-end"></p>
                     </header>
-                    <section className='lg:text-2xl text-s text-justify'>
-                    Virya was founded in 2023 on the initiative of two experienced guitarists Wojciech Bator and Harsha Dasari and drummer Jakub Dąbrowski, who, instead of repeating established patterns, decided to introduce a new approach, combining modern metalcore with non-obvious influences from outside the world of metal. Their combination of strength, technique and emotion brings to mind bands such as Architects, Tesseract or Twelve Foot Ninja, although Virya's music still follows its own, unique path.
-                    </section>
-                    <br></br>
-                    <section className='lg:text-2xl text-s text-justify'>
-                    After some time, Harsha and us parted ways, and the band was joined by Marek Bienias (vocals), whose energy on stage and strong, characteristic voice brought the band's quality to a new level. In 2024, bassist Lubomyr Kosakovsky joined, completing the lineup and adding even more weight to the band's sound.
-                    </section>
-                    <br></br>
-                    <section className='lg:text-2xl text-s text-justify'>
-                    The name Virya not only means positive energy and determination, but is also the band's manifesto - the belief that each concert is not only a musical experience, but a real catharsis that is supposed to release energy and power in the audience. In their music you can hear echoes of struggling with the hardships of everyday life, but also the unwavering will to fight and faith that every person has a chance. No pain, no gain.
-                    </section>
-                    <br></br>
-                    <section className='lg:text-2xl text-s pb-4 text-justify'>
-                    Lineup:
-                    <br></br>
-                    Wojciech Bator (guitar)
-                    <br></br>
-                    Marek Bienias (vox)
-                    <br></br>
-                    Jakub Dąbrowski (drums, backing vox)
-                    <br></br>
-                    Lubomyr Kosakovsky (bass)
-                    </section>
-                    <br></br>
-                    <section className='lg:text-2xl text-s text-justify'>
-                    Essential links:
-                    </section>
-                    <a href="https://www.instagram.com/virya.official" title="Instagram" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="instagram">Instagram</a>
-                    <a href="http://youtube.com/@ViryaOfficial?sub_confirmation=1" title="YouTube" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="youtube">YouTube</a>
-                    <a href="https://www.facebook.com/ViryaBand" title="Facebook" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="facebook">Facebook</a>
-                    <a href="https://open.spotify.com/artist/6bbW0jOKAWJWm3h6CTWaAS" title="Spotify" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="spotify">Spotify</a>
-                    <a href="https://virya.bandcamp.com" title="Bandcamp" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="bandcamp">Bandcamp</a>
-                    <a href="https://soundcloud.com/viryaofficial" title="SoundCloud" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="soundcloud">Soundcloud</a>
-                    <a href="https://x.com/viryaofficial" title="Twitter" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="twitter">Twitter</a>
-                    <a href="https://drive.google.com/drive/folders/1M4pgB9goigGUm9tudcQIzORTgILgSABH?usp=drive_link" title="Twitter" rel="noreferrer" target="_blank" className="block lg:text-2xl text-amber-300" aria-label="twitter">Press Pack</a>
+                    
+                    <BandSection>
+                      Virya was founded in 2023 on the initiative of two experienced guitarists Wojciech Bator and Harsha Dasari and drummer Jakub Dąbrowski, who, instead of repeating established patterns, decided to introduce a new approach, combining modern metalcore with non-obvious influences from outside the world of metal. Their combination of strength, technique and emotion brings to mind bands such as Architects, Tesseract or Twelve Foot Ninja, although Virya's music still follows its own, unique path.
+                    </BandSection>
+                    <br />
+                    
+                    <BandSection>
+                      After some time, Harsha and us parted ways, and the band was joined by Marek Bienias (vocals), whose energy on stage and strong, characteristic voice brought the band's quality to a new level. In 2024, bassist Lubomyr Kosakovsky joined, completing the lineup and adding even more weight to the band's sound.
+                    </BandSection>
+                    <br />
+                    
+                    <BandSection>
+                      The name Virya not only means positive energy and determination, but is also the band's manifesto - the belief that each concert is not only a musical experience, but a real catharsis that is supposed to release energy and power in the audience. In their music you can hear echoes of struggling with the hardships of everyday life, but also the unwavering will to fight and faith that every person has a chance. No pain, no gain.
+                    </BandSection>
+                    <br />
+                    
+                    <BandSection>
+                      Lineup:
+                      <br />
+                      Wojciech Bator (guitar)
+                      <br />
+                      Marek Bienias (vox)
+                      <br />
+                      Jakub Dąbrowski (drums, backing vox)
+                      <br />
+                      Lubomyr Kosakovsky (bass)
+                    </BandSection>
+                    <br />
+                    
+                    <BandSection>
+                      Essential links:
+                    </BandSection>
+
+                    {socialLinks.map((link, index) => (
+                      <SocialLink 
+                        key={index}
+                        href={link.href}
+                        title={link.title}
+                        ariaLabel={link.ariaLabel}
+                      />
+                    ))}
+                    
                     <Footer />
                 </div>
         </div>

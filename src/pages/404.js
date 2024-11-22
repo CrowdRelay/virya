@@ -1,9 +1,9 @@
 "use client"
-import React from "react"
+import React, { memo } from "react"
 import { Link } from "gatsby"
 import Layout from "../components/layout"
 
-const NotFoundPage = () => (
+const NotFoundPage = () => memo(
   <Layout title="404: Not found | Virya">
     <p className="p-4 text-2xl">Division 404</p>
     <p>
