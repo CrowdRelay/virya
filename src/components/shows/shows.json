@@ -14,8 +14,16 @@
         "tickets": "https://goingapp.pl/wydarzenie/singularity-collapse-iamone-virya-inpain-klub-liverpool-wroclaw/wroclaw-kwiecien-2025"
     },
     {
-        "title": "Virya, TBA, TBA | Wooltura, Łódź",
-        "alt": "Virya, TBA, TBA | Wooltura, Łódź",
-        "date": "05/10/2025"
+        "title": "Finał Road To Mystic | Drizzly Grizzly, Gdańsk",
+        "alt": "Finał Road To Mystic | Drizzly Grizzly, Gdańsk",
+        "date": "04/26/2025",
+        "event": "https://www.facebook.com/events/3516981208595674"
+    },
+    {
+        "title": "Virya, Mundivore, The Cold Memories | Wooltura, Łódź",
+        "alt": "Virya, Mundivore, The Cold Memories | Wooltura, Łódź",
+        "date": "05/10/2025",
+        "event": "https://www.facebook.com/events/653839657103358",
+        "tickets": "https://goingapp.pl/wydarzenie/near-death-experience-virya-mundivore-the-cold-memories-wooltura-lodz-10-05-2025"
     }
 ]
