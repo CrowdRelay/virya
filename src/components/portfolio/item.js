@@ -37,6 +37,7 @@ const PortfolioItem = memo(({ item, pictures }) => {
           alt={item.alt}
           loading='lazy'
           title={item.title}
+          sizes="(min-width: 1024px) 33vw, 100vw"
         />
       )}
     </div>

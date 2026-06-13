@@ -40,6 +40,7 @@ const musicGroupSchema = JSON.stringify({
 
 export const Head = () => (
     <>
+        <link rel="preload" as="image" href="/rise.webp" type="image/webp" fetchPriority="high" />
         <title>{metaTags.title}</title>
         <link rel="canonical" href={metaTags.url} />
         <meta name="description" content={metaTags.description} />
