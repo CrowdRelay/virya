@@ -20,18 +20,18 @@ const Spotify = () => (
           target="_blank"
           rel="noreferrer"
           aria-label="Open on Spotify"
-          className="flex-shrink-0 text-zinc-600 hover:text-[#1DB954] transition-colors duration-200"
+          className="flex-shrink-0 text-zinc-400 hover:text-[#1DB954] transition-colors duration-200"
         >
-          <SpotifyIcon className="w-5 h-5" />
+          <SpotifyIcon className="w-5 h-5" aria-hidden="true" />
         </a>
       </div>
-      <p className="text-zinc-500 text-xs uppercase tracking-widest mb-6">Stream on Spotify</p>
+      <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">Stream on Spotify</p>
       <iframe
         title="Virya on Spotify"
         src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
         width="100%"
         height="450"
-        frameBorder="0"
+        style={{ border: 0 }}
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
         loading="lazy"
       />

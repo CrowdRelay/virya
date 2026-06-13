@@ -49,7 +49,7 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
   }, [])
 
   return (
-    <nav style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
+    <nav aria-label="Main navigation" style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
       <div className="container mx-auto flex items-center">
         <div className="flex-1 flex lg:visible items-center">
             <Link title="Homepage" className="flex" to="/">

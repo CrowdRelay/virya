@@ -70,7 +70,7 @@ const Contact = () => {
                     <h2 className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">Send a message</h2>
                     <div className="flex-1 h-px bg-zinc-800" />
                 </div>
-                <p className="text-zinc-500 text-xs uppercase tracking-widest mb-8">We read every message</p>
+                <p className="text-zinc-400 text-xs uppercase tracking-widest mb-8">We read every message</p>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
                         <div className="mt-8 px-4">

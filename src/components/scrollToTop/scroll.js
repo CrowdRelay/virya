@@ -2,8 +2,12 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
 import './style.css';
 
+const NAV_HEIGHT = 80
+
 export const handleScroll = ref => {
-  window.scrollTo({ behavior: 'smooth', top: ref.offsetTop })
+  if (!ref) return
+  const top = ref.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT
+  window.scrollTo({ behavior: 'smooth', top })
 };
 
 const toTop = (smooth = false) => {

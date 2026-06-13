@@ -23,7 +23,7 @@ const PageClient = ({ landing, portfolio, music, shows, contact }) => {
 
     return (
         <>
-            <header className="header relative lg:overflow-hidden">
+            <header className="header relative lg:overflow-hidden min-h-screen flex flex-col">
                 {landing}
                 <Navbar displayLinks={true} portfolioRef={portfolioRef} musicRef={musicRef} showsRef={showsRef} contactRef={contactRef} />
                 <MainText contactRef={contactRef} />

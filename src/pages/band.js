@@ -79,7 +79,7 @@ const Main = () => {
                 <div className="px-6 lg:px-12 py-12">
 
                     <div className="flex items-center gap-6 mb-12 border-b border-zinc-800/60 pb-8">
-                        <Link title="Homepage" to="/" className="text-zinc-500 hover:text-amber-400 transition-colors text-2xl leading-none">&larr;</Link>
+                        <Link title="Homepage" to="/" className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none">&larr;</Link>
                         <div className="flex items-center gap-4 flex-1">
                             <h1 itemProp="headline" className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">Band Story</h1>
                             <div className="flex-1 h-px bg-zinc-800" />
@@ -100,7 +100,7 @@ const Main = () => {
 
                     <div className="mb-16">
                         <div className="flex items-center gap-4 mb-6">
-                            <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">Lineup</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">Lineup</p>
                             <div className="flex-1 h-px bg-zinc-800/60" />
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
@@ -112,7 +112,7 @@ const Main = () => {
                             ].map(({ name, role }) => (
                                 <div key={name} className="border-l-2 border-amber-400/30 pl-4 py-3">
                                     <p className="font-bold text-sm text-zinc-100">{name}</p>
-                                    <p className="text-xs uppercase tracking-widest text-zinc-500 mt-0.5">{role}</p>
+                                    <p className="text-xs uppercase tracking-widest text-zinc-400 mt-0.5">{role}</p>
                                 </div>
                             ))}
                         </div>
@@ -120,7 +120,7 @@ const Main = () => {
 
                     <div className="mb-8">
                         <div className="flex items-center gap-4 mb-4">
-                            <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 whitespace-nowrap">Links</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">Links</p>
                             <div className="flex-1 h-px bg-zinc-800/60" />
                         </div>
                         <div className="max-w-sm">
