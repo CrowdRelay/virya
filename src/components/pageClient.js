@@ -31,10 +31,10 @@ const PageClient = ({ landing, portfolio, music, shows, contact }) => {
             </header>
             <Layout>
                 <ScrollToTop smooth />
-                <section ref={portfolioRef}>{portfolio}</section>
-                <section ref={musicRef}>{music}</section>
-                <section ref={showsRef}>{shows}</section>
-                <section ref={contactRef}>{contact}</section>
+                <section ref={portfolioRef} className="scroll-mt-20">{portfolio}</section>
+                <section ref={musicRef} className="scroll-mt-20">{music}</section>
+                <section ref={showsRef} className="scroll-mt-20">{shows}</section>
+                <section ref={contactRef} className="scroll-mt-20">{contact}</section>
             </Layout>
         </>
     )

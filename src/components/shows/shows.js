@@ -31,9 +31,13 @@ const Shows = memo(() => {
 
     useEffect(() => {
         let cancelled = false
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 8000)
+
         const fetchShows = async () => {
             try {
-                const res = await fetch(API_URL)
+                const res = await fetch(API_URL, { signal: controller.signal })
+                clearTimeout(timeoutId)
                 if (!res.ok) {
                     if (!cancelled) setShows([])
                     return
@@ -44,11 +48,16 @@ const Shows = memo(() => {
                 }
             } catch {
             } finally {
+                clearTimeout(timeoutId)
                 if (!cancelled) setLoading(false)
             }
         }
         fetchShows()
-        return () => { cancelled = true }
+        return () => {
+            cancelled = true
+            controller.abort()
+            clearTimeout(timeoutId)
+        }
     }, [])
 
     return (
