@@ -2,9 +2,8 @@
 import React, { memo, useState, useEffect } from 'react'
 import ShowItem from './show'
 
-const ARTIST_ID = 'id_15587796'
 const APP_ID = '3cfcaea901e7597c0e1b683b76a2a134'
-const API_URL = `https://rest.bandsintown.com/artists/${ARTIST_ID}/events?app_id=${APP_ID}`
+const API_URL = `https://rest.bandsintown.com/artists/virya/events?app_id=${APP_ID}`
 
 const normalizeEvent = (event) => {
     if (!event) return null
