@@ -12,6 +12,7 @@
         "gatsby-plugin-image": "latest",
         "gatsby-plugin-manifest": "latest",
         "gatsby-plugin-postcss": "latest",
+        "gatsby-plugin-offline": "latest",
         "gatsby-plugin-sitemap": "latest",
         "gatsby-plugin-sharp": "latest",
         "gatsby-source-filesystem": "latest",

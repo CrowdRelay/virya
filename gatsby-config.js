@@ -14,9 +14,7 @@ module.exports = {
   },
   flags: {
     PARALLEL_SOURCING: true,
-    PARTIAL_HYDRATION: true,
     PRESERVE_FILE_DOWNLOAD_CACHE: true,
-    SLICES: true,
   },
   plugins: [
     {
@@ -37,6 +35,7 @@ module.exports = {
     `gatsby-plugin-sharp`,
     `gatsby-transformer-sharp`,
     `gatsby-plugin-postcss`,
+    `gatsby-plugin-offline`,
     `gatsby-plugin-sitemap`,
     {
       resolve: `gatsby-plugin-manifest`,
