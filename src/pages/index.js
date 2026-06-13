@@ -1,3 +1,4 @@
+"use client"
 import React from "react"
 import Landing from '../components/landing'
 import Contact from "../components/contact"
