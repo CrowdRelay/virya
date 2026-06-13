@@ -1,3 +1,4 @@
+"use client"
 import React, { memo, useMemo } from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
 import PortfolioItem from './item'
@@ -31,13 +32,16 @@ const Portfolio = memo(() => {
     ), [pictures])
 
     return (
-        <div className="bg-stone-900 py-8 lg:px-8 lg:rounded-b-2xl">
-            <div className="text-center mb-8 mx-4">
-                <p className="text-4xl font-bold leading-tight my-4">Portfolio</p>
-                <p className="italic w-full my-4">Check out our recent releases</p>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 overflow-hidden relative my-8">
-                    {portfolioItems}
+        <div className="py-16 lg:px-8 border-t border-zinc-800/60">
+            <div className="mx-4 mb-6">
+                <div className="flex items-center gap-4 mb-2">
+                    <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">Portfolio</p>
+                    <div className="flex-1 h-px bg-zinc-800" />
                 </div>
+                <p className="text-zinc-500 text-xs uppercase tracking-widest">Recent releases</p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 overflow-hidden mx-4">
+                {portfolioItems}
             </div>
         </div>
     )

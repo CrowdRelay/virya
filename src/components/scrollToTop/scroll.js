@@ -38,7 +38,7 @@ export const ScrollToTop = memo(({
   return (
     <button
       aria-label="Scroll to top"
-      className="z-20 scroll-to-top right-6 bottom-6 p-1 w-12 h-12 scroll-to-top-small lg:scroll-to-top-big bg-amber-200 hover:bg-amber-100 text-gray-800 border-2 border-gray-800 rounded-full"
+      className="z-20 scroll-to-top right-6 bottom-6 p-2 w-11 h-11 scroll-to-top-small lg:scroll-to-top-big bg-amber-400 hover:bg-amber-300 text-black transition-colors duration-200"
       onClick={handleClick}
     >
       <svg fill="#1f2936" viewBox={viewBox}>

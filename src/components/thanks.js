@@ -1,3 +1,4 @@
+"use client"
 import React, { memo } from 'react'
 
 const CheckIcon = () => (
@@ -49,7 +50,7 @@ const Message = () => (
 )
 
 export const Thanks = memo(({ displayThanks }) => (
-  <div className="fixed top-20 right-0.5 shadow-xl lg:top-24 lg:right-4 flex justify-center items-center m-1 font-medium py-1 px-2 rounded-md text-gray-800 bg-amber-200 border border-amber-300">
+  <div className="fixed top-20 right-2 shadow-2xl lg:top-24 lg:right-4 flex justify-center items-center m-1 font-medium py-2 px-3 text-black bg-amber-400 border border-amber-300">
     <div slot="avatar">
       <CheckIcon />
     </div>

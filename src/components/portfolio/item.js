@@ -1,22 +1,23 @@
+"use client"
 import { GatsbyImage, getImage } from 'gatsby-plugin-image'
 import React, { memo, useMemo } from 'react'
 
-const Button = memo(({ title, href, children }) => (
-  <a title={title} href={href} rel="noreferrer" target="_blank">
-    <button className="lg:px-6 mx-2 py-2 my-8 btn-outline-primary transition duration-500 ease-in-out focus:outline-none focus:shadow-outline border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal px-4 rounded">
+const Button = memo(({ href, children }) => (
+  <a href={href} rel="noreferrer" target="_blank">
+    <button className="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200">
       {children}
     </button>
   </a>
 ))
 
 const Overlay = memo(({ title, text, link, watch, buy }) => (
-  <div className="z-10 transform ease-in-out rounded-xl absolute inset-0 bg-black opacity-0 group-hover:opacity-75 place-items-center justify-center flex flex-col flex-grow-1 px-4 py-4 cursor-pointer">
-    <h2 className="text-lg lg:text-2xl mb-2">{title}</h2>
-    <p className="text-center leading-normal">{text}</p>
-    <div>
-      <Button title="Listen" href={link}>Listen</Button>
-      {watch && <Button title="Watch" href={watch}>Watch</Button>}
-      {buy && <Button title="Buy" href={buy}>Buy</Button>}
+  <div className="z-10 absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out px-4 pt-12 pb-5">
+    <h2 className="text-sm lg:text-base font-black uppercase tracking-wide leading-tight mb-1">{title}</h2>
+    <p className="text-xs text-zinc-400 leading-snug mb-3 line-clamp-2">{text}</p>
+    <div className="flex gap-2 flex-wrap">
+      {link && <Button href={link}>Listen</Button>}
+      {watch && <Button href={watch}>Watch</Button>}
+      {buy && <Button href={buy}>Buy</Button>}
     </div>
   </div>
 ))
@@ -27,12 +28,12 @@ const PortfolioItem = memo(({ item, pictures }) => {
   ), [pictures, item])
 
   return (
-    <div className="relative group block">
+    <div className="relative group block overflow-hidden">
       <Overlay {...item} />
       {matchingPicture && (
-        <GatsbyImage 
-          image={getImage(matchingPicture)} 
-          className="rounded-xl" 
+        <GatsbyImage
+          image={getImage(matchingPicture)}
+          className="block w-full"
           alt={item.alt}
           loading='lazy'
           title={item.title}

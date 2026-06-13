@@ -13,6 +13,13 @@ const normalizeEvent = (event) => ({
     tickets: event.offers?.find(o => o.type === 'Tickets')?.url || null
 })
 
+const SkeletonRow = () => (
+    <div className="border-l-2 border-zinc-700/50 pl-4 py-4 bg-zinc-900/30">
+        <div className="h-4 w-2/3 bg-zinc-700/50 animate-pulse mb-2" />
+        <div className="h-3 w-1/4 bg-zinc-800/50 animate-pulse" />
+    </div>
+)
+
 const Shows = memo(() => {
     const [shows, setShows] = useState([])
     const [loading, setLoading] = useState(true)
@@ -37,15 +44,18 @@ const Shows = memo(() => {
     }, [])
 
     return (
-        <div className="bg-stone-900 py-8 lg:px-8 lg:rounded-b-2xl">
-            <div className="text-center mb-8 mx-4">
-                <p className="text-4xl font-bold leading-tight my-4">Shows</p>
-                <p className="italic w-full my-4">Make sure you're not missing out our upcoming shows</p>
-                <div className="grid grid-cols-1 gap-4 overflow-hidden relative my-8">
+        <div className="py-16 lg:px-8 border-t border-zinc-800/60">
+            <div className="mx-4">
+                <div className="flex items-center gap-4 mb-2">
+                    <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">Shows</p>
+                    <div className="flex-1 h-px bg-zinc-800" />
+                </div>
+                <p className="text-zinc-500 text-xs uppercase tracking-widest mb-8">Upcoming live dates</p>
+                <div className="flex flex-col gap-1.5">
                     {loading ? (
-                        <p className="text-stone-400 italic">Loading upcoming shows...</p>
+                        <><SkeletonRow /><SkeletonRow /><SkeletonRow /></>
                     ) : shows.length === 0 ? (
-                        <p className="text-stone-400 italic">No upcoming shows at the moment.</p>
+                        <p className="text-zinc-600 text-xs uppercase tracking-widest border-l-2 border-zinc-800 pl-4 py-4">No upcoming shows at the moment.</p>
                     ) : (
                         shows.map((item, index) => (
                             <ShowItem key={index} item={item} />

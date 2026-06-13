@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from "react"
 import { Thanks } from './thanks';
 
@@ -54,7 +55,7 @@ const Contact = () => {
     const { message, name, email, honeypot } = formData;
 
     return (
-        <div className="bg-stone-900 py-8 lg:px-8 lg:rounded-t-full">
+        <div className="py-16 lg:px-8 border-t border-zinc-800/60">
             <form name="contact" method="POST" netlify="true" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
                 <input type="hidden" name="form-name" value="contact" />
                 <p className="hidden">
@@ -65,44 +66,48 @@ const Contact = () => {
                             value={honeypot} />
                     </label>
                 </p>
-                <h2 className="text-center text-4xl font-bold leading-tight my-4">Send a message</h2>
+                <div className="flex items-center gap-4 mb-2">
+                    <h2 className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">Send a message</h2>
+                    <div className="flex-1 h-px bg-zinc-800" />
+                </div>
+                <p className="text-zinc-500 text-xs uppercase tracking-widest mb-8">We read every message</p>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
                         <div className="mt-8 px-4">
-                            <label htmlFor="name" className="uppercase text-sm font-bold">Name</label>
+                            <label htmlFor="name" className="uppercase text-xs font-semibold tracking-widest text-zinc-400">Name</label>
                             <input
                                 id="name"
                                 name="name"
                                 type="text"
                                 onChange={handleChange}
                                 value={name}
-                                className="w-full bg-stone-300 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline" />
+                                className="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors" />
                         </div>
                         <div className="mt-8 px-4">
-                            <label htmlFor="email" className="uppercase text-sm font-bold">Email</label>
+                            <label htmlFor="email" className="uppercase text-xs font-semibold tracking-widest text-zinc-400">Email</label>
                             <input
                                 id="email"
                                 name="email"
                                 type="email"
                                 onChange={handleChange}
                                 value={email}
-                                className="w-full bg-stone-300 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline" />
+                                className="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors" />
                         </div>
                         <div className="mt-8 px-4">
-                            <label htmlFor="message" className="uppercase text-sm font-bold">Message</label>
+                            <label htmlFor="message" className="uppercase text-xs font-semibold tracking-widest text-zinc-400">Message</label>
                             <textarea
                                 id="message"
                                 name="message"
                                 onChange={handleChange}
                                 value={message}
-                                className="w-full h-32 bg-stone-300 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline" />
+                                className="w-full h-32 bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors resize-none" />
                         </div>
                         <div className="mt-8 px-4 mb-8">
                             <button
                                 id="sendMessage"
                                 type="submit"
                                 disabled={message.length === 0 || name.length === 0 || email.length === 0}
-                                className="disabled:opacity-30 text-lg uppercase btn-primary bg-amber-200 text-gray-800 transition duration-500 ease-in-out focus:outline-none w-full focus:shadow-outline cursor-pointer hover:bg-amber-100 font-normal py-2 px-4 rounded-lg">
+                                className="disabled:opacity-30 disabled:cursor-not-allowed w-full bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-sm py-3 px-4 transition-all duration-200 outline-none">
                                 Send
                             </button>
                         </div>
