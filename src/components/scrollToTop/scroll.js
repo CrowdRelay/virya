@@ -6,15 +6,13 @@ export const handleScroll = ref => {
   window.scrollTo({ behavior: 'smooth', top: ref.offsetTop })
 };
 
-const toTop = React.memo((smooth = false) => {
+const toTop = (smooth = false) => {
   if (smooth) {
-    window.scrollTo({
-      top: 0,
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
     document.documentElement.scrollTop = 0;
   }
-});
+};
 
 export const ScrollToTop = memo(({
   top = 20,
