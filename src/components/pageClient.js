@@ -4,6 +4,11 @@ import Navbar from './nav'
 import MainText from './mainText'
 import Layout from './layout'
 import { handleScroll, ScrollToTop } from './scrollToTop/scroll'
+import Landing from './landing'
+import Portfolio from './portfolio/portfolio'
+import Spotify from './spotify/spotify'
+import Shows from './shows/shows'
+import Contact from './contact'
 
 const ScrollArrows = memo(({ onClick }) => (
     <svg onClick={onClick} className="arrows cursor-pointer">
@@ -13,7 +18,7 @@ const ScrollArrows = memo(({ onClick }) => (
     </svg>
 ))
 
-const PageClient = ({ landing, portfolio, music, shows, contact }) => {
+const PageClient = () => {
     const portfolioRef = useRef(null)
     const musicRef = useRef(null)
     const showsRef = useRef(null)
@@ -24,17 +29,17 @@ const PageClient = ({ landing, portfolio, music, shows, contact }) => {
     return (
         <>
             <header className="header relative lg:overflow-hidden min-h-screen flex flex-col">
-                {landing}
+                <Landing />
                 <Navbar displayLinks={true} portfolioRef={portfolioRef} musicRef={musicRef} showsRef={showsRef} contactRef={contactRef} />
                 <MainText contactRef={contactRef} />
                 <ScrollArrows onClick={scrollToPortfolio} />
             </header>
             <Layout>
                 <ScrollToTop smooth />
-                <section ref={portfolioRef} className="scroll-mt-20">{portfolio}</section>
-                <section ref={musicRef} className="scroll-mt-20">{music}</section>
-                <section ref={showsRef} className="scroll-mt-20">{shows}</section>
-                <section ref={contactRef} className="scroll-mt-20">{contact}</section>
+                <section ref={portfolioRef} className="scroll-mt-20"><Portfolio /></section>
+                <section ref={musicRef} className="scroll-mt-20"><Spotify /></section>
+                <section ref={showsRef} className="scroll-mt-20"><Shows /></section>
+                <section ref={contactRef} className="scroll-mt-20"><Contact /></section>
             </Layout>
         </>
     )

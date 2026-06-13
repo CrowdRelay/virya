@@ -1,21 +1,7 @@
-"use client"
 import React from "react"
-import Landing from '../components/landing'
-import Contact from "../components/contact"
-import Portfolio from "../components/portfolio/portfolio"
-import Shows from "../components/shows/shows"
-import Spotify from "../components/spotify/spotify"
 import PageClient from "../components/pageClient"
 
-const Main = () => (
-    <PageClient
-        landing={<Landing />}
-        portfolio={<Portfolio />}
-        music={<Spotify />}
-        shows={<Shows />}
-        contact={<Contact />}
-    />
-)
+const Main = () => <PageClient />
 
 const metaTags = {
     title: 'Virya | Modern metalcore from Poland',
