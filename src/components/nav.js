@@ -7,7 +7,7 @@ import { Link } from 'gatsby'
 const NavLink = memo(({ onClick, title, children }) => (
   <button
     onClick={onClick}
-    className="cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400"
+    className="cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400"
     title={title}
   >
     <span>{children}</span>
@@ -51,7 +51,7 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
   return (
     <nav aria-label="Main navigation" style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
       <div className="container mx-auto flex items-center">
-        <div className="flex-1 flex lg:visible items-center">
+        <div className="hidden lg:flex flex-1 items-center">
             <Link title="Homepage" className="flex" to="/">
                 <StaticImage
                     src="../images/virya.webp"
@@ -70,7 +70,7 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
             {displayLinks && (
               <>
                 <Link to="/band"
-                  className="cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400"
+                  className="cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400"
                 >
                   Band
                 </Link>
