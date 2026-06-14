@@ -1,5 +1,4 @@
-const APP_ID =
-  process.env.BANDSINTOWN_APP_ID || "3cfcaea901e7597c0e1b683b76a2a134"
+const APP_ID = process.env.BANDSINTOWN_APP_ID
 
 export default async function handler(req, res) {
   try {
