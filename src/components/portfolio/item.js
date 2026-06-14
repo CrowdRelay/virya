@@ -41,23 +41,11 @@ const PortfolioItem = memo(({ item, pictures }) => {
   )
 
   return (
-    <div className="flex flex-col">
-      <div className="relative group block overflow-hidden">
-        <div className="hidden lg:block">
-          <Overlay {...item} />
-        </div>
-        {matchingPicture && (
-          <GatsbyImage
-            image={getImage(matchingPicture)}
-            className="block w-full"
-            alt={item.alt}
-            loading="lazy"
-            title={item.title}
-            sizes="(min-width: 1024px) 33vw, 100vw"
-          />
-        )}
+    <div className="relative group block overflow-hidden">
+      <div className="hidden lg:block">
+        <Overlay {...item} />
       </div>
-      <div className="lg:hidden px-3 py-3 bg-gradient-to-b from-black to-zinc-950">
+      <div className="lg:hidden z-10 absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent px-4 pt-12 pb-5">
         <h2 className="text-sm font-black uppercase tracking-wide leading-tight text-zinc-100 mb-2">
           {item.title}
         </h2>
@@ -74,6 +62,16 @@ const PortfolioItem = memo(({ item, pictures }) => {
           )}
         </div>
       </div>
+      {matchingPicture && (
+        <GatsbyImage
+          image={getImage(matchingPicture)}
+          className="block w-full"
+          alt={item.alt}
+          loading="lazy"
+          title={item.title}
+          sizes="(min-width: 1024px) 33vw, 100vw"
+        />
+      )}
     </div>
   )
 })
