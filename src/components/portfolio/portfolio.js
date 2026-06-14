@@ -12,6 +12,7 @@ const Portfolio = memo(() => {
                 relativePath
                 childImageSharp {
                     gatsbyImageData(
+                      width: 760
                       placeholder: BLURRED
                       formats: [AUTO, WEBP, AVIF]
                     )
