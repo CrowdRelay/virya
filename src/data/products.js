@@ -4,7 +4,7 @@
 // every amount from this file, so prices can never be tampered with from the browser.
 //
 // Prices are in PLN (whole złoty). Edit them here; nothing else needs to change.
-// BLIK / Przelewy24 require PLN, so keep the currency as "pln".
+// BLIK require PLN, so keep the currency as "pln".
 
 export const CURRENCY = "pln"
 

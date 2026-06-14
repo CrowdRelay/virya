@@ -90,7 +90,7 @@ const Storefront = () => {
               ],
               [
                 "Payments",
-                "BLIK, Google Pay, Przelewy24 and cards — securely via Stripe.",
+                "BLIK, Google Pay, Revolut Pay and cards — securely via Stripe.",
               ],
               [
                 "Free stickers",

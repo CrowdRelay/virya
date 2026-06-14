@@ -238,7 +238,7 @@ const CartDrawer = () => {
               {loading ? "Redirecting…" : "Pay with Stripe"}
             </button>
             <p className="text-[10px] text-zinc-600 text-center uppercase tracking-widest">
-              BLIK · Google Pay · Przelewy24 · Card
+              BLIK · Google Pay · Revolut Pay · Card
             </p>
           </div>
         )}
