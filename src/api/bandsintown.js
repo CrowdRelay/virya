@@ -1,9 +1,7 @@
-const APP_ID = process.env.BANDSINTOWN_APP_ID
-
 export default async function handler(req, res) {
   try {
     const response = await fetch(
-      `https://rest.bandsintown.com/artists/virya/events?app_id=${APP_ID}`
+      `https://rest.bandsintown.com/artists/virya/events?app_id=${process.env.BANDSINTOWN_APP_ID}`
     )
     if (!response.ok) {
       res.status(response.status).json([])
