@@ -18,9 +18,14 @@ export const createInpostShipment = async ({ session }) => {
     }
   }
 
+  const meta = session.metadata || {}
+  // Digital/test orders have no Paczkomat — nothing to ship.
+  if (!meta.paczkomat_code) {
+    return { skipped: true, reason: "no paczkomat (non-shipping order)" }
+  }
+
   const base =
     BASE_URLS[process.env.INPOST_ENV === "sandbox" ? "sandbox" : "production"]
-  const meta = session.metadata || {}
   const customer = session.customer_details || {}
 
   const body = {

@@ -1,12 +1,43 @@
 "use client"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useCallback } from "react"
 
-// InPost Geowidget v5. The map renders as a custom element <inpost-geowidget>
-// and emits an "onpoint" CustomEvent when the user picks a locker.
+// InPost Geowidget v5. The map renders as a custom element <inpost-geowidget>.
+// IMPORTANT: the "Wybierz"/select button only becomes active when the widget can
+// hand the chosen point back to a GLOBAL callback whose name is given in the
+// `onpoint` attribute. (Listening for an "onpoint" DOM event alone leaves the
+// select button disabled.) So we expose a stable global function here and route
+// it to the currently-mounted component.
 // Docs: https://docs.inpost.pl/ (Geowidget v5)
 const SCRIPT_SRC = "https://geowidget.inpost.pl/inpost-geowidget.js"
 const STYLE_HREF = "https://geowidget.inpost.pl/inpost-geowidget.css"
 const TOKEN = process.env.GATSBY_INPOST_GEOWIDGET_TOKEN || ""
+const CALLBACK_NAME = "viryaAfterPointSelected"
+
+// Module-level handler the global callback forwards to. Set while the picker is mounted.
+let activeHandler = null
+
+const normalizePoint = p => {
+  if (!p) return null
+  const address = p.address
+    ? [p.address.line1, p.address.line2].filter(Boolean).join(", ")
+    : p.address_details
+    ? `${p.address_details.street || ""} ${
+        p.address_details.building_number || ""
+      }, ${p.address_details.city || ""}`.trim()
+    : ""
+  return {
+    code: p.name || p.id || "",
+    description: p.location_description || p.location_description_1 || "",
+    address,
+  }
+}
+
+// Register the global callback the widget invokes when "Wybierz" is clicked.
+if (typeof window !== "undefined") {
+  window[CALLBACK_NAME] = point => {
+    if (activeHandler) activeHandler(point)
+  }
+}
 
 // Inject the widget's script + stylesheet once per page load.
 const ensureAssets = () => {
@@ -27,40 +58,34 @@ const ensureAssets = () => {
 
 const InpostGeowidget = ({ open, onClose, onSelect }) => {
   const hostRef = useRef(null)
-  const [ready, setReady] = useState(false)
+
+  const handlePoint = useCallback(
+    point => {
+      const normalized = normalizePoint(point)
+      if (!normalized || !normalized.code) return
+      onSelect(normalized)
+      onClose()
+    },
+    [onSelect, onClose]
+  )
 
   useEffect(() => {
     if (!open) return
     ensureAssets()
-    setReady(true)
   }, [open])
 
-  // Bind the "onpoint" selection event to the custom element.
+  // Route the global callback (and a fallback DOM event) to this instance.
   useEffect(() => {
-    if (!open || !ready) return
+    if (!open) return
+    activeHandler = handlePoint
     const host = hostRef.current
-    if (!host) return
-
-    const handlePoint = e => {
-      const p = e.detail || {}
-      const address = p.address
-        ? [p.address.line1, p.address.line2].filter(Boolean).join(", ")
-        : p.address_details
-        ? `${p.address_details.street || ""} ${
-            p.address_details.building_number || ""
-          }, ${p.address_details.city || ""}`.trim()
-        : ""
-      onSelect({
-        code: p.name || p.id || "",
-        description: p.location_description || p.location_description_1 || "",
-        address,
-      })
-      onClose()
+    const onEvent = e => handlePoint(e.detail)
+    if (host) host.addEventListener("onpoint", onEvent)
+    return () => {
+      if (activeHandler === handlePoint) activeHandler = null
+      if (host) host.removeEventListener("onpoint", onEvent)
     }
-
-    host.addEventListener("onpoint", handlePoint)
-    return () => host.removeEventListener("onpoint", handlePoint)
-  }, [open, ready, onSelect, onClose])
+  }, [open, handlePoint])
 
   // Lock body scroll while the modal is open.
   useEffect(() => {
@@ -105,6 +130,7 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
               token={TOKEN}
               language="pl"
               config="parcelCollect"
+              onpoint={CALLBACK_NAME}
               style={{ width: "100%", height: "100%", display: "block" }}
             />
           ) : (

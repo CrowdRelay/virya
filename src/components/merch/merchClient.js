@@ -48,7 +48,8 @@ const Storefront = () => {
       <header className="header relative lg:overflow-hidden">
         <Navbar displayLinks={false} />
       </header>
-      <ScrollToTop smooth />
+      {/* Lifted above the cart button so they don't overlap. */}
+      <ScrollToTop smooth positionClassName="right-6 bottom-24" />
 
       <div className="pt-20 lg:container lg:mx-auto">
         <div className="px-6 lg:px-12 py-12">

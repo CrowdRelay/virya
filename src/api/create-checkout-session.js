@@ -4,6 +4,7 @@ import {
   SHIPPING_PLN,
   getProduct,
   toMinorUnits,
+  productRequiresShipping,
 } from "../data/products"
 
 const MAX_QTY = 20
@@ -34,19 +35,17 @@ export default async function handler(req, res) {
     res.status(400).json({ error: "Your cart is empty." })
     return
   }
-  if (!point || !point.code) {
-    res.status(400).json({ error: "Please choose an InPost Paczkomat." })
-    return
-  }
 
   // Recompute every line from the trusted catalog — never trust client prices.
   const lineItems = []
+  let needsShipping = false
   for (const item of items) {
     const product = getProduct(item?.id)
     if (!product) {
       res.status(400).json({ error: `Unknown product: ${item?.id}` })
       return
     }
+    if (productRequiresShipping(product)) needsShipping = true
     const qty = Number.parseInt(item.qty, 10)
     if (!Number.isFinite(qty) || qty < 1 || qty > MAX_QTY) {
       res.status(400).json({ error: `Invalid quantity for ${product.name}.` })
@@ -72,15 +71,21 @@ export default async function handler(req, res) {
     })
   }
 
-  // InPost delivery as its own line item (reliable in Checkout totals).
-  lineItems.push({
-    price_data: {
-      currency: CURRENCY,
-      unit_amount: toMinorUnits(SHIPPING_PLN),
-      product_data: { name: "InPost Paczkomat delivery" },
-    },
-    quantity: 1,
-  })
+  // Physical orders require a Paczkomat + a delivery line; digital/test ones don't.
+  if (needsShipping) {
+    if (!point || !point.code) {
+      res.status(400).json({ error: "Please choose an InPost Paczkomat." })
+      return
+    }
+    lineItems.push({
+      price_data: {
+        currency: CURRENCY,
+        unit_amount: toMinorUnits(SHIPPING_PLN),
+        product_data: { name: "InPost Paczkomat delivery" },
+      },
+      quantity: 1,
+    })
+  }
 
   // Compact, human-readable order summary stored on the session for the
   // confirmation email (Stripe metadata values cap at 500 chars).
@@ -104,8 +109,9 @@ export default async function handler(req, res) {
       phone_number_collection: { enabled: true },
       billing_address_collection: "auto",
       metadata: {
-        paczkomat_code: point.code,
-        paczkomat_address: (point.address || "").slice(0, 480),
+        paczkomat_code: needsShipping && point ? point.code : "",
+        paczkomat_address:
+          needsShipping && point ? (point.address || "").slice(0, 480) : "",
         order_summary: summary,
         free_stickers: "yes",
       },

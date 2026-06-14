@@ -1,17 +1,17 @@
 "use client"
-import React, { memo } from 'react'
+import React, { memo } from "react"
 
 const CheckIcon = () => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="100%" 
-    height="100%" 
-    fill="none" 
-    viewBox="0 0 24 24" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="100%"
+    height="100%"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     className="feather feather-check-circle w-5 h-5 mx-2"
   >
     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -20,22 +20,27 @@ const CheckIcon = () => (
 )
 
 const CloseIcon = ({ onClick }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="100%" 
-    height="100%" 
-    fill="none" 
-    viewBox="0 0 24 24" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round"
+  <button
+    type="button"
     onClick={onClick}
-    className="feather feather-x cursor-pointer hover:text-amber-200 rounded-full w-5 h-5 ml-2"
+    aria-label="Dismiss notification"
+    className="ml-2 hover:text-amber-200 transition-colors"
   >
-    <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>
-  </svg>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="feather feather-x w-5 h-5"
+    >
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
 )
 
 const Message = () => (
@@ -50,7 +55,11 @@ const Message = () => (
 )
 
 export const Thanks = memo(({ displayThanks }) => (
-  <div className="fixed top-20 right-2 shadow-2xl lg:top-24 lg:right-4 flex justify-center items-center m-1 font-medium py-2 px-3 text-black bg-amber-400 border border-amber-300">
+  <div
+    role="status"
+    aria-live="polite"
+    className="fixed top-20 right-2 shadow-2xl lg:top-24 lg:right-4 flex justify-center items-center m-1 font-medium py-2 px-3 text-black bg-amber-400 border border-amber-300"
+  >
     <div slot="avatar">
       <CheckIcon />
     </div>

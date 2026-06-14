@@ -16,8 +16,17 @@ const QtyButton = ({ children, onClick, label }) => (
 )
 
 const CartDrawer = () => {
-  const { lines, open, setOpen, subtotal, shipping, total, setQty, remove } =
-    useCart()
+  const {
+    lines,
+    open,
+    setOpen,
+    subtotal,
+    shipping,
+    needsShipping,
+    total,
+    setQty,
+    remove,
+  } = useCart()
   const images = useMerchImages()
   const [point, setPoint] = useState(null)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -26,7 +35,7 @@ const CartDrawer = () => {
 
   const checkout = useCallback(async () => {
     setError("")
-    if (!point) {
+    if (needsShipping && !point) {
       setError("Choose a Paczkomat for delivery first.")
       return
     }
@@ -37,7 +46,7 @@ const CartDrawer = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: lines.map(l => ({ id: l.id, size: l.size, qty: l.qty })),
-          point,
+          point: needsShipping ? point : null,
         }),
       })
       const data = await res.json()
@@ -47,7 +56,7 @@ const CartDrawer = () => {
       setError(e.message || "Something went wrong. Please try again.")
       setLoading(false)
     }
-  }, [lines, point])
+  }, [lines, point, needsShipping])
 
   return (
     <>
@@ -158,38 +167,40 @@ const CartDrawer = () => {
         {lines.length > 0 && (
           <div className="border-t border-zinc-800 px-5 py-4 space-y-4">
             {/* Delivery */}
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
-                InPost Paczkomat delivery
-              </p>
-              {point ? (
-                <div className="flex items-start justify-between gap-3 border border-zinc-800 px-3 py-2">
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-amber-400">
-                      {point.code}
-                    </p>
-                    {point.address && (
-                      <p className="text-[11px] text-zinc-400 truncate">
-                        {point.address}
+            {needsShipping && (
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
+                  InPost Paczkomat delivery
+                </p>
+                {point ? (
+                  <div className="flex items-start justify-between gap-3 border border-zinc-800 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-amber-400">
+                        {point.code}
                       </p>
-                    )}
+                      {point.address && (
+                        <p className="text-[11px] text-zinc-400 truncate">
+                          {point.address}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setPickerOpen(true)}
+                      className="text-[10px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 whitespace-nowrap"
+                    >
+                      Change
+                    </button>
                   </div>
+                ) : (
                   <button
                     onClick={() => setPickerOpen(true)}
-                    className="text-[10px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 whitespace-nowrap"
+                    className="w-full text-xs font-bold uppercase tracking-widest py-2.5 border border-zinc-700 text-zinc-200 hover:border-amber-400 hover:text-amber-400 transition-colors"
                   >
-                    Change
+                    Choose Paczkomat
                   </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setPickerOpen(true)}
-                  className="w-full text-xs font-bold uppercase tracking-widest py-2.5 border border-zinc-700 text-zinc-200 hover:border-amber-400 hover:text-amber-400 transition-colors"
-                >
-                  Choose Paczkomat
-                </button>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Totals */}
             <div className="space-y-1 text-sm">
@@ -199,12 +210,14 @@ const CartDrawer = () => {
                 </span>
                 <span>{subtotal} PLN</span>
               </div>
-              <div className="flex justify-between text-zinc-400">
-                <span className="text-xs uppercase tracking-widest">
-                  Delivery
-                </span>
-                <span>{shipping} PLN</span>
-              </div>
+              {needsShipping && (
+                <div className="flex justify-between text-zinc-400">
+                  <span className="text-xs uppercase tracking-widest">
+                    Delivery
+                  </span>
+                  <span>{shipping} PLN</span>
+                </div>
+              )}
               <div className="flex justify-between text-zinc-100 font-black pt-2 border-t border-zinc-800 mt-2">
                 <span className="text-xs uppercase tracking-widest">Total</span>
                 <span>{total} PLN</span>

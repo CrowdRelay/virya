@@ -77,9 +77,26 @@ export const PRODUCTS = [
     sizes: null,
     blurb: "Heavy-duty tote with the Virya crest. Carry the catharsis.",
   },
+  {
+    id: "test-2pln",
+    name: "Test Item (2 PLN)",
+    type: "test",
+    price: 2,
+    front: "merch/virya shirt front.webp",
+    back: null,
+    sizes: null,
+    requiresShipping: false,
+    // 2 PLN is Stripe's minimum charge for PLN (anything below is rejected).
+    blurb:
+      "Temporary test product for verifying checkout — 2 PLN, no delivery cost.",
+  },
 ]
 
 export const getProduct = id => PRODUCTS.find(p => p.id === id)
+
+// Physical goods need InPost delivery; digital/test items don't.
+export const productRequiresShipping = product =>
+  !!product && product.requiresShipping !== false
 
 // Stripe expects the amount in the smallest currency unit (grosze).
 export const toMinorUnits = pln => Math.round(pln * 100)

@@ -7,7 +7,11 @@ import React, {
   useCallback,
   useMemo,
 } from "react"
-import { getProduct, SHIPPING_PLN } from "../../data/products"
+import {
+  getProduct,
+  SHIPPING_PLN,
+  productRequiresShipping,
+} from "../../data/products"
 
 const STORAGE_KEY = "virya-cart-v1"
 const CartContext = createContext(null)
@@ -99,7 +103,12 @@ export const CartProvider = ({ children }) => {
     () => detailed.reduce((s, l) => s + l.lineTotal, 0),
     [detailed]
   )
-  const shipping = detailed.length ? SHIPPING_PLN : 0
+  // Delivery (and a Paczkomat) is only needed when the cart holds a physical item.
+  const needsShipping = useMemo(
+    () => detailed.some(l => productRequiresShipping(l.product)),
+    [detailed]
+  )
+  const shipping = needsShipping ? SHIPPING_PLN : 0
   const total = subtotal + shipping
 
   const value = useMemo(
@@ -108,6 +117,7 @@ export const CartProvider = ({ children }) => {
       count,
       subtotal,
       shipping,
+      needsShipping,
       total,
       open,
       setOpen,
@@ -121,6 +131,7 @@ export const CartProvider = ({ children }) => {
       count,
       subtotal,
       shipping,
+      needsShipping,
       total,
       open,
       add,
