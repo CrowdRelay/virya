@@ -34,14 +34,18 @@ const Contact = () => {
 
     const handleSubmit = e => {
         e.preventDefault();
-        fetch("/", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: encode({
-                "form-name": "contact",
-                ...formData
+        Promise.all([
+            fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: encode({ "form-name": "contact", ...formData })
+            }),
+            fetch("/api/contact", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, message })
             })
-        }).then(() => {
+        ]).then(() => {
             resetForm();
             setDisplayThanks(true);
             const timer = setTimeout(() => setDisplayThanks(false), 5000);
