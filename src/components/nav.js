@@ -71,8 +71,8 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
   return (
     <nav aria-label="Main navigation" style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
       <div className="container mx-auto flex items-center">
-        {/* Logo — desktop only */}
-        <div className="hidden lg:flex flex-1 items-center">
+        {/* Logo */}
+        <div className="flex flex-1 items-center">
           <Link title="Homepage" className="flex" to="/">
             <StaticImage
               src="../images/virya.webp"
@@ -102,7 +102,7 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
         </div>
 
         {/* Mobile: Merch + hamburger */}
-        <div className="flex lg:hidden items-center justify-between w-full">
+        <div className="flex lg:hidden items-center gap-2">
           <Link
             to="/merch"
             className="px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors"
