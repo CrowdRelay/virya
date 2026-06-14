@@ -22,8 +22,8 @@ export default async function handler(req, res) {
   }
 
   const text = [
-    "NEW VIRYA CONTACT MESSAGE",
-    "==========================",
+    "NEW virya.music MESSAGE",
+    "=======================",
     "",
     `From:     ${name} <${email}>`,
     "",
