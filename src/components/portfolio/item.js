@@ -41,18 +41,39 @@ const PortfolioItem = memo(({ item, pictures }) => {
   )
 
   return (
-    <div className="relative group block overflow-hidden">
-      <Overlay {...item} />
-      {matchingPicture && (
-        <GatsbyImage
-          image={getImage(matchingPicture)}
-          className="block w-full"
-          alt={item.alt}
-          loading="lazy"
-          title={item.title}
-          sizes="(min-width: 1024px) 33vw, 100vw"
-        />
-      )}
+    <div className="flex flex-col">
+      <div className="relative group block overflow-hidden">
+        <div className="hidden lg:block">
+          <Overlay {...item} />
+        </div>
+        {matchingPicture && (
+          <GatsbyImage
+            image={getImage(matchingPicture)}
+            className="block w-full"
+            alt={item.alt}
+            loading="lazy"
+            title={item.title}
+            sizes="(min-width: 1024px) 33vw, 100vw"
+          />
+        )}
+      </div>
+      <div className="lg:hidden px-3 py-3 bg-zinc-900/60">
+        <h2 className="text-sm font-black uppercase tracking-wide leading-tight text-zinc-100 mb-2">
+          {item.title}
+        </h2>
+        <div className="flex gap-2 flex-wrap">
+          {item.link && <Button href={item.link}>Listen</Button>}
+          {item.watch && <Button href={item.watch}>Watch</Button>}
+          {item.buy && <Button href={item.buy}>Buy</Button>}
+          {item.merch && (
+            <Link to={item.merch}>
+              <button className="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 bg-amber-400 text-black hover:bg-amber-300 transition-all duration-200">
+                Merch
+              </button>
+            </Link>
+          )}
+        </div>
+      </div>
     </div>
   )
 })
