@@ -102,8 +102,7 @@ export default async function handler(req, res) {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      // Google Pay shows automatically alongside "card" once the domain is set up.
-      payment_method_types: ["card", "blik", "p24"],
+      automatic_payment_methods: { enabled: true },
       locale: "pl",
       line_items: lineItems,
       phone_number_collection: { enabled: true },

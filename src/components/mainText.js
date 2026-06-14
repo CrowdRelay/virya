@@ -5,7 +5,7 @@ import { handleScroll } from "./scrollToTop/scroll"
 
 const MainText = memo(({ contactRef }) => (
   <div className="container lg:max-w-4xl my-auto lg:px-20 px-6 py-4">
-    <div className="border-l-4 border-amber-400 pl-6 lg:pl-8 mt-12 md:mt-48 lg:mt-0 lg:mb-48 mb-16 py-2">
+    <div className="border-l-4 border-amber-400 pl-6 lg:pl-8 mt-20 md:mt-48 lg:mt-0 lg:mb-48 mb-16 py-2">
       <p className="uppercase tracking-[0.3em] text-amber-400 text-xs font-bold mb-4">
         Modern Metalcore · Poland
       </p>

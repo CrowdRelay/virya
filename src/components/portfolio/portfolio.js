@@ -38,7 +38,7 @@ const Portfolio = memo(() => {
                     <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">Portfolio</p>
                     <div className="flex-1 h-px bg-zinc-800" />
                 </div>
-                <p className="text-zinc-400 text-xs uppercase tracking-widest">Recent releases</p>
+                <p className="text-zinc-500 text-xs uppercase tracking-widest">Recent releases</p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 overflow-hidden mx-4">
                 {portfolioItems}

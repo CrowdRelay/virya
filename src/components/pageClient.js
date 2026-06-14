@@ -17,28 +17,28 @@ const ScrollArrows = memo(({ onClick }) => (
     className="absolute left-1/2 -translate-x-1/2 bottom-5 p-0 bg-transparent border-0 cursor-pointer"
   >
     <svg className="arrows" aria-hidden="true">
-      <path className="a1" d="M0 0 L30 32 L60 0"></path>
-      <path className="a2" d="M0 20 L30 52 L60 20"></path>
-      <path className="a3" d="M0 40 L30 72 L60 40"></path>
+        <path className="a1" d="M0 0 L30 32 L60 0"></path>
+        <path className="a2" d="M0 20 L30 52 L60 20"></path>
+        <path className="a3" d="M0 40 L30 72 L60 40"></path>
     </svg>
   </button>
 ))
 
 const PageClient = () => {
-  const portfolioRef = useRef(null)
-  const musicRef = useRef(null)
-  const showsRef = useRef(null)
-  const contactRef = useRef(null)
+    const portfolioRef = useRef(null)
+    const musicRef = useRef(null)
+    const showsRef = useRef(null)
+    const contactRef = useRef(null)
 
   const scrollToPortfolio = useCallback(
     () => handleScroll(portfolioRef.current),
     []
   )
 
-  return (
-    <>
-      <header className="header relative lg:overflow-hidden h-screen lg:min-h-screen flex flex-col">
-        <Landing />
+    return (
+        <>
+            <header className="header relative lg:overflow-hidden min-h-screen flex flex-col">
+                <Landing />
         <Navbar
           displayLinks={true}
           portfolioRef={portfolioRef}
@@ -46,11 +46,11 @@ const PageClient = () => {
           showsRef={showsRef}
           contactRef={contactRef}
         />
-        <MainText contactRef={contactRef} />
-        <ScrollArrows onClick={scrollToPortfolio} />
-      </header>
-      <Layout>
-        <ScrollToTop smooth />
+                <MainText contactRef={contactRef} />
+                <ScrollArrows onClick={scrollToPortfolio} />
+            </header>
+            <Layout>
+                <ScrollToTop smooth />
         <section ref={portfolioRef} className="scroll-mt-20">
           <Portfolio />
         </section>
@@ -63,9 +63,9 @@ const PageClient = () => {
         <section ref={contactRef} className="scroll-mt-20">
           <Contact />
         </section>
-      </Layout>
-    </>
-  )
+            </Layout>
+        </>
+    )
 }
 
 export default PageClient

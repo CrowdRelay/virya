@@ -28,10 +28,10 @@ const metaTags = {
 }
 
 const musicGroupSchema = JSON.stringify({
-  "@context": "https://schema.org",
+    "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "MusicGroup",
+    "@type": "MusicGroup",
       "@id": BAND_ID,
       name: "Virya",
       genre: ["Metalcore", "Metal", "Modern Metal"],
@@ -77,36 +77,29 @@ const musicGroupSchema = JSON.stringify({
 })
 
 export const Head = () => (
-  <>
-    <link
-      rel="preload"
-      as="image"
-      href="/rise.webp"
-      type="image/webp"
-      fetchpriority="high"
-    />
-    <title>{metaTags.title}</title>
-    <link rel="canonical" href={metaTags.url} />
-    <meta name="description" content={metaTags.description} />
-    <meta name="keywords" content={metaTags.keywords} />
-    <meta name="author" content="Virya" />
-    <meta name="theme-color" content="#09090b" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Virya" />
-    <meta property="og:locale" content="en_US" />
-    <meta property="og:title" content={metaTags.title} />
-    <meta property="og:description" content={metaTags.description} />
-    <meta property="og:image" content={metaTags.image} />
-    <meta property="og:url" content={metaTags.url} />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@viryaofficial" />
-    <meta name="twitter:creator" content="@viryaofficial" />
-    <meta name="twitter:title" content={metaTags.title} />
-    <meta name="twitter:description" content={metaTags.description} />
-    <meta name="twitter:image" content={metaTags.image} />
-    <meta name="twitter:url" content={metaTags.url} />
-    <script type="application/ld+json">{musicGroupSchema}</script>
-  </>
+    <>
+        <title>{metaTags.title}</title>
+        <link rel="canonical" href={metaTags.url} />
+        <meta name="description" content={metaTags.description} />
+        <meta name="keywords" content={metaTags.keywords} />
+        <meta name="author" content="Virya" />
+        <meta name="theme-color" content="#09090b" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Virya" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:title" content={metaTags.title} />
+        <meta property="og:description" content={metaTags.description} />
+        <meta property="og:image" content={metaTags.image} />
+        <meta property="og:url" content={metaTags.url} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@viryaofficial" />
+        <meta name="twitter:creator" content="@viryaofficial" />
+        <meta name="twitter:title" content={metaTags.title} />
+        <meta name="twitter:description" content={metaTags.description} />
+        <meta name="twitter:image" content={metaTags.image} />
+        <meta name="twitter:url" content={metaTags.url} />
+        <script type="application/ld+json">{musicGroupSchema}</script>
+    </>
 )
 
 export default Main

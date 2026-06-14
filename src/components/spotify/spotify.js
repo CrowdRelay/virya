@@ -21,36 +21,33 @@ const Spotify = () => {
   const [loaded, setLoaded] = useState(false)
 
   return (
-    <div className="py-16 lg:px-8 border-t border-zinc-800/60">
-      <div className="mx-4">
-        <div className="flex items-center gap-4 mb-2">
+  <div className="py-16 lg:px-8 border-t border-zinc-800/60">
+    <div className="mx-4">
+      <div className="flex items-center gap-4 mb-2">
           <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">
             Music
           </p>
-          <div className="flex-1 h-px bg-zinc-800" />
-          <a
-            href={`https://open.spotify.com/artist/${ARTIST_ID}`}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Open on Spotify"
-            className="flex-shrink-0 text-zinc-400 hover:text-[#1DB954] transition-colors duration-200"
-          >
-            <SpotifyIcon className="w-5 h-5" aria-hidden="true" />
-          </a>
-        </div>
-        <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">
-          Stream on Spotify
-        </p>
-        {loaded ? (
-          <iframe
-            title="Virya on Spotify"
-            src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
-            width="100%"
-            height="450"
-            style={{ border: 0 }}
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-          />
+        <div className="flex-1 h-px bg-zinc-800" />
+        <a
+          href={`https://open.spotify.com/artist/${ARTIST_ID}`}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Open on Spotify"
+          className="flex-shrink-0 text-zinc-400 hover:text-[#1DB954] transition-colors duration-200"
+        >
+          <SpotifyIcon className="w-5 h-5" aria-hidden="true" />
+        </a>
+      </div>
+      <p className="text-zinc-500 text-xs uppercase tracking-widest mb-6">Stream on Spotify</p>
+      <iframe
+        title="Virya on Spotify"
+        src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
+        width="100%"
+        height="450"
+        frameBorder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+      />
         ) : (
           <button
             onClick={() => setLoaded(true)}
@@ -76,8 +73,8 @@ const Spotify = () => {
           </button>
         )}
       </div>
-    </div>
-  )
+  </div>
+)
 }
 
 export default Spotify

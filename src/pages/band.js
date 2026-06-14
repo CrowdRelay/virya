@@ -20,7 +20,7 @@ const SocialLink = ({ href, title, ariaLabel }) => (
 );
 
 const BandSection = ({ children }) => (
-  <section className='lg:text-base text-sm text-zinc-300 leading-relaxed text-justify'>
+  <section className='lg:text-base text-sm text-zinc-300 leading-relaxed'>
     {children}
   </section>
 );
