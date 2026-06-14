@@ -38,7 +38,7 @@ const Spotify = () => {
           <SpotifyIcon className="w-5 h-5" aria-hidden="true" />
         </a>
       </div>
-      <p className="text-zinc-500 text-xs uppercase tracking-widest mb-6">Stream on Spotify</p>
+      <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">Stream on Spotify</p>
       <iframe
         title="Virya on Spotify"
         src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
@@ -67,7 +67,7 @@ const Spotify = () => {
             <span className="text-xs font-bold uppercase tracking-widest text-zinc-300 group-hover:text-white transition-colors">
               Play on Spotify
             </span>
-            <span className="text-[10px] uppercase tracking-widest text-zinc-600">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-400">
               Loads the Spotify player
             </span>
           </button>
