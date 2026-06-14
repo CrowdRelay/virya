@@ -12,7 +12,7 @@ const Button = memo(({ href, children }) => (
 ))
 
 const Overlay = memo(({ title, text, link, watch, buy, merch }) => (
-  <div className="z-10 absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out px-4 pt-12 pb-5">
+  <div className="z-10 absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 max-lg:opacity-100 max-lg:translate-y-0 transition-all duration-300 ease-out px-4 pt-12 pb-5">
     <h2 className="text-sm lg:text-base font-black uppercase tracking-wide leading-tight mb-1">
       {title}
     </h2>
@@ -42,26 +42,7 @@ const PortfolioItem = memo(({ item, pictures }) => {
 
   return (
     <div className="relative group block overflow-hidden">
-      <div className="hidden lg:block">
-        <Overlay {...item} />
-      </div>
-      <div className="lg:hidden z-10 absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent px-4 pt-12 pb-5">
-        <h2 className="text-sm font-black uppercase tracking-wide leading-tight text-zinc-100 mb-2">
-          {item.title}
-        </h2>
-        <div className="flex gap-2 flex-wrap">
-          {item.link && <Button href={item.link}>Listen</Button>}
-          {item.watch && <Button href={item.watch}>Watch</Button>}
-          {item.buy && <Button href={item.buy}>Buy</Button>}
-          {item.merch && (
-            <Link to={item.merch}>
-              <button className="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 bg-amber-400 text-black hover:bg-amber-300 transition-all duration-200">
-                Merch
-              </button>
-            </Link>
-          )}
-        </div>
-      </div>
+      <Overlay {...item} />
       {matchingPicture && (
         <GatsbyImage
           image={getImage(matchingPicture)}
