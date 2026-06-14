@@ -37,7 +37,7 @@ const PageClient = () => {
 
     return (
         <>
-            <header className="header relative lg:overflow-hidden min-h-[85vh] lg:min-h-screen flex flex-col">
+            <header className="header relative lg:overflow-hidden min-h-screen flex flex-col">
                 <Landing />
         <Navbar
           displayLinks={true}
