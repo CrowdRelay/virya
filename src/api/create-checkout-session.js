@@ -102,7 +102,7 @@ export default async function handler(req, res) {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card", "blik"],
+      payment_method_types: ["card", "blik", "revolut_pay"],
       locale: "pl",
       line_items: lineItems,
       phone_number_collection: { enabled: true },
