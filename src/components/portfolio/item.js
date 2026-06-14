@@ -57,7 +57,7 @@ const PortfolioItem = memo(({ item, pictures }) => {
           />
         )}
       </div>
-      <div className="lg:hidden px-3 py-3 bg-zinc-900/60">
+      <div className="lg:hidden px-3 py-3 bg-gradient-to-b from-black to-zinc-950">
         <h2 className="text-sm font-black uppercase tracking-wide leading-tight text-zinc-100 mb-2">
           {item.title}
         </h2>
