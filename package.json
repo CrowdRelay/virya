@@ -11,16 +11,18 @@
         "gatsby": "5.16.1",
         "gatsby-plugin-image": "latest",
         "gatsby-plugin-manifest": "latest",
-        "gatsby-plugin-postcss": "latest",
         "gatsby-plugin-offline": "latest",
-        "gatsby-plugin-sitemap": "latest",
+        "gatsby-plugin-postcss": "latest",
         "gatsby-plugin-sharp": "latest",
+        "gatsby-plugin-sitemap": "latest",
         "gatsby-source-filesystem": "latest",
         "gatsby-transformer-sharp": "latest",
         "graphql": "^16.6.0",
+        "nodemailer": "^8.0.11",
         "postcss": "^8.3.5",
         "react": "18.3.1",
-        "react-dom": "18.3.1"
+        "react-dom": "18.3.1",
+        "stripe": "^22.2.1"
     },
     "devDependencies": {
         "prettier": "^2.7.1",
