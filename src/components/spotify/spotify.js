@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react"
+import React from "react"
 
 const ARTIST_ID = "6bbW0jOKAWJWm3h6CTWaAS"
 
@@ -18,8 +18,6 @@ const SpotifyIcon = ({ className }) => (
 const Spotify = () => {
   // Facade: don't load Spotify's heavy embed (and its third-party cookies) until
   // the visitor actually wants to play. Saves ~hundreds of KB on first paint.
-  const [loaded, setLoaded] = useState(false)
-
   return (
   <div className="py-16 lg:px-8 border-t border-zinc-800/60">
     <div className="mx-4">
@@ -39,40 +37,15 @@ const Spotify = () => {
         </a>
       </div>
       <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">Stream on Spotify</p>
-      {loaded ? (
-        <iframe
-          title="Virya on Spotify"
-          src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
-          width="100%"
-          height="450"
-          frameBorder="0"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-        />
-      ) : (
-        <button
-          onClick={() => setLoaded(true)}
-          aria-label="Load the Spotify player"
-          className="group w-full h-[450px] flex flex-col items-center justify-center gap-4 bg-zinc-900/50 border border-zinc-800 hover:border-[#1DB954]/60 transition-colors duration-300"
-        >
-          <span className="flex items-center justify-center w-16 h-16 rounded-full bg-[#1DB954] text-black transition-transform duration-300 group-hover:scale-110">
-            <svg
-              className="w-7 h-7 ml-1"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </span>
-          <span className="text-xs font-bold uppercase tracking-widest text-zinc-300 group-hover:text-white transition-colors">
-            Play on Spotify
-          </span>
-          <span className="text-[10px] uppercase tracking-widest text-zinc-400">
-            Loads the Spotify player
-          </span>
-        </button>
-      )}
+      <iframe
+        title="Virya on Spotify"
+        src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
+        width="100%"
+        height="450"
+        frameBorder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+      />
     </div>
   </div>
   )
