@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useState, useRef, useEffect } from "react"
 
 const ARTIST_ID = "6bbW0jOKAWJWm3h6CTWaAS"
 
@@ -16,10 +16,21 @@ const SpotifyIcon = ({ className }) => (
 )
 
 const Spotify = () => {
-  // Facade: don't load Spotify's heavy embed (and its third-party cookies) until
-  // the visitor actually wants to play. Saves ~hundreds of KB on first paint.
+  const [visible, setVisible] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!ref.current) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+      { rootMargin: "300px" }
+    )
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-  <div className="py-16 lg:px-8 border-t border-zinc-800/60">
+  <div ref={ref} className="py-16 lg:px-8 border-t border-zinc-800/60">
     <div className="mx-4">
       <div className="flex items-center gap-4 mb-2">
           <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">
@@ -37,15 +48,18 @@ const Spotify = () => {
         </a>
       </div>
       <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">Stream on Spotify</p>
-      <iframe
-        title="Virya on Spotify"
-        src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
-        width="100%"
-        height="450"
-        frameBorder="0"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy"
-      />
+      {visible ? (
+        <iframe
+          title="Virya on Spotify"
+          src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
+          width="100%"
+          height="450"
+          frameBorder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        />
+      ) : (
+        <div className="w-full h-[450px] bg-zinc-900/30 rounded" />
+      )}
     </div>
   </div>
   )
