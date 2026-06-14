@@ -34,18 +34,18 @@ const Contact = () => {
 
     const handleSubmit = e => {
         e.preventDefault();
-        Promise.all([
-            fetch("/", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: encode({ "form-name": "contact", ...formData })
-            }),
+        fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: encode({ "form-name": "contact", ...formData })
+        }).then(() => {
             fetch("/api/contact", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, message })
-            })
-        ]).then(() => {
+            }).then(r => {
+                if (!r.ok) r.json().then(d => console.error("[contact] email API error:", d))
+            }).catch(err => console.error("[contact] email API failed:", err))
             resetForm();
             setDisplayThanks(true);
             const timer = setTimeout(() => setDisplayThanks(false), 5000);
