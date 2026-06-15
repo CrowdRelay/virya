@@ -5,6 +5,9 @@ import {
   getProduct,
   toMinorUnits,
   productRequiresShipping,
+  discountedPrice,
+  sizeInStock,
+  productInStock,
 } from "../data/products"
 
 const MAX_QTY = 20
@@ -29,19 +32,37 @@ export default async function handler(req, res) {
   }
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-  const { items, point } = req.body || {}
+  const { items, point, invoice } = req.body || {}
 
   if (!Array.isArray(items) || items.length === 0) {
     res.status(400).json({ error: "Your cart is empty." })
     return
   }
 
+  const name = (invoice?.name || "").trim()
+  const surname = (invoice?.surname || "").trim()
+  const email = (invoice?.email || "").trim()
+  const address = (invoice?.address || "").trim()
+  if (!name || !surname || !email || !address) {
+    res.status(400).json({ error: "Missing billing details." })
+    return
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    res.status(400).json({ error: "Invalid email address." })
+    return
+  }
+
   const lineItems = []
   let needsShipping = false
+  let goodsGross = 0
   for (const item of items) {
     const product = getProduct(item?.id)
     if (!product) {
       res.status(400).json({ error: `Unknown product: ${item?.id}` })
+      return
+    }
+    if (!productInStock(product)) {
+      res.status(400).json({ error: `${product.name} is sold out.` })
       return
     }
     if (productRequiresShipping(product)) needsShipping = true
@@ -50,7 +71,7 @@ export default async function handler(req, res) {
       res.status(400).json({ error: `Invalid quantity for ${product.name}.` })
       return
     }
-    let name = product.name
+    let itemName = product.name
     if (Array.isArray(product.sizes)) {
       if (!product.sizes.includes(item.size)) {
         res
@@ -58,13 +79,21 @@ export default async function handler(req, res) {
           .json({ error: `Please choose a valid size for ${product.name}.` })
         return
       }
-      name = `${product.name} — Size ${item.size}`
+      if (!sizeInStock(product, item.size)) {
+        res.status(400).json({
+          error: `${product.name} in size ${item.size} is sold out.`,
+        })
+        return
+      }
+      itemName = `${product.name} — Size ${item.size}`
     }
+    const unitPrice = discountedPrice(product)
+    goodsGross += unitPrice * qty
     lineItems.push({
       price_data: {
         currency: CURRENCY,
-        unit_amount: toMinorUnits(product.price),
-        product_data: { name },
+        unit_amount: toMinorUnits(unitPrice),
+        product_data: { name: itemName },
       },
       quantity: qty,
     })
@@ -101,6 +130,7 @@ export default async function handler(req, res) {
       payment_method_types: ["card", "blik", "revolut_pay"],
       locale: "pl",
       line_items: lineItems,
+      customer_email: email,
       phone_number_collection: { enabled: true },
       billing_address_collection: "auto",
       metadata: {
@@ -109,6 +139,14 @@ export default async function handler(req, res) {
           needsShipping && point ? (point.address || "").slice(0, 480) : "",
         order_summary: summary,
         free_stickers: "yes",
+        inv_name: name.slice(0, 200),
+        inv_surname: surname.slice(0, 200),
+        inv_email: email.slice(0, 200),
+        inv_address: address.slice(0, 480),
+        inv_nip: (invoice?.nip || "").trim().slice(0, 50),
+        inv_company: (invoice?.company || "").trim().slice(0, 200),
+        goods_gross_pln: String(goodsGross),
+        shipping_pln: String(needsShipping ? SHIPPING_PLN : 0),
       },
       success_url: `${siteUrl}/merch/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/merch/cancel`,

@@ -5,6 +5,9 @@ import { useCart, lineKey } from "./cartContext"
 import { useMerchImages } from "./useMerchImages"
 import InpostGeowidget from "./inpostGeowidget"
 
+const inputClass =
+  "bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-amber-400/60 transition-colors"
+
 const QtyButton = ({ children, onClick, label }) => (
   <button
     onClick={onClick}
@@ -32,9 +35,37 @@ const CartDrawer = () => {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [invoice, setInvoice] = useState({
+    name: "",
+    surname: "",
+    email: "",
+    address: "",
+    nip: "",
+    company: "",
+  })
+
+  const setField = useCallback(
+    field => e => {
+      const { value } = e.target
+      setInvoice(prev => ({ ...prev, [field]: value }))
+    },
+    []
+  )
 
   const checkout = useCallback(async () => {
     setError("")
+    const name = invoice.name.trim()
+    const surname = invoice.surname.trim()
+    const email = invoice.email.trim()
+    const address = invoice.address.trim()
+    if (!name || !surname || !email || !address) {
+      setError("Fill in your name, surname, address and email.")
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Enter a valid email address.")
+      return
+    }
     if (needsShipping && !point) {
       setError("Choose a Paczkomat for delivery first.")
       return
@@ -47,6 +78,14 @@ const CartDrawer = () => {
         body: JSON.stringify({
           items: lines.map(l => ({ id: l.id, size: l.size, qty: l.qty })),
           point: needsShipping ? point : null,
+          invoice: {
+            name,
+            surname,
+            email,
+            address,
+            nip: invoice.nip.trim(),
+            company: invoice.company.trim(),
+          },
         }),
       })
       const data = await res.json()
@@ -56,7 +95,7 @@ const CartDrawer = () => {
       setError(e.message || "Something went wrong. Please try again.")
       setLoading(false)
     }
-  }, [lines, point, needsShipping])
+  }, [lines, point, needsShipping, invoice])
 
   return (
     <>
@@ -202,6 +241,64 @@ const CartDrawer = () => {
               </div>
             )}
 
+            {/* Invoice / buyer details */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
+                Billing details · for your invoice
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={invoice.name}
+                  onChange={setField("name")}
+                  placeholder="First name *"
+                  autoComplete="given-name"
+                  className={inputClass}
+                />
+                <input
+                  type="text"
+                  value={invoice.surname}
+                  onChange={setField("surname")}
+                  placeholder="Surname *"
+                  autoComplete="family-name"
+                  className={inputClass}
+                />
+              </div>
+              <input
+                type="email"
+                value={invoice.email}
+                onChange={setField("email")}
+                placeholder="Email *"
+                autoComplete="email"
+                className={`${inputClass} mt-2 w-full`}
+              />
+              <input
+                type="text"
+                value={invoice.address}
+                onChange={setField("address")}
+                placeholder="Address (street, postcode, city) *"
+                autoComplete="street-address"
+                className={`${inputClass} mt-2 w-full`}
+              />
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <input
+                  type="text"
+                  value={invoice.company}
+                  onChange={setField("company")}
+                  placeholder="Company (optional)"
+                  autoComplete="organization"
+                  className={inputClass}
+                />
+                <input
+                  type="text"
+                  value={invoice.nip}
+                  onChange={setField("nip")}
+                  placeholder="NIP (optional, B2B)"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
             {/* Totals */}
             <div className="space-y-1 text-sm">
               <div className="flex justify-between text-zinc-400">
@@ -222,6 +319,9 @@ const CartDrawer = () => {
                 <span className="text-xs uppercase tracking-widest">Total</span>
                 <span>{total} PLN</span>
               </div>
+              <p className="text-[10px] text-zinc-600 pt-1">
+                Goods include 23% VAT · delivery exempt
+              </p>
             </div>
 
             {error && (
