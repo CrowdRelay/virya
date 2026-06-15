@@ -63,7 +63,7 @@ const Storefront = () => {
               &larr;
             </Link>
             <div className="flex items-center gap-4 flex-1">
-              <h1 className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">
+              <h1 className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-zinc-100">
                 Merch
               </h1>
               <div className="flex-1 h-px bg-zinc-800" />
