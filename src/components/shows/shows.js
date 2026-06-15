@@ -21,8 +21,6 @@ const normalizeEvent = event => {
   }
 }
 
-// Inject MusicEvent structured data for the loaded shows so search engines can
-// surface upcoming dates. Built client-side because the feed is fetched at runtime.
 const buildEventSchema = shows =>
   JSON.stringify({
     "@context": "https://schema.org",

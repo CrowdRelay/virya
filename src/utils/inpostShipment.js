@@ -1,8 +1,3 @@
-// Best-effort InPost ShipX shipment creation after a paid order.
-// Only runs when INPOST_ORGANIZATION_ID + INPOST_SHIPX_TOKEN are set; otherwise
-// the band creates the label manually in InPost ManageR from the emailed details.
-// Docs: https://docs.inpost.pl/ (ShipX API)
-
 const BASE_URLS = {
   production: "https://api.shipx-pl.easypack24.net",
   sandbox: "https://sandbox-api-shipx-pl.easypack24.net",
@@ -19,7 +14,6 @@ export const createInpostShipment = async ({ session }) => {
   }
 
   const meta = session.metadata || {}
-  // Digital/test orders have no Paczkomat — nothing to ship.
   if (!meta.paczkomat_code) {
     return { skipped: true, reason: "no paczkomat (non-shipping order)" }
   }

@@ -6,8 +6,6 @@ const Main = () => <PageClient />
 
 const BAND_ID = "https://www.virya.music/#band"
 
-// Build MusicAlbum / MusicRecording entries from the release list so Google can
-// surface the discography. Albums vs. singles are inferred from the Spotify URL.
 const releaseSchema = releases.map(r => ({
   "@type":
     r.link && r.link.includes("/album/") ? "MusicAlbum" : "MusicRecording",

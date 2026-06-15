@@ -1,19 +1,11 @@
 "use client"
 import React, { useEffect, useRef, useCallback } from "react"
 
-// InPost Geowidget v5. The map renders as a custom element <inpost-geowidget>.
-// IMPORTANT: the "Wybierz"/select button only becomes active when the widget can
-// hand the chosen point back to a GLOBAL callback whose name is given in the
-// `onpoint` attribute. (Listening for an "onpoint" DOM event alone leaves the
-// select button disabled.) So we expose a stable global function here and route
-// it to the currently-mounted component.
-// Docs: https://docs.inpost.pl/ (Geowidget v5)
 const SCRIPT_SRC = "https://geowidget.inpost.pl/inpost-geowidget.js"
 const STYLE_HREF = "https://geowidget.inpost.pl/inpost-geowidget.css"
 const TOKEN = process.env.GATSBY_INPOST_GEOWIDGET_TOKEN || ""
 const CALLBACK_NAME = "viryaAfterPointSelected"
 
-// Module-level handler the global callback forwards to. Set while the picker is mounted.
 let activeHandler = null
 
 const normalizePoint = p => {
@@ -32,14 +24,12 @@ const normalizePoint = p => {
   }
 }
 
-// Register the global callback the widget invokes when "Wybierz" is clicked.
 if (typeof window !== "undefined") {
   window[CALLBACK_NAME] = point => {
     if (activeHandler) activeHandler(point)
   }
 }
 
-// Inject the widget's script + stylesheet once per page load.
 const ensureAssets = () => {
   if (typeof document === "undefined") return
   if (!document.querySelector(`link[href="${STYLE_HREF}"]`)) {
@@ -74,7 +64,6 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     ensureAssets()
   }, [open])
 
-  // Route the global callback (and a fallback DOM event) to this instance.
   useEffect(() => {
     if (!open) return
     activeHandler = handlePoint
@@ -87,7 +76,6 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     }
   }, [open, handlePoint])
 
-  // Lock body scroll while the modal is open.
   useEffect(() => {
     if (typeof document === "undefined") return
     document.body.style.overflow = open ? "hidden" : ""
@@ -124,7 +112,6 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
         </div>
         <div className="flex-1 overflow-hidden">
           {TOKEN ? (
-            // eslint-disable-next-line react/no-unknown-property
             <inpost-geowidget
               ref={hostRef}
               token={TOKEN}

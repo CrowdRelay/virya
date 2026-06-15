@@ -5,7 +5,6 @@ import Navbar from "../../components/nav"
 import Footer from "../../components/footer"
 
 const Success = () => {
-  // Clear the persisted cart once the order is paid.
   useEffect(() => {
     try {
       window.localStorage.removeItem("virya-cart-v1")

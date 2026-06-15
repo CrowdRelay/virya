@@ -16,7 +16,6 @@ const NavLink = memo(({ onClick, title, children }) => (
   </button>
 ));
 
-// Larger, full-width row used inside the mobile hamburger dropdown.
 const MobileItem = ({ onClick, children }) => (
   <button
     onClick={onClick}
@@ -71,7 +70,6 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
   return (
     <nav aria-label="Main navigation" style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
       <div className="container mx-auto flex items-center">
-        {/* Logo */}
         <div className="flex flex-1 items-center">
           <Link title="Homepage" className="flex" to="/">
             <StaticImage
@@ -87,7 +85,6 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
           </Link>
         </div>
 
-        {/* Desktop links */}
         <div className="hidden lg:flex items-center">
           {displayLinks && <Link to="/band" className={linkClass}>Band</Link>}
           <Link to="/merch" className={linkClass}>Merch</Link>
@@ -101,7 +98,6 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
           )}
         </div>
 
-        {/* Mobile: Merch + hamburger */}
         <div className="flex lg:hidden items-center gap-2">
           <Link
             to="/merch"
@@ -132,7 +128,6 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
         </div>
       </div>
 
-      {/* Mobile dropdown */}
       {displayLinks && menuOpen && (
         <div id="mobile-menu" className="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
           <Link to="/band" onClick={closeMenu} className="w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest text-zinc-300 hover:text-amber-400 border-b border-white/5 transition-colors">

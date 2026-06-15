@@ -1,20 +1,7 @@
-// Single source of truth for the merch catalog.
-// Imported by the storefront UI (display) AND the Stripe Functions (authoritative
-// pricing). The client only ever sends { id, size, qty } — the server recomputes
-// every amount from this file, so prices can never be tampered with from the browser.
-//
-// Prices are in PLN (whole złoty). Edit them here; nothing else needs to change.
-// BLIK require PLN, so keep the currency as "pln".
-
 export const CURRENCY = "pln"
-
-// Flat InPost Paczkomat delivery fee (PLN). Shown at checkout and charged via Stripe.
 export const SHIPPING_PLN = 15
-
 export const SIZES = ["S", "M", "L", "XL", "XXL"]
 
-// `front` / `back` are relativePaths under src/images/ (the "img" filesystem source),
-// matched in the UI via the same useStaticQuery pattern as the portfolio.
 export const PRODUCTS = [
   {
     id: "echoes",
@@ -81,9 +68,7 @@ export const PRODUCTS = [
 
 export const getProduct = id => PRODUCTS.find(p => p.id === id)
 
-// Physical goods need InPost delivery; digital/test items don't.
 export const productRequiresShipping = product =>
   !!product && product.requiresShipping !== false
 
-// Stripe expects the amount in the smallest currency unit (grosze).
 export const toMinorUnits = pln => Math.round(pln * 100)

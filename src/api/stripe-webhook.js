@@ -2,13 +2,6 @@ import Stripe from "stripe"
 import { sendOrderEmail } from "../utils/orderEmail"
 import { createInpostShipment } from "../utils/inpostShipment"
 
-// Stripe webhook for fulfilled orders.
-//
-// Gatsby Functions parse the request body to JSON, which makes raw-body
-// signature verification impractical. Instead we treat the incoming event as
-// only a *hint*: we read the object id and re-fetch the Checkout Session from
-// Stripe with our secret key. That fetched data is authoritative, so a forged
-// webhook cannot create a fake order.
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" })
@@ -23,7 +16,6 @@ export default async function handler(req, res) {
   const event = req.body || {}
 
   if (event.type !== "checkout.session.completed") {
-    // Acknowledge everything else so Stripe stops retrying.
     res.status(200).json({ received: true, ignored: event.type || null })
     return
   }
@@ -35,8 +27,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Re-fetch from Stripe — this is the authoritative source of truth.
-    // customer_details is returned by default; only line_items must be expanded.
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items"],
     })
@@ -50,7 +40,6 @@ export default async function handler(req, res) {
 
     const lineItems = session.line_items?.data || []
 
-    // Email is the must-have; shipment creation is best-effort.
     const results = {}
     try {
       results.email = await sendOrderEmail({ session, lineItems })

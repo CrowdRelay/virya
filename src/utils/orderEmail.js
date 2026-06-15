@@ -1,8 +1,5 @@
 import nodemailer from "nodemailer"
 
-// Sends the order notification to the band via Gmail SMTP.
-// Requires GMAIL_USER + GMAIL_APP_PASSWORD (a Google App Password, not the
-// account password). Delivery target defaults to GMAIL_USER.
 export const sendOrderEmail = async ({ session, lineItems }) => {
   const user = process.env.GMAIL_USER
   const pass = process.env.GMAIL_APP_PASSWORD

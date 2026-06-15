@@ -16,7 +16,6 @@ import {
 const STORAGE_KEY = "virya-cart-v1"
 const CartContext = createContext(null)
 
-// A line is uniquely identified by product id + chosen size (shirts).
 const lineKey = (id, size) => (size ? `${id}::${size}` : id)
 
 const readStored = () => {
@@ -24,7 +23,6 @@ const readStored = () => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     const parsed = raw ? JSON.parse(raw) : []
-    // Drop anything that no longer exists in the catalog.
     return Array.isArray(parsed) ? parsed.filter(l => getProduct(l.id)) : []
   } catch {
     return []
@@ -35,7 +33,6 @@ export const CartProvider = ({ children }) => {
   const [lines, setLines] = useState([])
   const [open, setOpen] = useState(false)
 
-  // Hydrate from localStorage once on the client (avoids SSR mismatch).
   useEffect(() => {
     setLines(readStored())
   }, [])
@@ -45,7 +42,6 @@ export const CartProvider = ({ children }) => {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines))
     } catch {
-      /* ignore quota / privacy-mode errors */
     }
   }, [lines])
 
@@ -103,7 +99,6 @@ export const CartProvider = ({ children }) => {
     () => detailed.reduce((s, l) => s + l.lineTotal, 0),
     [detailed]
   )
-  // Delivery (and a Paczkomat) is only needed when the cart holds a physical item.
   const needsShipping = useMemo(
     () => detailed.some(l => productRequiresShipping(l.product)),
     [detailed]

@@ -2,8 +2,6 @@ import { graphql, useStaticQuery } from "gatsby"
 import { getImage } from "gatsby-plugin-image"
 import { useMemo } from "react"
 
-// Returns a lookup { [relativePath]: gatsbyImage } for every merch image,
-// using the same "img" filesystem source the portfolio queries.
 export const useMerchImages = () => {
   const data = useStaticQuery(graphql`
     query {

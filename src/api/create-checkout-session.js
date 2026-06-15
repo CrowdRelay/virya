@@ -36,7 +36,6 @@ export default async function handler(req, res) {
     return
   }
 
-  // Recompute every line from the trusted catalog — never trust client prices.
   const lineItems = []
   let needsShipping = false
   for (const item of items) {
@@ -71,7 +70,6 @@ export default async function handler(req, res) {
     })
   }
 
-  // Physical orders require a Paczkomat + a delivery line; digital/test ones don't.
   if (needsShipping) {
     if (!point || !point.code) {
       res.status(400).json({ error: "Please choose an InPost Paczkomat." })
@@ -87,8 +85,6 @@ export default async function handler(req, res) {
     })
   }
 
-  // Compact, human-readable order summary stored on the session for the
-  // confirmation email (Stripe metadata values cap at 500 chars).
   const summary = items
     .map(i => {
       const p = getProduct(i.id)
