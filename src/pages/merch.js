@@ -8,7 +8,7 @@ const metaTags = {
   title: "Merch | Virya - Official Store",
   description:
     "Official Virya merch — Echoes Of The Modern Mind album, tees and a tote bag. Free stickers with every order. Pay with BLIK, Google Pay, Revolut Pay or card. InPost Paczkomat delivery.",
-  image: "https://www.virya.music/virya.webp",
+  image: "https://www.virya.music/merch-og.webp",
   url: "https://www.virya.music/merch",
   keywords:
     "Virya, Merch, Store, Metalcore, T-shirt, Album, Echoes Of The Modern Mind, BLIK, InPost",
