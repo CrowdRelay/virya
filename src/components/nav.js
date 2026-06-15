@@ -105,7 +105,8 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
         <div className="flex lg:hidden items-center gap-2">
           <Link
             to="/merch"
-            className="px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors"
+            aria-label="Go to Virya merch store"
+            className="inline-flex items-center min-h-[44px] px-3 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors"
           >
             Merch
           </Link>

@@ -4,10 +4,13 @@ import { Link } from "gatsby"
 import React, { memo, useMemo } from "react"
 
 const Button = memo(({ href, children }) => (
-  <a href={href} rel="noreferrer" target="_blank">
-    <button className="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200">
-      {children}
-    </button>
+  <a
+    href={href}
+    rel="noreferrer"
+    target="_blank"
+    className="inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200"
+  >
+    {children}
   </a>
 ))
 
@@ -24,10 +27,12 @@ const Overlay = memo(({ title, text, link, watch, buy, merch }) => (
       {watch && <Button href={watch}>Watch</Button>}
       {buy && <Button href={buy}>Buy</Button>}
       {merch && (
-        <Link to={merch}>
-          <button className="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 bg-amber-400 text-black hover:bg-amber-300 transition-all duration-200">
-            Merch
-          </button>
+        <Link
+          to={merch}
+          aria-label="Browse Virya merch store"
+          className="inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 bg-amber-400 text-black hover:bg-amber-300 transition-all duration-200"
+        >
+          Merch
         </Link>
       )}
     </div>
