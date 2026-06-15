@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer"
+import { VAT_RATE, vatBreakdown } from "../data/products"
 
 export const sendOrderEmail = async ({ session, lineItems }) => {
   const user = process.env.GMAIL_USER
@@ -26,6 +27,29 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     )
     .join("\n")
 
+  // VAT breakdown for issuing the invoice. Goods carry VAT; delivery is exempt.
+  const goodsGross = Number.parseFloat(meta.goods_gross_pln || "0") || 0
+  const shipping = Number.parseFloat(meta.shipping_pln || "0") || 0
+  const { net, vat } = vatBreakdown(goodsGross)
+  const vatPct = Math.round(VAT_RATE * 100)
+  const f = n => n.toFixed(2)
+
+  const invoiceLines = [
+    "INVOICE DETAILS",
+    `  Name:      ${meta.inv_name || "—"} ${meta.inv_surname || ""}`.trimEnd(),
+    `  Email:     ${meta.inv_email || "—"}`,
+    `  Address:   ${meta.inv_address || "—"}`,
+    `  Company:   ${meta.inv_company || "—"}`,
+    `  NIP:       ${meta.inv_nip || "— (consumer / no B2B invoice)"}`,
+    "",
+    "TAX BREAKDOWN",
+    `  Goods net:   ${f(net)} ${currency}`,
+    `  VAT (${vatPct}%):   ${f(vat)} ${currency}`,
+    `  Goods gross: ${f(goodsGross)} ${currency}`,
+    `  Delivery:    ${f(shipping)} ${currency} (VAT-exempt)`,
+    `  Grand total: ${total} ${currency}`,
+  ]
+
   const text = [
     "NEW VIRYA MERCH ORDER",
     "======================",
@@ -34,7 +58,9 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     `Paid:        ${session.payment_status}`,
     `Total:       ${total} ${currency}`,
     "",
-    "CUSTOMER",
+    ...invoiceLines,
+    "",
+    "CUSTOMER (from Stripe)",
     `  Name:      ${customer.name || "—"}`,
     `  Email:     ${customer.email || "—"}`,
     `  Phone:     ${customer.phone || "—"}`,
@@ -56,13 +82,18 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     auth: { user, pass },
   })
 
+  const buyerName =
+    [meta.inv_name, meta.inv_surname].filter(Boolean).join(" ") ||
+    customer.name ||
+    meta.inv_email ||
+    customer.email ||
+    session.id
+
   await transporter.sendMail({
     from: `"Virya Store" <${user}>`,
     to,
-    replyTo: customer.email || undefined,
-    subject: `🛒 New order — ${total} ${currency} — ${
-      customer.name || customer.email || session.id
-    }`,
+    replyTo: meta.inv_email || customer.email || undefined,
+    subject: `🛒 New order — ${total} ${currency} — ${buyerName}`,
     text,
   })
 

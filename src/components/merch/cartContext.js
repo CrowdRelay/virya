@@ -11,6 +11,7 @@ import {
   getProduct,
   SHIPPING_PLN,
   productRequiresShipping,
+  discountedPrice,
 } from "../../data/products"
 
 const STORAGE_KEY = "virya-cart-v1"
@@ -41,8 +42,7 @@ export const CartProvider = ({ children }) => {
     if (typeof window === "undefined") return
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines))
-    } catch {
-    }
+    } catch {}
   }, [lines])
 
   const add = useCallback((id, size = null, qty = 1) => {
@@ -85,7 +85,8 @@ export const CartProvider = ({ children }) => {
         .map(l => {
           const product = getProduct(l.id)
           if (!product) return null
-          return { ...l, product, lineTotal: product.price * l.qty }
+          const unitPrice = discountedPrice(product)
+          return { ...l, product, unitPrice, lineTotal: unitPrice * l.qty }
         })
         .filter(Boolean),
     [lines]
