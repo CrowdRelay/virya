@@ -3,6 +3,33 @@ import React, { useState, useRef, useEffect } from "react"
 
 const ARTIST_ID = "6bbW0jOKAWJWm3h6CTWaAS"
 
+const SkeletonPlayer = () => (
+  <div className="w-full h-[450px] bg-zinc-900/30 rounded p-4 flex flex-col gap-3">
+    <div className="flex items-center gap-3 pb-3 border-b border-zinc-800/40">
+      <div className="w-12 h-12 bg-zinc-700/50 animate-pulse rounded flex-shrink-0" />
+      <div className="flex-1 flex flex-col gap-2">
+        <div className="h-3 w-1/3 bg-zinc-700/50 animate-pulse" />
+        <div className="h-2 w-1/4 bg-zinc-800/50 animate-pulse" />
+      </div>
+    </div>
+    {[65, 55, 70, 50, 60].map((w, i) => (
+      <div key={i} className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-zinc-700/50 animate-pulse flex-shrink-0" />
+        <div className="flex-1 flex flex-col gap-1.5">
+          <div className="h-3 bg-zinc-700/50 animate-pulse" style={{ width: `${w}%` }} />
+          <div className="h-2 w-1/4 bg-zinc-800/50 animate-pulse" />
+        </div>
+        <div className="h-2 w-7 bg-zinc-800/50 animate-pulse flex-shrink-0" />
+      </div>
+    ))}
+    <div className="mt-auto flex items-center gap-3 pt-3 border-t border-zinc-800/40">
+      <div className="w-8 h-8 bg-zinc-700/50 animate-pulse rounded-full flex-shrink-0" />
+      <div className="flex-1 h-1 bg-zinc-700/50 animate-pulse" />
+      <div className="w-8 h-8 bg-zinc-700/50 animate-pulse rounded-full flex-shrink-0" />
+    </div>
+  </div>
+)
+
 const SpotifyIcon = ({ className }) => (
   <svg
     className={className}
@@ -17,6 +44,7 @@ const SpotifyIcon = ({ className }) => (
 
 const Spotify = () => {
   const [visible, setVisible] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   const ref = useRef(null)
 
   useEffect(() => {
@@ -48,18 +76,21 @@ const Spotify = () => {
         </a>
       </div>
       <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">Stream on Spotify</p>
-      {visible ? (
-        <iframe
-          title="Virya on Spotify"
-          src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
-          width="100%"
-          height="450"
-          frameBorder="0"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        />
-      ) : (
-        <div className="w-full h-[450px] bg-zinc-900/30 rounded" />
-      )}
+      <div className="relative">
+        {!loaded && <SkeletonPlayer />}
+        {visible && (
+          <iframe
+            title="Virya on Spotify"
+            src={`https://open.spotify.com/embed/artist/${ARTIST_ID}?utm_source=generator`}
+            width="100%"
+            height="450"
+            frameBorder="0"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            onLoad={() => setLoaded(true)}
+            className={loaded ? "block" : "opacity-0 absolute inset-0"}
+          />
+        )}
+      </div>
     </div>
   </div>
   )
