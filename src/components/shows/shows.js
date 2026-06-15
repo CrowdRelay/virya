@@ -69,7 +69,7 @@ const Shows = memo(() => {
   useEffect(() => {
     let cancelled = false
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
+    const timeoutId = setTimeout(() => controller.abort(), 20000)
 
     const fetchShows = async () => {
       try {
