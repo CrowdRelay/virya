@@ -12,7 +12,7 @@ export const PRODUCTS = [
     back: null,
     sizes: null,
     blurb:
-      "Our debut full-length — 11 tracks through the broad mind of a modern man.",
+      "Our debut full-length — 11 tracks through the broad mind of a modern man. Every piece is signed by the band.",
   },
   {
     id: "ashes-color",
