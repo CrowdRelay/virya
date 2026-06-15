@@ -51,11 +51,13 @@
         "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
     },
     "browserslist": [
-        ">0.5%",
-        "last 2 versions",
+        "last 2 Chrome versions",
+        "last 2 Firefox versions",
+        "last 2 Safari versions",
+        "last 2 Edge versions",
         "Firefox ESR",
         "not dead",
-        "supports es6-module"
+        "not ie 11"
     ],
     "engines": {
         "node": ">=18.0.0"
