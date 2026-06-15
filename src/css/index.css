@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply text-white bg-zinc-950;
-  }
-}
 /* Animated scroll-down chevrons in the hero (moved from the old normalize.css). */
 .arrows {
   width: 60px;
