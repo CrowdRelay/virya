@@ -3,6 +3,7 @@ import React, { memo, useState, useEffect } from "react"
 import ShowItem from "./show"
 
 const API_URL = `/api/bandsintown`
+const BANDSINTOWN_API_TIMEOUT = 20000
 
 const normalizeEvent = event => {
   if (!event) return null
@@ -69,7 +70,7 @@ const Shows = memo(() => {
   useEffect(() => {
     let cancelled = false
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 20000)
+    const timeoutId = setTimeout(() => controller.abort(), BANDSINTOWN_API_TIMEOUT)
 
     const fetchShows = async () => {
       try {
