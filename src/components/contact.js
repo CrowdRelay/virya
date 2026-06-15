@@ -71,7 +71,7 @@ const Contact = () => {
                     </label>
                 </p>
                 <div className="flex items-center gap-4 mb-2">
-                    <h2 className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">Send a message</h2>
+                    <h2 className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">Send a message</h2>
                     <div className="flex-1 h-px bg-zinc-800" />
                 </div>
                 <p className="text-zinc-400 text-xs uppercase tracking-widest mb-8">We read every message</p>
