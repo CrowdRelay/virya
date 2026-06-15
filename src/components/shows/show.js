@@ -18,7 +18,7 @@ const ShowItem = memo(({ item }) => {
   if (normalizedDate >= normalizedToday) {
     const isToday = normalizedDate === normalizedToday;
     const textDate = isToday ? 'Today - ' : 'Date - ';
-    const baseStyles = `transform ease-in-out rounded-xl inset-0 opacity-75 hover:opacity-100 place-items-center lg:flex lg:flex-row p-2 cursor-pointer ${isToday ? 'bg-red-900' : 'bg-black'}`;
+    const baseStyles = `transform ease-in-out rounded-xl inset-0 opacity-75 hover:opacity-100 place-items-center lg:flex lg:flex-row p-2 cursor-pointer text-white ${isToday ? 'bg-red-900' : 'bg-zinc-900/60'}`;
 
     return (
       <div className={baseStyles}>
