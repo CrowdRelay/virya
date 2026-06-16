@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useRef } from "react"
 import { GatsbyImage } from "gatsby-plugin-image"
 import { useCart, lineKey } from "./cartContext"
 import { useMerchImages } from "./useMerchImages"
@@ -35,6 +35,29 @@ const CartDrawer = () => {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [dragX, setDragX] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+
+  const handleTouchStart = useCallback(e => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+    setIsDragging(true)
+    setDragX(0)
+  }, [])
+
+  const handleTouchMove = useCallback(e => {
+    const dx = e.touches[0].clientX - touchStartX.current
+    const dy = Math.abs(e.touches[0].clientY - touchStartY.current)
+    if (dx > 0 && dx > dy) setDragX(dx)
+  }, [])
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false)
+    if (dragX > 80) setOpen(false)
+    setDragX(0)
+  }, [dragX, setOpen])
   const [invoice, setInvoice] = useState({
     name: "",
     surname: "",
@@ -109,10 +132,14 @@ const CartDrawer = () => {
       />
 
       <aside
-        className={`fixed top-0 right-0 z-40 h-full w-full max-w-md bg-zinc-950 border-l border-zinc-800 flex flex-col transition-transform duration-300 ${
+        className={`fixed top-0 right-0 z-40 h-full w-full max-w-md bg-zinc-950 border-l border-zinc-800 flex flex-col ${isDragging ? "" : "transition-transform duration-300"} ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
+        style={dragX > 0 ? { transform: `translateX(${dragX}px)` } : undefined}
         aria-label="Shopping cart"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
           <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100">
