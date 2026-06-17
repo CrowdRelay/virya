@@ -93,9 +93,6 @@ const LegalPage = ({ pageKey }) => {
             {t("legal.lastUpdated")} · {t("legal.date")}
           </p>
           <div className="max-w-3xl">
-            <p className="border-l-4 border-amber-400/60 pl-4 py-2 text-xs text-amber-200/90 bg-amber-400/5 mb-8">
-              {page.note}
-            </p>
             {page.sections.map((section, i) => (
               <Section key={i} section={section} prefix={prefix} />
             ))}

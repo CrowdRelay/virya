@@ -202,7 +202,6 @@ export const translations = {
       date: "17 June 2026",
       terms: {
         title: "Terms & Conditions",
-        note: "",
         sections: [
           {
             heading: "1. Seller",
@@ -250,7 +249,6 @@ export const translations = {
       },
       returns: {
         title: "Returns & Refunds",
-        note: "",
         sections: [
           {
             heading: "14-day right of withdrawal",
@@ -282,7 +280,6 @@ export const translations = {
       },
       privacy: {
         title: "Privacy Policy",
-        note: "",
         sections: [
           {
             heading: "Who we are",
@@ -521,7 +518,6 @@ export const translations = {
       date: "17 czerwca 2026",
       terms: {
         title: "Regulamin",
-        note: "",
         sections: [
           {
             heading: "1. Sprzedawca",
@@ -567,7 +563,6 @@ export const translations = {
       },
       returns: {
         title: "Zwroty i reklamacje",
-        note: "",
         sections: [
           {
             heading: "Prawo do odstąpienia w 14 dni",
@@ -599,7 +594,6 @@ export const translations = {
       },
       privacy: {
         title: "Polityka prywatności",
-        note: "",
         sections: [
           {
             heading: "Kto jesteśmy",

@@ -1,6 +1,7 @@
 import React from "react"
 import MerchClient from "../components/merch/merchClient"
 import { PRODUCTS, CURRENCY } from "../data/products"
+import { getSeoTags } from "../utils/seo"
 
 const Main = () => <MerchClient />
 
@@ -32,30 +33,43 @@ const storeSchema = JSON.stringify({
   })),
 })
 
-export const Head = () => (
-  <>
-    <title>{metaTags.title}</title>
-    <link rel="canonical" href={metaTags.url} />
-    <meta name="description" content={metaTags.description} />
-    <meta name="keywords" content={metaTags.keywords} />
-    <meta name="author" content="Virya" />
-    <meta name="theme-color" content="#09090b" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Virya" />
-    <meta property="og:locale" content="en_US" />
-    <meta property="og:title" content={metaTags.title} />
-    <meta property="og:description" content={metaTags.description} />
-    <meta property="og:image" content={metaTags.image} />
-    <meta property="og:url" content={metaTags.url} />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@viryaofficial" />
-    <meta name="twitter:creator" content="@viryaofficial" />
-    <meta name="twitter:title" content={metaTags.title} />
-    <meta name="twitter:description" content={metaTags.description} />
-    <meta name="twitter:image" content={metaTags.image} />
-    <meta name="twitter:url" content={metaTags.url} />
-    <script type="application/ld+json">{storeSchema}</script>
-  </>
-)
+export const Head = ({ pageContext }) => {
+  const lang = pageContext?.lang || "en"
+  const { canonicalUrl, hreflangLinks } = getSeoTags("/merch", lang)
+  const ogLocale = lang === "pl" ? "pl_PL" : "en_US"
+  const title = lang === "pl" ? "Sklep | Virya - Oficjalny sklep" : metaTags.title
+  const description = lang === "pl"
+    ? "Oficjalny merch Virya — album Echoes Of The Modern Mind, koszulki i torba. Darmowe naklejki do każdego zamówienia. Płać BLIK, Google Pay, Revolut Pay lub kartą. Dostawa do Paczkomatu InPost."
+    : metaTags.description
+
+  return (
+    <>
+      <title>{title}</title>
+      <link rel="canonical" href={canonicalUrl} />
+      {hreflangLinks.map((link, i) => (
+        <link key={i} rel={link.rel} hreflang={link.hreflang} href={link.href} />
+      ))}
+      <meta name="description" content={description} />
+      <meta name="keywords" content={metaTags.keywords} />
+      <meta name="author" content="Virya" />
+      <meta name="theme-color" content="#09090b" />
+      <meta property="og:type" content="website" />
+      <meta property="og:site_name" content="Virya" />
+      <meta property="og:locale" content={ogLocale} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:image" content={metaTags.image} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@viryaofficial" />
+      <meta name="twitter:creator" content="@viryaofficial" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={metaTags.image} />
+      <meta name="twitter:url" content={canonicalUrl} />
+      <script type="application/ld+json">{storeSchema}</script>
+    </>
+  )
+}
 
 export default Main
