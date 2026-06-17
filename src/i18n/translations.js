@@ -202,15 +202,13 @@ export const translations = {
       date: "17 June 2026",
       terms: {
         title: "Terms & Conditions",
-        note: "Placeholder seller details below must be completed with Virya's registered business information (legal name, address, tax ID / NIP, REGON) before the store handles live orders.",
+        note: "",
         sections: [
           {
             heading: "1. Seller",
             paras: [
               [
-                { t: 'The online store at virya.music ("Store") is operated by Virya ("Seller"). Registered business name, address and tax identification number: ' },
-                { em: "[to be completed]" },
-                { t: ". Contact: " },
+                { t: 'The online store at virya.music ("Store") is operated by WB Soft ("Seller"), ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. Contact: ' },
                 { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
                 { t: "." },
               ],
@@ -252,7 +250,7 @@ export const translations = {
       },
       returns: {
         title: "Returns & Refunds",
-        note: "Add the physical return address before going live, so customers know where to send withdrawn or faulty items.",
+        note: "",
         sections: [
           {
             heading: "14-day right of withdrawal",
@@ -265,9 +263,7 @@ export const translations = {
           {
             heading: "Returning the goods",
             paras: [[
-              { t: "Return the items within 14 days of notifying us, to: " },
-              { em: "[return address — to be completed]" },
-              { t: ". Goods should be returned unused and in their original condition. You cover the direct cost of return shipping." },
+              { t: "Return the items within 14 days of notifying us, to: WB Soft, ul. Braniborska 50/2, 53-680 Wrocław. Goods should be returned unused and in their original condition. You cover the direct cost of return shipping." },
             ]],
           },
           {
@@ -286,14 +282,12 @@ export const translations = {
       },
       privacy: {
         title: "Privacy Policy",
-        note: "Confirm the data controller's legal identity and address before going live. The processors listed below reflect the current stack — keep them in sync if the tooling changes.",
+        note: "",
         sections: [
           {
             heading: "Who we are",
             paras: [[
-              { t: "The data controller is Virya (" },
-              { em: "[legal name & address — to be completed]" },
-              { t: "). For any privacy request, contact " },
+              { t: "The data controller is WB Soft, ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. For any privacy request, contact " },
               { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
               { t: "." },
             ]],
@@ -527,14 +521,12 @@ export const translations = {
       date: "17 czerwca 2026",
       terms: {
         title: "Regulamin",
-        note: "Poniższe dane sprzedawcy są tymczasowe i muszą zostać uzupełnione zarejestrowanymi danymi firmy Virya (nazwa, adres, NIP, REGON), zanim sklep zacznie obsługiwać zamówienia.",
+        note: "",
         sections: [
           {
             heading: "1. Sprzedawca",
             paras: [[
-              { t: 'Sklep internetowy w domenie virya.music („Sklep") prowadzony jest przez Virya („Sprzedawca"). Zarejestrowana nazwa firmy, adres i numer identyfikacji podatkowej: ' },
-              { em: "[do uzupełnienia]" },
-              { t: ". Kontakt: " },
+              { t: 'Sklep internetowy w domenie virya.music („Sklep") prowadzony jest przez WB Soft („Sprzedawca"), ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. Kontakt: ' },
               { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
               { t: "." },
             ]],
@@ -575,7 +567,7 @@ export const translations = {
       },
       returns: {
         title: "Zwroty i reklamacje",
-        note: "Przed uruchomieniem sklepu uzupełnij fizyczny adres zwrotu, aby klienci wiedzieli, gdzie odsyłać zwracane lub wadliwe produkty.",
+        note: "",
         sections: [
           {
             heading: "Prawo do odstąpienia w 14 dni",
@@ -588,9 +580,7 @@ export const translations = {
           {
             heading: "Zwrot towaru",
             paras: [[
-              { t: "Odeślij produkty w ciągu 14 dni od poinformowania nas, na adres: " },
-              { em: "[adres zwrotu — do uzupełnienia]" },
-              { t: ". Towar powinien być nieużywany i w oryginalnym stanie. Bezpośredni koszt odesłania pokrywa kupujący." },
+              { t: "Odeślij produkty w ciągu 14 dni od poinformowania nas, na adres: WB Soft, ul. Braniborska 50/2, 53-680 Wrocław. Towar powinien być nieużywany i w oryginalnym stanie. Bezpośredni koszt odesłania pokrywa kupujący." },
             ]],
           },
           {
@@ -609,14 +599,12 @@ export const translations = {
       },
       privacy: {
         title: "Polityka prywatności",
-        note: "Przed uruchomieniem potwierdź tożsamość i adres administratora danych. Wymienieni poniżej procesorzy odpowiadają obecnemu zestawowi narzędzi — aktualizuj listę, jeśli narzędzia się zmienią.",
+        note: "",
         sections: [
           {
             heading: "Kto jesteśmy",
             paras: [[
-              { t: "Administratorem danych jest Virya (" },
-              { em: "[nazwa prawna i adres — do uzupełnienia]" },
-              { t: "). W sprawach prywatności pisz na " },
+              { t: "Administratorem danych jest WB Soft, ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. W sprawach prywatności pisz na " },
               { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
               { t: "." },
             ]],
