@@ -11,14 +11,9 @@ import { translations, LANGS, DEFAULT_LANG } from "./translations"
 const STORAGE_KEY = "virya-lang"
 const I18nContext = createContext(null)
 
-// Idempotent language-aware path builder. Strips any existing /pl prefix first,
-// so it never double-prefixes (no /pl/pl), then re-applies for the target lang.
-// Always feed it the canonical English path (e.g. "/merch").
 export const localePath = (path, lang) => {
   let clean = String(path == null ? "/" : path)
   if (!clean.startsWith("/")) clean = `/${clean}`
-  // Strip one *or more* leading /pl segments so even a malformed /pl/pl URL
-  // self-heals — guarantees we can never build a double prefix.
   clean = clean.replace(/^(?:\/pl)+(?=\/|$)/, "")
   if (clean === "") clean = "/"
   if (lang !== "pl") return clean
@@ -41,12 +36,8 @@ const resolve = (lang, key, params) => {
 }
 
 export const LanguageProvider = ({ children, initialLang }) => {
-  // The language is fixed by the URL (page context) — each page is rendered in
-  // its own language on the server, so there is no client-side swap or shift.
   const lang = LANGS.includes(initialLang) ? initialLang : DEFAULT_LANG
 
-  // Keep <html lang> correct and remember the current language as the visitor's
-  // preference, so first-visit auto-detection (gatsby-browser) can honour it.
   useEffect(() => {
     if (typeof document !== "undefined") document.documentElement.lang = lang
     try {
@@ -64,7 +55,6 @@ export const LanguageProvider = ({ children, initialLang }) => {
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
 
-// Safe even outside a provider (returns English helpers).
 export const useI18n = () => {
   const ctx = useContext(I18nContext)
   if (!ctx) {
