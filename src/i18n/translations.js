@@ -130,7 +130,7 @@ export const translations = {
       soldOut: "Sold out",
       lowStock: "Low stock",
       bundle: "Bundle",
-      hoverBack: "Hover · back",
+      hoverBack: "Hover",
       fewLeft: size => `Only a few left in ${size}`,
       restock: size => `Noted — we'll let the crew know about ${size}.`,
       restockTitle: size => `${size} is sold out — tap to request a restock`,
@@ -445,7 +445,7 @@ export const translations = {
       soldOut: "Wyprzedane",
       lowStock: "Ostatnie sztuki",
       bundle: "Zestaw",
-      hoverBack: "Najedź · tył",
+      hoverBack: "Najedź",
       fewLeft: size => `Zostało kilka w rozmiarze ${size}`,
       restock: size => `Zapisane — damy znać ekipie o rozmiarze ${size}.`,
       restockTitle: size =>
