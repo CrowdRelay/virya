@@ -9,7 +9,7 @@ const Landing = () => (
       muted
       loop
       playsInline
-      poster="/rise.webp"
+      poster="/poster.webp"
       preload="none"
       id="landingvid"
       aria-label="Background video"
