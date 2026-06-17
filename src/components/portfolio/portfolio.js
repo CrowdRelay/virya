@@ -36,7 +36,7 @@ const Portfolio = memo(() => {
         <div className="py-16 lg:px-8 border-t border-zinc-800/60">
             <div className="mx-4 mb-6">
                 <div className="flex items-center gap-4 mb-2">
-                    <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">Portfolio</p>
+                    <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">Music</p>
                     <div className="flex-1 h-px bg-zinc-800" />
                 </div>
                 <p className="text-zinc-400 text-xs uppercase tracking-widest">Recent releases</p>

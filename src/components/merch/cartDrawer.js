@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useCallback, useRef } from "react"
+import { Link } from "gatsby"
 import { GatsbyImage } from "gatsby-plugin-image"
 import { useCart, lineKey } from "./cartContext"
 import { useMerchImages } from "./useMerchImages"
@@ -366,6 +367,23 @@ const CartDrawer = () => {
             </button>
             <p className="text-[10px] text-zinc-600 text-center uppercase tracking-widest">
               BLIK · Google Pay · Revolut Pay · Card
+            </p>
+            <p className="text-[10px] text-zinc-400 text-center leading-relaxed">
+              By paying you agree to our{" "}
+              <Link
+                to="/legal/terms"
+                className="underline underline-offset-2 hover:text-amber-400"
+              >
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="/legal/returns"
+                className="underline underline-offset-2 hover:text-amber-400"
+              >
+                Returns policy
+              </Link>
+              .
             </p>
           </div>
         )}
