@@ -64,7 +64,7 @@ export const PRODUCTS = [
     id: "ashes-bw",
     name: "From The Ashes — Mono Tee",
     name_pl: "From The Ashes — Koszulka (mono)",
-    name_pl: "From The Ashes — Koszulka Monochromatyczna",
+    name_pl: "From The Ashes — Koszulka monochrom",
     type: "shirt",
     price: 70,
     front: "merch/Ashes BW Front.webp",
