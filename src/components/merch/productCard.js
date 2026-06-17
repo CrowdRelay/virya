@@ -2,6 +2,7 @@
 import React, { memo, useState } from "react"
 import { GatsbyImage } from "gatsby-plugin-image"
 import { useCart } from "./cartContext"
+import { useI18n } from "../../i18n/I18nContext"
 import {
   discountedPrice,
   sizeInStock,
@@ -15,6 +16,7 @@ import {
 
 const ProductCard = memo(({ product, images }) => {
   const { add } = useCart()
+  const { t, lang } = useI18n()
   const [size, setSize] = useState(null)
   const [hovered, setHovered] = useState(false)
   const [error, setError] = useState(false)
@@ -31,6 +33,11 @@ const ProductCard = memo(({ product, images }) => {
   const bundle = isBundle(product)
   const lowStock = productLowStock(product)
   const selectedLow = needsSize && size && sizeLowStock(product, size)
+  const blurb = lang === "pl" && product.blurb_pl ? product.blurb_pl : product.blurb
+  const includes =
+    lang === "pl" && product.includes_pl
+      ? product.includes_pl
+      : product.includes
 
   const handleAdd = () => {
     if (!available) return
@@ -45,7 +52,7 @@ const ProductCard = memo(({ product, images }) => {
   const requestSize = async s => {
     if (requested.includes(s)) return
     setRequested(prev => [...prev, s])
-    setNotice(`Noted — we'll let the crew know about ${s}.`)
+    setNotice(t("product.restock", s))
     try {
       await fetch("/api/size-demand", {
         method: "POST",
@@ -93,7 +100,7 @@ const ProductCard = memo(({ product, images }) => {
         <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
           {bundle && (
             <span className="text-[10px] font-black uppercase tracking-widest text-black bg-zinc-100 px-2 py-1">
-              Bundle
+              {t("product.bundle")}
             </span>
           )}
           {onSale && (
@@ -105,17 +112,17 @@ const ProductCard = memo(({ product, images }) => {
         {/* Low-stock nudge */}
         {available && lowStock && (
           <span className="absolute bottom-2 left-2 text-[10px] font-bold uppercase tracking-widest text-amber-300 bg-black/70 px-2 py-1 backdrop-blur-sm">
-            Low stock
+            {t("product.lowStock")}
           </span>
         )}
         {!available && (
           <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-[11px] font-black uppercase tracking-widest text-zinc-200">
-            Sold out
+            {t("product.soldOut")}
           </span>
         )}
         {back && (
           <span className="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-widest text-zinc-300 bg-black/60 px-2 py-1 backdrop-blur-sm">
-            Hover · back
+            {t("product.hoverBack")}
           </span>
         )}
       </div>
@@ -129,12 +136,12 @@ const ProductCard = memo(({ product, images }) => {
             bundle ? "mb-3" : "mb-4 flex-1"
           }`}
         >
-          {product.blurb}
+          {blurb}
         </p>
 
-        {bundle && Array.isArray(product.includes) && (
+        {bundle && Array.isArray(includes) && (
           <ul className="mb-4 flex-1 space-y-1">
-            {product.includes.map(inc => (
+            {includes.map(inc => (
               <li
                 key={inc}
                 className="flex items-center gap-2 text-[11px] text-zinc-300"
@@ -151,7 +158,7 @@ const ProductCard = memo(({ product, images }) => {
         {needsSize && (
           <div className="mb-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
-              Size
+              {t("product.size")}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {product.sizes.map(s => {
@@ -161,8 +168,8 @@ const ProductCard = memo(({ product, images }) => {
                     <button
                       key={s}
                       onClick={() => requestSize(s)}
-                      title={`${s} is sold out — tap to request a restock`}
-                      aria-label={`${s} sold out, request restock`}
+                      title={t("product.restockTitle", s)}
+                      aria-label={t("product.restockAria", s)}
                       className="relative min-w-[2.25rem] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-zinc-800 text-zinc-400 line-through cursor-pointer hover:border-amber-400/40 hover:text-amber-400/80 transition-colors"
                     >
                       {s}
@@ -177,7 +184,7 @@ const ProductCard = memo(({ product, images }) => {
                       setSize(s)
                       setError(false)
                     }}
-                    title={low ? `${s} — running low` : undefined}
+                    title={low ? t("product.fewLeft", s) : undefined}
                     className={`relative min-w-[2.25rem] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-colors ${
                       size === s
                         ? "border-amber-400 bg-amber-400 text-black"
@@ -197,12 +204,12 @@ const ProductCard = memo(({ product, images }) => {
             </div>
             {error && (
               <p className="text-[10px] uppercase tracking-widest text-red-400 mt-2">
-                Pick a size first
+                {t("product.pickSize")}
               </p>
             )}
             {selectedLow && (
               <p className="text-[10px] uppercase tracking-widest text-amber-400/90 mt-2">
-                Only a few left in {size}
+                {t("product.fewLeft", size)}
               </p>
             )}
             {notice && (
@@ -236,7 +243,7 @@ const ProductCard = memo(({ product, images }) => {
             disabled={!available}
             className="text-[11px] font-bold uppercase tracking-widest px-4 py-2 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-amber-400 transition-all duration-200"
           >
-            {available ? "Add to cart" : "Sold out"}
+            {available ? t("product.addToCart") : t("product.soldOut")}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client"
 import React, { memo, useState, useEffect } from "react"
 import ShowItem from "./show"
+import { useI18n } from "../../i18n/I18nContext"
 
 const API_URL = `/api/bandsintown`
 const BANDSINTOWN_API_TIMEOUT = 20000
@@ -62,6 +63,7 @@ const SkeletonRow = () => (
 )
 
 const Shows = memo(() => {
+  const { t } = useI18n()
   const [shows, setShows] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -113,12 +115,12 @@ const Shows = memo(() => {
       <div className="mx-4">
         <div className="flex items-center gap-4 mb-2">
           <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
-            Shows
+            {t("shows.heading")}
           </p>
           <div className="flex-1 h-px bg-zinc-800" />
         </div>
         <p className="text-zinc-400 text-xs uppercase tracking-widest mb-8">
-          Upcoming live dates
+          {t("shows.sub")}
         </p>
         <div className="flex flex-col gap-1.5">
           {loading ? (
@@ -130,13 +132,13 @@ const Shows = memo(() => {
           ) : shows.length === 0 ? (
             <div className="border-l-2 border-zinc-700 pl-4 py-4">
               <p className="text-zinc-400 text-xs uppercase tracking-widest">
-                No shows announced yet.
+                {t("shows.none")}
               </p>
               <a
                 href="#join"
                 className="inline-flex items-center gap-2 mt-3 text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
               >
-                Join the list to hear first
+                {t("shows.joinCta")}
                 <span aria-hidden="true">&rarr;</span>
               </a>
             </div>

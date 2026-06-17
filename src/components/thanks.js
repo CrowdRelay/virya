@@ -1,5 +1,6 @@
 "use client"
 import React, { memo } from "react"
+import { useI18n } from "../i18n/I18nContext"
 
 const CheckIcon = () => (
   <svg
@@ -19,11 +20,11 @@ const CheckIcon = () => (
   </svg>
 )
 
-const CloseIcon = ({ onClick }) => (
+const CloseIcon = ({ onClick, label }) => (
   <button
     type="button"
     onClick={onClick}
-    aria-label="Dismiss notification"
+    aria-label={label}
     className="ml-2 hover:text-amber-200 transition-colors"
   >
     <svg
@@ -43,31 +44,35 @@ const CloseIcon = ({ onClick }) => (
   </button>
 )
 
-const Message = () => (
+const Message = ({ title, body }) => (
   <div className="text-xl font-normal max-w-full flex-initial">
     <div className="py-2">
-      Thank you
-      <div className="text-sm font-base">
-        Your message has been sent. We will reach out to you soon.
-      </div>
+      {title}
+      <div className="text-sm font-base">{body}</div>
     </div>
   </div>
 )
 
-export const Thanks = memo(({ displayThanks }) => (
-  <div
-    role="status"
-    aria-live="polite"
-    className="fixed top-20 right-2 shadow-2xl lg:top-24 lg:right-4 flex justify-center items-center m-1 font-medium py-2 px-3 text-black bg-amber-400 border border-amber-300"
-  >
-    <div slot="avatar">
-      <CheckIcon />
-    </div>
-    <Message />
-    <div className="flex flex-auto flex-row-reverse">
-      <div>
-        <CloseIcon onClick={() => displayThanks(false)} />
+export const Thanks = memo(({ displayThanks }) => {
+  const { t } = useI18n()
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed top-20 right-2 shadow-2xl lg:top-24 lg:right-4 flex justify-center items-center m-1 font-medium py-2 px-3 text-black bg-amber-400 border border-amber-300"
+    >
+      <div slot="avatar">
+        <CheckIcon />
+      </div>
+      <Message title={t("contact.thankTitle")} body={t("contact.thankBody")} />
+      <div className="flex flex-auto flex-row-reverse">
+        <div>
+          <CloseIcon
+            onClick={() => displayThanks(false)}
+            label={t("contact.dismiss")}
+          />
+        </div>
       </div>
     </div>
-  </div>
-))
+  )
+})

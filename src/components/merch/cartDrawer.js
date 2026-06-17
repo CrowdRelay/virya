@@ -4,6 +4,7 @@ import { Link } from "gatsby"
 import { GatsbyImage } from "gatsby-plugin-image"
 import { useCart, lineKey } from "./cartContext"
 import { useMerchImages } from "./useMerchImages"
+import { useI18n } from "../../i18n/I18nContext"
 import InpostGeowidget from "./inpostGeowidget"
 
 const inputClass =
@@ -20,6 +21,7 @@ const QtyButton = ({ children, onClick, label }) => (
 )
 
 const CartDrawer = () => {
+  const { t } = useI18n()
   const {
     lines,
     open,
@@ -83,15 +85,15 @@ const CartDrawer = () => {
     const email = invoice.email.trim()
     const address = invoice.address.trim()
     if (!name || !surname || !email || !address) {
-      setError("Fill in your name, surname, address and email.")
+      setError(t("cart.errFill"))
       return
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Enter a valid email address.")
+      setError(t("cart.errEmail"))
       return
     }
     if (needsShipping && !point) {
-      setError("Choose a Paczkomat for delivery first.")
+      setError(t("cart.errPaczkomat"))
       return
     }
     setLoading(true)
@@ -116,10 +118,10 @@ const CartDrawer = () => {
       if (!res.ok || !data.url) throw new Error(data.error || "Checkout failed")
       window.location.href = data.url
     } catch (e) {
-      setError(e.message || "Something went wrong. Please try again.")
+      setError(e.message || t("cart.errGeneric"))
       setLoading(false)
     }
-  }, [lines, point, needsShipping, invoice])
+  }, [lines, point, needsShipping, invoice, t])
 
   return (
     <>
@@ -144,11 +146,11 @@ const CartDrawer = () => {
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
           <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100">
-            Your cart
+            {t("cart.title")}
           </h2>
           <button
             onClick={() => setOpen(false)}
-            aria-label="Close cart"
+            aria-label={t("cart.close")}
             className="text-zinc-500 hover:text-amber-400 transition-colors text-2xl leading-none"
           >
             &times;
@@ -158,7 +160,7 @@ const CartDrawer = () => {
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {lines.length === 0 ? (
             <p className="text-sm text-zinc-500 uppercase tracking-widest text-center mt-12">
-              Your cart is empty
+              {t("cart.empty")}
             </p>
           ) : (
             <ul className="space-y-4">
@@ -185,13 +187,13 @@ const CartDrawer = () => {
                       </p>
                       {l.size && (
                         <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-0.5">
-                          Size {l.size}
+                          {t("cart.sizeLabel", l.size)}
                         </p>
                       )}
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-2">
                           <QtyButton
-                            label="Decrease quantity"
+                            label={t("cart.decrease")}
                             onClick={() => setQty(l.id, l.size, l.qty - 1)}
                           >
                             &minus;
@@ -200,7 +202,7 @@ const CartDrawer = () => {
                             {l.qty}
                           </span>
                           <QtyButton
-                            label="Increase quantity"
+                            label={t("cart.increase")}
                             onClick={() => setQty(l.id, l.size, l.qty + 1)}
                           >
                             +
@@ -213,10 +215,10 @@ const CartDrawer = () => {
                     </div>
                     <button
                       onClick={() => remove(l.id, l.size)}
-                      aria-label="Remove item"
+                      aria-label={t("cart.remove")}
                       className="self-start text-zinc-600 hover:text-red-400 transition-colors text-xs"
                     >
-                      Remove
+                      {t("cart.remove")}
                     </button>
                   </li>
                 )
@@ -226,7 +228,7 @@ const CartDrawer = () => {
 
           {lines.length > 0 && (
             <p className="mt-5 text-[11px] uppercase tracking-widest text-amber-400/90 border border-amber-400/30 px-3 py-2">
-              + Free stickers with every order
+              {t("cart.freeStickers")}
             </p>
           )}
         </div>
@@ -237,7 +239,7 @@ const CartDrawer = () => {
             {needsShipping && (
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
-                  InPost Paczkomat delivery
+                  {t("cart.deliveryHeading")}
                 </p>
                 {point ? (
                   <div className="flex items-start justify-between gap-3 border border-zinc-800 px-3 py-2">
@@ -255,7 +257,7 @@ const CartDrawer = () => {
                       onClick={() => setPickerOpen(true)}
                       className="text-[10px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 whitespace-nowrap"
                     >
-                      Change
+                      {t("cart.change")}
                     </button>
                   </div>
                 ) : (
@@ -263,7 +265,7 @@ const CartDrawer = () => {
                     onClick={() => setPickerOpen(true)}
                     className="w-full text-xs font-bold uppercase tracking-widest py-2.5 border border-zinc-700 text-zinc-200 hover:border-amber-400 hover:text-amber-400 transition-colors"
                   >
-                    Choose Paczkomat
+                    {t("cart.choosePaczkomat")}
                   </button>
                 )}
               </div>
@@ -272,14 +274,14 @@ const CartDrawer = () => {
             {/* Invoice / buyer details */}
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
-                Billing details · for your invoice
+                {t("cart.billing")}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="text"
                   value={invoice.name}
                   onChange={setField("name")}
-                  placeholder="First name *"
+                  placeholder={t("cart.firstName")}
                   autoComplete="given-name"
                   className={inputClass}
                 />
@@ -287,7 +289,7 @@ const CartDrawer = () => {
                   type="text"
                   value={invoice.surname}
                   onChange={setField("surname")}
-                  placeholder="Surname *"
+                  placeholder={t("cart.surname")}
                   autoComplete="family-name"
                   className={inputClass}
                 />
@@ -296,7 +298,7 @@ const CartDrawer = () => {
                 type="email"
                 value={invoice.email}
                 onChange={setField("email")}
-                placeholder="Email *"
+                placeholder={t("cart.emailPh")}
                 autoComplete="email"
                 className={`${inputClass} mt-2 w-full`}
               />
@@ -304,7 +306,7 @@ const CartDrawer = () => {
                 type="text"
                 value={invoice.address}
                 onChange={setField("address")}
-                placeholder="Address (street, postcode, city) *"
+                placeholder={t("cart.addressPh")}
                 autoComplete="street-address"
                 className={`${inputClass} mt-2 w-full`}
               />
@@ -313,7 +315,7 @@ const CartDrawer = () => {
                   type="text"
                   value={invoice.company}
                   onChange={setField("company")}
-                  placeholder="Company (optional)"
+                  placeholder={t("cart.company")}
                   autoComplete="organization"
                   className={inputClass}
                 />
@@ -321,7 +323,7 @@ const CartDrawer = () => {
                   type="text"
                   value={invoice.nip}
                   onChange={setField("nip")}
-                  placeholder="NIP (optional, B2B)"
+                  placeholder={t("cart.nip")}
                   className={inputClass}
                 />
               </div>
@@ -331,24 +333,24 @@ const CartDrawer = () => {
             <div className="space-y-1 text-sm">
               <div className="flex justify-between text-zinc-400">
                 <span className="text-xs uppercase tracking-widest">
-                  Subtotal
+                  {t("cart.subtotal")}
                 </span>
                 <span>{subtotal} PLN</span>
               </div>
               {needsShipping && (
                 <div className="flex justify-between text-zinc-400">
                   <span className="text-xs uppercase tracking-widest">
-                    Delivery
+                    {t("cart.deliveryRow")}
                   </span>
                   <span>{shipping} PLN</span>
                 </div>
               )}
               <div className="flex justify-between text-zinc-100 font-black pt-2 border-t border-zinc-800 mt-2">
-                <span className="text-xs uppercase tracking-widest">Total</span>
+                <span className="text-xs uppercase tracking-widest">{t("cart.total")}</span>
                 <span>{total} PLN</span>
               </div>
               <p className="text-[10px] text-zinc-600 pt-1">
-                Goods include 23% VAT · delivery exempt
+                {t("cart.vatNote")}
               </p>
             </div>
 
@@ -363,25 +365,25 @@ const CartDrawer = () => {
               disabled={loading}
               className="w-full bg-amber-400 text-black hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-widest font-bold text-sm py-3 transition-all duration-200"
             >
-              {loading ? "Redirecting…" : "Pay with Stripe"}
+              {loading ? t("cart.redirecting") : t("cart.pay")}
             </button>
             <p className="text-[10px] text-zinc-600 text-center uppercase tracking-widest">
-              BLIK · Google Pay · Revolut Pay · Card
+              {t("cart.payMethods")}
             </p>
             <p className="text-[10px] text-zinc-400 text-center leading-relaxed">
-              By paying you agree to our{" "}
+              {t("cart.agree")}{" "}
               <Link
                 to="/legal/terms"
                 className="underline underline-offset-2 hover:text-amber-400"
               >
-                Terms
+                {t("cart.agreeTerms")}
               </Link>{" "}
-              and{" "}
+              {t("cart.agreeAnd")}{" "}
               <Link
                 to="/legal/returns"
                 className="underline underline-offset-2 hover:text-amber-400"
               >
-                Returns policy
+                {t("cart.agreeReturns")}
               </Link>
               .
             </p>

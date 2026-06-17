@@ -3,6 +3,8 @@ import React, { useState, useEffect, memo } from 'react'
 import { handleScroll } from './scrollToTop/scroll'
 import { StaticImage } from 'gatsby-plugin-image'
 import { Link } from 'gatsby'
+import { useI18n } from '../i18n/I18nContext'
+import LangSwitch from './langSwitch'
 
 const linkClass = "cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400"
 
@@ -26,6 +28,7 @@ const MobileItem = ({ onClick, children }) => (
 );
 
 const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
+  const { t } = useI18n()
   const [headerStyle, setHeaderStyle] = useState({
     transition: 'all 200ms ease-in'
   })
@@ -71,7 +74,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
     <nav aria-label="Main navigation" style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
       <div className="container mx-auto flex items-center">
         <div className="flex flex-1 items-center">
-          <Link title="Homepage" className="flex" to="/">
+          <Link title={t("nav.home")} className="flex" to="/">
             <StaticImage
               src="../images/virya.webp"
               title="Virya"
@@ -86,29 +89,31 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
         </div>
 
         <div className="hidden lg:flex items-center">
-          {displayLinks && <Link to="/band" className={linkClass}>Band</Link>}
-          <Link to="/merch" className={linkClass}>Merch</Link>
+          {displayLinks && <Link to="/band" className={linkClass}>{t("nav.band")}</Link>}
+          <Link to="/merch" className={linkClass}>{t("nav.merch")}</Link>
           {displayLinks && (
             <>
-              <NavLink onClick={() => handleScroll(musicRef.current)} title="Music">Music</NavLink>
-              <NavLink onClick={() => handleScroll(showsRef.current)} title="Shows">Shows</NavLink>
-              <NavLink onClick={() => handleScroll(contactRef.current)} title="Contact">Contact</NavLink>
+              <NavLink onClick={() => handleScroll(musicRef.current)} title={t("nav.music")}>{t("nav.music")}</NavLink>
+              <NavLink onClick={() => handleScroll(showsRef.current)} title={t("nav.shows")}>{t("nav.shows")}</NavLink>
+              <NavLink onClick={() => handleScroll(contactRef.current)} title={t("nav.contact")}>{t("nav.contact")}</NavLink>
             </>
           )}
+          <LangSwitch className="ml-4 pl-4 border-l border-white/10" />
         </div>
 
         <div className="flex lg:hidden items-center gap-2">
+          <LangSwitch className="mr-1" />
           <Link
             to="/merch"
-            aria-label="Go to Virya merch store"
+            aria-label={t("nav.toMerch")}
             className="inline-flex items-center min-h-[44px] px-3 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors"
           >
-            Merch
+            {t("nav.merch")}
           </Link>
           {displayLinks && (
             <button
               onClick={() => setMenuOpen(o => !o)}
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-label={menuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               className="p-2 text-zinc-300 hover:text-amber-400 transition-colors"
@@ -130,11 +135,11 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
       {displayLinks && menuOpen && (
         <div id="mobile-menu" className="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
           <Link to="/band" onClick={closeMenu} className="w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest text-zinc-300 hover:text-amber-400 border-b border-white/5 transition-colors">
-            Band
+            {t("nav.band")}
           </Link>
-          <MobileItem onClick={scrollAndClose(musicRef)}>Music</MobileItem>
-          <MobileItem onClick={scrollAndClose(showsRef)}>Shows</MobileItem>
-          <MobileItem onClick={scrollAndClose(contactRef)}>Contact</MobileItem>
+          <MobileItem onClick={scrollAndClose(musicRef)}>{t("nav.music")}</MobileItem>
+          <MobileItem onClick={scrollAndClose(showsRef)}>{t("nav.shows")}</MobileItem>
+          <MobileItem onClick={scrollAndClose(contactRef)}>{t("nav.contact")}</MobileItem>
         </div>
       )}
     </nav>

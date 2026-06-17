@@ -40,6 +40,8 @@ export const PRODUCTS = [
     inStock: true,
     blurb:
       "Our debut full-length — 11 tracks through the broad mind of a modern man. Every piece is signed by the band.",
+    blurb_pl:
+      "Nasz debiutancki album — 11 utworów przez szeroki umysł współczesnego człowieka. Każdy egzemplarz sygnowany przez zespół.",
   },
   {
     id: "ashes-color",
@@ -53,6 +55,7 @@ export const PRODUCTS = [
     lowStock: true,
     lowStockSizes: ["M"],
     blurb: "All-over print. The phoenix rises in full colour.",
+    blurb_pl: "Nadruk all-over. Feniks powstaje w pełnym kolorze.",
   },
   {
     id: "ashes-bw",
@@ -65,6 +68,7 @@ export const PRODUCTS = [
     inStockSizes: ["M", "L"],
     lowStockSizes: ["L"],
     blurb: "All-over print. The phoenix, rendered in monochrome.",
+    blurb_pl: "Nadruk all-over. Feniks w monochromatycznej odsłonie.",
   },
   {
     id: "wave",
@@ -77,6 +81,7 @@ export const PRODUCTS = [
     inStockSizes: ["M", "L", "XL"],
     lowStockSizes: ["XL"],
     blurb: "All-over print. Ride the wave of uncertainty.",
+    blurb_pl: "Nadruk all-over. Płyń na fali niepewności.",
   },
   {
     id: "virya-logo",
@@ -89,6 +94,7 @@ export const PRODUCTS = [
     inStockSizes: ["S", "L", "XXL"],
     lowStockSizes: ["XXL"],
     blurb: "Clean silver crest on the front, gold emblem on the back.",
+    blurb_pl: "Czysty srebrny herb z przodu, złoty emblemat z tyłu.",
   },
   {
     id: "bag",
@@ -100,6 +106,7 @@ export const PRODUCTS = [
     sizes: null,
     inStock: true,
     blurb: "Heavy-duty tote with the Virya crest. Carry the catharsis.",
+    blurb_pl: "Wytrzymała torba z herbem Virii. Noś katharsis ze sobą.",
   },
 ]
 
@@ -116,7 +123,9 @@ export const BUNDLES = [
     inStockSizes: ["S", "L", "XXL"],
     lowStockSizes: ["XXL"],
     includes: ["Virya Logo Tee", "Echoes — CD album"],
+    includes_pl: ["Koszulka Virya Logo", "Echoes — album CD"],
     blurb: "The logo tee and our debut album together — cheaper than apart.",
+    blurb_pl: "Koszulka z logo i debiutancki album razem — taniej niż osobno.",
   },
   {
     id: "bundle-catharsis-pack",
@@ -129,7 +138,9 @@ export const BUNDLES = [
     sizes: null,
     inStock: true,
     includes: ["Virya Tote Bag", "Echoes — CD album"],
+    includes_pl: ["Torba Virya", "Echoes — album CD"],
     blurb: "Carry the catharsis: the tote plus the debut album in one pack.",
+    blurb_pl: "Noś katharsis: torba i debiutancki album w jednym zestawie.",
   },
   {
     id: "bundle-stay-mad-pack",
