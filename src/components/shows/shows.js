@@ -128,9 +128,18 @@ const Shows = memo(() => {
               <SkeletonRow />
             </>
           ) : shows.length === 0 ? (
-            <p className="text-zinc-400 text-xs uppercase tracking-widest border-l-2 border-zinc-700 pl-4 py-4">
-              No upcoming shows at the moment.
-            </p>
+            <div className="border-l-2 border-zinc-700 pl-4 py-4">
+              <p className="text-zinc-400 text-xs uppercase tracking-widest">
+                No shows announced yet.
+              </p>
+              <a
+                href="#join"
+                className="inline-flex items-center gap-2 mt-3 text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
+              >
+                Join the list to hear first
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
           ) : (
             shows.map((item, index) => <ShowItem key={index} item={item} />)
           )}

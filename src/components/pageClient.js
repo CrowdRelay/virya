@@ -5,9 +5,12 @@ import MainText from "./mainText"
 import Layout from "./layout"
 import { handleScroll, ScrollToTop } from "./scrollToTop/scroll"
 import Landing from "./landing"
+import BandTeaser from "./bandTeaser"
+import Showcase from "./showcase"
 import Portfolio from "./portfolio/portfolio"
 import Spotify from "./spotify/spotify"
 import Shows from "./shows/shows"
+import Newsletter from "./newsletter"
 import Contact from "./contact"
 
 const ScrollArrows = memo(({ onClick }) => (
@@ -25,42 +28,44 @@ const ScrollArrows = memo(({ onClick }) => (
 ))
 
 const PageClient = () => {
-    const portfolioRef = useRef(null)
+    const aboutRef = useRef(null)
     const musicRef = useRef(null)
     const showsRef = useRef(null)
     const contactRef = useRef(null)
 
-  const scrollToPortfolio = useCallback(
-    () => handleScroll(portfolioRef.current),
+  const scrollToContent = useCallback(
+    () => handleScroll(aboutRef.current),
     []
   )
 
     return (
         <>
-            <header className="header relative lg:overflow-hidden min-h-[85vh] lg:min-h-screen flex flex-col">
+            <header className="header relative lg:overflow-hidden min-h-screen flex flex-col">
                 <Landing />
         <Navbar
           displayLinks={true}
-          portfolioRef={portfolioRef}
           musicRef={musicRef}
           showsRef={showsRef}
           contactRef={contactRef}
         />
-                <MainText contactRef={contactRef} />
-                <ScrollArrows onClick={scrollToPortfolio} />
+                <MainText musicRef={musicRef} contactRef={contactRef} />
+                <ScrollArrows onClick={scrollToContent} />
             </header>
             <Layout>
                 <ScrollToTop smooth />
-        <section ref={portfolioRef} className="scroll-mt-20">
-          <Portfolio />
+        <section ref={aboutRef} className="scroll-mt-20">
+          <BandTeaser />
         </section>
+        <Showcase />
         <section ref={musicRef} className="scroll-mt-20">
+          <Portfolio />
           <Spotify />
         </section>
         <section ref={showsRef} className="scroll-mt-20">
           <Shows />
         </section>
         <section ref={contactRef} className="scroll-mt-20">
+          <Newsletter />
           <Contact />
         </section>
             </Layout>
