@@ -1,14 +1,9 @@
 "use client"
 import React from "react"
-import LegalPage, { Section, Note } from "../../components/legalPage"
+import LegalPage, { Section } from "../../components/legalPage"
 
 const Returns = () => (
   <LegalPage title="Returns & Refunds" lastUpdated="17 June 2026">
-    <Note>
-      Add the physical return address before going live, so customers know where
-      to send withdrawn or faulty items.
-    </Note>
-
     <div className="mt-8">
       <Section heading="14-day right of withdrawal">
         <p>
@@ -27,10 +22,7 @@ const Returns = () => (
 
       <Section heading="Returning the goods">
         <p>
-          Return the items within 14 days of notifying us, to:{" "}
-          <em>[return address — to be completed]</em>. Goods should be returned
-          unused and in their original condition. You cover the direct cost of
-          return shipping.
+          Return the items within 14 days of notifying us, to: WB Soft, ul. Braniborska 50/2, 53-680 Wrocław. Goods should be returned unused and in their original condition. You cover the direct cost of return shipping.
         </p>
       </Section>
 

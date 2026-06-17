@@ -19,7 +19,7 @@ const MainText = memo(({ musicRef, contactRef }) => (
           a modern metalcore band from Poland
         </span>
       </h1>
-      <p className="lg:text-base text-sm mt-6 text-zinc-300 max-w-lg leading-relaxed [text-shadow:0_1px_8px_rgba(0,0,0,0.9)]">
+      <p className="lg:text-base text-sm mt-6 text-zinc-300 text-justify max-w-lg leading-relaxed [text-shadow:0_1px_8px_rgba(0,0,0,0.9)]">
         Riffs, weight and melody from four players who'd rather build something
         new than repeat the formula. Every release is a release of energy — every
         show, a catharsis.

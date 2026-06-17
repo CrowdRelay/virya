@@ -12,7 +12,7 @@ export const Section = ({ heading, children }) => (
         {heading}
       </h2>
     )}
-    <div className="space-y-3 text-sm text-zinc-300 leading-relaxed">
+    <div className="space-y-3 text-sm text-zinc-300 leading-relaxed text-justify">
       {children}
     </div>
   </section>
