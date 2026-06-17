@@ -21,7 +21,9 @@ const QtyButton = ({ children, onClick, label }) => (
 )
 
 const CartDrawer = () => {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const prefix = lang === "pl" ? "/pl" : ""
+  const getProductName = product => lang === "pl" && product.name_pl ? product.name_pl : product.name
   const {
     lines,
     open,
@@ -176,14 +178,14 @@ const CartDrawer = () => {
                       {img && (
                         <GatsbyImage
                           image={img}
-                          alt={l.product.name}
+                          alt={getProductName(l.product)}
                           className="w-full h-full"
                         />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold uppercase tracking-wide text-zinc-100 leading-tight">
-                        {l.product.name}
+                        {getProductName(l.product)}
                       </p>
                       {l.size && (
                         <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-0.5">
@@ -373,14 +375,14 @@ const CartDrawer = () => {
             <p className="text-[10px] text-zinc-400 text-center leading-relaxed">
               {t("cart.agree")}{" "}
               <Link
-                to="/legal/terms"
+                to={`${prefix}/legal/terms`}
                 className="underline underline-offset-2 hover:text-amber-400"
               >
                 {t("cart.agreeTerms")}
               </Link>{" "}
               {t("cart.agreeAnd")}{" "}
               <Link
-                to="/legal/returns"
+                to={`${prefix}/legal/returns`}
                 className="underline underline-offset-2 hover:text-amber-400"
               >
                 {t("cart.agreeReturns")}

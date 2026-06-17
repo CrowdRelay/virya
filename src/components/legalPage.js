@@ -6,18 +6,29 @@ import Footer from "./footer"
 import { ScrollToTop } from "./scrollToTop/scroll"
 import { useI18n } from "../i18n/I18nContext"
 
-const Run = ({ run }) => {
+const Run = ({ run, prefix = "" }) => {
   if (run.link) {
     const external = run.link.href.startsWith("http")
+    const href = external ? run.link.href : `${prefix}${run.link.href}`
+    if (external) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="text-amber-400 underline underline-offset-2"
+        >
+          {run.link.label}
+        </a>
+      )
+    }
     return (
-      <a
-        href={run.link.href}
-        target={external ? "_blank" : undefined}
-        rel={external ? "noreferrer" : undefined}
+      <Link
+        to={href}
         className="text-amber-400 underline underline-offset-2"
       >
         {run.link.label}
-      </a>
+      </Link>
     )
   }
   if (run.em) return <em>{run.em}</em>
@@ -25,7 +36,7 @@ const Run = ({ run }) => {
   return <>{run.t}</>
 }
 
-const Section = ({ section }) => (
+const Section = ({ section, prefix = "" }) => (
   <section className="mb-10">
     {section.heading && (
       <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100 mb-3">
@@ -36,7 +47,7 @@ const Section = ({ section }) => (
       {section.paras.map((runs, i) => (
         <p key={i}>
           {runs.map((run, j) => (
-            <Run key={j} run={run} />
+            <Run key={j} run={run} prefix={prefix} />
           ))}
         </p>
       ))}
@@ -52,7 +63,8 @@ const Section = ({ section }) => (
 )
 
 const LegalPage = ({ pageKey }) => {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const prefix = lang === "pl" ? "/pl" : ""
   const page = t(`legal.${pageKey}`)
   return (
     <div className="bg-zinc-950 min-h-screen">
@@ -65,7 +77,7 @@ const LegalPage = ({ pageKey }) => {
           <div className="flex items-center gap-6 mb-4 border-b border-zinc-800/60 pb-8">
             <Link
               title={t("legal.back")}
-              to="/merch"
+              to={`${prefix}/merch`}
               className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none"
             >
               &larr;
@@ -85,7 +97,7 @@ const LegalPage = ({ pageKey }) => {
               {page.note}
             </p>
             {page.sections.map((section, i) => (
-              <Section key={i} section={section} />
+              <Section key={i} section={section} prefix={prefix} />
             ))}
           </div>
         </div>
