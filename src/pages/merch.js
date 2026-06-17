@@ -10,7 +10,6 @@ const metaTags = {
   description:
     "Official Virya merch — Echoes Of The Modern Mind album, tees and a tote bag. Free stickers with every order. Pay with BLIK, Google Pay, Revolut Pay or card. InPost Paczkomat delivery.",
   image: "https://www.virya.music/merch-og.webp",
-  url: "https://www.virya.music/merch",
   keywords:
     "Virya, Merch, Store, Metalcore, T-shirt, Album, Echoes Of The Modern Mind, BLIK, InPost",
 }
@@ -19,7 +18,6 @@ const storeSchema = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Store",
   name: "Virya Official Store",
-  url: metaTags.url,
   image: metaTags.image,
   itemListElement: PRODUCTS.map(p => ({
     "@type": "Product",
@@ -42,6 +40,11 @@ export const Head = ({ pageContext }) => {
     ? "Oficjalny merch Virya — album Echoes Of The Modern Mind, koszulki i torba. Darmowe naklejki do każdego zamówienia. Płać BLIK, Google Pay, Revolut Pay lub kartą. Dostawa do Paczkomatu InPost."
     : metaTags.description
 
+  const schemaWithUrl = JSON.stringify({
+    ...JSON.parse(storeSchema),
+    url: canonicalUrl
+  })
+
   return (
     <>
       <title>{title}</title>
@@ -49,6 +52,7 @@ export const Head = ({ pageContext }) => {
       {hreflangLinks.map((link, i) => (
         <link key={i} rel={link.rel} hreflang={link.hreflang} href={link.href} />
       ))}
+      <link rel="preload" as="image" href="/merch/echoes.webp" fetchpriority="high" />
       <meta name="description" content={description} />
       <meta name="keywords" content={metaTags.keywords} />
       <meta name="author" content="Virya" />
@@ -67,7 +71,7 @@ export const Head = ({ pageContext }) => {
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={metaTags.image} />
       <meta name="twitter:url" content={canonicalUrl} />
-      <script type="application/ld+json">{storeSchema}</script>
+      <script type="application/ld+json">{schemaWithUrl}</script>
     </>
   )
 }
