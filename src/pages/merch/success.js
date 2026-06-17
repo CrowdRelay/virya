@@ -3,8 +3,10 @@ import React, { useEffect } from "react"
 import { Link } from "gatsby"
 import Navbar from "../../components/nav"
 import Footer from "../../components/footer"
+import { useI18n } from "../../i18n/I18nContext"
 
 const Success = () => {
+  const { t } = useI18n()
   useEffect(() => {
     try {
       window.localStorage.removeItem("virya-cart-v1")
@@ -21,24 +23,22 @@ const Success = () => {
       <div className="flex-1 flex items-center justify-center px-6 pt-20">
         <div className="max-w-md text-center">
           <p className="uppercase tracking-[0.3em] text-amber-400 text-xs font-bold mb-4">
-            Order confirmed
+            {t("success.eyebrow")}
           </p>
           <h1 className="text-3xl lg:text-4xl font-black uppercase tracking-tight text-white mb-6">
-            Thank you 💪
+            {t("success.title")}
           </h1>
           <p className="text-sm text-zinc-300 leading-relaxed mb-2">
-            Your payment went through and your order is on its way to the crew.
-            You'll get a confirmation by email, and we'll ship it to your chosen
-            InPost Paczkomat.
+            {t("success.body")}
           </p>
           <p className="text-sm text-amber-400/90 mb-8">
-            And yes — free stickers are in the box.
+            {t("success.stickers")}
           </p>
           <Link
             to="/merch"
             className="inline-block bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-sm py-3 px-8 transition-all duration-200"
           >
-            Back to store
+            {t("success.back")}
           </Link>
         </div>
       </div>

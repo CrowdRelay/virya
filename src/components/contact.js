@@ -1,12 +1,14 @@
 "use client"
 import React, { useState } from "react"
 import { Thanks } from './thanks';
+import { useI18n } from '../i18n/I18nContext';
 
 const encode = data => Object.keys(data)
     .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
     .join("&")
 
 const Contact = () => {
+    const { t } = useI18n();
     const [formData, setFormData] = useState({
         message: "",
         name: "", 
@@ -71,16 +73,16 @@ const Contact = () => {
                     </label>
                 </p>
                 <div className="flex items-center gap-4 mb-2">
-                    <h2 className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">Send a message</h2>
+                    <h2 className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">{t("contact.heading")}</h2>
                     <div className="flex-1 h-px bg-zinc-800" />
                 </div>
-                <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">We read every message</p>
+                <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">{t("contact.sub")}</p>
                 <div className="flex flex-wrap gap-x-6 gap-y-1 mb-2 px-4">
                     <a
                         href="mailto:virya.crew@gmail.com"
                         className="inline-flex items-center min-h-[44px] text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
                     >
-                        Booking → virya.crew@gmail.com
+                        {t("contact.booking")}
                     </a>
                     <a
                         href="https://drive.google.com/drive/folders/1M4pgB9goigGUm9tudcQIzORTgILgSABH?usp=drive_link"
@@ -88,13 +90,13 @@ const Contact = () => {
                         rel="noreferrer"
                         className="inline-flex items-center min-h-[44px] text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
                     >
-                        Press kit (EPK) &rarr;
+                        {t("contact.epk")}
                     </a>
                 </div>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
                         <div className="mt-8 px-4">
-                            <label htmlFor="name" className="uppercase text-xs font-semibold tracking-widest text-zinc-400">Name</label>
+                            <label htmlFor="name" className="uppercase text-xs font-semibold tracking-widest text-zinc-400">{t("contact.name")}</label>
                             <input
                                 id="name"
                                 name="name"
@@ -104,7 +106,7 @@ const Contact = () => {
                                 className="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors" />
                         </div>
                         <div className="mt-8 px-4">
-                            <label htmlFor="email" className="uppercase text-xs font-semibold tracking-widest text-zinc-400">Email</label>
+                            <label htmlFor="email" className="uppercase text-xs font-semibold tracking-widest text-zinc-400">{t("contact.email")}</label>
                             <input
                                 id="email"
                                 name="email"
@@ -114,7 +116,7 @@ const Contact = () => {
                                 className="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors" />
                         </div>
                         <div className="mt-8 px-4">
-                            <label htmlFor="message" className="uppercase text-xs font-semibold tracking-widest text-zinc-400">Message</label>
+                            <label htmlFor="message" className="uppercase text-xs font-semibold tracking-widest text-zinc-400">{t("contact.message")}</label>
                             <textarea
                                 id="message"
                                 name="message"
@@ -128,7 +130,7 @@ const Contact = () => {
                                 type="submit"
                                 disabled={message.length === 0 || name.length === 0 || email.length === 0}
                                 className="disabled:opacity-30 disabled:cursor-not-allowed w-full bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-sm py-3 px-4 transition-all duration-200 outline-none">
-                                Send
+                                {t("contact.send")}
                             </button>
                         </div>
                     </div>

@@ -1,15 +1,18 @@
 import React from "react"
 import { Link } from "gatsby"
+import { useI18n } from "../i18n/I18nContext"
 
-const Footer = () =>
+const Footer = () => {
+    const { t } = useI18n()
+    return (
     <footer className="bg-zinc-950 border-t border-zinc-800/50 py-8 px-6">
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 items-center">
             <div className="justify-self-center lg:justify-self-start flex flex-col gap-2">
                 <p className="text-zinc-400 text-xs uppercase tracking-widest mb-0">&copy; Virya</p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
-                    <Link to="/legal/terms" className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">Terms</Link>
-                    <Link to="/legal/returns" className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">Returns</Link>
-                    <Link to="/legal/privacy" className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">Privacy</Link>
+                    <Link to="/legal/terms" className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">{t("footer.terms")}</Link>
+                    <Link to="/legal/returns" className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">{t("footer.returns")}</Link>
+                    <Link to="/legal/privacy" className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">{t("footer.privacy")}</Link>
                 </div>
             </div>
             <div className="justify-self-center lg:justify-self-end flex items-center">
@@ -41,5 +44,7 @@ const Footer = () =>
             </div>
         </div>
     </footer >
+    )
+}
 
 export default Footer

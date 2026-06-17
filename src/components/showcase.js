@@ -1,10 +1,12 @@
 "use client"
 import React, { memo, useState } from "react"
+import { useI18n } from "../i18n/I18nContext"
 
 const POSTER = "/showcase-poster.jpg"
 const VIDEO = "/showcase-web.mp4"
 
 const Showcase = memo(() => {
+  const { t } = useI18n()
   const [playing, setPlaying] = useState(false)
 
   return (
@@ -12,12 +14,12 @@ const Showcase = memo(() => {
       <div className="mx-4">
         <div className="flex items-center gap-4 mb-2">
           <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
-            Showcase
+            {t("showcase.heading")}
           </p>
           <div className="flex-1 h-px bg-zinc-800" />
         </div>
         <p className="text-zinc-400 text-xs uppercase tracking-widest mb-8">
-          Virya in 2026
+          {t("showcase.sub")}
         </p>
 
         <div className="relative max-w-2xl mx-auto aspect-square overflow-hidden border border-zinc-800/60 bg-zinc-950">
@@ -30,18 +32,18 @@ const Showcase = memo(() => {
               autoPlay
               playsInline
               preload="none"
-              aria-label="Virya 2026 showcase video"
+              aria-label={t("showcase.play")}
             />
           ) : (
             <button
               type="button"
               onClick={() => setPlaying(true)}
-              aria-label="Play the Virya 2026 showcase video"
+              aria-label={t("showcase.play")}
               className="group block w-full h-full"
             >
               <img
                 src={POSTER}
-                alt="Virya — 2026 showcase"
+                alt={t("showcase.sub")}
                 width={720}
                 height={720}
                 loading="lazy"

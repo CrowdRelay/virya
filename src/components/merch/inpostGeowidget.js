@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useRef, useCallback } from "react"
+import { useI18n } from "../../i18n/I18nContext"
 
 const SCRIPT_SRC = "https://geowidget.inpost.pl/inpost-geowidget.js"
 const STYLE_HREF = "https://geowidget.inpost.pl/inpost-geowidget.css"
@@ -47,6 +48,7 @@ const ensureAssets = () => {
 }
 
 const InpostGeowidget = ({ open, onClose, onSelect }) => {
+  const { t, lang } = useI18n()
   const hostRef = useRef(null)
 
   const handlePoint = useCallback(
@@ -91,7 +93,7 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Choose an InPost Paczkomat"
+      aria-label={t("cart.choosePaczkomatTitle")}
       onClick={onClose}
     >
       <div
@@ -100,11 +102,11 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800">
           <p className="text-xs font-bold uppercase tracking-widest text-zinc-300">
-            Choose your Paczkomat
+            {t("cart.choosePaczkomatTitle")}
           </p>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("cart.close")}
             className="text-zinc-500 hover:text-amber-400 transition-colors text-xl leading-none"
           >
             &times;
@@ -115,7 +117,7 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
             <inpost-geowidget
               ref={hostRef}
               token={TOKEN}
-              language="pl"
+              language={lang === "pl" ? "pl" : "en"}
               config="parcelCollect"
               onpoint={CALLBACK_NAME}
               style={{ width: "100%", height: "100%", display: "block" }}
@@ -123,7 +125,7 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
           ) : (
             <div className="h-full flex items-center justify-center text-center px-6">
               <p className="text-sm text-zinc-400">
-                InPost map unavailable — set{" "}
+                {t("cart.widgetMissing")}{" "}
                 <code className="text-amber-400">
                   GATSBY_INPOST_GEOWIDGET_TOKEN
                 </code>

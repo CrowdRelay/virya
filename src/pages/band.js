@@ -5,6 +5,7 @@ import Footer from "../components/footer"
 import { Link } from 'gatsby';
 import { StaticImage } from "gatsby-plugin-image"
 import { ScrollToTop } from "../components/scrollToTop/scroll"
+import { useI18n } from "../i18n/I18nContext"
 
 const SocialLink = ({ href, title, ariaLabel }) => (
   <a
@@ -26,6 +27,7 @@ const BandSection = ({ children }) => (
 );
 
 const Main = () => {
+    const { t } = useI18n()
     const socialLinks = [
       {
         href: "https://www.instagram.com/virya.official",
@@ -64,7 +66,7 @@ const Main = () => {
       },
       {
         href: "https://drive.google.com/drive/folders/1M4pgB9goigGUm9tudcQIzORTgILgSABH?usp=drive_link",
-        title: "Press Pack",
+        title: t("band.pressPack"),
         ariaLabel: "press-pack"
       }
     ];
@@ -79,9 +81,9 @@ const Main = () => {
                 <div className="px-6 lg:px-12 py-12">
 
                     <div className="flex items-center gap-6 mb-12 border-b border-zinc-800/60 pb-8">
-                        <Link title="Homepage" to="/" className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none">&larr;</Link>
+                        <Link title={t("nav.home")} to="/" className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none">&larr;</Link>
                         <div className="flex items-center gap-4 flex-1">
-                            <h1 itemProp="headline" className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">Band Story</h1>
+                            <h1 itemProp="headline" className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">{t("band.storyHeading")}</h1>
                             <div className="flex-1 h-px bg-zinc-800" />
                         </div>
                     </div>
@@ -97,28 +99,22 @@ const Main = () => {
                     </div>
 
                     <div className="max-w-3xl space-y-6 mb-16">
-                        <BandSection>
-                            Virya was born in 2023 from a refusal to follow established paths. Founded by guitarist Wojciech Bator and drummer Jakub Dąbrowski, the band set out to dismantle genre boundaries — fusing the ferocity of modern metalcore with unexpected influences that reach far beyond metal. Technical precision, raw emotion, and relentless energy define the sound. Architects, Tesseract, and Twelve Foot Ninja may come to mind, but Virya carves its own path.
-                        </BandSection>
-                        <BandSection>
-                            The lineup took its definitive shape with the arrival of Marek Bienias on vocals — a force of nature whose commanding presence and powerful voice brought the band to a new level. In 2024, bassist Lubomyr Kosakovsky completed the lineup, adding even more mass and depth to the sound.
-                        </BandSection>
-                        <BandSection>
-                            The name Virya is more than a name — it is a declaration. Rooted in the concept of positive energy and unbreakable will, it is the band's manifesto: that every concert must be a catharsis, a release of raw power shared between the band and the audience. Their music carries the weight of life's hardships and the defiant belief that rising above them is always possible. No pain, no gain.
-                        </BandSection>
+                        <BandSection>{t("band.story1")}</BandSection>
+                        <BandSection>{t("band.story2")}</BandSection>
+                        <BandSection>{t("band.story3")}</BandSection>
                     </div>
 
                     <div className="mb-16">
                         <div className="flex items-center gap-4 mb-6">
-                            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">Lineup</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">{t("band.lineup")}</p>
                             <div className="flex-1 h-px bg-zinc-800/60" />
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
                             {[
-                                { name: 'Wojciech Bator', role: 'Guitar' },
-                                { name: 'Marek Bienias', role: 'Vocals' },
-                                { name: 'Jakub Dąbrowski', role: 'Drums, Backing Vocals' },
-                                { name: 'Lubomyr Kosakovsky', role: 'Bass' },
+                                { name: 'Wojciech Bator', role: t("band.roles.guitar") },
+                                { name: 'Marek Bienias', role: t("band.roles.vocals") },
+                                { name: 'Jakub Dąbrowski', role: t("band.roles.drums") },
+                                { name: 'Lubomyr Kosakovsky', role: t("band.roles.bass") },
                             ].map(({ name, role }) => (
                                 <div key={name} className="border-l-2 border-amber-400/30 pl-4 py-3">
                                     <p className="font-bold text-sm text-zinc-100">{name}</p>
@@ -130,7 +126,7 @@ const Main = () => {
 
                     <div className="mb-8">
                         <div className="flex items-center gap-4 mb-4">
-                            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">Links</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">{t("band.links")}</p>
                             <div className="flex-1 h-px bg-zinc-800/60" />
                         </div>
                         <div className="max-w-sm">

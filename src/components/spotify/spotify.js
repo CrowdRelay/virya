@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useRef, useEffect } from "react"
+import { useI18n } from "../../i18n/I18nContext"
 
 const ARTIST_ID = "6bbW0jOKAWJWm3h6CTWaAS"
 
@@ -43,6 +44,7 @@ const SpotifyIcon = ({ className }) => (
 )
 
 const Spotify = () => {
+  const { t } = useI18n()
   const [visible, setVisible] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const ref = useRef(null)
@@ -62,14 +64,14 @@ const Spotify = () => {
     <div className="mx-4">
       <div className="flex items-center gap-4 mb-6">
         <p className="text-zinc-400 text-xs uppercase tracking-widest whitespace-nowrap">
-          Stream on Spotify
+          {t("music.streamSpotify")}
         </p>
         <div className="flex-1 h-px bg-zinc-800/60" />
         <a
           href={`https://open.spotify.com/artist/${ARTIST_ID}`}
           target="_blank"
           rel="noreferrer"
-          aria-label="Open on Spotify"
+          aria-label={t("music.openSpotify")}
           className="flex-shrink-0 text-zinc-400 hover:text-[#1DB954] transition-colors duration-200"
         >
           <SpotifyIcon className="w-5 h-5" aria-hidden="true" />
