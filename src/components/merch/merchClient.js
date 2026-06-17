@@ -45,8 +45,9 @@ const CartFab = () => {
 
 const Storefront = () => {
   const images = useMerchImages()
-  const { t } = useI18n()
-  const saleEnds = discountEndsLabel()
+  const { t, lang } = useI18n()
+  const locale = lang === "pl" ? "pl-PL" : "en-GB"
+  const saleEnds = discountEndsLabel(locale)
   return (
     <div className="bg-zinc-950 min-h-screen">
       <header className="header relative lg:overflow-hidden">
