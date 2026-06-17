@@ -30,7 +30,7 @@ const BandTeaser = memo(() => (
           />
         </div>
         <div className="border-l-4 border-amber-400 pl-6 lg:pl-8 py-2">
-          <p className="lg:text-base text-sm text-zinc-300 leading-relaxed">
+          <p className="lg:text-base text-sm text-zinc-300 text-justify leading-relaxed">
             Founded in 2023, Virya blend modern metalcore with influences from
             well beyond metal — think Architects, Tesseract and Twelve Foot
             Ninja, filtered through their own voice. Strength, technique and
