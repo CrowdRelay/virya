@@ -358,7 +358,7 @@ export const translations = {
       heading: "Zespół",
       sub: "Kim jesteśmy",
       teaser:
-        "Założona w 2023 roku Virya łączy nowoczesny metalcore z inspiracjami daleko spoza metalu — Architects, Tesseract czy Twelve Foot Ninja, przepuszczonymi przez własny głos. Siła, technika i emocje, z przekonaniem, że każdy koncert to prawdziwe katharsis.",
+        "Założona w 2023 roku Virya łączy nowoczesny metalcore z inspiracjami daleko spoza metalu — Architects, Tesseract czy Twelve Foot Ninja, w naszym unikalnym stylu. Siła, technika i emocje, z przekonaniem, że każdy koncert to prawdziwe katharsis.",
       noPain: "No pain, no gain.",
       readStory: "Poznaj całą historię",
       storyHeading: "Historia zespołu",

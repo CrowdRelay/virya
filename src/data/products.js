@@ -155,6 +155,7 @@ export const BUNDLES = [
     lowStockSizes: ["XXL"],
     includes: ["Virya Logo Tee", "Virya Tote Bag"],
     blurb: "The logo tee and tote together — wear it, carry it, Stay Mad.",
+    blurb_pl: "Koszulka z logo i torba razem — ubierz, noś, Stay Mad.",
   },
 ]
 
