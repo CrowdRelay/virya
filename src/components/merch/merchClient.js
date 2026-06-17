@@ -72,7 +72,7 @@ const Storefront = () => {
           </div>
 
           <p className="uppercase tracking-[0.3em] text-amber-400 text-xs font-bold mb-4">
-            Official store · Free stickers with every order
+            Official store · Free stickers with every order · Stay Mad
           </p>
           {saleEnds && (
             <div className="mb-12 inline-flex items-center gap-2 border border-amber-400/30 bg-amber-400/5 px-3 py-2">
