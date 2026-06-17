@@ -153,6 +153,20 @@ export const BUNDLES = [
     includes: ["Virya Tote Bag", "Echoes — CD album"],
     blurb: "Carry the catharsis: the tote plus the debut album in one pack.",
   },
+  {
+    id: "bundle-stay-mad-pack",
+    name: "Stay Mad Pack",
+    type: "bundle",
+    bundle: true,
+    price: 100,
+    front: "merch/virya shirt 1.webp",
+    back: "merch/Bag 1.webp",
+    sizes: SIZES,
+    inStockSizes: ["S", "L", "XXL"],
+    lowStockSizes: ["XXL"],
+    includes: ["Virya Logo Tee", "Virya Tote Bag"],
+    blurb: "The logo tee and tote together — wear it, carry it, Stay Mad.",
+  },
 ]
 
 // Everything purchasable, used by cart/checkout lookups.
