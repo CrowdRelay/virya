@@ -89,8 +89,8 @@ const Storefront = () => {
 
           {/* Product grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {PRODUCTS.map(product => (
-              <ProductCard key={product.id} product={product} images={images} />
+            {PRODUCTS.map((product, index) => (
+              <ProductCard key={product.id} product={product} images={images} index={index} />
             ))}
           </div>
 
@@ -107,11 +107,12 @@ const Storefront = () => {
                 {t("merch.bundlesSub")}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {BUNDLES.map(product => (
+                {BUNDLES.map((product, index) => (
                   <ProductCard
                     key={product.id}
                     product={product}
                     images={images}
+                    index={PRODUCTS.length + index}
                   />
                 ))}
               </div>

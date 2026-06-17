@@ -14,7 +14,7 @@ import {
   discountPct,
 } from "../../data/products"
 
-const ProductCard = memo(({ product, images }) => {
+const ProductCard = memo(({ product, images, index = 0 }) => {
   const { add } = useCart()
   const { t, lang } = useI18n()
   const [size, setSize] = useState(null)
@@ -81,7 +81,8 @@ const ProductCard = memo(({ product, images }) => {
             image={front}
             alt={product.name}
             title={product.name}
-            loading="lazy"
+            loading={index === 0 ? "eager" : "lazy"}
+            fetchPriority={index === 0 ? "high" : "auto"}
             className={`block w-full transition-opacity duration-500 ${
               showBack ? "opacity-0" : "opacity-100"
             } ${available ? "" : "grayscale"}`}
