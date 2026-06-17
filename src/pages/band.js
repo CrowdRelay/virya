@@ -3,6 +3,7 @@ import React from "react"
 import Navbar from "../components/nav"
 import Footer from "../components/footer"
 import { Link } from 'gatsby';
+import { StaticImage } from "gatsby-plugin-image"
 import { ScrollToTop } from "../components/scrollToTop/scroll"
 
 const SocialLink = ({ href, title, ariaLabel }) => (
@@ -19,7 +20,7 @@ const SocialLink = ({ href, title, ariaLabel }) => (
 );
 
 const BandSection = ({ children }) => (
-  <section className='lg:text-base text-sm text-zinc-300 leading-relaxed'>
+  <section className='lg:text-base text-sm text-zinc-300 leading-relaxed text-justify'>
     {children}
   </section>
 );
@@ -85,15 +86,25 @@ const Main = () => {
                         </div>
                     </div>
 
+                    <div className="max-w-3xl mb-10">
+                        <StaticImage
+                            src="../images/band.webp"
+                            alt="Virya band photo"
+                            className="w-full block mx-auto mb-10 rounded-sm"
+                            imgClassName="rounded-sm"
+                            placeholder="blurred"
+                        />
+                    </div>
+
                     <div className="max-w-3xl space-y-6 mb-16">
                         <BandSection>
-                            Virya was founded in 2023 on the initiative of two experienced guitarists Wojciech Bator and Harsha Dasari and drummer Jakub Dąbrowski, who, instead of repeating established patterns, decided to introduce a new approach, combining modern metalcore with non-obvious influences from outside the world of metal. Their combination of strength, technique and emotion brings to mind bands such as Architects, Tesseract or Twelve Foot Ninja, although Virya's music still follows its own, unique path.
+                            Virya was born in 2023 from a refusal to follow established paths. Founded by guitarist Wojciech Bator and drummer Jakub Dąbrowski, the band set out to dismantle genre boundaries — fusing the ferocity of modern metalcore with unexpected influences that reach far beyond metal. Technical precision, raw emotion, and relentless energy define the sound. Architects, Tesseract, and Twelve Foot Ninja may come to mind, but Virya carves its own path.
                         </BandSection>
                         <BandSection>
-                            After some time, Harsha and us parted ways, and the band was joined by Marek Bienias (vocals), whose energy on stage and strong, characteristic voice brought the band's quality to a new level. In 2024, bassist Lubomyr Kosakovsky joined, completing the lineup and adding even more weight to the band's sound.
+                            The lineup took its definitive shape with the arrival of Marek Bienias on vocals — a force of nature whose commanding presence and powerful voice brought the band to a new level. In 2024, bassist Lubomyr Kosakovsky completed the lineup, adding even more mass and depth to the sound.
                         </BandSection>
                         <BandSection>
-                            The name Virya not only means positive energy and determination, but is also the band's manifesto — the belief that each concert is not only a musical experience, but a real catharsis that is supposed to release energy and power in the audience. In their music you can hear echoes of struggling with the hardships of everyday life, but also the unwavering will to fight and faith that every person has a chance. No pain, no gain.
+                            The name Virya is more than a name — it is a declaration. Rooted in the concept of positive energy and unbreakable will, it is the band's manifesto: that every concert must be a catharsis, a release of raw power shared between the band and the audience. Their music carries the weight of life's hardships and the defiant belief that rising above them is always possible. No pain, no gain.
                         </BandSection>
                     </div>
 
