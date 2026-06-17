@@ -94,7 +94,7 @@ export const PRODUCTS = [
     id: "virya-logo",
     name: "Virya Logo Tee",
     name_pl: "Koszulka Virya Logo",
-    name_pl: "Koszulka z Logo Virii",
+    name_pl: "Koszulka z Logo Viryi",
     type: "shirt",
     price: 60,
     front: "merch/virya shirt 1.webp",
@@ -109,7 +109,7 @@ export const PRODUCTS = [
     id: "bag",
     name: "Virya Tote Bag",
     name_pl: "Torba Virya",
-    name_pl: "Torba Virii",
+    name_pl: "Torba Viryi",
     type: "bag",
     price: 50,
     front: "merch/Bag 1.webp",
@@ -117,7 +117,7 @@ export const PRODUCTS = [
     sizes: null,
     inStock: true,
     blurb: "Heavy-duty tote with the Virya crest. Carry the catharsis.",
-    blurb_pl: "Wytrzymała torba z herbem Virii. Noś katharsis ze sobą.",
+    blurb_pl: "Wytrzymała torba z herbem Viryi. Noś katharsis ze sobą.",
   },
 ]
 
