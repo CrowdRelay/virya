@@ -45,7 +45,7 @@ const CartFab = () => {
 
 const Storefront = () => {
   const images = useMerchImages()
-  const { t, lang } = useI18n()
+  const { t, lang, lp } = useI18n()
   const locale = lang === "pl" ? "pl-PL" : "en-GB"
   const saleEnds = discountEndsLabel(locale)
   return (
@@ -62,7 +62,7 @@ const Storefront = () => {
           <div className="flex items-center gap-6 mb-4 border-b border-zinc-800/60 pb-8">
             <Link
               title={t("nav.home")}
-              to="/"
+              to={lp("/")}
               className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none"
             >
               &larr;
@@ -146,7 +146,7 @@ const Storefront = () => {
             ].map(([label, to]) => (
               <Link
                 key={to}
-                to={to}
+                to={lp(to)}
                 className="inline-flex items-center min-h-[44px] text-[11px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors"
               >
                 {label}

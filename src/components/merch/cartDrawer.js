@@ -21,8 +21,7 @@ const QtyButton = ({ children, onClick, label }) => (
 )
 
 const CartDrawer = () => {
-  const { t, lang } = useI18n()
-  const prefix = lang === "pl" ? "/pl" : ""
+  const { t, lang, lp } = useI18n()
   const getProductName = product => lang === "pl" && product.name_pl ? product.name_pl : product.name
   const {
     lines,
@@ -104,6 +103,7 @@ const CartDrawer = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          lang,
           items: lines.map(l => ({ id: l.id, size: l.size, qty: l.qty })),
           point: needsShipping ? point : null,
           invoice: {
@@ -375,14 +375,14 @@ const CartDrawer = () => {
             <p className="text-[10px] text-zinc-400 text-center leading-relaxed">
               {t("cart.agree")}{" "}
               <Link
-                to={`${prefix}/legal/terms`}
+                to={lp("/legal/terms")}
                 className="underline underline-offset-2 hover:text-amber-400"
               >
                 {t("cart.agreeTerms")}
               </Link>{" "}
               {t("cart.agreeAnd")}{" "}
               <Link
-                to={`${prefix}/legal/returns`}
+                to={lp("/legal/returns")}
                 className="underline underline-offset-2 hover:text-amber-400"
               >
                 {t("cart.agreeReturns")}

@@ -1,7 +1,7 @@
 "use client"
 import React from "react"
 import { navigate } from "gatsby"
-import { useI18n } from "../i18n/I18nContext"
+import { useI18n, localePath } from "../i18n/I18nContext"
 import { LANGS } from "../i18n/translations"
 
 const LABELS = { en: "EN", pl: "PL" }
@@ -13,13 +13,7 @@ const LangSwitch = ({ className = "" }) => {
   const go = target => {
     if (target === lang || typeof window === "undefined") return
     const { pathname, search, hash } = window.location
-    const next =
-      target === "pl"
-        ? pathname.startsWith("/pl")
-          ? pathname
-          : `/pl${pathname}`
-        : pathname.replace(/^\/pl/, "") || "/"
-    navigate(`${next}${search}${hash}`)
+    navigate(`${localePath(pathname, target)}${search}${hash}`)
   }
 
   return (
