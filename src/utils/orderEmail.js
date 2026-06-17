@@ -27,7 +27,6 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     )
     .join("\n")
 
-  // VAT breakdown for issuing the invoice. Goods carry VAT; delivery is exempt.
   const goodsGross = Number.parseFloat(meta.goods_gross_pln || "0") || 0
   const shipping = Number.parseFloat(meta.shipping_pln || "0") || 0
   const { net, vat } = vatBreakdown(goodsGross)

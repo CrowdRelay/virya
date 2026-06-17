@@ -2,22 +2,13 @@ export const CURRENCY = "pln"
 export const SHIPPING_PLN = 15
 export const SIZES = ["S", "M", "L", "XL", "XXL"]
 
-// VAT applied to all goods. Delivery is shipped outside of tax (flat fee).
 export const VAT_RATE = 0.23
-
-// Site-wide promo. Prices shown and charged are the discounted gross.
 export const DISCOUNT_RATE = 0.2
-// Bundles get a deeper cut to reward buying the pack.
 export const BUNDLE_DISCOUNT_RATE = 0.3
-// Time window for the promo. Both bounds are optional ISO strings:
-//   DISCOUNT_FROM  — promo starts (leave null to be already active)
-//   DISCOUNT_UNTIL — promo ends   (leave null to run forever)
-// To make the discount time-limited, set a date, e.g.:
-//   export const DISCOUNT_UNTIL = "2026-07-01T23:59:59+02:00"
+
 export const DISCOUNT_FROM = null
 export const DISCOUNT_UNTIL = "2026-12-31T23:59:59+01:00"
 
-// Whether the discount is live right now (rate > 0 and inside the window).
 export const discountActive = (now = new Date()) => {
   if (!(DISCOUNT_RATE > 0)) return false
   if (DISCOUNT_FROM && now < new Date(DISCOUNT_FROM)) return false
@@ -25,10 +16,8 @@ export const discountActive = (now = new Date()) => {
   return true
 }
 
-// End of the promo window as a Date (or null if open-ended).
 export const discountEndsAt = () => (DISCOUNT_UNTIL ? new Date(DISCOUNT_UNTIL) : null)
 
-// Human-friendly end date, e.g. "31 December 2026" — null when not applicable.
 export const discountEndsLabel = (locale = "en-GB") => {
   const d = discountEndsAt()
   if (!d || !discountActive()) return null
@@ -39,13 +28,6 @@ export const discountEndsLabel = (locale = "en-GB") => {
   })
 }
 
-// Stock model:
-//  - sized products carry `inStockSizes` — sizes not listed are sold out
-//    (rendered greyed-out; clicking one notifies the crew of demand).
-//  - non-sized products carry `inStock`.
-//  - low-stock hints: `lowStock: true` flags a thin product; `lowStockSizes`
-//    flags individual sizes that are in stock but running low. These only
-//    drive a "running low" nudge in the UI — they never block a purchase.
 export const PRODUCTS = [
   {
     id: "echoes",
@@ -121,10 +103,6 @@ export const PRODUCTS = [
   },
 ]
 
-// Bundles — two items sold together for less than buying them apart. They are
-// first-class products (own id, price, stock) so checkout/cart treat them like
-// anything else; `includes` is purely for display. Sized bundles inherit the
-// tee's available sizes via `inStockSizes`.
 export const BUNDLES = [
   {
     id: "bundle-stage-pack",
@@ -169,26 +147,21 @@ export const BUNDLES = [
   },
 ]
 
-// Everything purchasable, used by cart/checkout lookups.
 export const ALL_PRODUCTS = [...PRODUCTS, ...BUNDLES]
 
 export const getProduct = id => ALL_PRODUCTS.find(p => p.id === id)
 
 export const isBundle = product => !!product && product.bundle === true
 
-// The discount rate that applies to a given product (bundles get more off).
 export const discountRate = product =>
   isBundle(product) ? BUNDLE_DISCOUNT_RATE : DISCOUNT_RATE
 
-// Whole-percent discount for display (0 when the promo window is closed).
 export const discountPct = product =>
   discountActive() ? Math.round(discountRate(product) * 100) : 0
 
-// Whether a product is flagged as running low (drives a soft "low stock" nudge).
 export const productLowStock = product =>
   !!product && product.lowStock === true && productInStock(product)
 
-// Whether a specific (in-stock) size is running low.
 export const sizeLowStock = (product, size) =>
   !!product &&
   Array.isArray(product.lowStockSizes) &&
@@ -198,9 +171,6 @@ export const sizeLowStock = (product, size) =>
 export const productRequiresShipping = product =>
   !!product && product.requiresShipping !== false
 
-// Price (PLN) the customer sees and the amount we charge — the server
-// recomputes it, never trusting the client. Falls back to full price when the
-// promo window is closed.
 export const discountedPrice = product => {
   if (!product) return 0
   if (!discountActive()) return product.price
@@ -222,7 +192,6 @@ export const productInStock = product => {
   return product.inStock !== false
 }
 
-// Split a gross amount (PLN) into net + VAT at the given rate.
 export const vatBreakdown = (gross, rate = VAT_RATE) => {
   const net = gross / (1 + rate)
   return { gross, net, vat: gross - net }
