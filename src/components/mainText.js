@@ -26,7 +26,7 @@ const MainText = memo(({ musicRef, contactRef }) => {
           {t("hero.body")}
         </p>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 flex flex-col lg:flex-wrap gap-3">
           <button
             onClick={() => handleScroll(musicRef.current)}
             className="inline-flex items-center justify-center min-h-[44px] px-6 bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-xs transition-colors"
