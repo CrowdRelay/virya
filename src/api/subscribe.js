@@ -16,8 +16,6 @@ export default async function handler(req, res) {
     return
   }
 
-  // Email config is optional here — Netlify Forms already captures the signup.
-  // If SMTP isn't configured, treat it as a soft success so the UX isn't broken.
   if (!user || !pass) {
     res.status(200).json({ stored: true, notified: false })
     return
@@ -47,7 +45,6 @@ export default async function handler(req, res) {
     res.status(200).json({ stored: true, notified: true })
   } catch (e) {
     console.error("[subscribe] email failed:", e)
-    // Netlify Forms still has the record — don't fail the user-facing flow.
     res.status(200).json({ stored: true, notified: false })
   }
 }

@@ -16,14 +16,12 @@ const Newsletter = () => {
     if (!email) return
     setStatus("sending")
 
-    // Persist to Netlify Forms for a durable record…
     fetch("/", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: encode({ "form-name": "newsletter", email, "bot-field": honeypot }),
     }).catch(() => {})
 
-    // …and best-effort notify the crew by email.
     fetch("/api/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
