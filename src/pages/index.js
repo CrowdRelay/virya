@@ -78,6 +78,8 @@ export const Head = () => (
     <>
         <title>{metaTags.title}</title>
         <link rel="preload" as="image" href="/rise.webp" fetchpriority="high" />
+        <link rel="dns-prefetch" href="https://open.spotify.com" />
+        <link rel="preconnect" href="https://open.spotify.com" crossOrigin="anonymous" />
         <link rel="canonical" href={metaTags.url} />
         <meta name="description" content={metaTags.description} />
         <meta name="keywords" content={metaTags.keywords} />

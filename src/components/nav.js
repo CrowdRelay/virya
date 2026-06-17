@@ -25,7 +25,7 @@ const MobileItem = ({ onClick, children }) => (
   </button>
 );
 
-const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) => {
+const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
   const [headerStyle, setHeaderStyle] = useState({
     transition: 'all 200ms ease-in'
   })
@@ -90,7 +90,6 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
           <Link to="/merch" className={linkClass}>Merch</Link>
           {displayLinks && (
             <>
-              <NavLink onClick={() => handleScroll(portfolioRef.current)} title="Portfolio">Portfolio</NavLink>
               <NavLink onClick={() => handleScroll(musicRef.current)} title="Music">Music</NavLink>
               <NavLink onClick={() => handleScroll(showsRef.current)} title="Shows">Shows</NavLink>
               <NavLink onClick={() => handleScroll(contactRef.current)} title="Contact">Contact</NavLink>
@@ -133,7 +132,6 @@ const Navbar = ({ displayLinks, portfolioRef, musicRef, showsRef, contactRef }) 
           <Link to="/band" onClick={closeMenu} className="w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest text-zinc-300 hover:text-amber-400 border-b border-white/5 transition-colors">
             Band
           </Link>
-          <MobileItem onClick={scrollAndClose(portfolioRef)}>Portfolio</MobileItem>
           <MobileItem onClick={scrollAndClose(musicRef)}>Music</MobileItem>
           <MobileItem onClick={scrollAndClose(showsRef)}>Shows</MobileItem>
           <MobileItem onClick={scrollAndClose(contactRef)}>Contact</MobileItem>

@@ -3,7 +3,9 @@ import React, { memo } from "react"
 import { Link } from "gatsby"
 import { handleScroll } from "./scrollToTop/scroll"
 
-const MainText = memo(({ contactRef }) => (
+const YOUTUBE_VIDEOS = "http://youtube.com/@ViryaOfficial/videos"
+
+const MainText = memo(({ musicRef, contactRef }) => (
   <div className="container lg:max-w-4xl my-auto lg:px-20 px-6 py-4">
     <div className="border-l-4 border-amber-400 pl-6 lg:pl-8 mt-20 md:mt-48 lg:mt-0 lg:mb-48 mb-16 py-2">
       <p className="uppercase tracking-[0.3em] text-amber-400 text-xs font-bold mb-4">
@@ -18,22 +20,44 @@ const MainText = memo(({ contactRef }) => (
         </span>
       </h1>
       <p className="lg:text-base text-sm mt-6 text-zinc-300 max-w-lg leading-relaxed [text-shadow:0_1px_8px_rgba(0,0,0,0.9)]">
-        Hi there! Check out our newest releases and grab some{" "}
+        Riffs, weight and melody from four players who'd rather build something
+        new than repeat the formula. Every release is a release of energy — every
+        show, a catharsis.
+      </p>
+
+      <div className="mt-8 flex flex-wrap gap-3">
+        <button
+          onClick={() => handleScroll(musicRef.current)}
+          className="inline-flex items-center justify-center min-h-[44px] px-6 bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-xs transition-colors"
+          aria-label="Listen to Virya"
+        >
+          Listen
+        </button>
+        <a
+          href={YOUTUBE_VIDEOS}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center min-h-[44px] px-6 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black uppercase tracking-widest font-bold text-xs transition-colors"
+        >
+          Watch
+        </a>
         <Link
           to="/merch"
-          className="text-amber-400 hover:text-amber-200 transition-colors underline underline-offset-2"
+          className="inline-flex items-center justify-center min-h-[44px] px-6 border border-zinc-500/60 text-zinc-200 hover:border-amber-400 hover:text-amber-400 uppercase tracking-widest font-bold text-xs transition-colors"
         >
-          merch
+          Merch
         </Link>
-        . If you are interested in booking or you just want to reach out to us,{" "}
+      </div>
+
+      <p className="text-xs mt-6 text-zinc-400 [text-shadow:0_1px_8px_rgba(0,0,0,0.9)]">
+        Booking or press?{" "}
         <button
           onClick={() => handleScroll(contactRef.current)}
           className="text-amber-400 hover:text-amber-200 transition-colors underline underline-offset-2"
-          aria-label="Scroll to contact form"
         >
-          don't hesitate to leave a message
+          Get in touch
         </button>
-        . Enjoy! 💪
+        .
       </p>
     </div>
   </div>

@@ -4,7 +4,7 @@ import { Link } from "gatsby"
 import Navbar from "../nav"
 import Footer from "../footer"
 import { ScrollToTop } from "../scrollToTop/scroll"
-import { PRODUCTS } from "../../data/products"
+import { PRODUCTS, BUNDLES, discountEndsLabel } from "../../data/products"
 import { CartProvider, useCart } from "./cartContext"
 import { useMerchImages } from "./useMerchImages"
 import ProductCard from "./productCard"
@@ -43,6 +43,7 @@ const CartFab = () => {
 
 const Storefront = () => {
   const images = useMerchImages()
+  const saleEnds = discountEndsLabel()
   return (
     <div className="bg-zinc-950 min-h-screen">
       <header className="header relative lg:overflow-hidden">
@@ -70,9 +71,18 @@ const Storefront = () => {
             </div>
           </div>
 
-          <p className="uppercase tracking-[0.3em] text-amber-400 text-xs font-bold mb-12">
+          <p className="uppercase tracking-[0.3em] text-amber-400 text-xs font-bold mb-4">
             Official store · Free stickers with every order
           </p>
+          {saleEnds && (
+            <div className="mb-12 inline-flex items-center gap-2 border border-amber-400/30 bg-amber-400/5 px-3 py-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <p className="text-[11px] uppercase tracking-widest text-amber-200">
+                Sale on now — up to 30% off ·{" "}
+                <span className="text-amber-400 font-bold">ends {saleEnds}</span>
+              </p>
+            </div>
+          )}
 
           {/* Product grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -80,6 +90,30 @@ const Storefront = () => {
               <ProductCard key={product.id} product={product} images={images} />
             ))}
           </div>
+
+          {/* Bundles */}
+          {BUNDLES.length > 0 && (
+            <div className="mt-16">
+              <div className="flex items-center gap-4 mb-2">
+                <h2 className="text-2xl font-black uppercase tracking-widest whitespace-nowrap text-white">
+                  Bundles
+                </h2>
+                <div className="flex-1 h-px bg-zinc-800" />
+              </div>
+              <p className="uppercase tracking-[0.3em] text-amber-400 text-xs font-bold mb-6">
+                Two items, one price — save more
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {BUNDLES.map(product => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    images={images}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Shipping/payment note */}
           <div className="mt-16 grid gap-6 lg:grid-cols-3 text-zinc-400">
@@ -106,6 +140,23 @@ const Storefront = () => {
                 </p>
                 <p className="text-xs leading-relaxed mt-1">{text}</p>
               </div>
+            ))}
+          </div>
+
+          {/* Legal */}
+          <div className="mt-12 pt-6 border-t border-zinc-800/60 flex flex-wrap gap-x-6 gap-y-1">
+            {[
+              ["Terms & conditions", "/legal/terms"],
+              ["Returns & refunds", "/legal/returns"],
+              ["Privacy policy", "/legal/privacy"],
+            ].map(([label, to]) => (
+              <Link
+                key={to}
+                to={to}
+                className="inline-flex items-center min-h-[44px] text-[11px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors"
+              >
+                {label}
+              </Link>
             ))}
           </div>
         </div>
