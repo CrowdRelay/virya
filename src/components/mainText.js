@@ -29,7 +29,7 @@ const MainText = memo(({ musicRef, contactRef }) => {
         <div className="mt-8 flex flex-wrap gap-3">
           <button
             onClick={() => handleScroll(musicRef.current)}
-            className="flex-1 inline-flex items-center justify-center min-h-[44px] px-3 lg:px-6 bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-xs transition-colors"
+            className="inline-flex items-center justify-center min-h-[44px] px-3 lg:px-6 bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-xs transition-colors flex-shrink"
             aria-label={t("hero.listenAria")}
           >
             {t("hero.listen")}
@@ -38,13 +38,13 @@ const MainText = memo(({ musicRef, contactRef }) => {
             href={YOUTUBE_VIDEOS}
             target="_blank"
             rel="noreferrer"
-            className="flex-1 inline-flex items-center justify-center min-h-[44px] px-3 lg:px-6 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black uppercase tracking-widest font-bold text-xs transition-colors"
+            className="inline-flex items-center justify-center min-h-[44px] px-3 lg:px-6 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black uppercase tracking-widest font-bold text-xs transition-colors flex-shrink"
           >
             {t("hero.watch")}
           </a>
           <Link
             to={lp("/merch")}
-            className="flex-1 inline-flex items-center justify-center min-h-[44px] px-3 lg:px-6 border border-zinc-500/60 text-zinc-200 hover:border-amber-400 hover:text-amber-400 uppercase tracking-widest font-bold text-xs transition-colors"
+            className="inline-flex items-center justify-center min-h-[44px] px-3 lg:px-6 border border-zinc-500/60 text-zinc-200 hover:border-amber-400 hover:text-amber-400 uppercase tracking-widest font-bold text-xs transition-colors flex-shrink"
           >
             {t("hero.merch")}
           </Link>
