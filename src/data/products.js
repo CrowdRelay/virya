@@ -32,6 +32,7 @@ export const PRODUCTS = [
   {
     id: "echoes",
     name: "Echoes Of The Modern Mind",
+    name_pl: "Echoes Of The Modern Mind",
     type: "album",
     price: 50,
     front: "merch/echoes.webp",
@@ -46,6 +47,7 @@ export const PRODUCTS = [
   {
     id: "ashes-color",
     name: "From The Ashes — Colour Tee",
+    name_pl: "From The Ashes — Koszulka Kolorowa",
     type: "shirt",
     price: 70,
     front: "merch/Ashes Color Front.webp",
@@ -60,6 +62,7 @@ export const PRODUCTS = [
   {
     id: "ashes-bw",
     name: "From The Ashes — Mono Tee",
+    name_pl: "From The Ashes — Koszulka Monochromatyczna",
     type: "shirt",
     price: 70,
     front: "merch/Ashes BW Front.webp",
@@ -73,6 +76,7 @@ export const PRODUCTS = [
   {
     id: "wave",
     name: "Wave Of Uncertainty Tee",
+    name_pl: "Fala Niepewności — Koszulka",
     type: "shirt",
     price: 70,
     front: "merch/Wave Front.webp",
@@ -86,6 +90,7 @@ export const PRODUCTS = [
   {
     id: "virya-logo",
     name: "Virya Logo Tee",
+    name_pl: "Koszulka z Logo Virii",
     type: "shirt",
     price: 60,
     front: "merch/virya shirt 1.webp",
@@ -99,6 +104,7 @@ export const PRODUCTS = [
   {
     id: "bag",
     name: "Virya Tote Bag",
+    name_pl: "Torba Virii",
     type: "bag",
     price: 50,
     front: "merch/Bag 1.webp",
@@ -114,6 +120,7 @@ export const BUNDLES = [
   {
     id: "bundle-stage-pack",
     name: "Stage Pack",
+    name_pl: "Pakiet Sceniczny",
     type: "bundle",
     bundle: true,
     price: 100,
@@ -130,6 +137,7 @@ export const BUNDLES = [
   {
     id: "bundle-catharsis-pack",
     name: "Catharsis Pack",
+    name_pl: "Pakiet Catharsis",
     type: "bundle",
     bundle: true,
     price: 90,
@@ -145,6 +153,7 @@ export const BUNDLES = [
   {
     id: "bundle-stay-mad-pack",
     name: "Stay Mad Pack",
+    name_pl: "Pakiet Stay Mad",
     type: "bundle",
     bundle: true,
     price: 100,

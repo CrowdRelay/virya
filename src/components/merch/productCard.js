@@ -38,6 +38,7 @@ const ProductCard = memo(({ product, images }) => {
     lang === "pl" && product.includes_pl
       ? product.includes_pl
       : product.includes
+  const name = lang === "pl" && product.name_pl ? product.name_pl : product.name
 
   const handleAdd = () => {
     if (!available) return
@@ -129,7 +130,7 @@ const ProductCard = memo(({ product, images }) => {
 
       <div className="flex flex-col flex-1 p-4">
         <h2 className="text-sm lg:text-base font-black uppercase tracking-wide leading-tight text-zinc-100">
-          {product.name}
+          {name}
         </h2>
         <p
           className={`text-xs text-zinc-400 leading-snug mt-1 ${

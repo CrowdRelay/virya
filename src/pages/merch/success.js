@@ -6,7 +6,8 @@ import Footer from "../../components/footer"
 import { useI18n } from "../../i18n/I18nContext"
 
 const Success = () => {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const prefix = lang === "pl" ? "/pl" : ""
   useEffect(() => {
     try {
       window.localStorage.removeItem("virya-cart-v1")
@@ -35,7 +36,7 @@ const Success = () => {
             {t("success.stickers")}
           </p>
           <Link
-            to="/merch"
+            to={`${prefix}/merch`}
             className="inline-block bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-sm py-3 px-8 transition-all duration-200"
           >
             {t("success.back")}

@@ -7,7 +7,8 @@ import { useI18n } from "../i18n/I18nContext"
 const YOUTUBE_VIDEOS = "http://youtube.com/@ViryaOfficial/videos"
 
 const MainText = memo(({ musicRef, contactRef }) => {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const prefix = lang === "pl" ? "/pl" : ""
   return (
     <div className="container lg:max-w-4xl my-auto lg:px-20 px-6 py-4">
       <div className="border-l-4 border-amber-400 pl-6 lg:pl-8 mt-20 md:mt-48 lg:mt-0 lg:mb-48 mb-16 py-2">
@@ -43,7 +44,7 @@ const MainText = memo(({ musicRef, contactRef }) => {
             {t("hero.watch")}
           </a>
           <Link
-            to="/merch"
+            to={`${prefix}/merch`}
             className="inline-flex items-center justify-center min-h-[44px] px-6 border border-zinc-500/60 text-zinc-200 hover:border-amber-400 hover:text-amber-400 uppercase tracking-widest font-bold text-xs transition-colors"
           >
             {t("hero.merch")}
