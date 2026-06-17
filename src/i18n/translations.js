@@ -1,7 +1,3 @@
-// Central EN/PL dictionary. Keys are dot-addressable via the `t()` helper.
-// Values can be strings or functions (for interpolation). Polish keeps the
-// same terse, direct voice as the English copy.
-
 export const LANGS = ["en", "pl"]
 export const DEFAULT_LANG = "en"
 

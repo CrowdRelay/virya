@@ -9,15 +9,12 @@ const SITE_URL = "https://www.virya.music"
  * @returns {Object} Object containing canonicalUrl and hreflangLinks
  */
 export const getSeoTags = (path, currentLang = DEFAULT_LANG) => {
-  // Normalize path: ensure it starts with / and doesn't end with / (except for root)
   const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "")
   
-  // Generate canonical URL for current language
   const canonicalUrl = currentLang === DEFAULT_LANG 
     ? `${SITE_URL}${normalizedPath}`
     : `${SITE_URL}/${currentLang}${normalizedPath}`
   
-  // Generate hreflang links for all languages
   const hreflangLinks = LANGS.map(lang => {
     const langPath = lang === DEFAULT_LANG 
       ? normalizedPath 
@@ -29,7 +26,6 @@ export const getSeoTags = (path, currentLang = DEFAULT_LANG) => {
     }
   })
   
-  // Add x-default hreflang pointing to English version
   hreflangLinks.push({
     rel: "alternate",
     hreflang: "x-default",

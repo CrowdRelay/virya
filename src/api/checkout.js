@@ -24,7 +24,6 @@ const resolveSiteUrl = req => {
 export default async function handler(req, res) {
   const { lang, items, point, invoice } = req.body || {}
   const L = lang === "pl" ? "pl" : "en"
-  // Localised server messages so checkout errors match the site language.
   const tr = (en, pl) => (L === "pl" ? pl : en)
 
   if (req.method !== "POST") {
