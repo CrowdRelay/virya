@@ -96,6 +96,9 @@ const Main = () => {
                             className="w-full block mx-auto mb-10 rounded-sm"
                             imgClassName="rounded-sm"
                             placeholder="blurred"
+                            loading="eager"
+                            width={768}
+                            sizes="(min-width: 768px) 768px, 100vw"
                         />
                     </div>
 
