@@ -11,10 +11,9 @@ const SocialLink = ({ href, title, ariaLabel }) => (
     title={title}
     rel="noreferrer"
     target="_blank"
-    aria-label={ariaLabel}
     className="flex items-center gap-3 py-3 border-b border-zinc-800/50 text-zinc-300 hover:text-amber-400 transition-colors duration-200 group"
   >
-    <span className="text-zinc-600 group-hover:text-amber-400 transition-colors text-xs">&rarr;</span>
+    <span aria-hidden="true" className="text-zinc-400 group-hover:text-amber-400 transition-colors text-xs">&rarr;</span>
     <span className="text-sm font-semibold uppercase tracking-widest">{title}</span>
   </a>
 );
@@ -81,7 +80,7 @@ const Main = () => {
                     <div className="flex items-center gap-6 mb-12 border-b border-zinc-800/60 pb-8">
                         <Link title="Homepage" to="/" className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none">&larr;</Link>
                         <div className="flex items-center gap-4 flex-1">
-                            <h1 itemProp="headline" className="text-3xl font-black uppercase tracking-widest whitespace-nowrap">Band Story</h1>
+                            <h1 itemProp="headline" className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">Band Story</h1>
                             <div className="flex-1 h-px bg-zinc-800" />
                         </div>
                     </div>

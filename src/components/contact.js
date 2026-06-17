@@ -74,7 +74,23 @@ const Contact = () => {
                     <h2 className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">Send a message</h2>
                     <div className="flex-1 h-px bg-zinc-800" />
                 </div>
-                <p className="text-zinc-400 text-xs uppercase tracking-widest mb-8">We read every message</p>
+                <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">We read every message</p>
+                <div className="flex flex-wrap gap-x-6 gap-y-1 mb-2 px-4">
+                    <a
+                        href="mailto:virya.crew@gmail.com"
+                        className="inline-flex items-center min-h-[44px] text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
+                    >
+                        Booking → virya.crew@gmail.com
+                    </a>
+                    <a
+                        href="https://drive.google.com/drive/folders/1M4pgB9goigGUm9tudcQIzORTgILgSABH?usp=drive_link"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center min-h-[44px] text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
+                    >
+                        Press kit (EPK) &rarr;
+                    </a>
+                </div>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
                         <div className="mt-8 px-4">

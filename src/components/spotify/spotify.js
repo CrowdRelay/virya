@@ -58,13 +58,13 @@ const Spotify = () => {
   }, [])
 
   return (
-  <div ref={ref} className="py-16 lg:px-8 border-t border-zinc-800/60">
+  <div ref={ref} className="pb-16 lg:px-8">
     <div className="mx-4">
-      <div className="flex items-center gap-4 mb-2">
-          <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
-            Music
-          </p>
-        <div className="flex-1 h-px bg-zinc-800" />
+      <div className="flex items-center gap-4 mb-6">
+        <p className="text-zinc-400 text-xs uppercase tracking-widest whitespace-nowrap">
+          Stream on Spotify
+        </p>
+        <div className="flex-1 h-px bg-zinc-800/60" />
         <a
           href={`https://open.spotify.com/artist/${ARTIST_ID}`}
           target="_blank"
@@ -75,7 +75,6 @@ const Spotify = () => {
           <SpotifyIcon className="w-5 h-5" aria-hidden="true" />
         </a>
       </div>
-      <p className="text-zinc-400 text-xs uppercase tracking-widest mb-6">Stream on Spotify</p>
       <div className="relative">
         {!loaded && <SkeletonPlayer />}
         {visible && (
