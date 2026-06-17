@@ -16,7 +16,7 @@ const Button = memo(({ href, children }) => (
 ))
 
 const Overlay = memo(({ title, text, link, watch, buy, merch }) => {
-  const { t } = useI18n()
+  const { t, lp } = useI18n()
   return (
     <div className="z-10 absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 max-lg:opacity-100 max-lg:translate-y-0 transition-all duration-300 ease-out px-4 pt-12 pb-5">
       <h2 className="text-sm lg:text-base font-black uppercase tracking-wide leading-tight mb-1">
@@ -31,7 +31,7 @@ const Overlay = memo(({ title, text, link, watch, buy, merch }) => {
         {buy && <Button href={buy}>{t("music.buy")}</Button>}
         {merch && (
           <Link
-            to={merch}
+            to={lp(merch)}
             aria-label={t("music.browseMerch")}
             className="inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 bg-amber-400 text-black hover:bg-amber-300 transition-all duration-200"
           >

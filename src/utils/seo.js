@@ -41,16 +41,3 @@ export const getSeoTags = (path, currentLang = DEFAULT_LANG) => {
     hreflangLinks
   }
 }
-
-/**
- * Generates the full URL for a given path and language.
- * @param {string} path - The page path (e.g., "/band/", "/merch")
- * @param {string} lang - The language (e.g., "en", "pl")
- * @returns {string} The full URL
- */
-export const getUrl = (path, lang = DEFAULT_LANG) => {
-  const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "")
-  return lang === DEFAULT_LANG 
-    ? `${SITE_URL}${normalizedPath}`
-    : `${SITE_URL}/${lang}${normalizedPath}`
-}

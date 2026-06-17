@@ -28,8 +28,7 @@ const MobileItem = ({ onClick, children }) => (
 );
 
 const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
-  const { t, lang } = useI18n()
-  const prefix = lang === "pl" ? "/pl" : ""
+  const { t, lp } = useI18n()
   const [headerStyle, setHeaderStyle] = useState({
     transition: 'all 200ms ease-in'
   })
@@ -75,7 +74,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
     <nav aria-label="Main navigation" style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
       <div className="container mx-auto flex items-center">
         <div className="flex flex-1 items-center">
-          <Link title={t("nav.home")} className="flex" to={`${prefix}/`}>
+          <Link title={t("nav.home")} className="flex" to={lp("/")}>
             <StaticImage
               src="../images/virya.webp"
               title="Virya"
@@ -90,8 +89,8 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
         </div>
 
         <div className="hidden lg:flex items-center">
-          {displayLinks && <Link to={`${prefix}/band`} className={linkClass}>{t("nav.band")}</Link>}
-          <Link to={`${prefix}/merch`} className={linkClass}>{t("nav.merch")}</Link>
+          {displayLinks && <Link to={lp("/band")} className={linkClass}>{t("nav.band")}</Link>}
+          <Link to={lp("/merch")} className={linkClass}>{t("nav.merch")}</Link>
           {displayLinks && (
             <>
               <NavLink onClick={() => handleScroll(musicRef.current)} title={t("nav.music")}>{t("nav.music")}</NavLink>
@@ -105,7 +104,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
         <div className="flex lg:hidden items-center gap-2">
           <LangSwitch className="mr-1" />
           <Link
-            to={`${prefix}/merch`}
+            to={lp("/merch")}
             aria-label={t("nav.toMerch")}
             className="inline-flex items-center min-h-[44px] px-3 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors"
           >
@@ -135,7 +134,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
 
       {displayLinks && menuOpen && (
         <div id="mobile-menu" className="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
-          <Link to={`${prefix}/band`} onClick={closeMenu} className="w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest text-zinc-300 hover:text-amber-400 border-b border-white/5 transition-colors">
+          <Link to={lp("/band")} onClick={closeMenu} className="w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest text-zinc-300 hover:text-amber-400 border-b border-white/5 transition-colors">
             {t("nav.band")}
           </Link>
           <MobileItem onClick={scrollAndClose(musicRef)}>{t("nav.music")}</MobileItem>

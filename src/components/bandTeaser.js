@@ -5,8 +5,7 @@ import { StaticImage } from "gatsby-plugin-image"
 import { useI18n } from "../i18n/I18nContext"
 
 const BandTeaser = memo(() => {
-  const { t, lang } = useI18n()
-  const prefix = lang === "pl" ? "/pl" : ""
+  const { t, lp } = useI18n()
   return (
   <div className="py-16 lg:px-8 border-t border-zinc-800/60">
     <div className="mx-4">
@@ -41,7 +40,7 @@ const BandTeaser = memo(() => {
             {t("band.noPain")}
           </p>
           <Link
-            to={`${prefix}/band`}
+            to={lp("/band")}
             className="inline-flex items-center gap-2 mt-6 text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
           >
             {t("band.readStory")}

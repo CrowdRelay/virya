@@ -11,6 +11,20 @@ import { translations, LANGS, DEFAULT_LANG } from "./translations"
 const STORAGE_KEY = "virya-lang"
 const I18nContext = createContext(null)
 
+// Idempotent language-aware path builder. Strips any existing /pl prefix first,
+// so it never double-prefixes (no /pl/pl), then re-applies for the target lang.
+// Always feed it the canonical English path (e.g. "/merch").
+export const localePath = (path, lang) => {
+  let clean = String(path == null ? "/" : path)
+  if (!clean.startsWith("/")) clean = `/${clean}`
+  // Strip one *or more* leading /pl segments so even a malformed /pl/pl URL
+  // self-heals — guarantees we can never build a double prefix.
+  clean = clean.replace(/^(?:\/pl)+(?=\/|$)/, "")
+  if (clean === "") clean = "/"
+  if (lang !== "pl") return clean
+  return clean === "/" ? "/pl/" : `/pl${clean}`
+}
+
 const resolve = (lang, key, params) => {
   const dict = translations[lang] || translations[DEFAULT_LANG]
   let val = key.split(".").reduce((o, k) => (o == null ? undefined : o[k]), dict)
@@ -43,8 +57,9 @@ export const LanguageProvider = ({ children, initialLang }) => {
   }, [lang])
 
   const t = useCallback((key, params) => resolve(lang, key, params), [lang])
+  const lp = useCallback(path => localePath(path, lang), [lang])
 
-  const value = useMemo(() => ({ lang, t }), [lang, t])
+  const value = useMemo(() => ({ lang, t, lp }), [lang, t, lp])
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
@@ -56,6 +71,7 @@ export const useI18n = () => {
     return {
       lang: DEFAULT_LANG,
       t: (key, params) => resolve(DEFAULT_LANG, key, params),
+      lp: path => localePath(path, DEFAULT_LANG),
     }
   }
   return ctx

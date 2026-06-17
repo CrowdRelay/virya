@@ -22,20 +22,26 @@ const resolveSiteUrl = req => {
 }
 
 export default async function handler(req, res) {
+  const { lang, items, point, invoice } = req.body || {}
+  const L = lang === "pl" ? "pl" : "en"
+  // Localised server messages so checkout errors match the site language.
+  const tr = (en, pl) => (L === "pl" ? pl : en)
+
   if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed" })
+    res.status(405).json({ error: tr("Method not allowed", "Niedozwolona metoda") })
     return
   }
   if (!process.env.STRIPE_SECRET_KEY) {
-    res.status(500).json({ error: "Stripe is not configured." })
+    res
+      .status(500)
+      .json({ error: tr("Stripe is not configured.", "Stripe nie jest skonfigurowany.") })
     return
   }
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-  const { items, point, invoice } = req.body || {}
 
   if (!Array.isArray(items) || items.length === 0) {
-    res.status(400).json({ error: "Your cart is empty." })
+    res.status(400).json({ error: tr("Your cart is empty.", "Twój koszyk jest pusty.") })
     return
   }
 
@@ -44,11 +50,15 @@ export default async function handler(req, res) {
   const email = (invoice?.email || "").trim()
   const address = (invoice?.address || "").trim()
   if (!name || !surname || !email || !address) {
-    res.status(400).json({ error: "Missing billing details." })
+    res
+      .status(400)
+      .json({ error: tr("Missing billing details.", "Brakuje danych do faktury.") })
     return
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    res.status(400).json({ error: "Invalid email address." })
+    res
+      .status(400)
+      .json({ error: tr("Invalid email address.", "Nieprawidłowy adres e-mail.") })
     return
   }
 
@@ -58,30 +68,45 @@ export default async function handler(req, res) {
   for (const item of items) {
     const product = getProduct(item?.id)
     if (!product) {
-      res.status(400).json({ error: `Unknown product: ${item?.id}` })
+      res
+        .status(400)
+        .json({ error: tr(`Unknown product: ${item?.id}`, `Nieznany produkt: ${item?.id}`) })
       return
     }
     if (!productInStock(product)) {
-      res.status(400).json({ error: `${product.name} is sold out.` })
+      res
+        .status(400)
+        .json({ error: tr(`${product.name} is sold out.`, `${product.name} jest wyprzedane.`) })
       return
     }
     if (productRequiresShipping(product)) needsShipping = true
     const qty = Number.parseInt(item.qty, 10)
     if (!Number.isFinite(qty) || qty < 1 || qty > MAX_QTY) {
-      res.status(400).json({ error: `Invalid quantity for ${product.name}.` })
+      res.status(400).json({
+        error: tr(
+          `Invalid quantity for ${product.name}.`,
+          `Nieprawidłowa ilość dla ${product.name}.`
+        ),
+      })
       return
     }
     let itemName = product.name
     if (Array.isArray(product.sizes)) {
       if (!product.sizes.includes(item.size)) {
-        res
-          .status(400)
-          .json({ error: `Please choose a valid size for ${product.name}.` })
+        res.status(400).json({
+          error: tr(
+            `Please choose a valid size for ${product.name}.`,
+            `Wybierz prawidłowy rozmiar dla ${product.name}.`
+          ),
+        })
         return
       }
       if (!sizeInStock(product, item.size)) {
         res.status(400).json({
-          error: `${product.name} in size ${item.size} is sold out.`,
+          error: tr(
+            `${product.name} in size ${item.size} is sold out.`,
+            `${product.name} w rozmiarze ${item.size} jest wyprzedane.`
+          ),
         })
         return
       }
@@ -101,7 +126,9 @@ export default async function handler(req, res) {
 
   if (needsShipping) {
     if (!point || !point.code) {
-      res.status(400).json({ error: "Please choose an InPost Paczkomat." })
+      res
+        .status(400)
+        .json({ error: tr("Please choose an InPost Paczkomat.", "Wybierz Paczkomat InPost.") })
       return
     }
     lineItems.push({
@@ -128,7 +155,7 @@ export default async function handler(req, res) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card", "blik", "revolut_pay"],
-      locale: "pl",
+      locale: L,
       line_items: lineItems,
       customer_email: email,
       phone_number_collection: { enabled: true },
@@ -148,11 +175,15 @@ export default async function handler(req, res) {
         goods_gross_pln: String(goodsGross),
         shipping_pln: String(needsShipping ? SHIPPING_PLN : 0),
       },
-      success_url: `${siteUrl}/merch/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/merch/cancel`,
+      success_url: `${siteUrl}${
+        L === "pl" ? "/pl" : ""
+      }/merch/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}${L === "pl" ? "/pl" : ""}/merch/cancel`,
     })
     res.status(200).json({ url: session.url })
   } catch (e) {
-    res.status(500).json({ error: e.message || "Could not start checkout." })
+    res
+      .status(500)
+      .json({ error: tr("Could not start checkout.", "Nie udało się rozpocząć płatności.") })
   }
 }

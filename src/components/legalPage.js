@@ -6,10 +6,10 @@ import Footer from "./footer"
 import { ScrollToTop } from "./scrollToTop/scroll"
 import { useI18n } from "../i18n/I18nContext"
 
-const Run = ({ run, prefix = "" }) => {
+const Run = ({ run, lp }) => {
   if (run.link) {
     const external = run.link.href.startsWith("http")
-    const href = external ? run.link.href : `${prefix}${run.link.href}`
+    const href = external ? run.link.href : lp(run.link.href)
     if (external) {
       return (
         <a
@@ -36,7 +36,7 @@ const Run = ({ run, prefix = "" }) => {
   return <>{run.t}</>
 }
 
-const Section = ({ section, prefix = "" }) => (
+const Section = ({ section, lp }) => (
   <section className="mb-10">
     {section.heading && (
       <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100 mb-3">
@@ -47,7 +47,7 @@ const Section = ({ section, prefix = "" }) => (
       {section.paras.map((runs, i) => (
         <p key={i}>
           {runs.map((run, j) => (
-            <Run key={j} run={run} prefix={prefix} />
+            <Run key={j} run={run} lp={lp} />
           ))}
         </p>
       ))}
@@ -63,8 +63,7 @@ const Section = ({ section, prefix = "" }) => (
 )
 
 const LegalPage = ({ pageKey }) => {
-  const { t, lang } = useI18n()
-  const prefix = lang === "pl" ? "/pl" : ""
+  const { t, lp } = useI18n()
   const page = t(`legal.${pageKey}`)
   return (
     <div className="bg-zinc-950 min-h-screen">
@@ -77,7 +76,7 @@ const LegalPage = ({ pageKey }) => {
           <div className="flex items-center gap-6 mb-4 border-b border-zinc-800/60 pb-8">
             <Link
               title={t("legal.back")}
-              to={`${prefix}/merch`}
+              to={lp("/merch")}
               className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none"
             >
               &larr;
@@ -94,7 +93,7 @@ const LegalPage = ({ pageKey }) => {
           </p>
           <div className="max-w-3xl">
             {page.sections.map((section, i) => (
-              <Section key={i} section={section} prefix={prefix} />
+              <Section key={i} section={section} lp={lp} />
             ))}
           </div>
         </div>
