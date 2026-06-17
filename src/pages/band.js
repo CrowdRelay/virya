@@ -28,7 +28,7 @@ const BandSection = ({ children }) => (
 );
 
 const Main = () => {
-    const { t } = useI18n()
+    const { t, lp } = useI18n()
     const socialLinks = [
       {
         href: "https://www.instagram.com/virya.official",
@@ -82,7 +82,7 @@ const Main = () => {
                 <div className="px-6 lg:px-12 py-12">
 
                     <div className="flex items-center gap-6 mb-12 border-b border-zinc-800/60 pb-8">
-                        <Link title={t("nav.home")} to="/" className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none">&larr;</Link>
+                        <Link title={t("nav.home")} to={lp("/")} className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none">&larr;</Link>
                         <div className="flex items-center gap-4 flex-1">
                             <h1 itemProp="headline" className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">{t("band.storyHeading")}</h1>
                             <div className="flex-1 h-px bg-zinc-800" />
@@ -96,6 +96,9 @@ const Main = () => {
                             className="w-full block mx-auto mb-10 rounded-sm"
                             imgClassName="rounded-sm"
                             placeholder="blurred"
+                            loading="lazy"
+                            width={768}
+                            sizes="(min-width: 768px) 768px, 100vw"
                         />
                     </div>
 
