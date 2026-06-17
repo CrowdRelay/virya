@@ -6,6 +6,7 @@ import { Link } from 'gatsby';
 import { StaticImage } from "gatsby-plugin-image"
 import { ScrollToTop } from "../components/scrollToTop/scroll"
 import { useI18n } from "../i18n/I18nContext"
+import { getSeoTags } from "../utils/seo"
 
 const SocialLink = ({ href, title, ariaLabel }) => (
   <a
@@ -148,29 +149,42 @@ const Main = () => {
     )
 }
 
-export const Head = () => (
-    <>
-        <title>Band Story | Virya - Modern metalcore from Poland</title>
-        <link rel="canonical" href="https://www.virya.music/band/" />
-        <meta name="description" content="Meet Virya — a modern metalcore band from Poland. Founded in 2023, blending metalcore with influences from Architects, Tesseract and Twelve Foot Ninja." />
-        <meta name="keywords" content="Virya, Band Story, Metalcore, Modern Metal, Modern Metalcore, Poland, Heavy, Melodic" />
-        <meta name="author" content="Virya" />
-        <meta name="theme-color" content="#09090b" />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Virya" />
-        <meta property="og:locale" content="en_US" />
-        <meta property="og:title" content="Band Story | Virya - Modern metalcore from Poland" />
-        <meta property="og:description" content="Meet Virya — a modern metalcore band from Poland. Founded in 2023, blending metalcore with influences from Architects, Tesseract and Twelve Foot Ninja." />
-        <meta property="og:image" content="https://www.virya.music/virya.webp" />
-        <meta property="og:url" content="https://www.virya.music/band/" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@viryaofficial" />
-        <meta name="twitter:creator" content="@viryaofficial" />
-        <meta name="twitter:title" content="Band Story | Virya - Modern metalcore from Poland" />
-        <meta name="twitter:description" content="Meet Virya — a modern metalcore band from Poland. Founded in 2023, blending metalcore with influences from Architects, Tesseract and Twelve Foot Ninja." />
-        <meta name="twitter:image" content="https://www.virya.music/virya.webp" />
-        <meta name="twitter:url" content="https://www.virya.music/band/" />
-    </>
-)
+export const Head = ({ pageContext }) => {
+    const lang = pageContext?.lang || "en"
+    const { canonicalUrl, hreflangLinks } = getSeoTags("/band/", lang)
+    const ogLocale = lang === "pl" ? "pl_PL" : "en_US"
+    const title = lang === "pl" ? "Historia zespołu | Virya - Nowoczesny metalcore z Polski" : "Band Story | Virya - Modern metalcore from Poland"
+    const description = lang === "pl" 
+        ? "Poznaj Virya — nowoczesny zespół metalcore z Polski. Założona w 2023, łączy metalcore z inspiracjami od Architects, Tesseract i Twelve Foot Ninja."
+        : "Meet Virya — a modern metalcore band from Poland. Founded in 2023, blending metalcore with influences from Architects, Tesseract and Twelve Foot Ninja."
+
+    return (
+        <>
+            <title>{title}</title>
+            <link rel="canonical" href={canonicalUrl} />
+            {hreflangLinks.map((link, i) => (
+                <link key={i} rel={link.rel} hreflang={link.hreflang} href={link.href} />
+            ))}
+            <meta name="description" content={description} />
+            <meta name="keywords" content="Virya, Band Story, Metalcore, Modern Metal, Modern Metalcore, Poland, Heavy, Melodic" />
+            <meta name="author" content="Virya" />
+            <meta name="theme-color" content="#09090b" />
+            <meta property="og:type" content="website" />
+            <meta property="og:site_name" content="Virya" />
+            <meta property="og:locale" content={ogLocale} />
+            <meta property="og:title" content={title} />
+            <meta property="og:description" content={description} />
+            <meta property="og:image" content="https://www.virya.music/virya.webp" />
+            <meta property="og:url" content={canonicalUrl} />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:site" content="@viryaofficial" />
+            <meta name="twitter:creator" content="@viryaofficial" />
+            <meta name="twitter:title" content={title} />
+            <meta name="twitter:description" content={description} />
+            <meta name="twitter:image" content="https://www.virya.music/virya.webp" />
+            <meta name="twitter:url" content={canonicalUrl} />
+        </>
+    )
+}
 
 export default Main
