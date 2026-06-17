@@ -1,20 +1,13 @@
 "use client"
 import React from "react"
-import LegalPage, { Section, Note } from "../../components/legalPage"
+import LegalPage, { Section } from "../../components/legalPage"
 
 const Privacy = () => (
   <LegalPage title="Privacy Policy" lastUpdated="17 June 2026">
-    <Note>
-      Confirm the data controller's legal identity and address before going
-      live. The processors listed below reflect the current stack — keep them in
-      sync if the tooling changes.
-    </Note>
-
     <div className="mt-8">
       <Section heading="Who we are">
         <p>
-          The data controller is Virya (<em>[legal name & address — to be
-          completed]</em>). For any privacy request, contact{" "}
+          The data controller is WB Soft, ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. For any privacy request, contact{" "}
           <a
             href="mailto:virya.crew@gmail.com"
             className="text-amber-400 underline underline-offset-2"

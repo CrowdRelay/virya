@@ -1,21 +1,14 @@
 "use client"
 import React from "react"
-import LegalPage, { Section, Note } from "../../components/legalPage"
+import LegalPage, { Section } from "../../components/legalPage"
 
 const Terms = () => (
   <LegalPage title="Terms & Conditions" lastUpdated="17 June 2026">
-    <Note>
-      Placeholder seller details below must be completed with Virya's registered
-      business information (legal name, address, tax ID / NIP, REGON) before the
-      store handles live orders.
-    </Note>
-
     <div className="mt-8">
       <Section heading="1. Seller">
         <p>
-          The online store at virya.music ("Store") is operated by Virya
-          ("Seller"). Registered business name, address and tax identification
-          number: <em>[to be completed]</em>. Contact:{" "}
+          The online store at virya.music ("Store") is operated by WB Soft
+          ("Seller"), ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. Contact:{" "}
           <a
             href="mailto:virya.crew@gmail.com"
             className="text-amber-400 underline underline-offset-2"
