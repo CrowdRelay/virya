@@ -74,7 +74,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
     <nav aria-label="Main navigation" style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
       <div className="container mx-auto flex items-center">
         <div className="flex flex-1 items-center">
-          <Link title={t("nav.home")} className="flex" to={lp("/")}>
+          <Link title={t("nav.home")} className="flex hover:opacity-80 transition-opacity" to={lp("/")}>
             <StaticImage
               src="../images/virya.webp"
               title="Virya"
@@ -90,7 +90,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
 
         <div className="hidden lg:flex items-center">
           {displayLinks && <Link to={lp("/band")} className={linkClass}>{t("nav.band")}</Link>}
-          <Link to={lp("/merch")} className={linkClass}>{t("nav.merch")}</Link>
+          {displayLinks && <Link to={lp("/merch")} className={linkClass}>{t("nav.merch")}</Link>}
           {displayLinks && (
             <>
               <NavLink onClick={() => handleScroll(musicRef.current)} title={t("nav.music")}>{t("nav.music")}</NavLink>
@@ -103,13 +103,15 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
 
         <div className="flex lg:hidden items-center gap-2">
           <LangSwitch className="mr-1" />
-          <Link
-            to={lp("/merch")}
-            aria-label={t("nav.toMerch")}
-            className="inline-flex items-center min-h-[44px] px-3 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors"
-          >
-            {t("nav.merch")}
-          </Link>
+          {displayLinks && (
+            <Link
+              to={lp("/merch")}
+              aria-label={t("nav.toMerch")}
+              className="inline-flex items-center min-h-[44px] px-3 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors"
+            >
+              {t("nav.merch")}
+            </Link>
+          )}
           {displayLinks && (
             <button
               onClick={() => setMenuOpen(o => !o)}
