@@ -45,7 +45,7 @@ const Section = ({ section, lp }) => (
     )}
     <div className="space-y-3 text-sm text-zinc-300 leading-relaxed">
       {section.paras.map((runs, i) => (
-        <p key={i}>
+        <p key={i} className="text-justify">
           {runs.map((run, j) => (
             <Run key={j} run={run} lp={lp} />
           ))}

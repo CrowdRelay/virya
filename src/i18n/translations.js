@@ -592,7 +592,7 @@ export const translations = {
         title: "Polityka prywatności",
         sections: [
           {
-            heading: "Kto jesteśmy",
+            heading: "Kim jesteśmy",
             paras: [[
               { t: "Administratorem danych jest WB Soft, ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. W sprawach prywatności pisz na " },
               { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
@@ -600,7 +600,7 @@ export const translations = {
             ]],
           },
           {
-            heading: "Co zbieramy i po co",
+            heading: "Jakie dane zbieramy i w jakim celu",
             paras: [[{ t: "Gdy się z nami kontaktujesz lub zapisujesz na listę, przetwarzamy Twój e-mail (i imię, jeśli je podasz), aby odpowiedzieć i wysyłać zamówione aktualizacje. Gdy składasz zamówienie, przetwarzamy Twoje imię, e-mail, punkt dostawy i dane do faktury, aby zrealizować i zafakturować zamówienie. Podstawy prawne: wykonanie umowy, Twoja zgoda (newsletter) oraz nasz prawnie uzasadniony interes w odpowiadaniu na zapytania." }]],
           },
           {
