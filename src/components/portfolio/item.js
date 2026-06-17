@@ -22,7 +22,7 @@ const Overlay = memo(({ title, text, link, watch, buy, merch }) => {
       <h2 className="text-sm lg:text-base font-black uppercase tracking-wide leading-tight mb-1">
         {title}
       </h2>
-      <p className="text-xs text-zinc-400 leading-snug mb-3 line-clamp-4">
+      <p className="text-xs text-justify text-zinc-400 leading-snug mb-3 line-clamp-4">
         {text}
       </p>
       <div className="flex gap-2 flex-wrap">
