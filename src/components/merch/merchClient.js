@@ -55,7 +55,7 @@ const Storefront = () => {
   return (
     <div className="bg-zinc-950 min-h-screen">
       <header className="header relative lg:overflow-hidden">
-        <Navbar displayLinks={true} />
+        <Navbar displayLinks={true} activePage="merch" />
       </header>
       {/* Lifted above the cart button so they don't overlap. */}
       <ScrollToTop smooth positionClassName="right-6 bottom-24" />
