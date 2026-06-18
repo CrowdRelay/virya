@@ -80,10 +80,11 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
               title="Virya"
               loading="eager"
               alt="Virya"
-              placeholder="blurred"
-              width={50}
-              height={50}
-              className="rounded-full ring-2 ring-amber-400/40 ring-offset-2 ring-offset-black transition-all duration-300 group-hover:ring-amber-400 group-hover:scale-110 group-hover:brightness-125 group-hover:shadow-[0_0_12px_rgba(251,191,36,0.5)]"
+              placeholder="none"
+              width={100}
+              height={100}
+              quality={90}
+              className="!w-[50px] !h-[50px] rounded-full ring-2 ring-amber-400/40 ring-offset-2 ring-offset-black transition-all duration-300 group-hover:ring-amber-400 group-hover:scale-110 group-hover:brightness-125 group-hover:shadow-[0_0_12px_rgba(251,191,36,0.5)]"
             />
           </Link>
         </div>
