@@ -87,6 +87,13 @@ const Main = () => {
                             <h1 itemProp="headline" className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">{t("band.storyHeading")}</h1>
                             <div className="flex-1 h-px bg-zinc-800" />
                         </div>
+                        <Link
+                            to={lp("/merch")}
+                            title={t("nav.toMerch")}
+                            className="inline-flex items-center px-3 min-h-[44px] text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors whitespace-nowrap"
+                        >
+                            {t("nav.merch")}
+                        </Link>
                     </div>
 
                     <div className="max-w-3xl mb-10">

@@ -73,6 +73,13 @@ const Storefront = () => {
               </h1>
               <div className="flex-1 h-px bg-zinc-800" />
             </div>
+            <Link
+              to={lp("/band")}
+              title={t("nav.toBand")}
+              className="inline-flex items-center px-3 min-h-[44px] text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors whitespace-nowrap"
+            >
+              {t("nav.band")}
+            </Link>
           </div>
 
           <p className="uppercase tracking-[0.3em] text-amber-400 text-xs font-bold mb-4">

@@ -13,6 +13,7 @@ export const translations = {
       closeMenu: "Close menu",
       home: "Homepage",
       toMerch: "Go to Virya merch store",
+      toBand: "Read the Virya band story",
       language: "Language",
     },
     hero: {
@@ -327,6 +328,7 @@ export const translations = {
       closeMenu: "Zamknij menu",
       home: "Strona główna",
       toMerch: "Przejdź do sklepu Virya",
+      toBand: "Poznaj historię zespołu Virya",
       language: "Język",
     },
     hero: {
