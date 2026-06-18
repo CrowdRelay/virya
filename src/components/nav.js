@@ -74,7 +74,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
     <nav aria-label="Main navigation" style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
       <div className="container mx-auto flex items-center">
         <div className="flex flex-1 items-center">
-          <Link title={t("nav.home")} className="flex hover:opacity-80 transition-opacity" to={lp("/")}>
+          <Link title={t("nav.home")} className="group flex my-2 cursor-pointer" to={lp("/")}>
             <StaticImage
               src="../images/virya.webp"
               title="Virya"
@@ -83,7 +83,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
               placeholder="blurred"
               width={50}
               height={50}
-              className="rounded-full my-2"
+              className="rounded-full ring-2 ring-amber-400/40 ring-offset-2 ring-offset-black transition-all duration-300 group-hover:ring-amber-400 group-hover:scale-105 group-hover:shadow-[0_0_12px_rgba(251,191,36,0.5)]"
             />
           </Link>
         </div>
