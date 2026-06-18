@@ -48,21 +48,31 @@ const PageClient = () => {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const visibleSections = entries
-          .filter(entry => entry.isIntersecting)
-          .map(entry => {
-            const section = sections.find(s => s.ref.current === entry.target)
-            return section?.id
-          })
-          .filter(Boolean)
+        const ratios = new Map()
+        entries.forEach(entry => {
+          const section = sections.find(s => s.ref.current === entry.target)
+          if (section) {
+            ratios.set(section.id, entry.intersectionRatio)
+          }
+        })
 
-        if (visibleSections.length > 0) {
-          setActiveSection(visibleSections[0])
-        } else {
+        if (ratios.size === 0) {
           setActiveSection(null)
+          return
         }
+
+        let maxRatio = 0
+        let activeId = null
+        ratios.forEach((ratio, id) => {
+          if (ratio > maxRatio) {
+            maxRatio = ratio
+            activeId = id
+          }
+        })
+
+        setActiveSection(activeId)
       },
-      { threshold: 0.1, rootMargin: "-80px 0px -60% 0px" }
+      { threshold: Array.from({ length: 101 }, (_, i) => i / 100) }
     )
 
     sections.forEach(({ ref }) => {
