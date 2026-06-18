@@ -46,7 +46,7 @@ export const PRODUCTS = [
     type: "album",
     price: 50,
     front: "merch/echoes.webp",
-    back: null,
+    back: "merch/echoesback.webp",
     sizes: null,
     inStock: true,
     blurb:
