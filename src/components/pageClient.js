@@ -46,40 +46,33 @@ const PageClient = () => {
       { ref: contactRef, id: "contact" },
     ]
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const ratios = new Map()
-        entries.forEach(entry => {
-          const section = sections.find(s => s.ref.current === entry.target)
-          if (section) {
-            ratios.set(section.id, entry.intersectionRatio)
-          }
-        })
+    const onScroll = () => {
+      const scrollPosition = window.scrollY + 150
+      let activeId = null
+      let minDistance = Infinity
 
-        if (ratios.size === 0) {
-          setActiveSection(null)
-          return
+      sections.forEach(({ ref, id }) => {
+        if (!ref.current) return
+        const rect = ref.current.getBoundingClientRect()
+        const absoluteTop = rect.top + window.scrollY
+        const distance = Math.abs(absoluteTop - scrollPosition)
+
+        if (distance < minDistance) {
+          minDistance = distance
+          activeId = id
         }
+      })
 
-        let maxRatio = 0
-        let activeId = null
-        ratios.forEach((ratio, id) => {
-          if (ratio > maxRatio) {
-            maxRatio = ratio
-            activeId = id
-          }
-        })
+      setActiveSection(activeId)
+    }
 
-        setActiveSection(activeId)
-      },
-      { threshold: Array.from({ length: 101 }, (_, i) => i / 100) }
-    )
+    const timeoutId = setTimeout(onScroll, 100)
+    window.addEventListener("scroll", onScroll, { passive: true })
 
-    sections.forEach(({ ref }) => {
-      if (ref.current) observer.observe(ref.current)
-    })
-
-    return () => observer.disconnect()
+    return () => {
+      clearTimeout(timeoutId)
+      window.removeEventListener("scroll", onScroll)
+    }
   }, [])
 
     return (
