@@ -7,6 +7,7 @@ import { useI18n } from '../i18n/I18nContext'
 import LangSwitch from './langSwitch'
 
 const linkClass = "cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400"
+const activeLinkClass = "text-amber-400"
 
 const NavLink = memo(({ onClick, title, children }) => (
   <button
@@ -27,7 +28,7 @@ const MobileItem = ({ onClick, children }) => (
   </button>
 );
 
-const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
+const Navbar = ({ displayLinks, activePage, musicRef, showsRef, contactRef }) => {
   const { t, lp } = useI18n()
   const [headerStyle, setHeaderStyle] = useState({
     transition: 'all 200ms ease-in'
@@ -96,9 +97,9 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
         </div>
 
         <div className="hidden lg:flex items-center">
-          {displayLinks && <Link to={lp("/band")} className={linkClass}>{t("nav.band")}</Link>}
-          {displayLinks && <Link to={lp("/merch")} className={linkClass}>{t("nav.merch")}</Link>}
-          {displayLinks && (
+          {displayLinks && <Link to={lp("/band")} className={`${linkClass} ${activePage === "band" ? activeLinkClass : ""}`}>{t("nav.band")}</Link>}
+          {displayLinks && <Link to={lp("/merch")} className={`${linkClass} ${activePage === "merch" ? activeLinkClass : ""}`}>{t("nav.merch")}</Link>}
+          {displayLinks && activePage === "home" && (
             <>
               <NavLink onClick={() => handleScroll(musicRef.current)} title={t("nav.music")}>{t("nav.music")}</NavLink>
               <NavLink onClick={() => handleScroll(showsRef.current)} title={t("nav.shows")}>{t("nav.shows")}</NavLink>
@@ -110,7 +111,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
 
         <div className="flex lg:hidden items-center gap-2">
           <LangSwitch className="mr-1" />
-          {displayLinks && (
+          {displayLinks && activePage === "home" && (
             <Link
               to={lp("/merch")}
               aria-label={t("nav.toMerch")}
@@ -143,12 +144,19 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
 
       {displayLinks && menuOpen && (
         <div id="mobile-menu" className="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
-          <Link to={lp("/band")} onClick={closeMenu} className="w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest text-zinc-300 hover:text-amber-400 border-b border-white/5 transition-colors">
+          <Link to={lp("/band")} onClick={closeMenu} className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors ${activePage === "band" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>
             {t("nav.band")}
           </Link>
-          <MobileItem onClick={scrollAndClose(musicRef)}>{t("nav.music")}</MobileItem>
-          <MobileItem onClick={scrollAndClose(showsRef)}>{t("nav.shows")}</MobileItem>
-          <MobileItem onClick={scrollAndClose(contactRef)}>{t("nav.contact")}</MobileItem>
+          <Link to={lp("/merch")} onClick={closeMenu} className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors ${activePage === "merch" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>
+            {t("nav.merch")}
+          </Link>
+          {activePage === "home" && (
+            <>
+              <MobileItem onClick={scrollAndClose(musicRef)}>{t("nav.music")}</MobileItem>
+              <MobileItem onClick={scrollAndClose(showsRef)}>{t("nav.shows")}</MobileItem>
+              <MobileItem onClick={scrollAndClose(contactRef)}>{t("nav.contact")}</MobileItem>
+            </>
+          )}
         </div>
       )}
     </nav>

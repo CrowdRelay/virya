@@ -44,6 +44,7 @@ const PageClient = () => {
                 <Landing />
         <Navbar
           displayLinks={true}
+          activePage="home"
           musicRef={musicRef}
           showsRef={showsRef}
           contactRef={contactRef}
