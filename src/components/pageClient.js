@@ -1,5 +1,5 @@
 "use client"
-import React, { useRef, memo, useCallback } from "react"
+import React, { useRef, memo, useCallback, useState, useEffect } from "react"
 import Navbar from "./nav"
 import MainText from "./mainText"
 import Layout from "./layout"
@@ -32,11 +32,38 @@ const PageClient = () => {
     const musicRef = useRef(null)
     const showsRef = useRef(null)
     const contactRef = useRef(null)
+    const [activeSection, setActiveSection] = useState(null)
 
   const scrollToContent = useCallback(
     () => handleScroll(aboutRef.current),
     []
   )
+
+  useEffect(() => {
+    const sections = [
+      { ref: musicRef, id: "music" },
+      { ref: showsRef, id: "shows" },
+      { ref: contactRef, id: "contact" },
+    ]
+
+    const observers = sections.map(({ ref, id }) => {
+      if (!ref.current) return null
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setActiveSection(id)
+          }
+        },
+        { threshold: 0.3, rootMargin: "-100px 0px -50% 0px" }
+      )
+      observer.observe(ref.current)
+      return observer
+    })
+
+    return () => {
+      observers.forEach(observer => observer?.disconnect())
+    }
+  }, [])
 
     return (
         <>
@@ -45,6 +72,7 @@ const PageClient = () => {
         <Navbar
           displayLinks={true}
           activePage="home"
+          activeSection={activeSection}
           musicRef={musicRef}
           showsRef={showsRef}
           contactRef={contactRef}
