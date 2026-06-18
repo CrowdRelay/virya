@@ -1,4 +1,5 @@
 import React from "react"
+import { graphql } from "gatsby"
 import MerchClient from "../components/merch/merchClient"
 import {
   ALL_PRODUCTS,
@@ -48,9 +49,35 @@ const buildStoreSchema = url =>
     })),
   })
 
-export const Head = ({ pageContext }) => {
+// Mirror useMerchImages exactly so the preloaded files are the same ones the
+// first <picture> requests — no duplicate download.
+export const query = graphql`
+  query {
+    lcp: file(
+      sourceInstanceName: { eq: "img" }
+      relativePath: { eq: "merch/echoes.webp" }
+    ) {
+      childImageSharp {
+        gatsbyImageData(
+          placeholder: BLURRED
+          formats: [AUTO, WEBP, AVIF]
+          quality: 80
+          sizes: "(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+        )
+      }
+    }
+  }
+`
+
+export const Head = ({ pageContext, data }) => {
   const lang = pageContext?.lang || "en"
   const { canonicalUrl, hreflangLinks } = getSeoTags("/merch", lang)
+  // Preload the first product image (the LCP element) so the browser fetches
+  // it from the document head at high priority instead of discovering it deep
+  // in the body after CSS/JS. We preload the AVIF srcSet to match the picture's
+  // first <source>; browsers without AVIF ignore it and fall back normally.
+  const lcpImage = data?.lcp?.childImageSharp?.gatsbyImageData
+  const avif = lcpImage?.images?.sources?.find(s => s.type === "image/avif")
   const ogLocale = lang === "pl" ? "pl_PL" : "en_US"
   const title = lang === "pl" ? "Sklep | Virya - Oficjalny sklep" : metaTags.title
   const description = lang === "pl"
@@ -62,6 +89,16 @@ export const Head = ({ pageContext }) => {
   return (
     <>
       <title>{title}</title>
+      {avif && (
+        <link
+          rel="preload"
+          as="image"
+          type="image/avif"
+          imageSrcSet={avif.srcSet}
+          imageSizes={avif.sizes}
+          fetchPriority="high"
+        />
+      )}
       <link rel="canonical" href={canonicalUrl} />
       {hreflangLinks.map((link, i) => (
         <link key={i} rel={link.rel} hrefLang={link.hreflang} href={link.href} />
