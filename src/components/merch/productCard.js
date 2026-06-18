@@ -480,7 +480,6 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
           <div
             className="max-w-3xl w-full h-[85vh] overflow-hidden touch-none select-none"
             style={{ touchAction: "none" }}
-            onClick={e => e.stopPropagation()}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -497,14 +496,21 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
                   key={i}
                   className="w-full min-w-0 flex-shrink-0 h-full flex items-center justify-center px-1"
                 >
-                  <GatsbyImage
-                    image={img}
-                    alt={product.name}
-                    className="w-full max-h-full"
-                    imgStyle={{ objectFit: "contain" }}
-                    objectFit="contain"
-                    draggable={false}
-                  />
+                  {/* Only the image itself swallows the click; the surrounding
+                      letterbox bubbles up to the backdrop and closes the zoom. */}
+                  <div
+                    className="w-full max-h-full flex items-center justify-center"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <GatsbyImage
+                      image={img}
+                      alt={product.name}
+                      className="w-full max-h-full"
+                      imgStyle={{ objectFit: "contain" }}
+                      objectFit="contain"
+                      draggable={false}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
