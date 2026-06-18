@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Visible keyboard-focus ring for all interactive elements. Mouse clicks
+   don't trigger :focus-visible, so this only shows for keyboard/AT users. */
+@layer base {
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  summary:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #fbbf24; /* amber-400 */
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
 /* Animated scroll-down chevrons in the hero (moved from the old normalize.css). */
 .arrows {
   width: 60px;
@@ -60,4 +76,22 @@
 .arrows path.a3 {
   animation-delay: 0s;
   -webkit-animation-delay: 0s; /* Safari 和 Chrome */
+}
+
+/* Respect users who prefer reduced motion: kill the chevron pulse and any
+   long transitions/animations rather than flashing content at them. */
+@media (prefers-reduced-motion: reduce) {
+  .arrows path {
+    animation: none;
+    -webkit-animation: none;
+    opacity: 1;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

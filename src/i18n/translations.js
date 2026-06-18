@@ -14,6 +14,7 @@ export const translations = {
       home: "Homepage",
       toMerch: "Go to Virya merch store",
       toBand: "Read the Virya band story",
+      skip: "Skip to content",
       language: "Language",
     },
     hero: {
@@ -113,7 +114,7 @@ export const translations = {
       bundles: "Bundles",
       bundlesSub: "Two items, one price — save more",
       delivery: "Delivery",
-      deliveryText: "Shipped to your chosen InPost Paczkomat across Poland.",
+      deliveryText: "Shipped to your chosen InPost Paczkomat across Poland — flat 15 PLN.",
       payments: "Payments",
       paymentsText:
         "BLIK, Google Pay, Revolut Pay and cards — securely via Stripe.",
@@ -136,6 +137,9 @@ export const translations = {
       restock: size => `Noted — we'll let the crew know about ${size}.`,
       restockTitle: size => `${size} is sold out — tap to request a restock`,
       restockAria: size => `${size} sold out, request restock`,
+      added: name => `${name} added to cart`,
+      zoomAria: name => `Enlarge ${name} image`,
+      closeZoom: "Close image",
     },
     cart: {
       title: "Your cart",
@@ -329,6 +333,7 @@ export const translations = {
       home: "Strona główna",
       toMerch: "Przejdź do sklepu Virya",
       toBand: "Poznaj historię zespołu Virya",
+      skip: "Przejdź do treści",
       language: "Język",
     },
     hero: {
@@ -429,7 +434,7 @@ export const translations = {
       bundlesSub: "Dwie rzeczy, jedna cena — oszczędzasz więcej",
       delivery: "Dostawa",
       deliveryText:
-        "Wysyłka do wybranego Paczkomatu InPost na terenie Polski.",
+        "Wysyłka do wybranego Paczkomatu InPost na terenie Polski — stałe 15 zł.",
       payments: "Płatności",
       paymentsText:
         "BLIK, Google Pay, Revolut Pay i karty — bezpiecznie przez Stripe.",
@@ -453,6 +458,9 @@ export const translations = {
       restockTitle: size =>
         `${size} wyprzedane — kliknij, by poprosić o wznowienie`,
       restockAria: size => `${size} wyprzedane, poproś o wznowienie`,
+      added: name => `${name} dodano do koszyka`,
+      zoomAria: name => `Powiększ zdjęcie: ${name}`,
+      closeZoom: "Zamknij zdjęcie",
     },
     cart: {
       title: "Twój koszyk",

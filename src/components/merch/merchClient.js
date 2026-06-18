@@ -56,7 +56,7 @@ const Storefront = () => {
       {/* Lifted above the cart button so they don't overlap. */}
       <ScrollToTop smooth positionClassName="right-6 bottom-24" />
 
-      <main className="pt-20 lg:container lg:mx-auto">
+      <main id="main-content" className="pt-20 lg:container lg:mx-auto">
         <div className="px-6 lg:px-12 py-12">
           {/* Title row */}
           <div className="flex items-center gap-6 mb-4 border-b border-zinc-800/60 pb-8">
