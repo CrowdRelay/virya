@@ -14,10 +14,14 @@ export const useMerchImages = () => {
         nodes {
           relativePath
           childImageSharp {
+            # No width cap: keep the full-res source so the enlarge lightbox
+            # stays sharp. quality 80 avoids artifacts when a variant renders
+            # near 1:1, and sizes lets the grid pick the ~600w variant on
+            # non-retina screens instead of downloading the full 1200w.
             gatsbyImageData(
-              width: 400
               placeholder: BLURRED
               formats: [AUTO, WEBP, AVIF]
+              quality: 80
               sizes: "(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
             )
           }
