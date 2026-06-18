@@ -9,26 +9,26 @@ import LangSwitch from './langSwitch'
 const linkClass = "cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400"
 const activeLinkClass = "text-amber-400"
 
-const NavLink = memo(({ onClick, title, children }) => (
+const NavLink = memo(({ onClick, title, children, active }) => (
   <button
     onClick={onClick}
-    className="cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400"
+    className={`cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${active ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}
     title={title}
   >
     <span>{children}</span>
   </button>
 ));
 
-const MobileItem = ({ onClick, children }) => (
+const MobileItem = ({ onClick, children, active }) => (
   <button
     onClick={onClick}
-    className="w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest text-zinc-300 hover:text-amber-400 border-b border-white/5 transition-colors"
+    className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors ${active ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}
   >
     {children}
   </button>
 );
 
-const Navbar = ({ displayLinks, activePage, musicRef, showsRef, contactRef }) => {
+const Navbar = ({ displayLinks, activePage, activeSection, musicRef, showsRef, contactRef }) => {
   const { t, lp } = useI18n()
   const [headerStyle, setHeaderStyle] = useState({
     transition: 'all 200ms ease-in'
@@ -81,7 +81,7 @@ const Navbar = ({ displayLinks, activePage, musicRef, showsRef, contactRef }) =>
       </a>
       <div className="container mx-auto flex items-center">
         <div className="flex flex-1 items-center">
-          <Link title={t("nav.home")} className="group flex my-2 cursor-pointer" to={lp("/")}>
+          <Link title={t("nav.home")} className={`group flex my-2 cursor-pointer ${activePage === "home" ? "ring-amber-400" : ""}`} to={lp("/")}>
             <StaticImage
               src="../images/virya.webp"
               title="Virya"
@@ -91,19 +91,19 @@ const Navbar = ({ displayLinks, activePage, musicRef, showsRef, contactRef }) =>
               width={100}
               height={100}
               quality={90}
-              className="!w-[50px] !h-[50px] rounded-full ring-2 ring-amber-400/40 ring-offset-2 ring-offset-black transition-all duration-300 group-hover:ring-amber-400 group-hover:scale-110 group-hover:brightness-125 group-hover:shadow-[0_0_12px_rgba(251,191,36,0.5)]"
+              className={`!w-[50px] !h-[50px] rounded-full ring-2 ring-offset-2 ring-offset-black transition-all duration-300 group-hover:ring-amber-400 group-hover:scale-110 group-hover:brightness-125 group-hover:shadow-[0_0_12px_rgba(251,191,36,0.5)] ${activePage === "home" ? "ring-amber-400" : "ring-amber-400/40"}`}
             />
           </Link>
         </div>
 
         <div className="hidden lg:flex items-center">
-          {displayLinks && <Link to={lp("/band")} className={`${linkClass} ${activePage === "band" ? activeLinkClass : ""}`}>{t("nav.band")}</Link>}
-          {displayLinks && <Link to={lp("/merch")} className={`${linkClass} ${activePage === "merch" ? activeLinkClass : ""}`}>{t("nav.merch")}</Link>}
+          {displayLinks && <Link to={lp("/band")} className={activePage === "band" ? activeLinkClass : linkClass}>{t("nav.band")}</Link>}
+          {displayLinks && <Link to={lp("/merch")} className={activePage === "merch" ? activeLinkClass : linkClass}>{t("nav.merch")}</Link>}
           {displayLinks && activePage === "home" && (
             <>
-              <NavLink onClick={() => handleScroll(musicRef.current)} title={t("nav.music")}>{t("nav.music")}</NavLink>
-              <NavLink onClick={() => handleScroll(showsRef.current)} title={t("nav.shows")}>{t("nav.shows")}</NavLink>
-              <NavLink onClick={() => handleScroll(contactRef.current)} title={t("nav.contact")}>{t("nav.contact")}</NavLink>
+              <NavLink onClick={() => handleScroll(musicRef.current)} title={t("nav.music")} active={activeSection === "music"}>{t("nav.music")}</NavLink>
+              <NavLink onClick={() => handleScroll(showsRef.current)} title={t("nav.shows")} active={activeSection === "shows"}>{t("nav.shows")}</NavLink>
+              <NavLink onClick={() => handleScroll(contactRef.current)} title={t("nav.contact")} active={activeSection === "contact"}>{t("nav.contact")}</NavLink>
             </>
           )}
           <LangSwitch className="ml-4 pl-4 border-l border-white/10" />
@@ -152,9 +152,9 @@ const Navbar = ({ displayLinks, activePage, musicRef, showsRef, contactRef }) =>
           </Link>
           {activePage === "home" && (
             <>
-              <MobileItem onClick={scrollAndClose(musicRef)}>{t("nav.music")}</MobileItem>
-              <MobileItem onClick={scrollAndClose(showsRef)}>{t("nav.shows")}</MobileItem>
-              <MobileItem onClick={scrollAndClose(contactRef)}>{t("nav.contact")}</MobileItem>
+              <MobileItem onClick={scrollAndClose(musicRef)} active={activeSection === "music"}>{t("nav.music")}</MobileItem>
+              <MobileItem onClick={scrollAndClose(showsRef)} active={activeSection === "shows"}>{t("nav.shows")}</MobileItem>
+              <MobileItem onClick={scrollAndClose(contactRef)} active={activeSection === "contact"}>{t("nav.contact")}</MobileItem>
             </>
           )}
         </div>
