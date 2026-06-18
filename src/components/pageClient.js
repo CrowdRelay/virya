@@ -46,23 +46,30 @@ const PageClient = () => {
       { ref: contactRef, id: "contact" },
     ]
 
-    const observers = sections.map(({ ref, id }) => {
-      if (!ref.current) return null
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setActiveSection(id)
-          }
-        },
-        { threshold: 0.3, rootMargin: "-100px 0px -50% 0px" }
-      )
-      observer.observe(ref.current)
-      return observer
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSections = entries
+          .filter(entry => entry.isIntersecting)
+          .map(entry => {
+            const section = sections.find(s => s.ref.current === entry.target)
+            return section?.id
+          })
+          .filter(Boolean)
+
+        if (visibleSections.length > 0) {
+          setActiveSection(visibleSections[0])
+        } else {
+          setActiveSection(null)
+        }
+      },
+      { threshold: 0.3, rootMargin: "-100px 0px -50% 0px" }
+    )
+
+    sections.forEach(({ ref }) => {
+      if (ref.current) observer.observe(ref.current)
     })
 
-    return () => {
-      observers.forEach(observer => observer?.disconnect())
-    }
+    return () => observer.disconnect()
   }, [])
 
     return (
