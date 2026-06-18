@@ -137,23 +137,6 @@ const Storefront = () => {
               </div>
             ))}
           </div>
-
-          {/* Legal */}
-          <div className="mt-12 pt-6 border-t border-zinc-800/60 flex flex-wrap gap-x-6 gap-y-1">
-            {[
-              [t("merch.termsLink"), "/legal/terms"],
-              [t("merch.returnsLink"), "/legal/returns"],
-              [t("merch.privacyLink"), "/legal/privacy"],
-            ].map(([label, to]) => (
-              <Link
-                key={to}
-                to={lp(to)}
-                className="inline-flex items-center min-h-[44px] text-[11px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors"
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
         </div>
         <Footer />
       </main>
