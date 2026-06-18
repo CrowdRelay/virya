@@ -1,5 +1,5 @@
 "use client"
-import React, { memo, useState } from "react"
+import React, { memo, useState, useEffect } from "react"
 import { GatsbyImage } from "gatsby-plugin-image"
 import { useCart } from "./cartContext"
 import { useI18n } from "../../i18n/I18nContext"
@@ -22,6 +22,8 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
   const [error, setError] = useState(false)
   const [requested, setRequested] = useState([])
   const [notice, setNotice] = useState("")
+  const [announce, setAnnounce] = useState("")
+  const [zoomed, setZoomed] = useState(false)
 
   const front = images[product.front]
   const back = product.back ? images[product.back] : null
@@ -48,7 +50,31 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
     }
     setError(false)
     add(product.id, size, 1)
+    // Screen readers don't perceive the cart drawer opening; announce it.
+    setAnnounce(t("product.added", name))
   }
+
+  // Clear the live-region message so re-adding the same item announces again.
+  useEffect(() => {
+    if (!announce) return
+    const id = setTimeout(() => setAnnounce(""), 1000)
+    return () => clearTimeout(id)
+  }, [announce])
+
+  // Close the zoom lightbox on Escape and lock body scroll while it's open.
+  useEffect(() => {
+    if (!zoomed) return
+    const onKey = e => {
+      if (e.key === "Escape") setZoomed(false)
+    }
+    document.addEventListener("keydown", onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      document.body.style.overflow = prev
+    }
+  }, [zoomed])
 
   const requestSize = async s => {
     if (requested.includes(s)) return
@@ -96,6 +122,14 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
             className={`!absolute inset-0 block w-full transition-opacity duration-500 ${
               showBack ? "opacity-100" : "opacity-0"
             } ${available ? "" : "grayscale"}`}
+          />
+        )}
+        {front && (
+          <button
+            type="button"
+            onClick={() => setZoomed(true)}
+            aria-label={t("product.zoomAria", name)}
+            className="absolute inset-0 z-10 cursor-zoom-in"
           />
         )}
         {/* Top-left badge stack */}
@@ -204,21 +238,23 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
                 )
               })}
             </div>
-            {error && (
-              <p className="text-[10px] uppercase tracking-widest text-red-400 mt-2">
-                {t("product.pickSize")}
-              </p>
-            )}
-            {selectedLow && (
-              <p className="text-[10px] uppercase tracking-widest text-amber-400/90 mt-2">
-                {t("product.fewLeft", size)}
-              </p>
-            )}
-            {notice && (
-              <p className="text-[10px] uppercase tracking-widest text-amber-400/90 mt-2">
-                {notice}
-              </p>
-            )}
+            <div role="status" aria-live="polite">
+              {error && (
+                <p className="text-[10px] uppercase tracking-widest text-red-400 mt-2">
+                  {t("product.pickSize")}
+                </p>
+              )}
+              {selectedLow && (
+                <p className="text-[10px] uppercase tracking-widest text-amber-400/90 mt-2">
+                  {t("product.fewLeft", size)}
+                </p>
+              )}
+              {notice && (
+                <p className="text-[10px] uppercase tracking-widest text-amber-400/90 mt-2">
+                  {notice}
+                </p>
+              )}
+            </div>
           </div>
         )}
 
@@ -249,6 +285,42 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
           </button>
         </div>
       </div>
+
+      {/* Polite announcement for screen readers when an item is added. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {announce}
+      </p>
+
+      {/* Click-to-enlarge lightbox. */}
+      {zoomed && front && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 cursor-zoom-out"
+          role="dialog"
+          aria-modal="true"
+          aria-label={name}
+          onClick={() => setZoomed(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setZoomed(false)}
+            aria-label={t("product.closeZoom")}
+            className="absolute top-4 right-4 text-zinc-300 hover:text-amber-400 transition-colors text-3xl leading-none"
+          >
+            &times;
+          </button>
+          <div
+            className="max-w-3xl w-full max-h-[85vh] overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <GatsbyImage
+              image={showBack && back ? back : front}
+              alt={product.name}
+              className="w-full h-full"
+              objectFit="contain"
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 })

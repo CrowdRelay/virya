@@ -78,7 +78,7 @@ const Main = () => {
                 <Navbar displayLinks={false} />
             </header>
             <ScrollToTop smooth />
-            <div className="pt-20 lg:container lg:mx-auto">
+            <div id="main-content" className="pt-20 lg:container lg:mx-auto">
                 <div className="px-6 lg:px-12 py-12">
 
                     <div className="flex items-center gap-6 mb-12 border-b border-zinc-800/60 pb-8">

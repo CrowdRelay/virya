@@ -72,6 +72,12 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
 
   return (
     <nav aria-label="Main navigation" style={{ ...headerStyle }} className="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-amber-400 focus:text-black focus:text-xs focus:font-bold focus:uppercase focus:tracking-widest"
+      >
+        {t("nav.skip")}
+      </a>
       <div className="container mx-auto flex items-center">
         <div className="flex flex-1 items-center">
           <Link title={t("nav.home")} className="group flex my-2 cursor-pointer" to={lp("/")}>
