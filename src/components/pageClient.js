@@ -48,6 +48,7 @@ const PageClient = () => {
 
     const onScroll = () => {
       const scrollPosition = window.scrollY + 150
+      const viewportBottom = window.scrollY + window.innerHeight
       let activeId = null
       let minDistance = Infinity
 
@@ -55,6 +56,11 @@ const PageClient = () => {
         if (!ref.current) return
         const rect = ref.current.getBoundingClientRect()
         const absoluteTop = rect.top + window.scrollY
+        const absoluteBottom = rect.bottom + window.scrollY
+
+        // Skip if section is completely above viewport (scrolled past)
+        if (absoluteBottom < scrollPosition - 200) return
+
         const distance = Math.abs(absoluteTop - scrollPosition)
 
         if (distance < minDistance) {
