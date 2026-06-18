@@ -61,7 +61,9 @@ const PageClient = () => {
         // Skip if section is completely above viewport (scrolled past)
         if (absoluteBottom < scrollPosition - 200) return
 
+        // Only consider if section is within reasonable distance (300px)
         const distance = Math.abs(absoluteTop - scrollPosition)
+        if (distance > 300) return
 
         if (distance < minDistance) {
           minDistance = distance
