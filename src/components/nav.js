@@ -6,8 +6,9 @@ import { Link } from 'gatsby'
 import { useI18n } from '../i18n/I18nContext'
 import LangSwitch from './langSwitch'
 
-const linkClass = "cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400"
+const linkClass = "cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out"
 const activeLinkClass = "text-amber-400"
+const inactiveLinkClass = "text-zinc-400 hover:text-amber-400"
 
 const NavLink = memo(({ onClick, title, children, active }) => (
   <button
@@ -97,8 +98,8 @@ const Navbar = ({ displayLinks, activePage, activeSection, musicRef, showsRef, c
         </div>
 
         <div className="hidden lg:flex items-center">
-          {displayLinks && <Link to={lp("/band")} className={`${linkClass} ${activePage === "band" ? activeLinkClass : ""}`}>{t("nav.band")}</Link>}
-          {displayLinks && <Link to={lp("/merch")} className={`${linkClass} ${activePage === "merch" ? activeLinkClass : ""}`}>{t("nav.merch")}</Link>}
+          {displayLinks && <Link to={lp("/band")} className={`${linkClass} ${activePage === "band" ? activeLinkClass : inactiveLinkClass}`}>{t("nav.band")}</Link>}
+          {displayLinks && <Link to={lp("/merch")} className={`${linkClass} ${activePage === "merch" ? activeLinkClass : inactiveLinkClass}`}>{t("nav.merch")}</Link>}
           {displayLinks && activePage === "home" && (
             <>
               <NavLink onClick={() => handleScroll(musicRef.current)} title={t("nav.music")} active={activeSection === "music"}>{t("nav.music")}</NavLink>
@@ -144,10 +145,10 @@ const Navbar = ({ displayLinks, activePage, activeSection, musicRef, showsRef, c
 
       {displayLinks && menuOpen && (
         <div id="mobile-menu" className="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
-          <Link to={lp("/band")} onClick={closeMenu} className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400 ${activePage === "band" ? "text-amber-400" : ""}`}>
+          <Link to={lp("/band")} onClick={closeMenu} className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors ${activePage === "band" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>
             {t("nav.band")}
           </Link>
-          <Link to={lp("/merch")} onClick={closeMenu} className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400 ${activePage === "merch" ? "text-amber-400" : ""}`}>
+          <Link to={lp("/merch")} onClick={closeMenu} className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors ${activePage === "merch" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>
             {t("nav.merch")}
           </Link>
           {activePage === "home" && (
