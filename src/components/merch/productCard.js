@@ -1,5 +1,5 @@
 "use client"
-import React, { memo, useState, useEffect } from "react"
+import React, { memo, useState, useEffect, useRef, useCallback } from "react"
 import { GatsbyImage } from "gatsby-plugin-image"
 import { useCart } from "./cartContext"
 import { useI18n } from "../../i18n/I18nContext"
@@ -25,6 +25,31 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
   const [announce, setAnnounce] = useState("")
   const [zoomed, setZoomed] = useState(false)
   const [slide, setSlide] = useState(0)
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+
+  const handleTouchStart = useCallback(e => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }, [])
+
+  const handleTouchEnd = useCallback(e => {
+    const touchEndX = e.changedTouches[0].clientX
+    const touchEndY = e.changedTouches[0].clientY
+    const dx = touchEndX - touchStartX.current
+    const dy = Math.abs(touchEndY - touchStartY.current)
+
+    // Only trigger if horizontal swipe is dominant and significant
+    if (Math.abs(dx) > 50 && Math.abs(dx) > dy) {
+      if (dx > 0) {
+        // Swipe right - previous image
+        setSlide(s => (s - 1 + zoomImages.length) % zoomImages.length)
+      } else {
+        // Swipe left - next image
+        setSlide(s => (s + 1) % zoomImages.length)
+      }
+    }
+  }, [zoomImages.length])
 
   const front = images[product.front]
   const back = product.back ? images[product.back] : null
@@ -313,6 +338,8 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
           aria-modal="true"
           aria-label={name}
           onClick={() => setZoomed(false)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           <button
             type="button"
