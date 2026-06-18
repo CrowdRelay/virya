@@ -14,7 +14,7 @@ const Cancel = () => {
     </header>
     <div className="flex-1 flex items-center justify-center px-6 pt-20">
       <div className="max-w-md text-center">
-        <p className="uppercase tracking-[0.3em] text-zinc-500 text-xs font-bold mb-4">
+        <p className="uppercase tracking-[0.3em] text-zinc-400 text-xs font-bold mb-4">
           {t("cancel.eyebrow")}
         </p>
         <h1 className="text-3xl lg:text-4xl font-black uppercase tracking-tight text-white mb-6">

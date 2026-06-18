@@ -85,7 +85,7 @@ const Newsletter = () => {
                 onChange={e => setEmail(e.target.value)}
                 placeholder={t("newsletter.placeholder")}
                 autoComplete="email"
-                className="flex-1 bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 p-3 outline-none transition-colors placeholder:text-zinc-500"
+                className="flex-1 bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 p-3 outline-none transition-colors placeholder:text-zinc-400"
               />
               <button
                 type="submit"

@@ -7,11 +7,14 @@
   Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(self)
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: https:; media-src 'self'; font-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://geowidget.inpost.pl; style-src 'self' 'unsafe-inline' https://geowidget.inpost.pl; connect-src 'self' https://*.inpost.pl https://rest.bandsintown.com; frame-src https://open.spotify.com https://js.stripe.com; form-action 'self'; frame-ancestors 'self'
 
-# A Content-Security-Policy is intentionally NOT enabled yet: it must be tested
-# against the third parties this site uses (Stripe Checkout redirect, the InPost
-# Geowidget at geowidget.inpost.pl, the Spotify embed at open.spotify.com, the
-# Bandsintown fetch, and Netlify Forms). Starting template to validate, then
-# uncomment under /* above:
-#
-#  Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; media-src 'self'; script-src 'self' 'unsafe-inline' https://geowidget.inpost.pl; style-src 'self' 'unsafe-inline' https://geowidget.inpost.pl; connect-src 'self' https://*.inpost.pl https://rest.bandsintown.com; frame-src https://open.spotify.com https://js.stripe.com; frame-ancestors 'self'
+# CSP notes — sources allowed, and why:
+#   script/style geowidget.inpost.pl  → InPost Paczkomat picker assets
+#   connect *.inpost.pl               → geowidget API calls
+#   connect rest.bandsintown.com      → shows feed (also proxied via /api)
+#   frame open.spotify.com            → artist embed player
+#   frame js.stripe.com               → Stripe (checkout itself is a top-level redirect)
+#   'unsafe-inline' script/style      → Gatsby inlines its runtime + critical CSS
+# If a third party breaks, check the browser console for the blocked URL and add
+# its origin to the matching directive.

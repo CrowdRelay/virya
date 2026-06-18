@@ -8,7 +8,7 @@ import { useI18n } from "../../i18n/I18nContext"
 import InpostGeowidget from "./inpostGeowidget"
 
 const inputClass =
-  "bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-amber-400/60 transition-colors"
+  "bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-amber-400/60 transition-colors"
 
 const QtyButton = ({ children, onClick, label }) => (
   <button
@@ -161,7 +161,7 @@ const CartDrawer = () => {
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {lines.length === 0 ? (
-            <p className="text-sm text-zinc-500 uppercase tracking-widest text-center mt-12">
+            <p className="text-sm text-zinc-400 uppercase tracking-widest text-center mt-12">
               {t("cart.empty")}
             </p>
           ) : (
@@ -188,7 +188,7 @@ const CartDrawer = () => {
                         {getProductName(l.product)}
                       </p>
                       {l.size && (
-                        <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-0.5">
+                        <p className="text-[10px] uppercase tracking-widest text-zinc-400 mt-0.5">
                           {t("cart.sizeLabel", l.size)}
                         </p>
                       )}
@@ -218,7 +218,7 @@ const CartDrawer = () => {
                     <button
                       onClick={() => remove(l.id, l.size)}
                       aria-label={t("cart.remove")}
-                      className="self-start text-zinc-600 hover:text-red-400 transition-colors text-xs"
+                      className="self-start text-zinc-400 hover:text-red-400 transition-colors text-xs"
                     >
                       {t("cart.remove")}
                     </button>
@@ -240,7 +240,7 @@ const CartDrawer = () => {
             {/* Delivery */}
             {needsShipping && (
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
                   {t("cart.deliveryHeading")}
                 </p>
                 {point ? (
@@ -275,7 +275,7 @@ const CartDrawer = () => {
 
             {/* Invoice / buyer details */}
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
                 {t("cart.billing")}
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -351,7 +351,7 @@ const CartDrawer = () => {
                 <span className="text-xs uppercase tracking-widest">{t("cart.total")}</span>
                 <span>{total} PLN</span>
               </div>
-              <p className="text-[10px] text-zinc-600 pt-1">
+              <p className="text-[10px] text-zinc-400 pt-1">
                 {t("cart.vatNote")}
               </p>
             </div>
@@ -369,7 +369,7 @@ const CartDrawer = () => {
             >
               {loading ? t("cart.redirecting") : t("cart.pay")}
             </button>
-            <p className="text-[10px] text-zinc-600 text-center uppercase tracking-widest">
+            <p className="text-[10px] text-zinc-400 text-center uppercase tracking-widest">
               {t("cart.payMethods")}
             </p>
             <p className="text-[10px] text-zinc-400 text-center leading-relaxed">
