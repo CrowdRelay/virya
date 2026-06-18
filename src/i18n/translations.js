@@ -98,6 +98,7 @@ export const translations = {
       email: "Email",
       message: "Message",
       send: "Send",
+      error: "Couldn't send — please email us at virya.crew@gmail.com.",
       thankTitle: "Thank you",
       thankBody: "Your message has been sent. We will reach out to you soon.",
       dismiss: "Dismiss notification",
@@ -127,6 +128,13 @@ export const translations = {
     },
     product: {
       size: "Size",
+      sizeGuide: "Size guide",
+      sizeGuideTitle: "Size guide",
+      sizeChartNote:
+        "Approximate measurements in cm. Chest is full circumference; length is front, collar to hem. Allow ±2 cm.",
+      chest: "Chest (cm)",
+      length: "Length (cm)",
+      closeGuide: "Close size guide",
       pickSize: "Pick a size first",
       addToCart: "Add to cart",
       soldOut: "Sold out",
@@ -419,6 +427,7 @@ export const translations = {
       email: "E-mail",
       message: "Wiadomość",
       send: "Wyślij",
+      error: "Nie udało się wysłać — napisz do nas na virya.crew@gmail.com.",
       thankTitle: "Dziękujemy",
       thankBody: "Wiadomość została wysłana. Odezwiemy się wkrótce.",
       dismiss: "Zamknij powiadomienie",
@@ -450,6 +459,13 @@ export const translations = {
     },
     product: {
       size: "Rozmiar",
+      sizeGuide: "Tabela rozmiarów",
+      sizeGuideTitle: "Tabela rozmiarów",
+      sizeChartNote:
+        "Wymiary przybliżone w cm. Klatka to pełny obwód; długość mierzona z przodu, od kołnierza do dołu. Tolerancja ±2 cm.",
+      chest: "Klatka (cm)",
+      length: "Długość (cm)",
+      closeGuide: "Zamknij tabelę rozmiarów",
       pickSize: "Najpierw wybierz rozmiar",
       addToCart: "Do koszyka",
       soldOut: "Wyprzedane",
