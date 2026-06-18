@@ -79,10 +79,14 @@ export const Head = ({ pageContext }) => {
     const lang = pageContext?.lang || "en"
     const { canonicalUrl, hreflangLinks } = getSeoTags("/", lang)
     const ogLocale = lang === "pl" ? "pl_PL" : "en_US"
+    const title = lang === "pl" ? "Virya | Nowoczesny metalcore z Polski" : metaTags.title
+    const description = lang === "pl"
+        ? "Strona Virya, nowoczesnej metalcoreowej siły z Polski. Sprawdź najnowsze wydawnictwa i wiadomości."
+        : metaTags.description
 
     return (
         <>
-            <title>{metaTags.title}</title>
+            <title>{title}</title>
             <link rel="preload" as="image" href="/poster.webp" fetchpriority="high" />
             <link rel="dns-prefetch" href="https://open.spotify.com" />
             <link rel="preconnect" href="https://open.spotify.com" crossOrigin="anonymous" />
@@ -90,22 +94,22 @@ export const Head = ({ pageContext }) => {
             {hreflangLinks.map((link, i) => (
                 <link key={i} rel={link.rel} hreflang={link.hreflang} href={link.href} />
             ))}
-            <meta name="description" content={metaTags.description} />
+            <meta name="description" content={description} />
             <meta name="keywords" content={metaTags.keywords} />
             <meta name="author" content="Virya" />
             <meta name="theme-color" content="#09090b" />
             <meta property="og:type" content="website" />
             <meta property="og:site_name" content="Virya" />
             <meta property="og:locale" content={ogLocale} />
-            <meta property="og:title" content={metaTags.title} />
-            <meta property="og:description" content={metaTags.description} />
+            <meta property="og:title" content={title} />
+            <meta property="og:description" content={description} />
             <meta property="og:image" content={metaTags.image} />
             <meta property="og:url" content={canonicalUrl} />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:site" content="@viryaofficial" />
             <meta name="twitter:creator" content="@viryaofficial" />
-            <meta name="twitter:title" content={metaTags.title} />
-            <meta name="twitter:description" content={metaTags.description} />
+            <meta name="twitter:title" content={title} />
+            <meta name="twitter:description" content={description} />
             <meta name="twitter:image" content={metaTags.image} />
             <meta name="twitter:url" content={canonicalUrl} />
             <script type="application/ld+json">{musicGroupSchema}</script>
