@@ -28,29 +28,6 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
 
-  const handleTouchStart = useCallback(e => {
-    touchStartX.current = e.touches[0].clientX
-    touchStartY.current = e.touches[0].clientY
-  }, [])
-
-  const handleTouchEnd = useCallback(e => {
-    const touchEndX = e.changedTouches[0].clientX
-    const touchEndY = e.changedTouches[0].clientY
-    const dx = touchEndX - touchStartX.current
-    const dy = Math.abs(touchEndY - touchStartY.current)
-
-    // Only trigger if horizontal swipe is dominant and significant
-    if (Math.abs(dx) > 50 && Math.abs(dx) > dy) {
-      if (dx > 0) {
-        // Swipe right - previous image
-        setSlide(s => (s - 1 + zoomImages.length) % zoomImages.length)
-      } else {
-        // Swipe left - next image
-        setSlide(s => (s + 1) % zoomImages.length)
-      }
-    }
-  }, [zoomImages.length])
-
   const front = images[product.front]
   const back = product.back ? images[product.back] : null
   const showBack = hovered && back
@@ -75,6 +52,30 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
     setSlide(0)
     setZoomed(true)
   }
+
+  const handleTouchStart = useCallback(e => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }, [])
+
+  const handleTouchEnd = useCallback(
+    e => {
+      const touchEndX = e.changedTouches[0].clientX
+      const touchEndY = e.changedTouches[0].clientY
+      const dx = touchEndX - touchStartX.current
+      const dy = Math.abs(touchEndY - touchStartY.current)
+
+      // Only act on a dominant, significant horizontal swipe.
+      if (zoomImages.length > 1 && Math.abs(dx) > 50 && Math.abs(dx) > dy) {
+        if (dx > 0) {
+          setSlide(s => (s - 1 + zoomImages.length) % zoomImages.length)
+        } else {
+          setSlide(s => (s + 1) % zoomImages.length)
+        }
+      }
+    },
+    [zoomImages.length]
+  )
 
   const handleAdd = () => {
     if (!available) return
