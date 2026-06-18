@@ -24,6 +24,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
   const [notice, setNotice] = useState("")
   const [announce, setAnnounce] = useState("")
   const [zoomed, setZoomed] = useState(false)
+  const [slide, setSlide] = useState(0)
 
   const front = images[product.front]
   const back = product.back ? images[product.back] : null
@@ -41,6 +42,15 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
       ? product.includes_pl
       : product.includes
   const name = lang === "pl" && product.name_pl ? product.name_pl : product.name
+
+  // Bundles enlarge into a 2-image carousel (both items); regular products
+  // enlarge whichever face is currently shown.
+  const zoomImages = (bundle ? [front, back] : [showBack && back ? back : front]).filter(Boolean)
+
+  const openZoom = () => {
+    setSlide(0)
+    setZoomed(true)
+  }
 
   const handleAdd = () => {
     if (!available) return
@@ -61,11 +71,16 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
     return () => clearTimeout(id)
   }, [announce])
 
-  // Close the zoom lightbox on Escape and lock body scroll while it's open.
+  // Close the zoom lightbox on Escape, navigate the carousel with arrows,
+  // and lock body scroll while it's open.
   useEffect(() => {
     if (!zoomed) return
     const onKey = e => {
       if (e.key === "Escape") setZoomed(false)
+      if (zoomImages.length > 1) {
+        if (e.key === "ArrowRight") setSlide(s => (s + 1) % zoomImages.length)
+        if (e.key === "ArrowLeft") setSlide(s => (s - 1 + zoomImages.length) % zoomImages.length)
+      }
     }
     document.addEventListener("keydown", onKey)
     const prev = document.body.style.overflow
@@ -74,7 +89,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
       document.removeEventListener("keydown", onKey)
       document.body.style.overflow = prev
     }
-  }, [zoomed])
+  }, [zoomed, zoomImages.length])
 
   const requestSize = async s => {
     if (requested.includes(s)) return
@@ -127,7 +142,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
         {front && (
           <button
             type="button"
-            onClick={() => setZoomed(true)}
+            onClick={openZoom}
             aria-label={t("product.zoomAria", name)}
             className="absolute inset-0 z-10 cursor-zoom-in"
           />
@@ -291,8 +306,8 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
         {announce}
       </p>
 
-      {/* Click-to-enlarge lightbox. */}
-      {zoomed && front && (
+      {/* Click-to-enlarge lightbox. Bundles get a 2-image carousel. */}
+      {zoomed && zoomImages.length > 0 && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 cursor-zoom-out"
           role="dialog"
@@ -304,21 +319,69 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
             type="button"
             onClick={() => setZoomed(false)}
             aria-label={t("product.closeZoom")}
-            className="absolute top-4 right-4 text-zinc-300 hover:text-amber-400 transition-colors text-3xl leading-none"
+            className="absolute top-4 right-4 z-10 text-zinc-300 hover:text-amber-400 transition-colors text-3xl leading-none"
           >
             &times;
           </button>
+
+          {zoomImages.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={e => {
+                  e.stopPropagation()
+                  setSlide(s => (s - 1 + zoomImages.length) % zoomImages.length)
+                }}
+                aria-label={t("product.prevImage")}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center text-zinc-200 hover:text-amber-400 bg-black/40 hover:bg-black/60 transition-colors text-2xl leading-none"
+              >
+                &#8249;
+              </button>
+              <button
+                type="button"
+                onClick={e => {
+                  e.stopPropagation()
+                  setSlide(s => (s + 1) % zoomImages.length)
+                }}
+                aria-label={t("product.nextImage")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center text-zinc-200 hover:text-amber-400 bg-black/40 hover:bg-black/60 transition-colors text-2xl leading-none"
+              >
+                &#8250;
+              </button>
+            </>
+          )}
+
           <div
             className="max-w-3xl w-full max-h-[85vh] overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <GatsbyImage
-              image={showBack && back ? back : front}
+              image={zoomImages[slide]}
               alt={product.name}
               className="w-full h-full"
               objectFit="contain"
             />
           </div>
+
+          {zoomImages.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+              {zoomImages.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={e => {
+                    e.stopPropagation()
+                    setSlide(i)
+                  }}
+                  aria-label={t("product.goToImage", i + 1)}
+                  aria-current={i === slide}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    i === slide ? "bg-amber-400" : "bg-zinc-600 hover:bg-zinc-400"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
