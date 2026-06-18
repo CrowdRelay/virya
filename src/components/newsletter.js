@@ -29,7 +29,7 @@ const Newsletter = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     })
-      .then(r => setStatus(r.ok ? "done" : "done"))
+      .then(() => setStatus("done"))
       .catch(() => setStatus("done"))
 
     setEmail("")

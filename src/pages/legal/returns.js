@@ -19,7 +19,7 @@ export const Head = ({ pageContext }) => {
       <meta name="description" content={description} />
       <link rel="canonical" href={canonicalUrl} />
       {hreflangLinks.map((link, i) => (
-        <link key={i} rel={link.rel} hreflang={link.hreflang} href={link.href} />
+        <link key={i} rel={link.rel} hrefLang={link.hreflang} href={link.href} />
       ))}
     </>
   )

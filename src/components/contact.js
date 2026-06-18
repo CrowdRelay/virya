@@ -50,8 +50,7 @@ const Contact = () => {
             }).catch(err => console.error("[contact] email API failed:", err))
             resetForm();
             setDisplayThanks(true);
-            const timer = setTimeout(() => setDisplayThanks(false), 5000);
-            return () => clearTimeout(timer);
+            setTimeout(() => setDisplayThanks(false), 5000);
         }).catch(() => {
             resetForm();
             setDisplayThanks(false);
