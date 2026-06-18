@@ -478,14 +478,15 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
           )}
 
           <div
-            className="max-w-3xl w-full max-h-[85vh] overflow-hidden touch-pan-y"
+            className="max-w-3xl w-full h-[85vh] overflow-hidden touch-none select-none"
+            style={{ touchAction: "none" }}
             onClick={e => e.stopPropagation()}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
             <div
-              className="flex"
+              className="flex h-full w-full"
               style={{
                 transform: `translateX(calc(${-slide * 100}% + ${dragX}px))`,
                 transition: dragging ? "none" : "transform 350ms ease-out",
@@ -494,12 +495,13 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
               {zoomImages.map((img, i) => (
                 <div
                   key={i}
-                  className="min-w-full flex-shrink-0 max-h-[85vh] flex items-center justify-center"
+                  className="w-full min-w-0 flex-shrink-0 h-full flex items-center justify-center px-1"
                 >
                   <GatsbyImage
                     image={img}
                     alt={product.name}
-                    className="w-full max-h-[85vh]"
+                    className="w-full max-h-full"
+                    imgStyle={{ objectFit: "contain" }}
                     objectFit="contain"
                     draggable={false}
                   />
