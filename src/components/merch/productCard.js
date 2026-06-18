@@ -12,6 +12,7 @@ import {
   isBundle,
   discountActive,
   discountPct,
+  SIZE_CHART,
 } from "../../data/products"
 
 const ProductCard = memo(({ product, images, index = 0 }) => {
@@ -24,9 +25,14 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
   const [notice, setNotice] = useState("")
   const [announce, setAnnounce] = useState("")
   const [zoomed, setZoomed] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(false)
   const [slide, setSlide] = useState(0)
+  const [dragX, setDragX] = useState(0)
+  const [dragging, setDragging] = useState(false)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
+  const swiping = useRef(false)
+  const dragXRef = useRef(0)
 
   const front = images[product.front]
   const back = product.back ? images[product.back] : null
@@ -56,26 +62,43 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
   const handleTouchStart = useCallback(e => {
     touchStartX.current = e.touches[0].clientX
     touchStartY.current = e.touches[0].clientY
+    swiping.current = false
+    setDragging(true)
+    setDragX(0)
   }, [])
 
-  const handleTouchEnd = useCallback(
+  const handleTouchMove = useCallback(
     e => {
-      const touchEndX = e.changedTouches[0].clientX
-      const touchEndY = e.changedTouches[0].clientY
-      const dx = touchEndX - touchStartX.current
-      const dy = Math.abs(touchEndY - touchStartY.current)
-
-      // Only act on a dominant, significant horizontal swipe.
-      if (zoomImages.length > 1 && Math.abs(dx) > 50 && Math.abs(dx) > dy) {
-        if (dx > 0) {
-          setSlide(s => (s - 1 + zoomImages.length) % zoomImages.length)
-        } else {
-          setSlide(s => (s + 1) % zoomImages.length)
-        }
+      if (zoomImages.length < 2) return
+      const dx = e.touches[0].clientX - touchStartX.current
+      const dy = e.touches[0].clientY - touchStartY.current
+      // Lock to horizontal once the gesture is clearly a swipe, so vertical
+      // scrolls don't drag the track.
+      if (!swiping.current && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) {
+        swiping.current = true
       }
+      if (!swiping.current) return
+      // Rubber-band at the ends so there's nowhere to slide past.
+      const atStart = slide === 0 && dx > 0
+      const atEnd = slide === zoomImages.length - 1 && dx < 0
+      const next = atStart || atEnd ? dx * 0.35 : dx
+      dragXRef.current = next
+      setDragX(next)
     },
-    [zoomImages.length]
+    [zoomImages.length, slide]
   )
+
+  const handleTouchEnd = useCallback(() => {
+    setDragging(false)
+    const dx = dragXRef.current
+    dragXRef.current = 0
+    setDragX(0)
+    // A firm horizontal flick advances one slide; otherwise it snaps back.
+    if (zoomImages.length > 1 && Math.abs(dx) > 60) {
+      if (dx > 0) setSlide(s => Math.max(0, s - 1))
+      else setSlide(s => Math.min(zoomImages.length - 1, s + 1))
+    }
+  }, [zoomImages.length])
 
   const handleAdd = () => {
     if (!available) return
@@ -88,6 +111,21 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
     // Screen readers don't perceive the cart drawer opening; announce it.
     setAnnounce(t("product.added", name))
   }
+
+  // Close the size guide on Escape and lock body scroll while open.
+  useEffect(() => {
+    if (!guideOpen) return
+    const onKey = e => {
+      if (e.key === "Escape") setGuideOpen(false)
+    }
+    document.addEventListener("keydown", onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      document.body.style.overflow = prev
+    }
+  }, [guideOpen])
 
   // Clear the live-region message so re-adding the same item announces again.
   useEffect(() => {
@@ -233,9 +271,18 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
 
         {needsSize && (
           <div className="mb-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
-              {t("product.size")}
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                {t("product.size")}
+              </p>
+              <button
+                type="button"
+                onClick={() => setGuideOpen(true)}
+                className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors"
+              >
+                {t("product.sizeGuide")}
+              </button>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {product.sizes.map(s => {
                 const inStock = sizeInStock(product, s)
@@ -331,6 +378,60 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
         {announce}
       </p>
 
+      {/* Size guide modal — approximate unisex tee measurements. */}
+      {guideOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("product.sizeGuideTitle")}
+          onClick={() => setGuideOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-zinc-950 border border-zinc-800 p-5"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-black uppercase tracking-widest text-zinc-100">
+                {t("product.sizeGuideTitle")}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setGuideOpen(false)}
+                aria-label={t("product.closeGuide")}
+                className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none"
+              >
+                &times;
+              </button>
+            </div>
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-zinc-800">
+                  <th className="py-2">{t("product.size")}</th>
+                  <th className="py-2">{t("product.chest")}</th>
+                  <th className="py-2">{t("product.length")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {SIZE_CHART.map(row => (
+                  <tr
+                    key={row.size}
+                    className="text-xs text-zinc-200 border-b border-zinc-800/60"
+                  >
+                    <td className="py-2 font-bold">{row.size}</td>
+                    <td className="py-2">{row.chest}</td>
+                    <td className="py-2">{row.length}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="text-[10px] text-zinc-400 leading-relaxed mt-4">
+              {t("product.sizeChartNote")}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Click-to-enlarge lightbox. Bundles get a 2-image carousel. */}
       {zoomed && zoomImages.length > 0 && (
         <div
@@ -339,8 +440,6 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
           aria-modal="true"
           aria-label={name}
           onClick={() => setZoomed(false)}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
         >
           <button
             type="button"
@@ -357,7 +456,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
                 type="button"
                 onClick={e => {
                   e.stopPropagation()
-                  setSlide(s => (s - 1 + zoomImages.length) % zoomImages.length)
+                  setSlide(s => Math.max(0, s - 1))
                 }}
                 aria-label={t("product.prevImage")}
                 className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center text-zinc-200 hover:text-amber-400 bg-black/40 hover:bg-black/60 transition-colors text-2xl leading-none"
@@ -368,7 +467,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
                 type="button"
                 onClick={e => {
                   e.stopPropagation()
-                  setSlide(s => (s + 1) % zoomImages.length)
+                  setSlide(s => Math.min(zoomImages.length - 1, s + 1))
                 }}
                 aria-label={t("product.nextImage")}
                 className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center text-zinc-200 hover:text-amber-400 bg-black/40 hover:bg-black/60 transition-colors text-2xl leading-none"
@@ -379,15 +478,34 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
           )}
 
           <div
-            className="max-w-3xl w-full max-h-[85vh] overflow-hidden"
+            className="max-w-3xl w-full max-h-[85vh] overflow-hidden touch-pan-y"
             onClick={e => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
-            <GatsbyImage
-              image={zoomImages[slide]}
-              alt={product.name}
-              className="w-full h-full"
-              objectFit="contain"
-            />
+            <div
+              className="flex"
+              style={{
+                transform: `translateX(calc(${-slide * 100}% + ${dragX}px))`,
+                transition: dragging ? "none" : "transform 350ms ease-out",
+              }}
+            >
+              {zoomImages.map((img, i) => (
+                <div
+                  key={i}
+                  className="min-w-full flex-shrink-0 max-h-[85vh] flex items-center justify-center"
+                >
+                  <GatsbyImage
+                    image={img}
+                    alt={product.name}
+                    className="w-full max-h-[85vh]"
+                    objectFit="contain"
+                    draggable={false}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           {zoomImages.length > 1 && (

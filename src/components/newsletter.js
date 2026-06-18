@@ -62,11 +62,13 @@ const Newsletter = () => {
             className="max-w-xl"
           >
             <input type="hidden" name="form-name" value="newsletter" />
-            <p className="hidden">
+            <p className="hidden" aria-hidden="true">
               <label>
                 Don't fill this out:{" "}
                 <input
                   name="bot-field"
+                  tabIndex={-1}
+                  autoComplete="off"
                   value={honeypot}
                   onChange={e => setHoneypot(e.target.value)}
                 />

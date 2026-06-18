@@ -1,6 +1,13 @@
 import React from "react"
 import MerchClient from "../components/merch/merchClient"
-import { PRODUCTS, CURRENCY } from "../data/products"
+import {
+  ALL_PRODUCTS,
+  CURRENCY,
+  DISCOUNT_UNTIL,
+  discountActive,
+  discountedPrice,
+  productInStock,
+} from "../data/products"
 import { getSeoTags } from "../utils/seo"
 
 const Main = () => <MerchClient />
@@ -14,22 +21,32 @@ const metaTags = {
     "Virya, Merch, Store, Metalcore, T-shirt, Album, Echoes Of The Modern Mind, BLIK, InPost",
 }
 
-const storeSchema = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "Store",
-  name: "Virya Official Store",
-  image: metaTags.image,
-  itemListElement: PRODUCTS.map(p => ({
-    "@type": "Product",
-    name: p.name,
-    offers: {
-      "@type": "Offer",
-      price: p.price,
-      priceCurrency: CURRENCY.toUpperCase(),
-      availability: "https://schema.org/InStock",
-    },
-  })),
-})
+const priceValidUntil = DISCOUNT_UNTIL ? DISCOUNT_UNTIL.slice(0, 10) : undefined
+
+const buildStoreSchema = url =>
+  JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Store",
+    name: "Virya Official Store",
+    image: metaTags.image,
+    url,
+    itemListElement: ALL_PRODUCTS.map(p => ({
+      "@type": "Product",
+      name: p.name,
+      ...(p.blurb ? { description: p.blurb } : {}),
+      brand: { "@type": "Brand", name: "Virya" },
+      offers: {
+        "@type": "Offer",
+        price: discountedPrice(p),
+        priceCurrency: CURRENCY.toUpperCase(),
+        url,
+        availability: productInStock(p)
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+        ...(discountActive() && priceValidUntil ? { priceValidUntil } : {}),
+      },
+    })),
+  })
 
 export const Head = ({ pageContext }) => {
   const lang = pageContext?.lang || "en"
@@ -40,10 +57,7 @@ export const Head = ({ pageContext }) => {
     ? "Oficjalny merch Virya — album Echoes Of The Modern Mind, koszulki i torba. Darmowe naklejki do każdego zamówienia. Płać BLIK, Google Pay, Revolut Pay lub kartą. Dostawa do Paczkomatu InPost."
     : metaTags.description
 
-  const schemaWithUrl = JSON.stringify({
-    ...JSON.parse(storeSchema),
-    url: canonicalUrl
-  })
+  const schemaWithUrl = buildStoreSchema(canonicalUrl)
 
   return (
     <>

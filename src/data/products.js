@@ -2,6 +2,16 @@ export const CURRENCY = "pln"
 export const SHIPPING_PLN = 15
 export const SIZES = ["S", "M", "L", "XL", "XXL"]
 
+// Approximate unisex tee measurements in cm. Standard fit — verify against a
+// real garment before publishing as exact. chest = full circumference, flat ×2.
+export const SIZE_CHART = [
+  { size: "S", chest: 96, length: 71 },
+  { size: "M", chest: 104, length: 74 },
+  { size: "L", chest: 112, length: 76 },
+  { size: "XL", chest: 120, length: 79 },
+  { size: "XXL", chest: 128, length: 81 },
+]
+
 export const VAT_RATE = 0.23
 export const DISCOUNT_RATE = 0.2
 export const BUNDLE_DISCOUNT_RATE = 0.3

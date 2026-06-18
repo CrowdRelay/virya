@@ -16,6 +16,7 @@ const Contact = () => {
         honeypot: ""
     });
     const [displayThanks, setDisplayThanks] = useState(false);
+    const [failed, setFailed] = useState(false);
 
     const handleChange = e => {
         const { name, value } = e.target;
@@ -36,6 +37,7 @@ const Contact = () => {
 
     const handleSubmit = e => {
         e.preventDefault();
+        setFailed(false);
         fetch("/", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -52,8 +54,8 @@ const Contact = () => {
             setDisplayThanks(true);
             setTimeout(() => setDisplayThanks(false), 5000);
         }).catch(() => {
-            resetForm();
             setDisplayThanks(false);
+            setFailed(true);
         });
     };
 
@@ -63,10 +65,12 @@ const Contact = () => {
         <div className="py-16 lg:px-8 border-t border-zinc-800/60">
             <form name="contact" method="POST" netlify="true" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
                 <input type="hidden" name="form-name" value="contact" />
-                <p className="hidden">
+                <p className="hidden" aria-hidden="true">
                     <label>Human check:
                         <input
                             name="bot-field"
+                            tabIndex={-1}
+                            autoComplete="off"
                             onChange={handleChange}
                             value={honeypot} />
                     </label>
@@ -131,6 +135,13 @@ const Contact = () => {
                                 className="disabled:opacity-30 disabled:cursor-not-allowed w-full bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-sm py-3 px-4 transition-all duration-200 outline-none">
                                 {t("contact.send")}
                             </button>
+                            <div role="alert" aria-live="assertive">
+                                {failed && (
+                                    <p className="text-xs uppercase tracking-widest text-red-400 mt-3">
+                                        {t("contact.error")}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
