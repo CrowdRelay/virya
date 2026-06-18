@@ -83,7 +83,7 @@ const Navbar = ({ displayLinks, musicRef, showsRef, contactRef }) => {
               placeholder="blurred"
               width={50}
               height={50}
-              className="rounded-full ring-2 ring-amber-400/40 ring-offset-2 ring-offset-black transition-all duration-300 group-hover:ring-amber-400 group-hover:scale-105 group-hover:shadow-[0_0_12px_rgba(251,191,36,0.5)]"
+              className="rounded-full ring-2 ring-amber-400/40 ring-offset-2 ring-offset-black transition-all duration-300 group-hover:ring-amber-400 group-hover:scale-110 group-hover:brightness-125 group-hover:shadow-[0_0_12px_rgba(251,191,36,0.5)]"
             />
           </Link>
         </div>

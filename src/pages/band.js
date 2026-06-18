@@ -173,7 +173,7 @@ export const Head = ({ pageContext }) => {
             <title>{title}</title>
             <link rel="canonical" href={canonicalUrl} />
             {hreflangLinks.map((link, i) => (
-                <link key={i} rel={link.rel} hreflang={link.hreflang} href={link.href} />
+                <link key={i} rel={link.rel} hrefLang={link.hreflang} href={link.href} />
             ))}
             <meta name="description" content={description} />
             <meta name="keywords" content="Virya, Band Story, Metalcore, Modern Metal, Modern Metalcore, Poland, Heavy, Melodic" />
