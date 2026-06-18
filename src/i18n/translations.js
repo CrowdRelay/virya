@@ -140,6 +140,9 @@ export const translations = {
       added: name => `${name} added to cart`,
       zoomAria: name => `Enlarge ${name} image`,
       closeZoom: "Close image",
+      prevImage: "Previous image",
+      nextImage: "Next image",
+      goToImage: n => `Go to image ${n}`,
     },
     cart: {
       title: "Your cart",
@@ -461,6 +464,9 @@ export const translations = {
       added: name => `${name} dodano do koszyka`,
       zoomAria: name => `Powiększ zdjęcie: ${name}`,
       closeZoom: "Zamknij zdjęcie",
+      prevImage: "Poprzednie zdjęcie",
+      nextImage: "Następne zdjęcie",
+      goToImage: n => `Przejdź do zdjęcia ${n}`,
     },
     cart: {
       title: "Twój koszyk",

@@ -14,7 +14,12 @@ export const useMerchImages = () => {
         nodes {
           relativePath
           childImageSharp {
-            gatsbyImageData(placeholder: BLURRED, formats: [AUTO, WEBP, AVIF])
+            gatsbyImageData(
+              width: 400
+              placeholder: BLURRED
+              formats: [AUTO, WEBP, AVIF]
+              sizes: "(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+            )
           }
         }
       }
