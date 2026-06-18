@@ -1,5 +1,5 @@
 "use client"
-import React, { memo, useState, useEffect } from "react"
+import React, { memo, useState, useEffect, useRef } from "react"
 import ShowItem from "./show"
 import { useI18n } from "../../i18n/I18nContext"
 
@@ -66,8 +66,21 @@ const Shows = memo(() => {
   const { t } = useI18n()
   const [shows, setShows] = useState([])
   const [loading, setLoading] = useState(true)
+  const [visible, setVisible] = useState(false)
+  const ref = useRef(null)
 
   useEffect(() => {
+    if (!ref.current) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+      { rootMargin: "400px" }
+    )
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!visible) return
     let cancelled = false
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), BANDSINTOWN_API_TIMEOUT)
@@ -98,7 +111,7 @@ const Shows = memo(() => {
       controller.abort()
       clearTimeout(timeoutId)
     }
-  }, [])
+  }, [visible])
 
   useEffect(() => {
     if (!shows.length || typeof document === "undefined") return
@@ -111,7 +124,7 @@ const Shows = memo(() => {
   }, [shows])
 
   return (
-    <div className="py-16 lg:px-8 border-t border-zinc-800/60">
+    <div ref={ref} className="py-16 lg:px-8 border-t border-zinc-800/60">
       <div className="mx-4">
         <div className="flex items-center gap-4 mb-2">
           <p className="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
