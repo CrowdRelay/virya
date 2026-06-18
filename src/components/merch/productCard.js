@@ -43,9 +43,8 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
       : product.includes
   const name = lang === "pl" && product.name_pl ? product.name_pl : product.name
 
-  // Bundles enlarge into a 2-image carousel (both items); regular products
-  // enlarge whichever face is currently shown.
-  const zoomImages = (bundle ? [front, back] : [showBack && back ? back : front]).filter(Boolean)
+  // Bundles and products with back images enlarge into a 2-image carousel.
+  const zoomImages = (bundle || back ? [front, back] : [front]).filter(Boolean)
 
   const openZoom = () => {
     setSlide(0)
