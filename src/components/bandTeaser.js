@@ -27,7 +27,8 @@ const BandTeaser = memo(() => {
             title="Virya"
             placeholder="blurred"
             loading="lazy"
-            width={440}
+            width={600}
+            quality={80}
             sizes="(min-width: 1024px) 400px, 100vw"
             className="w-full h-full"
           />

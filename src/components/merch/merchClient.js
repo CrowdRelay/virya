@@ -34,11 +34,15 @@ const CartFab = () => {
         />
       </svg>
       <span>{t("cart.label")}</span>
-      {count > 0 && (
-        <span className="bg-black text-amber-400 rounded-full min-w-[1.25rem] h-5 px-1 flex items-center justify-center text-[11px] font-black">
-          {count}
-        </span>
-      )}
+      {/* Always reserve the badge box so loading the cart count from
+          localStorage after hydration doesn't widen the button (CLS). */}
+      <span
+        className={`bg-black text-amber-400 rounded-full min-w-[1.25rem] h-5 px-1 flex items-center justify-center text-[11px] font-black ${
+          count > 0 ? "" : "invisible"
+        }`}
+      >
+        {count > 0 ? count : ""}
+      </span>
     </button>
   )
 }
