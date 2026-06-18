@@ -1,5 +1,6 @@
 "use client"
 import React, { memo, useState } from "react"
+import { StaticImage } from "gatsby-plugin-image"
 import { useI18n } from "../i18n/I18nContext"
 
 const POSTER = "/showcase-poster.jpg"
@@ -41,14 +42,16 @@ const Showcase = memo(() => {
               aria-label={t("showcase.play")}
               className="group block w-full h-full"
             >
-              <img
-                src={POSTER}
+              <StaticImage
+                src="../images/showcase-poster.jpg"
                 alt={t("showcase.sub")}
-                width={720}
-                height={720}
+                width={672}
+                placeholder="blurred"
                 loading="lazy"
-                decoding="async"
-                className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-80"
+                formats={["auto", "webp", "avif"]}
+                sizes="(min-width: 672px) 672px, 100vw"
+                className="w-full h-full transition-opacity duration-300 group-hover:opacity-80"
+                imgClassName="object-cover"
               />
               <span className="absolute inset-0 flex items-center justify-center">
                 <span className="flex items-center justify-center w-16 h-16 rounded-full bg-amber-400 text-black shadow-lg shadow-black/40 transition-transform duration-200 group-hover:scale-110">

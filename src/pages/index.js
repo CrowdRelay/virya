@@ -88,8 +88,9 @@ export const Head = ({ pageContext }) => {
         <>
             <title>{title}</title>
             <link rel="preload" as="image" href="/poster.webp" fetchpriority="high" />
+            {/* Spotify embed is lazy-loaded far below the fold, so we only warm
+                DNS — a preconnect here sits unused and Lighthouse flags it. */}
             <link rel="dns-prefetch" href="https://open.spotify.com" />
-            <link rel="preconnect" href="https://open.spotify.com" crossOrigin="anonymous" />
             <link rel="canonical" href={canonicalUrl} />
             {hreflangLinks.map((link, i) => (
                 <link key={i} rel={link.rel} hrefLang={link.hreflang} href={link.href} />
