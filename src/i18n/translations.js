@@ -6,6 +6,7 @@ export const translations = {
     nav: {
       band: "Band",
       merch: "Merch",
+      epk: "EPK",
       music: "Music",
       shows: "Shows",
       contact: "Contact",
@@ -365,6 +366,7 @@ export const translations = {
     nav: {
       band: "Zespół",
       merch: "Sklep",
+      epk: "EPK",
       music: "Muzyka",
       shows: "Koncerty",
       contact: "Kontakt",

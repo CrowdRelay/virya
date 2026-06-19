@@ -100,6 +100,7 @@ const Navbar = ({ displayLinks, activePage, activeSection, musicRef, showsRef, c
         <div className="hidden lg:flex items-center">
           {displayLinks && <Link to={lp("/band")} className={`${linkClass} ${activePage === "band" ? activeLinkClass : inactiveLinkClass}`}>{t("nav.band")}</Link>}
           {displayLinks && <Link to={lp("/merch")} className={`${linkClass} ${activePage === "merch" ? activeLinkClass : inactiveLinkClass}`}>{t("nav.merch")}</Link>}
+          {displayLinks && <Link to={lp("/epk")} className={`${linkClass} ${activePage === "epk" ? activeLinkClass : inactiveLinkClass}`}>{t("nav.epk")}</Link>}
           {displayLinks && activePage === "home" && (
             <>
               <NavLink onClick={() => handleScroll(musicRef.current)} title={t("nav.music")} active={activeSection === "music"}>{t("nav.music")}</NavLink>
@@ -150,6 +151,9 @@ const Navbar = ({ displayLinks, activePage, activeSection, musicRef, showsRef, c
           </Link>
           <Link to={lp("/merch")} onClick={closeMenu} className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors ${activePage === "merch" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>
             {t("nav.merch")}
+          </Link>
+          <Link to={lp("/epk")} onClick={closeMenu} className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors ${activePage === "epk" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>
+            {t("nav.epk")}
           </Link>
           {activePage === "home" && (
             <>
