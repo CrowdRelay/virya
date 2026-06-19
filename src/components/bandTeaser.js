@@ -41,7 +41,7 @@ const BandTeaser = memo(() => {
             {t("band.noPain")}
           </p>
           <Link
-            to={lp("/band")}
+            to={lp("/about")}
             className="inline-flex items-center gap-2 mt-6 text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
           >
             {t("band.readStory")}
