@@ -14,11 +14,11 @@ export const useMerchImages = () => {
         nodes {
           relativePath
           childImageSharp {
-            # No width cap: keep the full-res source so the enlarge lightbox
-            # stays sharp. quality 80 avoids artifacts when a variant renders
-            # near 1:1, and sizes lets the grid pick the ~600w variant on
-            # non-retina screens instead of downloading the full 1200w.
+            # Cap at 400 so CONSTRAINED emits an ~800w top variant. Without it
+            # the srcSet jumps 600 -> 1200 and the 362px grid display (@2x ~720)
+            # is forced to the full 1200x1200, which regressed merch LCP.
             gatsbyImageData(
+              width: 400
               placeholder: BLURRED
               formats: [AUTO, WEBP, AVIF]
               quality: 80
