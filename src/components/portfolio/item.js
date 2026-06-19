@@ -52,7 +52,7 @@ const Overlay = memo(({ title, text, link, watch, buy, merch }) => {
 })
 
 const PortfolioItem = memo(({ item, pictures }) => {
-  const { lang } = useI18n()
+  const { lang, lp } = useI18n()
   const matchingPicture = useMemo(
     () => pictures.allFile.nodes.find(node => node.relativePath === item.src),
     [pictures, item]
@@ -63,14 +63,20 @@ const PortfolioItem = memo(({ item, pictures }) => {
     <div className="relative group block overflow-hidden">
       <Overlay {...item} text={text} />
       {matchingPicture && (
-        <GatsbyImage
-          image={getImage(matchingPicture)}
-          className="block w-full"
-          alt={item.alt}
-          loading="lazy"
-          title={item.title}
-          sizes="(min-width: 1024px) 33vw, 100vw"
-        />
+        <Link
+          to={lp(`/music/${slugify(item.title)}`)}
+          aria-label={item.title}
+          className="block"
+        >
+          <GatsbyImage
+            image={getImage(matchingPicture)}
+            className="block w-full"
+            alt={item.alt}
+            loading="lazy"
+            title={item.title}
+            sizes="(min-width: 1024px) 33vw, 100vw"
+          />
+        </Link>
       )}
     </div>
   )
