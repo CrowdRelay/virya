@@ -46,7 +46,7 @@ const Release = ({ pageContext }) => {
               width: 600
               placeholder: NONE
               formats: [AUTO, WEBP, AVIF]
-              quality: 85
+              quality: 100
             )
           }
         }

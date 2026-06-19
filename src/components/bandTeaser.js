@@ -28,7 +28,7 @@ const BandTeaser = memo(() => {
             placeholder="blurred"
             loading="lazy"
             width={600}
-            quality={80}
+            quality={100}
             sizes="(min-width: 1024px) 400px, 100vw"
             className="w-full h-full"
           />
