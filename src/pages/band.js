@@ -101,7 +101,7 @@ const Main = () => {
                             imgClassName="rounded-sm"
                             placeholder="blurred"
                             loading="eager"
-                            fetchPriority="high"
+                            fetchpriority="high"
                             width={768}
                             sizes="(min-width: 768px) 768px, 100vw"
                         />

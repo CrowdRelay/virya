@@ -1,7 +1,7 @@
 "use client"
 import React, { memo, useState, useEffect, useRef, useCallback } from "react"
 import { GatsbyImage } from "gatsby-plugin-image"
-import { useCart } from "./cartContext"
+import { useCartActions } from "./cartContext"
 import { useI18n } from "../../i18n/I18nContext"
 import {
   discountedPrice,
@@ -37,7 +37,7 @@ const EagerPicture = ({ image, alt, title, className }) => {
         width={image.width}
         height={image.height}
         loading="eager"
-        fetchPriority="high"
+        fetchpriority="high"
         decoding="async"
         className={className}
         style={
@@ -55,7 +55,7 @@ const EagerPicture = ({ image, alt, title, className }) => {
 }
 
 const ProductCard = memo(({ product, images, index = 0 }) => {
-  const { add } = useCart()
+  const { add } = useCartActions()
   const { t, lang } = useI18n()
   const [size, setSize] = useState(null)
   const [hovered, setHovered] = useState(false)

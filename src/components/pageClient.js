@@ -41,46 +41,45 @@ const PageClient = () => {
 
   useEffect(() => {
     const sections = [
-      { ref: musicRef, id: "music" },
-      { ref: showsRef, id: "shows" },
-      { ref: contactRef, id: "contact" },
+      [musicRef, "music"],
+      [showsRef, "shows"],
+      [contactRef, "contact"],
     ]
+    // IntersectionObserver instead of a scroll handler: no per-frame
+    // getBoundingClientRect (forced reflow). A section is active while it
+    // occupies the band from 150px below the top down to ~45% of the viewport;
+    // when several overlap, the topmost in document order wins.
+    const idByEl = new Map()
+    const visible = new Set()
 
-    const onScroll = () => {
-      const scrollPosition = window.scrollY + 150
-      const viewportBottom = window.scrollY + window.innerHeight
-      let activeId = null
-      let minDistance = Infinity
-
-      sections.forEach(({ ref, id }) => {
-        if (!ref.current) return
-        const rect = ref.current.getBoundingClientRect()
-        const absoluteTop = rect.top + window.scrollY
-        const absoluteBottom = rect.bottom + window.scrollY
-
-        // Skip if section is completely above viewport (scrolled past)
-        if (absoluteBottom < scrollPosition - 200) return
-
-        // Only consider if section is within reasonable distance (300px)
-        const distance = Math.abs(absoluteTop - scrollPosition)
-        if (distance > 300) return
-
-        if (distance < minDistance) {
-          minDistance = distance
-          activeId = id
+    const io = new IntersectionObserver(
+      entries => {
+        entries.forEach(e => {
+          const id = idByEl.get(e.target)
+          if (!id) return
+          if (e.isIntersecting) visible.add(id)
+          else visible.delete(id)
+        })
+        let activeId = null
+        for (const [, id] of sections) {
+          if (visible.has(id)) {
+            activeId = id
+            break
+          }
         }
-      })
+        setActiveSection(activeId)
+      },
+      { rootMargin: "-150px 0px -55% 0px", threshold: 0 }
+    )
 
-      setActiveSection(activeId)
-    }
+    sections.forEach(([ref, id]) => {
+      if (ref.current) {
+        idByEl.set(ref.current, id)
+        io.observe(ref.current)
+      }
+    })
 
-    const timeoutId = setTimeout(onScroll, 100)
-    window.addEventListener("scroll", onScroll, { passive: true })
-
-    return () => {
-      clearTimeout(timeoutId)
-      window.removeEventListener("scroll", onScroll)
-    }
+    return () => io.disconnect()
   }, [])
 
     return (

@@ -98,7 +98,7 @@ export const Head = ({ pageContext, data }) => {
           type="image/avif"
           imageSrcSet={avif.srcSet}
           imageSizes={avif.sizes}
-          fetchPriority="high"
+          fetchpriority="high"
         />
       )}
       <link rel="canonical" href={canonicalUrl} />

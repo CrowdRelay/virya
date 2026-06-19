@@ -98,7 +98,7 @@ const Release = ({ pageContext }) => {
                   className="block w-full rounded-sm"
                   imgClassName="rounded-sm"
                   loading="eager"
-                  fetchPriority="high"
+                  fetchpriority="high"
                   sizes="(min-width: 1024px) 480px, 100vw"
                 />
               )}
