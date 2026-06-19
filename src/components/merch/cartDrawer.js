@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useCallback, useRef } from "react"
+import React, { useState, useCallback, useRef, useEffect } from "react"
 import { Link } from "gatsby"
 import { GatsbyImage } from "gatsby-plugin-image"
 import { useCart, lineKey } from "./cartContext"
@@ -43,6 +43,55 @@ const CartDrawer = () => {
   const [isDragging, setIsDragging] = useState(false)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
+
+  // While the cart is open:
+  //  1. Lock body scroll so the page behind can't scroll (no merch items
+  //     leaking below the drawer) and, on Brave mobile, the hide-on-scroll
+  //     bottom bar can't toggle.
+  //  2. Pin the drawer height to the real visible viewport via the
+  //     visualViewport API, written to a --cart-h CSS var. This always reflects
+  //     the actual visible area regardless of how/why the browser chrome
+  //     changes, so the drawer never ends up too short or hidden behind a bar.
+  //     100dvh stays as the CSS fallback for browsers without visualViewport.
+  useEffect(() => {
+    if (!open) return
+    const { body } = document
+    const root = document.documentElement
+    const vv = window.visualViewport
+    const scrollY = window.scrollY
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+    }
+    body.style.position = "fixed"
+    body.style.top = `-${scrollY}px`
+    body.style.left = "0"
+    body.style.right = "0"
+    body.style.width = "100%"
+
+    const setHeight = () => {
+      const h = vv ? vv.height : window.innerHeight
+      root.style.setProperty("--cart-h", `${h}px`)
+    }
+    setHeight()
+    vv?.addEventListener("resize", setHeight)
+    window.addEventListener("resize", setHeight)
+
+    return () => {
+      body.style.position = prev.position
+      body.style.top = prev.top
+      body.style.left = prev.left
+      body.style.right = prev.right
+      body.style.width = prev.width
+      window.scrollTo(0, scrollY)
+      vv?.removeEventListener("resize", setHeight)
+      window.removeEventListener("resize", setHeight)
+      root.style.removeProperty("--cart-h")
+    }
+  }, [open])
 
   const handleTouchStart = useCallback(e => {
     touchStartX.current = e.touches[0].clientX
@@ -137,7 +186,7 @@ const CartDrawer = () => {
       />
 
       <aside
-        className={`fixed top-0 right-0 z-40 h-[100dvh] w-full max-w-md bg-zinc-950 border-l border-zinc-800 flex flex-col ${isDragging ? "" : "transition-transform duration-300"} ${
+        className={`fixed top-0 right-0 z-40 h-[var(--cart-h,100dvh)] w-full max-w-md bg-zinc-950 border-l border-zinc-800 flex flex-col ${isDragging ? "" : "transition-transform duration-300"} ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         style={dragX > 0 ? { transform: `translateX(${dragX}px)` } : undefined}
