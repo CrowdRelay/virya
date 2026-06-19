@@ -15,6 +15,45 @@ import {
   SIZE_CHART,
 } from "../../data/products"
 
+// The first card is the LCP element. GatsbyImage only reveals the sharp image
+// after its JS opacity-fade runs, which on this JS-heavy page lands at
+// interactive-time and pins LCP to ~TTI. Render the LCP image as a native
+// <picture> from the same gatsby data so it paints on HTML parse (no JS gate),
+// with the BLURRED placeholder as a CSS background for instant blur-up.
+const EagerPicture = ({ image, alt, title, className }) => {
+  const { sources = [], fallback } = image.images
+  const blur = image.placeholder?.fallback
+  return (
+    <picture>
+      {sources.map((s, i) => (
+        <source key={i} srcSet={s.srcSet} type={s.type} sizes={s.sizes} />
+      ))}
+      <img
+        src={fallback.src}
+        srcSet={fallback.srcSet}
+        sizes={fallback.sizes}
+        alt={alt}
+        title={title}
+        width={image.width}
+        height={image.height}
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+        className={className}
+        style={
+          blur
+            ? {
+                backgroundImage: `url(${blur})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : undefined
+        }
+      />
+    </picture>
+  )
+}
+
 const ProductCard = memo(({ product, images, index = 0 }) => {
   const { add } = useCart()
   const { t, lang } = useI18n()
@@ -180,18 +219,27 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {front && (
-          <GatsbyImage
-            image={front}
-            alt={product.name}
-            title={product.name}
-            loading={index === 0 ? "eager" : "lazy"}
-            fetchPriority={index === 0 ? "high" : "auto"}
-            className={`block w-full transition-opacity duration-500 ${
-              showBack ? "opacity-0" : "opacity-100"
-            } ${available ? "" : "grayscale"}`}
-          />
-        )}
+        {front &&
+          (index === 0 ? (
+            <EagerPicture
+              image={front}
+              alt={product.name}
+              title={product.name}
+              className={`block w-full h-auto transition-opacity duration-500 ${
+                showBack ? "opacity-0" : "opacity-100"
+              } ${available ? "" : "grayscale"}`}
+            />
+          ) : (
+            <GatsbyImage
+              image={front}
+              alt={product.name}
+              title={product.name}
+              loading="lazy"
+              className={`block w-full transition-opacity duration-500 ${
+                showBack ? "opacity-0" : "opacity-100"
+              } ${available ? "" : "grayscale"}`}
+            />
+          ))}
         {back && (
           <GatsbyImage
             image={back}

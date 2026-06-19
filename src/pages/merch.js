@@ -59,12 +59,12 @@ export const query = graphql`
     ) {
       childImageSharp {
         gatsbyImageData(
-          width: 360
-          placeholder: NONE
+          width: 400
+          placeholder: BLURRED
           formats: [AUTO, WEBP, AVIF]
-          quality: 65
-          outputPixelDensities: [1, 2, 3]
-          sizes: "(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+          quality: 70
+          outputPixelDensities: [1, 1.5, 2, 3]
+          sizes: "(min-width: 1024px) 33vw, 48vw"
         )
       }
     }
