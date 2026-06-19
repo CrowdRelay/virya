@@ -445,7 +445,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
             type="button"
             onClick={() => setZoomed(false)}
             aria-label={t("product.closeZoom")}
-            className="absolute top-4 right-4 z-10 text-zinc-300 hover:text-amber-400 transition-colors text-3xl leading-none"
+            className="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center text-zinc-300 hover:text-amber-400 transition-colors text-3xl leading-none lg:border lg:border-zinc-600/50 lg:rounded"
           >
             &times;
           </button>
@@ -459,7 +459,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
                   setSlide(s => Math.max(0, s - 1))
                 }}
                 aria-label={t("product.prevImage")}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center text-zinc-200 hover:text-amber-400 bg-black/40 hover:bg-black/60 transition-colors text-2xl leading-none"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 lg:h-28 lg:border lg:border-zinc-600/50 lg:rounded flex items-center justify-center text-zinc-200 hover:text-amber-400 bg-black/40 hover:bg-black/60 transition-colors text-2xl leading-none"
               >
                 &#8249;
               </button>
@@ -470,7 +470,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
                   setSlide(s => Math.min(zoomImages.length - 1, s + 1))
                 }}
                 aria-label={t("product.nextImage")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center text-zinc-200 hover:text-amber-400 bg-black/40 hover:bg-black/60 transition-colors text-2xl leading-none"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 lg:h-28 lg:border lg:border-zinc-600/50 lg:rounded flex items-center justify-center text-zinc-200 hover:text-amber-400 bg-black/40 hover:bg-black/60 transition-colors text-2xl leading-none"
               >
                 &#8250;
               </button>
