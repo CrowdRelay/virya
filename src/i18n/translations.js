@@ -53,6 +53,27 @@ export const translations = {
         bass: "Bass",
       },
     },
+    epk: {
+      heading: "Press Kit",
+      sub: "Electronic Press Kit",
+      bioHeading: "Biography",
+      bio1:
+        "Virya embodies not only positive energy and determination but also serves as the band's manifesto — a conviction that every concert is more than just a performance; it's a true catharsis, a release of raw energy and emotion. Their music reflects the struggles of everyday life while channeling an unbreakable fighting spirit and faith in each person's power to shape their own destiny. No pain, no gain.",
+      bio2:
+        "The band released its debut EP, From The Ashes, in 2024, followed by the full-length album Echoes Of The Modern Mind on May 2, 2025. Virya have been finalists in numerous competitions — among them the 2025 Bloodstock and Mystic Festival qualifiers in Poland — and placed second at Góra Rocka 2026.",
+      ffoLabel: "For fans of",
+      ffo: "Architects, Tesseract, I Prevail, Erra, Thornhill, Slipknot",
+      styleLabel: "Style",
+      style: "Modern Metal with out-of-genre influences",
+      lineup: "Lineup",
+      riderHeading: "Technical Rider",
+      riderText:
+        "Full stage plot, backline and input list for booking and production.",
+      riderDownload: "Download Technical Rider (PDF)",
+      contact: "Contact",
+      links: "Links",
+      releases: "Releases",
+    },
     showcase: {
       heading: "Showcase",
       sub: "Virya in 2026",
@@ -382,6 +403,27 @@ export const translations = {
         drums: "Perkusja, chórki",
         bass: "Bas",
       },
+    },
+    epk: {
+      heading: "Materiały dla prasy",
+      sub: "Electronic Press Kit",
+      bioHeading: "Biografia",
+      bio1:
+        "Virya uosabia nie tylko pozytywną energię i determinację, ale stanowi także manifest zespołu — przekonanie, że każdy koncert to coś więcej niż zwykły występ; to prawdziwa katharsis, wyzwolenie surowej energii i emocji. Ich muzyka odzwierciedla zmagania codziennego życia, jednocześnie niosąc niezłomnego ducha walki i wiarę w moc każdego człowieka do kształtowania własnego losu. No pain, no gain.",
+      bio2:
+        "Zespół wydał swój debiutancki mini-album From The Ashes w 2024 roku, a pełnoprawny album Echoes Of The Modern Mind ukazał się 2 maja 2025 roku. Virya była finalistką wielu konkursów, m.in. eliminacji Bloodstock i Mystic Festival 2025 w Polsce, oraz zajęła II miejsce na przeglądzie Góra Rocka 2026.",
+      ffoLabel: "Dla fanów",
+      ffo: "Architects, Tesseract, I Prevail, Erra, Thornhill, Slipknot",
+      styleLabel: "Styl",
+      style: "Modern Metal z elementami spoza gatunku",
+      lineup: "Skład",
+      riderHeading: "Rider techniczny",
+      riderText:
+        "Pełny plan sceny, backline i lista wejść dla bookingu i produkcji.",
+      riderDownload: "Pobierz rider techniczny (PDF)",
+      contact: "Kontakt",
+      links: "Linki",
+      releases: "Wydawnictwa",
     },
     showcase: {
       heading: "Na żywo",
