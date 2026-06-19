@@ -400,7 +400,7 @@ export const translations = {
       storyHeading: "Historia zespołu",
       lineup: "Skład",
       links: "Linki",
-      pressPack: "Materiały dla prasy",
+      pressPack: "Dla prasy",
       story1:
         "Virya narodziła się w 2023 roku z buntu wobec utartych ścieżek. Założona przez gitarzystę Wojciecha Batora i perkusistę Jakuba Dąbrowskiego, postawiła sobie za cel burzenie gatunkowych granic — łącząc furię nowoczesnego metalcore'u z nieoczekiwanymi wpływami sięgającymi daleko poza metal. Techniczna precyzja, surowe emocje i nieustępliwa energia definiują to brzmienie. Można pomyśleć o Architects, Tesseract czy Twelve Foot Ninja, ale Virya wytycza własną drogę.",
       story2:
@@ -415,8 +415,8 @@ export const translations = {
       },
     },
     epk: {
-      heading: "Materiały dla prasy",
-      sub: "Electronic Press Kit",
+      heading: "Dla prasy",
+      sub: "Pakiet prasowy",
       bioHeading: "Biografia",
       bio1:
         "Virya uosabia nie tylko pozytywną energię i determinację, ale stanowi także manifest zespołu — przekonanie, że każdy koncert to coś więcej niż zwykły występ; to prawdziwa katharsis, wyzwolenie surowej energii i emocji. Ich muzyka odzwierciedla zmagania codziennego życia, jednocześnie niosąc niezłomnego ducha walki i wiarę w moc każdego człowieka do kształtowania własnego losu. No pain, no gain.",
@@ -474,7 +474,7 @@ export const translations = {
       heading: "Napisz wiadomość",
       sub: "Czytamy każdą wiadomość",
       booking: "Booking → virya.crew@gmail.com",
-      epk: "Materiały dla prasy (EPK) →",
+      epk: "Dla prasy (EPK) →",
       name: "Imię",
       email: "E-mail",
       message: "Wiadomość",
