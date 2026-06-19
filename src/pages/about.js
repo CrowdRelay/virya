@@ -79,7 +79,7 @@ const Main = () => {
     return (
         <div className="bg-zinc-950 min-h-screen">
             <header className="header relative lg:overflow-hidden">
-                <Navbar displayLinks={true} activePage="band" />
+                <Navbar displayLinks={true} activePage="about" />
             </header>
             <ScrollToTop smooth />
             <main id="main-content" className="pt-20 lg:container lg:mx-auto">
