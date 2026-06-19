@@ -108,7 +108,7 @@ export const PRODUCTS = [
     type: "shirt",
     price: 60,
     front: "merch/virya shirt 1.webp",
-    back: "merch/virya shirt front.webp",
+    back: "merch/virya shirt 2.webp",
     sizes: SIZES,
     inStockSizes: ["S", "L", "XXL"],
     lowStockSizes: ["XXL"],
