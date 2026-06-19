@@ -128,6 +128,14 @@ export const translations = {
       terms: "Terms",
       returns: "Returns",
       privacy: "Privacy",
+      press: "Press",
+    },
+    release: {
+      albumType: "Album",
+      epType: "EP",
+      singleType: "Single",
+      listenHeading: "Listen & watch",
+      tracksLabel: "tracks",
     },
     merch: {
       title: "Merch",
@@ -478,6 +486,14 @@ export const translations = {
       terms: "Regulamin",
       returns: "Zwroty",
       privacy: "Prywatność",
+      press: "Prasa",
+    },
+    release: {
+      albumType: "Album",
+      epType: "EP-ka",
+      singleType: "Singiel",
+      listenHeading: "Posłuchaj i obejrzyj",
+      tracksLabel: "utworów",
     },
     merch: {
       title: "Sklep",

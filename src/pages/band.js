@@ -8,18 +8,21 @@ import { ScrollToTop } from "../components/scrollToTop/scroll"
 import { useI18n } from "../i18n/I18nContext"
 import { getSeoTags } from "../utils/seo"
 
-const SocialLink = ({ href, title, ariaLabel }) => (
-  <a
-    href={href}
-    title={title}
-    rel="noreferrer"
-    target="_blank"
-    className="flex items-center gap-3 py-3 border-b border-zinc-800/50 text-zinc-300 hover:text-amber-400 transition-colors duration-200 group"
-  >
-    <span aria-hidden="true" className="text-zinc-400 group-hover:text-amber-400 transition-colors text-xs">&rarr;</span>
-    <span className="text-sm font-semibold uppercase tracking-widest">{title}</span>
-  </a>
-);
+const SocialLink = ({ href, title, internal }) => {
+  const className =
+    "flex items-center gap-3 py-3 border-b border-zinc-800/50 text-zinc-300 hover:text-amber-400 transition-colors duration-200 group"
+  const inner = (
+    <>
+      <span aria-hidden="true" className="text-zinc-400 group-hover:text-amber-400 transition-colors text-xs">&rarr;</span>
+      <span className="text-sm font-semibold uppercase tracking-widest">{title}</span>
+    </>
+  )
+  return internal ? (
+    <Link to={href} title={title} className={className}>{inner}</Link>
+  ) : (
+    <a href={href} title={title} rel="noreferrer" target="_blank" className={className}>{inner}</a>
+  )
+};
 
 const BandSection = ({ children }) => (
   <section className='lg:text-base text-sm text-zinc-300 leading-relaxed text-justify'>
@@ -66,9 +69,10 @@ const Main = () => {
         ariaLabel: "twitter"
       },
       {
-        href: "https://drive.google.com/drive/folders/1M4pgB9goigGUm9tudcQIzORTgILgSABH?usp=drive_link",
+        href: lp("/epk"),
         title: t("band.pressPack"),
-        ariaLabel: "press-pack"
+        ariaLabel: "press-pack",
+        internal: true
       }
     ];
 
@@ -140,7 +144,7 @@ const Main = () => {
                                     key={index}
                                     href={link.href}
                                     title={link.title}
-                                    ariaLabel={link.ariaLabel}
+                                    internal={link.internal}
                                 />
                             ))}
                         </div>
