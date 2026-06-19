@@ -57,18 +57,31 @@ const metaTags = {
 }
 
 const musicGroupSchema = JSON.stringify({
-    "@context": "https://schema.org",
+  "@context": "https://schema.org",
   "@graph": [
     {
-    "@type": "MusicGroup",
+      "@type": "MusicGroup",
       "@id": BAND_ID,
       name: "Virya",
-      genre: ["Metalcore", "Metal", "Modern Metal"],
+      genre: [
+        "Metalcore",
+        "Alternative Metal",
+        "Progressive Metal",
+        "Modern Metal",
+      ],
       description: "Modern metalcore band from Poland",
       url: "https://www.virya.music",
       image: "https://www.virya.music/virya.webp",
       foundingDate: "2023",
-      foundingLocation: { "@type": "Place", name: "Poland" },
+      foundingLocation: { "@type": "Place", name: "Wrocław, Poland" },
+      logo: {
+        "@type": "ImageObject",
+        url: "https://www.virya.music/virya.webp",
+      },
+      areaServed: {
+        "@type": "Country",
+        name: "Poland",
+      },
       member: [
         {
           "@type": "OrganizationRole",
@@ -101,6 +114,7 @@ const musicGroupSchema = JSON.stringify({
         "https://www.youtube.com/@ViryaOfficial",
         "https://soundcloud.com/viryaofficial",
         "https://x.com/viryaofficial",
+        "https://music.apple.com/us/artist/virya/1770472152",
       ],
       album: albumRefs,
       track: trackRefs,
