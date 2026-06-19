@@ -92,7 +92,7 @@ const Storefront = () => {
           )}
 
           {/* Product grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {PRODUCTS.map((product, index) => (
               <ProductCard key={product.id} product={product} images={images} index={index} />
             ))}
@@ -110,7 +110,7 @@ const Storefront = () => {
               <p className="uppercase tracking-[0.3em] text-amber-400 text-xs font-bold mb-6">
                 {t("merch.bundlesSub")}
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 {BUNDLES.map((product, index) => (
                   <ProductCard
                     key={product.id}

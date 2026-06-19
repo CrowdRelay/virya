@@ -14,17 +14,18 @@ export const useMerchImages = () => {
         nodes {
           relativePath
           childImageSharp {
-            # 360px display with explicit 1x/2x/3x rungs -> 360/720/1080. Each
-            # device pulls only what its DPR needs: 2x screens get the light
-            # 720w (fast LCP), 3x phones get the sharp 1080w. Avoids the old
-            # 800w cap that upscaled (blurry) on 3x yet was too heavy at 2x.
+            # Cards: 2-col mobile (~48vw) / 3-col desktop (~33vw). Rungs
+            # 400/600/800/1200 let each DPR pull only what it needs: a 3x
+            # phone on the small mobile card grabs ~600w (light -> fast LCP)
+            # yet renders ~3.4x = razor sharp; desktop 2x gets 800w. BLURRED
+            # gives an instant blur-up while the sharp image streams in.
             gatsbyImageData(
-              width: 360
-              placeholder: NONE
+              width: 400
+              placeholder: BLURRED
               formats: [AUTO, WEBP, AVIF]
-              quality: 65
-              outputPixelDensities: [1, 2, 3]
-              sizes: "(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+              quality: 70
+              outputPixelDensities: [1, 1.5, 2, 3]
+              sizes: "(min-width: 1024px) 33vw, 48vw"
             )
           }
         }
