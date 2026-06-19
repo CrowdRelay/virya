@@ -137,7 +137,7 @@ const CartDrawer = () => {
       />
 
       <aside
-        className={`fixed top-0 right-0 z-40 h-full w-full max-w-md bg-zinc-950 border-l border-zinc-800 flex flex-col ${isDragging ? "" : "transition-transform duration-300"} ${
+        className={`fixed top-0 right-0 z-40 h-[100dvh] w-full max-w-md bg-zinc-950 border-l border-zinc-800 flex flex-col ${isDragging ? "" : "transition-transform duration-300"} ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         style={dragX > 0 ? { transform: `translateX(${dragX}px)` } : undefined}
