@@ -25,14 +25,19 @@ export const ScrollToTop = memo(
   }) => {
     const [visible, setVisible] = useState(false)
 
-    const onScroll = useCallback(() => {
-      setVisible(document.documentElement.scrollTop > top)
-    }, [top])
-
     useEffect(() => {
-      document.addEventListener("scroll", onScroll)
+      let ticking = false
+      const onScroll = () => {
+        if (ticking) return
+        ticking = true
+        requestAnimationFrame(() => {
+          setVisible(document.documentElement.scrollTop > top)
+          ticking = false
+        })
+      }
+      document.addEventListener("scroll", onScroll, { passive: true })
       return () => document.removeEventListener("scroll", onScroll)
-    }, [onScroll])
+    }, [top])
 
     const handleClick = useCallback(() => toTop(smooth), [smooth])
 

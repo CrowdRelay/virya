@@ -15,7 +15,11 @@ import {
 } from "../../data/products"
 
 const STORAGE_KEY = "virya-cart-v1"
-const CartContext = createContext(null)
+// Two contexts: actions never change identity (stable useCallbacks), so
+// components that only dispatch (e.g. ProductCard's add) never re-render when
+// cart state changes. State is the volatile half, consumed by the drawer/FAB.
+const CartActionsContext = createContext(null)
+const CartStateContext = createContext(null)
 
 const lineKey = (id, size) => (size ? `${id}::${size}` : id)
 
@@ -107,7 +111,12 @@ export const CartProvider = ({ children }) => {
   const shipping = needsShipping ? SHIPPING_PLN : 0
   const total = subtotal + shipping
 
-  const value = useMemo(
+  const actions = useMemo(
+    () => ({ setOpen, add, setQty, remove, clear }),
+    [setOpen, add, setQty, remove, clear]
+  )
+
+  const state = useMemo(
     () => ({
       lines: detailed,
       count,
@@ -116,34 +125,35 @@ export const CartProvider = ({ children }) => {
       needsShipping,
       total,
       open,
-      setOpen,
-      add,
-      setQty,
-      remove,
-      clear,
     }),
-    [
-      detailed,
-      count,
-      subtotal,
-      shipping,
-      needsShipping,
-      total,
-      open,
-      add,
-      setQty,
-      remove,
-      clear,
-    ]
+    [detailed, count, subtotal, shipping, needsShipping, total, open]
   )
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
+  return (
+    <CartActionsContext.Provider value={actions}>
+      <CartStateContext.Provider value={state}>
+        {children}
+      </CartStateContext.Provider>
+    </CartActionsContext.Provider>
+  )
 }
 
-export const useCart = () => {
-  const ctx = useContext(CartContext)
-  if (!ctx) throw new Error("useCart must be used within a CartProvider")
+// Stable dispatch handles — subscribing here never triggers a re-render on
+// cart state changes.
+export const useCartActions = () => {
+  const ctx = useContext(CartActionsContext)
+  if (!ctx) throw new Error("useCartActions must be used within a CartProvider")
   return ctx
+}
+
+// Full cart: state + actions. Re-renders on state changes — use only where the
+// rendered output depends on cart state (drawer, FAB count).
+export const useCart = () => {
+  const state = useContext(CartStateContext)
+  const actions = useContext(CartActionsContext)
+  if (!state || !actions)
+    throw new Error("useCart must be used within a CartProvider")
+  return { ...state, ...actions }
 }
 
 export { lineKey }
