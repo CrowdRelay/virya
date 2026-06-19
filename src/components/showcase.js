@@ -3,7 +3,7 @@ import React, { memo, useState } from "react"
 import { StaticImage } from "gatsby-plugin-image"
 import { useI18n } from "../i18n/I18nContext"
 
-const POSTER = "/showcase-poster.jpg"
+const POSTER = "/showcase-poster.webp"
 const VIDEO = "/showcase-web.mp4"
 
 const Showcase = memo(() => {
@@ -43,7 +43,7 @@ const Showcase = memo(() => {
               className="group block w-full h-full"
             >
               <StaticImage
-                src="../images/showcase-poster.jpg"
+                src="../images/showcase-poster.webp"
                 alt={t("showcase.sub")}
                 width={672}
                 quality={85}
