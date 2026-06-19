@@ -62,7 +62,7 @@ export const query = graphql`
           width: 400
           placeholder: BLURRED
           formats: [AUTO, WEBP, AVIF]
-          quality: 70
+          quality: 100
           outputPixelDensities: [1, 1.5, 2, 3]
           sizes: "(min-width: 1024px) 33vw, 48vw"
         )

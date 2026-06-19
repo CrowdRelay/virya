@@ -46,7 +46,7 @@ const Showcase = memo(() => {
                 src="../images/showcase-poster.webp"
                 alt={t("showcase.sub")}
                 width={672}
-                quality={85}
+                quality={100}
                 placeholder="blurred"
                 loading="lazy"
                 formats={["auto", "webp", "avif"]}
