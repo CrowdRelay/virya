@@ -393,7 +393,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-3 mt-auto">
+        <div className="flex flex-col gap-3 mt-auto sm:flex-row sm:items-center sm:justify-between">
           <span className="flex items-baseline gap-2">
             {onSale && (
               <span className="text-sm font-semibold text-zinc-400 line-through">
@@ -414,7 +414,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
           <button
             onClick={handleAdd}
             disabled={!available}
-            className="text-[11px] font-bold uppercase tracking-widest px-4 py-2 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-amber-400 transition-all duration-200"
+            className="w-full sm:w-auto text-center whitespace-nowrap text-[11px] font-bold uppercase tracking-widest px-4 py-2.5 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-amber-400 transition-all duration-200"
           >
             {available ? t("product.addToCart") : t("product.soldOut")}
           </button>
