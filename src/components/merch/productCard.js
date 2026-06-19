@@ -326,7 +326,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
               <button
                 type="button"
                 onClick={() => setGuideOpen(true)}
-                className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors"
+                className="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors"
               >
                 {t("product.sizeGuide")}
               </button>
@@ -373,6 +373,13 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
                 )
               })}
             </div>
+            <button
+              type="button"
+              onClick={() => setGuideOpen(true)}
+              className="sm:hidden mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors"
+            >
+              {t("product.sizeGuide")}
+            </button>
             <div role="status" aria-live="polite">
               {error && (
                 <p className="text-[10px] uppercase tracking-widest text-red-400 mt-2">
