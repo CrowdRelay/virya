@@ -35,7 +35,22 @@ module.exports = {
     `gatsby-plugin-sharp`,
     `gatsby-transformer-sharp`,
     `gatsby-plugin-postcss`,
-    `gatsby-plugin-sitemap`,
+    {
+      resolve: `gatsby-plugin-sitemap`,
+      options: {
+        // Keep 404s and post-checkout transactional pages out of the index.
+        excludes: [
+          `/404`,
+          `/404.html`,
+          `/pl/404`,
+          `/pl/404.html`,
+          `/merch/cancel`,
+          `/merch/success`,
+          `/pl/merch/cancel`,
+          `/pl/merch/success`,
+        ],
+      },
+    },
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
