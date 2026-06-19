@@ -13,6 +13,7 @@ const Footer = () => {
                     <Link to={lp("/legal/terms")} className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">{t("footer.terms")}</Link>
                     <Link to={lp("/legal/returns")} className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">{t("footer.returns")}</Link>
                     <Link to={lp("/legal/privacy")} className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">{t("footer.privacy")}</Link>
+                    <Link to={lp("/epk")} className="text-zinc-400 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest">{t("footer.press")}</Link>
                 </div>
             </div>
             <div className="justify-self-center lg:justify-self-end flex items-center">

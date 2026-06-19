@@ -10,6 +10,12 @@ import releases from "../components/portfolio/items.json"
 
 const RIDER_URL = "/techrider.pdf"
 
+const slugify = s =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+
 const LINEUP = [
   { name: "Wojciech Bator", roleKey: "band.roles.guitar" },
   { name: "Marek Bienias", roleKey: "band.roles.vocals" },
@@ -144,9 +150,12 @@ const Main = () => {
                   key={r.title}
                   className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3 border-b border-zinc-800/50"
                 >
-                  <span className="text-sm font-bold uppercase tracking-wide text-zinc-100 flex-1 min-w-[12rem]">
+                  <Link
+                    to={lp(`/music/${slugify(r.title)}`)}
+                    className="text-sm font-bold uppercase tracking-wide text-zinc-100 hover:text-amber-400 transition-colors flex-1 min-w-[12rem]"
+                  >
                     {r.title}
-                  </span>
+                  </Link>
                   <span className="flex flex-wrap gap-x-4 text-xs uppercase tracking-widest">
                     {r.link && (
                       <a href={r.link} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-amber-400 transition-colors">
