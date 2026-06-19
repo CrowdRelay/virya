@@ -178,6 +178,7 @@ export const BUNDLES = [
     inStockSizes: ["S", "L", "XXL"],
     lowStockSizes: ["XXL"],
     includes: ["Virya Logo Tee", "Virya Tote Bag"],
+    includes_pl: ["Koszulka Virya Logo", "Torba Virya"],
     blurb: "The logo tee and tote together — wear it, carry it, Stay Mad.",
     blurb_pl: "Koszulka z logo i torba razem — ubierz, noś, Stay Mad.",
   },
