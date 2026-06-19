@@ -47,7 +47,7 @@ const ExtLink = ({ href, children }) => (
     href={href}
     rel="noreferrer"
     target="_blank"
-    className="flex items-center gap-3 py-3 border-b border-zinc-800/50 lg:border-b-0 lg:py-0 text-zinc-300 hover:text-amber-400 transition-colors duration-200 group"
+    className="flex items-center gap-3 py-3 border-b border-zinc-800/50 lg:border-b-0 lg:py-0 lg:flex-1 text-zinc-300 hover:text-amber-400 transition-colors duration-200 group"
   >
     <span aria-hidden="true" className="text-zinc-400 group-hover:text-amber-400 transition-colors text-xs">
       &rarr;
