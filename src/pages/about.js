@@ -159,7 +159,7 @@ const Main = () => {
 
 export const Head = ({ pageContext }) => {
     const lang = pageContext?.lang || "en"
-    const { canonicalUrl, hreflangLinks } = getSeoTags("/band/", lang)
+    const { canonicalUrl, hreflangLinks } = getSeoTags("/about/", lang)
     const ogLocale = lang === "pl" ? "pl_PL" : "en_US"
     const title = lang === "pl" ? "Historia zespołu | Virya - Nowoczesny metalcore z Polski" : "Band Story | Virya - Modern metalcore from Poland"
     const description = lang === "pl" 
