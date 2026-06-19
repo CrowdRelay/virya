@@ -47,7 +47,7 @@ const ExtLink = ({ href, children }) => (
     href={href}
     rel="noreferrer"
     target="_blank"
-    className="flex items-center gap-3 py-3 border-b border-zinc-800/50 text-zinc-300 hover:text-amber-400 transition-colors duration-200 group"
+    className="flex items-center gap-3 py-3 border-b border-zinc-800/50 lg:border-b-0 lg:py-0 text-zinc-300 hover:text-amber-400 transition-colors duration-200 group"
   >
     <span aria-hidden="true" className="text-zinc-400 group-hover:text-amber-400 transition-colors text-xs">
       &rarr;
@@ -141,45 +141,45 @@ const Main = () => {
             </div>
           </div>
 
-          {/* Releases */}
-          <div className="mb-16">
-            <SectionHeading>{t("epk.releases")}</SectionHeading>
-            <div className="max-w-2xl">
-              {releases.map(r => (
-                <div
-                  key={r.title}
-                  className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3 border-b border-zinc-800/50"
-                >
-                  <Link
-                    to={lp(`/music/${slugify(r.title)}`)}
-                    className="text-sm font-bold uppercase tracking-wide text-zinc-100 hover:text-amber-400 transition-colors flex-1 min-w-[12rem]"
+          {/* Releases + contact */}
+          <div className="grid gap-12 lg:grid-cols-2 mb-16">
+            {/* Releases */}
+            <div>
+              <SectionHeading>{t("epk.releases")}</SectionHeading>
+              <div className="max-w-2xl">
+                {releases.map(r => (
+                  <div
+                    key={r.title}
+                    className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3 border-b border-zinc-800/50"
                   >
-                    {r.title}
-                  </Link>
-                  <span className="flex flex-wrap gap-x-4 text-xs uppercase tracking-widest">
-                    {r.link && (
-                      <a href={r.link} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-amber-400 transition-colors">
-                        Spotify
-                      </a>
-                    )}
-                    {r.watch && (
-                      <a href={r.watch} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-amber-400 transition-colors">
-                        YouTube
-                      </a>
-                    )}
-                    {r.buy && (
-                      <a href={r.buy} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-amber-400 transition-colors">
-                        Bandcamp
-                      </a>
-                    )}
-                  </span>
-                </div>
-              ))}
+                    <Link
+                      to={lp(`/music/${slugify(r.title)}`)}
+                      className="text-sm font-bold uppercase tracking-wide text-zinc-100 hover:text-amber-400 transition-colors flex-1 min-w-[12rem]"
+                    >
+                      {r.title}
+                    </Link>
+                    <span className="flex flex-wrap gap-x-4 text-xs uppercase tracking-widest">
+                      {r.link && (
+                        <a href={r.link} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-amber-400 transition-colors">
+                          Spotify
+                        </a>
+                      )}
+                      {r.watch && (
+                        <a href={r.watch} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-amber-400 transition-colors">
+                          YouTube
+                        </a>
+                      )}
+                      {r.buy && (
+                        <a href={r.buy} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-amber-400 transition-colors">
+                          Bandcamp
+                        </a>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* Contact + links */}
-          <div className="grid gap-12 lg:grid-cols-2">
+            {/* Contact */}
             <div>
               <SectionHeading>{t("epk.contact")}</SectionHeading>
               <div className="space-y-2">
@@ -191,15 +191,17 @@ const Main = () => {
                 </a>
               </div>
             </div>
-            <div>
-              <SectionHeading>{t("epk.links")}</SectionHeading>
-              <div className="max-w-sm">
-                {SOCIALS.map(s => (
-                  <ExtLink key={s.title} href={s.href}>
-                    {s.title}
-                  </ExtLink>
-                ))}
-              </div>
+          </div>
+
+          {/* Links */}
+          <div>
+            <SectionHeading>{t("epk.links")}</SectionHeading>
+            <div className="flex flex-col lg:flex-row lg:flex-wrap lg:gap-x-8 lg:gap-y-3">
+              {SOCIALS.map(s => (
+                <ExtLink key={s.title} href={s.href}>
+                  {s.title}
+                </ExtLink>
+              ))}
             </div>
           </div>
 
