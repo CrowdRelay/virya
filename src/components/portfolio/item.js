@@ -15,12 +15,20 @@ const Button = memo(({ href, children }) => (
   </a>
 ))
 
+const slugify = s =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+
 const Overlay = memo(({ title, text, link, watch, buy, merch }) => {
   const { t, lp } = useI18n()
   return (
     <div className="z-10 absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 max-lg:opacity-100 max-lg:translate-y-0 transition-all duration-300 ease-out px-4 pt-12 pb-5">
       <h2 className="text-sm lg:text-base font-black uppercase tracking-wide leading-tight mb-1">
-        {title}
+        <Link to={lp(`/music/${slugify(title)}`)} className="hover:text-amber-400 transition-colors">
+          {title}
+        </Link>
       </h2>
       <p className="text-xs text-justify text-zinc-400 leading-snug mb-3 line-clamp-4">
         {text}
