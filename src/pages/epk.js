@@ -216,11 +216,11 @@ export const Head = ({ pageContext }) => {
   const ogLocale = lang === "pl" ? "pl_PL" : "en_US"
   const title =
     lang === "pl"
-      ? "Materiały dla prasy | Virya"
+      ? "Dla prasy | Virya"
       : "Press Kit | Virya - Modern metalcore from Poland"
   const description =
     lang === "pl"
-      ? "Materiały dla prasy Virya — biografia, skład, rider techniczny, wydawnictwa i kontakt bookingowy."
+      ? "Dla prasy Virya — biografia, skład, rider techniczny, wydawnictwa i kontakt bookingowy."
       : "Virya electronic press kit — biography, lineup, technical rider, releases and booking contact."
 
   return (
