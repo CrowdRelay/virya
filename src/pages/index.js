@@ -5,16 +5,46 @@ import { getSeoTags } from "../utils/seo"
 
 const Main = () => <PageClient />
 
-const BAND_ID = "https://www.virya.music/#band"
+const SITE = "https://www.virya.music"
+const BAND_ID = SITE + "/#band"
 
-const releaseSchema = releases.map(r => ({
-  "@type":
-    r.link && r.link.includes("/album/") ? "MusicAlbum" : "MusicRecording",
-  name: r.title,
-  url: r.link,
-  byArtist: { "@id": BAND_ID },
-  sameAs: [r.link, r.buy].filter(Boolean),
-}))
+const slugify = s =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+
+// Spotify /album/ links are full releases (album or EP); /track/ links are
+// standalone singles. Enrich each with a stable @id, cover image, description
+// and cross-platform sameAs so Google can tie the releases to the band entity.
+const releaseSchema = releases.map(r => {
+  const isAlbum = r.link && r.link.includes("/album/")
+  const isEp = /from the ashes/i.test(r.title)
+  return {
+    "@type": isAlbum ? "MusicAlbum" : "MusicRecording",
+    "@id": `${SITE}/#release-${slugify(r.title)}`,
+    name: r.title,
+    url: r.link,
+    image: `${SITE}/covers/${r.src}`,
+    description: r.text,
+    genre: ["Metalcore", "Modern Metal"],
+    byArtist: { "@id": BAND_ID },
+    sameAs: [r.link, r.watch, r.buy].filter(Boolean),
+    ...(isAlbum && {
+      albumReleaseType: isEp
+        ? "https://schema.org/EPRelease"
+        : "https://schema.org/AlbumRelease",
+    }),
+    ...(/echoes of the modern mind/i.test(r.title) && { numTracks: 11 }),
+  }
+})
+
+const albumRefs = releaseSchema
+  .filter(r => r["@type"] === "MusicAlbum")
+  .map(r => ({ "@id": r["@id"] }))
+const trackRefs = releaseSchema
+  .filter(r => r["@type"] === "MusicRecording")
+  .map(r => ({ "@id": r["@id"] }))
 
 const metaTags = {
   title: "Virya | Modern metalcore from Poland",
@@ -70,6 +100,8 @@ const musicGroupSchema = JSON.stringify({
         "https://soundcloud.com/viryaofficial",
         "https://x.com/viryaofficial",
       ],
+      album: albumRefs,
+      track: trackRefs,
     },
     ...releaseSchema,
   ],
