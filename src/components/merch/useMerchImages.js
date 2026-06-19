@@ -19,7 +19,7 @@ export const useMerchImages = () => {
             # is forced to the full 1200x1200, which regressed merch LCP.
             gatsbyImageData(
               width: 400
-              placeholder: BLURRED
+              placeholder: NONE
               formats: [AUTO, WEBP, AVIF]
               quality: 80
               sizes: "(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"

@@ -78,7 +78,7 @@ const Main = () => {
                 <Navbar displayLinks={true} activePage="band" />
             </header>
             <ScrollToTop smooth />
-            <div id="main-content" className="pt-20 lg:container lg:mx-auto">
+            <main id="main-content" className="pt-20 lg:container lg:mx-auto">
                 <div className="px-6 lg:px-12 py-12">
 
                     <div className="flex items-center gap-6 mb-12 border-b border-zinc-800/60 pb-8">
@@ -148,7 +148,7 @@ const Main = () => {
 
                 </div>
                 <Footer />
-            </div>
+            </main>
         </div>
     )
 }
