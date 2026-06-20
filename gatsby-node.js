@@ -49,7 +49,14 @@ const fetchGigs = async () => {
     )
     if (!response.ok) return []
     const data = await response.json()
-    return Array.isArray(data) ? data.map(normalizeEvent).filter(Boolean) : []
+    const gigs = Array.isArray(data)
+      ? data.map(normalizeEvent).filter(Boolean)
+      : []
+    // The events API only fills artist.image_url on one event; the rest come
+    // back null. Reuse the first available band photo for every gig so they all
+    // get a header image instead of a blank placeholder.
+    const fallbackImage = gigs.find(g => g.image)?.image || null
+    return gigs.map(g => ({ ...g, image: g.image || fallbackImage }))
   } catch (e) {
     console.error("[bandsintown] Error fetching gigs:", e.message)
     return []
