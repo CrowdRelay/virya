@@ -79,7 +79,7 @@ const Release = ({ pageContext }) => {
               to={lp("/")}
               className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none"
             >
-              &larr;
+              &#8656;
             </Link>
             <div className="flex items-center gap-4 flex-1">
               <h1 className="text-2xl lg:text-3xl font-black uppercase tracking-widest text-white">
