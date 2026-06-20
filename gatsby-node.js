@@ -14,17 +14,25 @@ const normalizeEvent = event => {
     ? `${event.venue.name ?? ""}, ${event.venue.city ?? ""}`
     : ""
   return {
+    id: event.id != null ? String(event.id) : null,
     title: lineup && venue ? `${lineup} | ${venue}` : lineup || venue || "Show",
-    date: event.datetime,
+    date: event.datetime || event.starts_at,
     event: event.url || null,
-    tickets: event.offers?.find(o => o?.type === "Tickets")?.url ?? null,
+    tickets:
+      event.offers?.find(o => o?.type === "Tickets")?.url ??
+      event.offers?.[0]?.url ??
+      null,
     venueName: event.venue?.name ?? null,
     city: [event.venue?.city, event.venue?.country].filter(Boolean).join(", "),
     lineup: Array.isArray(event.lineup) ? event.lineup : [],
     description: event.description || "",
-    image: event.imageUrl || event.image || null,
+    image: event.artist?.image_url || null,
   }
 }
+
+// Stable, unique per-event slug derived from the BandsInTown event id so the
+// client list and the build-time pages always agree (no index drift → no 404).
+const gigSlug = gig => `gig-${gig.id}`
 
 const fetchGigs = async () => {
   const appId = process.env.BANDSINTOWN_APP_ID
@@ -70,19 +78,21 @@ exports.createPages = async ({ actions }) => {
   })
 
   const gigs = await fetchGigs()
-  gigs.forEach((gig, index) => {
-    const gigSlug = `gig-${new Date(gig.date).getTime()}-${index}`
-    createPage({
-      path: `/shows/${gigSlug}`,
-      component: gigComponent,
-      context: { gig, slug: gigSlug },
+  gigs
+    .filter(gig => gig.id)
+    .forEach(gig => {
+      const slug = gigSlug(gig)
+      createPage({
+        path: `/shows/${slug}`,
+        component: gigComponent,
+        context: { gig, slug },
+      })
+      createPage({
+        path: `/pl/shows/${slug}`,
+        component: gigComponent,
+        context: { gig, slug, lang: "pl" },
+      })
     })
-    createPage({
-      path: `/pl/shows/${gigSlug}`,
-      component: gigComponent,
-      context: { gig, slug: gigSlug, lang: "pl" },
-    })
-  })
 }
 
 exports.onCreatePage = ({ page, actions }) => {

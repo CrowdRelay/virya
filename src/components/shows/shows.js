@@ -13,10 +13,14 @@ const normalizeEvent = event => {
     ? `${event.venue.name ?? ""}, ${event.venue.city ?? ""}`
     : ""
   return {
+    id: event.id != null ? String(event.id) : null,
     title: lineup && venue ? `${lineup} | ${venue}` : lineup || venue || "Show",
-    date: event.datetime,
+    date: event.datetime || event.starts_at,
     event: event.url || null,
-    tickets: event.offers?.find(o => o?.type === "Tickets")?.url ?? null,
+    tickets:
+      event.offers?.find(o => o?.type === "Tickets")?.url ??
+      event.offers?.[0]?.url ??
+      null,
     venueName: event.venue?.name ?? null,
     city: [event.venue?.city, event.venue?.country].filter(Boolean).join(", "),
   }
@@ -156,10 +160,13 @@ const Shows = memo(() => {
               </a>
             </div>
           ) : (
-            shows.map((item, index) => {
-              const gigSlug = `gig-${new Date(item.date).getTime()}-${index}`
-              return <ShowItem key={index} item={item} gigSlug={gigSlug} />
-            })
+            shows.map((item, index) => (
+              <ShowItem
+                key={item.id || index}
+                item={item}
+                gigSlug={item.id ? `gig-${item.id}` : null}
+              />
+            ))
           )}
         </div>
       </div>
