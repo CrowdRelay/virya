@@ -101,6 +101,11 @@ export const translations = {
       event: "Event",
       tickets: "Tickets",
     },
+    gig: {
+      lineup: "Lineup",
+      getTickets: "Get tickets",
+      noImage: "No image available",
+    },
     newsletter: {
       heading: "Join the list",
       sub: "First dibs on tickets, new releases & merch drops",
@@ -460,6 +465,11 @@ export const translations = {
       date: "Data - ",
       event: "Wydarzenie",
       tickets: "Bilety",
+    },
+    gig: {
+      lineup: "Lineup",
+      getTickets: "Kup bilety",
+      noImage: "Brak dostępnego zdjęcia",
     },
     newsletter: {
       heading: "Zapisz się",

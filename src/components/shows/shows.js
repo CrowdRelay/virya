@@ -156,7 +156,10 @@ const Shows = memo(() => {
               </a>
             </div>
           ) : (
-            shows.map((item, index) => <ShowItem key={index} item={item} />)
+            shows.map((item, index) => {
+              const gigSlug = `gig-${new Date(item.date).getTime()}-${index}`
+              return <ShowItem key={index} item={item} gigSlug={gigSlug} />
+            })
           )}
         </div>
       </div>
