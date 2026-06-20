@@ -113,6 +113,7 @@ const musicGroupSchema = JSON.stringify({
         "https://www.bandsintown.com/a/15587796",
         "https://www.youtube.com/@ViryaOfficial",
         "https://soundcloud.com/viryaofficial",
+        "https://musicbrainz.org/artist/dd4ae253-4f61-4115-9e5e-dce4ed601ab5",
         "https://x.com/viryaofficial",
         "https://music.apple.com/us/artist/virya/1770472152",
       ],
