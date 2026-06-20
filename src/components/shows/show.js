@@ -5,7 +5,7 @@ import { useI18n } from '../../i18n/I18nContext'
 
 const Button = memo(({ title, href, onClick }) => (
   <a title={title} href={href} rel="noreferrer" target="_blank" onClick={onClick}>
-    <button className="lg:px-6 lg:py-4 p-2 mx-6 lg:my-8 my-4 btn-outline-primary transition duration-500 ease-in-out focus:outline-none focus:shadow-outline border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal px-4 rounded">
+    <button className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] lg:px-6 lg:py-4 px-4 py-2 mx-3 lg:mx-6 my-3 lg:my-8 btn-outline-primary transition duration-500 ease-in-out focus:outline-none focus:shadow-outline border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal rounded">
       {title}
     </button>
   </a>
