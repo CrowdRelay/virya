@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, memo } from 'react'
+import React, { useState, useEffect, useRef, memo } from 'react'
 import { handleScroll } from './scrollToTop/scroll'
 import { StaticImage } from 'gatsby-plugin-image'
 import { Link } from 'gatsby'
@@ -35,6 +35,7 @@ const Navbar = ({ displayLinks, activePage, activeSection, musicRef, showsRef, c
     transition: 'all 200ms ease-in'
   })
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
 
   useEffect(() => {
     let lastY = window.scrollY
@@ -65,6 +66,22 @@ const Navbar = ({ displayLinks, activePage, activeSection, musicRef, showsRef, c
       if (timeoutId) clearTimeout(timeoutId)
     }
   }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target) && !event.target.closest('button[aria-controls="mobile-menu"]')) {
+        setMenuOpen(false)
+      }
+    }
+
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [menuOpen])
 
   const closeMenu = () => setMenuOpen(false)
   const scrollAndClose = ref => () => {
@@ -145,7 +162,7 @@ const Navbar = ({ displayLinks, activePage, activeSection, musicRef, showsRef, c
       </div>
 
       {displayLinks && menuOpen && (
-        <div id="mobile-menu" className="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
+        <div ref={menuRef} id="mobile-menu" className="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
           <Link to={lp("/about")} onClick={closeMenu} className={`w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors ${activePage === "about" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>
             {t("nav.band")}
           </Link>
