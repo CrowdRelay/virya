@@ -1,5 +1,8 @@
 const path = require("path")
+const { createRemoteFileNode } = require("gatsby-source-filesystem")
 const releases = require("./src/components/portfolio/items.json")
+
+const GIG_NODE_TYPE = "Gig"
 
 const slugify = s =>
   s
@@ -63,9 +66,56 @@ const fetchGigs = async () => {
   }
 }
 
-// A dedicated, indexable page per release. onCreatePage (below) mirrors each
-// one to /pl/music/<slug> with lang context, same as the static pages.
-exports.createPages = async ({ actions }) => {
+// Download each gig's remote header image into a File node at build time so it
+// can be processed by sharp (responsive AVIF/WebP, explicit dimensions, served
+// from our own host). Without this the raw BandsInTown JPEG tanks LCP and CLS.
+exports.sourceNodes = async ({
+  actions,
+  createNodeId,
+  createContentDigest,
+  getCache,
+}) => {
+  const { createNode } = actions
+  const gigs = await fetchGigs()
+
+  for (const gig of gigs.filter(g => g.id)) {
+    const nodeId = createNodeId(`gig-${gig.id}`)
+    let imageFileId = null
+
+    if (gig.image) {
+      try {
+        const fileNode = await createRemoteFileNode({
+          url: gig.image,
+          parentNodeId: nodeId,
+          createNode,
+          createNodeId,
+          getCache,
+        })
+        imageFileId = fileNode?.id ?? null
+      } catch (e) {
+        console.warn(
+          `[bandsintown] could not download image for gig ${gig.id}: ${e.message}`
+        )
+      }
+    }
+
+    createNode({
+      ...gig,
+      id: nodeId,
+      gigId: gig.id,
+      imageUrl: gig.image, // original absolute URL, kept for og:image / schema
+      imageFile___NODE: imageFileId,
+      internal: {
+        type: GIG_NODE_TYPE,
+        contentDigest: createContentDigest(gig),
+      },
+    })
+  }
+}
+
+// A dedicated, indexable page per release and per gig. onCreatePage (below)
+// mirrors each one to /pl/<path> with lang context, same as the static pages.
+exports.createPages = async ({ actions, graphql }) => {
   const { createPage } = actions
   const releaseComponent = path.resolve("src/templates/release.js")
   const gigComponent = path.resolve("src/templates/gig.js")
@@ -84,22 +134,66 @@ exports.createPages = async ({ actions }) => {
     })
   })
 
-  const gigs = await fetchGigs()
-  gigs
-    .filter(gig => gig.id)
-    .forEach(gig => {
-      const slug = gigSlug(gig)
-      createPage({
-        path: `/shows/${slug}`,
-        component: gigComponent,
-        context: { gig, slug },
-      })
-      createPage({
-        path: `/pl/shows/${slug}`,
-        component: gigComponent,
-        context: { gig, slug, lang: "pl" },
-      })
+  const result = await graphql(`
+    query {
+      allGig {
+        nodes {
+          gigId
+          title
+          date
+          event
+          tickets
+          venueName
+          city
+          lineup
+          description
+          imageUrl
+          imageFile {
+            childImageSharp {
+              gatsbyImageData(
+                width: 728
+                placeholder: BLURRED
+                formats: [AUTO, WEBP, AVIF]
+                quality: 80
+              )
+            }
+          }
+        }
+      }
+    }
+  `)
+
+  if (result.errors) {
+    console.error("[bandsintown] gig page query failed", result.errors)
+    return
+  }
+
+  result.data.allGig.nodes.forEach(node => {
+    const slug = gigSlug({ id: node.gigId })
+    const gig = {
+      id: node.gigId,
+      title: node.title,
+      date: node.date,
+      event: node.event,
+      tickets: node.tickets,
+      venueName: node.venueName,
+      city: node.city,
+      lineup: node.lineup,
+      description: node.description,
+      imageUrl: node.imageUrl,
+      image: node.imageFile?.childImageSharp?.gatsbyImageData ?? null,
+    }
+    createPage({
+      path: `/shows/${slug}`,
+      component: gigComponent,
+      context: { gig, slug },
     })
+    createPage({
+      path: `/pl/shows/${slug}`,
+      component: gigComponent,
+      context: { gig, slug, lang: "pl" },
+    })
+  })
 }
 
 exports.onCreatePage = ({ page, actions }) => {
