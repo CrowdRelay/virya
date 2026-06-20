@@ -113,7 +113,7 @@ const Gig = ({ pageContext }) => {
               )}
 
               {gig.description && (
-                <p className="lg:text-base text-sm text-zinc-300 leading-relaxed text-justify mb-8">
+                <p className="lg:text-base text-sm text-zinc-300 leading-relaxed text-justify whitespace-pre-line mb-8">
                   {gig.description}
                 </p>
               )}

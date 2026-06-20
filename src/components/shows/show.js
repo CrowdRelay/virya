@@ -22,22 +22,29 @@ const ShowItem = memo(({ item, gigSlug }) => {
     const isToday = normalizedDate === normalizedToday;
     const textDate = isToday ? t("shows.today") : t("shows.date");
     const locale = lang === "pl" ? "pl-PL" : "en-GB";
-    const baseStyles = `transform ease-in-out rounded-xl inset-0 opacity-75 hover:opacity-100 place-items-center lg:flex lg:flex-row p-2 cursor-pointer text-white ${isToday ? 'bg-red-900' : 'bg-zinc-900/60'}`;
+    const clickable = Boolean(gigSlug);
+    const baseStyles = `transform ease-in-out rounded-xl inset-0 opacity-75 hover:opacity-100 place-items-center lg:flex lg:flex-row p-2 text-white ${clickable ? 'cursor-pointer' : ''} ${isToday ? 'bg-red-900' : 'bg-zinc-900/60'}`;
 
-    return (
-      <Link to={lp(`/shows/${gigSlug}`)} className="block">
-        <div className={baseStyles}>
-          <h2 className="lg:text-2xl text-md lg:ml-2">{item.title}</h2>
-          <div className='lg:flex lg:flex-row lg:flex-grow place-items-center justify-end'>
-            <h2 className="lg:text-2xl lg:my-8 text-md">
-              <p className='inline'>{textDate}</p> {date.toLocaleDateString(locale)}
-            </h2>
-            {item.event && <Button title={t("shows.event")} href={item.event} onClick={e => e.stopPropagation()} />}
-            {item.tickets && <Button title={t("shows.tickets")} href={item.tickets} onClick={e => e.stopPropagation()} />}
-          </div>
+    const inner = (
+      <div className={baseStyles}>
+        <h2 className="lg:text-2xl text-md lg:ml-2">{item.title}</h2>
+        <div className='lg:flex lg:flex-row lg:flex-grow place-items-center justify-end'>
+          <h2 className="lg:text-2xl lg:my-8 text-md">
+            <p className='inline'>{textDate}</p> {date.toLocaleDateString(locale)}
+          </h2>
+          {item.event && <Button title={t("shows.event")} href={item.event} onClick={e => e.stopPropagation()} />}
+          {item.tickets && <Button title={t("shows.tickets")} href={item.tickets} onClick={e => e.stopPropagation()} />}
         </div>
+      </div>
+    );
+
+    return clickable ? (
+      <Link to={lp(`/shows/${gigSlug}`)} className="block">
+        {inner}
       </Link>
-    )
+    ) : (
+      inner
+    );
   }
   return null;
 })
