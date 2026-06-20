@@ -1,7 +1,7 @@
 "use client"
 import React from "react"
-import { Link, graphql, useStaticQuery } from "gatsby"
-import { GatsbyImage, getImage } from "gatsby-plugin-image"
+import { Link } from "gatsby"
+import { GatsbyImage } from "gatsby-plugin-image"
 import Navbar from "../components/nav"
 import Footer from "../components/footer"
 import { ScrollToTop } from "../components/scrollToTop/scroll"
@@ -24,30 +24,6 @@ const Btn = ({ href, children }) => (
 const Gig = ({ pageContext }) => {
   const { gig } = pageContext
   const { t, lp, lang } = useI18n()
-
-  const coverImages = useStaticQuery(graphql`
-    query {
-      allFile(
-        filter: {
-          sourceInstanceName: { eq: "img" }
-          extension: { eq: "webp" }
-          relativeDirectory: { eq: "" }
-        }
-      ) {
-        nodes {
-          relativePath
-          childImageSharp {
-            gatsbyImageData(
-              width: 600
-              placeholder: NONE
-              formats: [AUTO, WEBP, AVIF]
-              quality: 85
-            )
-          }
-        }
-      }
-    }
-  `)
 
   const formattedDate = new Date(gig.date).toLocaleDateString(
     lang === "pl" ? "pl-PL" : "en-GB",
@@ -88,12 +64,14 @@ const Gig = ({ pageContext }) => {
           <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
             <div className="max-w-md">
               {gig.image ? (
-                <img
-                  src={gig.image}
+                <GatsbyImage
+                  image={gig.image}
                   alt={gig.venueName || gig.title}
                   className="block w-full rounded-sm"
+                  imgClassName="rounded-sm"
                   loading="eager"
                   fetchpriority="high"
+                  sizes="(min-width: 1024px) 364px, 100vw"
                 />
               ) : (
                 <div className="block w-full rounded-sm bg-zinc-900 aspect-square flex items-center justify-center">
@@ -152,7 +130,7 @@ export const Head = ({ pageContext }) => {
   const ogLocale = lang === "pl" ? "pl_PL" : "en_US"
   const description = gig.description || `${gig.venueName} - ${gig.city}`
   const title = `${gig.venueName} | Virya`
-  const image = gig.image || `${SITE}/og-image.webp`
+  const image = gig.imageUrl || `${SITE}/og-image.webp`
 
   const schema = JSON.stringify({
     "@context": "https://schema.org",
