@@ -1,5 +1,6 @@
 "use client"
-import React, { memo, useState, useEffect, useRef } from "react"
+import React, { memo, useState, useEffect, useRef, useMemo } from "react"
+import { useStaticQuery, graphql } from "gatsby"
 import ShowItem from "./show"
 import { useI18n } from "../../i18n/I18nContext"
 
@@ -72,6 +73,27 @@ const Shows = memo(() => {
   const [loading, setLoading] = useState(true)
   const [visible, setVisible] = useState(false)
   const ref = useRef(null)
+
+  // Slugs of gig subpages that were actually generated at build time. A row is
+  // only made clickable when its page exists — otherwise the click is ignored
+  // and only the Event/Tickets buttons work (no 404 from runtime-fresh shows).
+  const { allSitePage } = useStaticQuery(graphql`
+    query {
+      allSitePage(filter: { path: { glob: "/shows/gig-*" } }) {
+        nodes {
+          path
+        }
+      }
+    }
+  `)
+  const builtSlugs = useMemo(() => {
+    const set = new Set()
+    allSitePage.nodes.forEach(n => {
+      const m = n.path.match(/\/shows\/(gig-[^/]+)\/?$/)
+      if (m) set.add(m[1])
+    })
+    return set
+  }, [allSitePage])
 
   useEffect(() => {
     if (!ref.current) return
@@ -160,13 +182,16 @@ const Shows = memo(() => {
               </a>
             </div>
           ) : (
-            shows.map((item, index) => (
-              <ShowItem
-                key={item.id || index}
-                item={item}
-                gigSlug={item.id ? `gig-${item.id}` : null}
-              />
-            ))
+            shows.map((item, index) => {
+              const slug = item.id ? `gig-${item.id}` : null
+              return (
+                <ShowItem
+                  key={item.id || index}
+                  item={item}
+                  gigSlug={slug && builtSlugs.has(slug) ? slug : null}
+                />
+              )
+            })
           )}
         </div>
       </div>
