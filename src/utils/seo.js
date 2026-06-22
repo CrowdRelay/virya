@@ -8,30 +8,35 @@ const SITE_URL = "https://www.virya.music"
  * @param {string} currentLang - The current language (e.g., "en", "pl")
  * @returns {Object} Object containing canonicalUrl and hreflangLinks
  */
+// Gatsby's default trailingSlash is "always", so every served URL ends in "/".
+// Canonical and hreflang hrefs must match that exactly, otherwise crawlers see
+// them as pointing to a different page (and the self-referential alternate as
+// missing).
+const withTrailingSlash = p => (p === "" || p.endsWith("/") ? p : `${p}/`)
+
 export const getSeoTags = (path, currentLang = DEFAULT_LANG) => {
-  const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "")
-  
-  const canonicalUrl = currentLang === DEFAULT_LANG 
-    ? `${SITE_URL}${normalizedPath}`
-    : `${SITE_URL}/${currentLang}${normalizedPath}`
-  
-  const hreflangLinks = LANGS.map(lang => {
-    const langPath = lang === DEFAULT_LANG 
-      ? normalizedPath 
-      : `/${lang}${normalizedPath}`
-    return {
-      rel: "alternate",
-      hreflang: lang,
-      href: `${SITE_URL}${langPath}`
-    }
-  })
-  
+  const cleanPath = path.startsWith("/") ? path : `/${path}`
+  const normalizedPath = withTrailingSlash(cleanPath)
+
+  const buildUrl = lang => {
+    const langPrefix = lang === DEFAULT_LANG ? "" : `/${lang}`
+    return `${SITE_URL}${withTrailingSlash(`${langPrefix}${normalizedPath}`)}`
+  }
+
+  const canonicalUrl = buildUrl(currentLang)
+
+  const hreflangLinks = LANGS.map(lang => ({
+    rel: "alternate",
+    hreflang: lang,
+    href: buildUrl(lang)
+  }))
+
   hreflangLinks.push({
     rel: "alternate",
     hreflang: "x-default",
-    href: `${SITE_URL}${normalizedPath}`
+    href: buildUrl(DEFAULT_LANG)
   })
-  
+
   return {
     canonicalUrl,
     hreflangLinks
