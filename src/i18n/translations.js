@@ -186,6 +186,9 @@ export const translations = {
       prevImage: "Previous image",
       nextImage: "Next image",
       goToImage: n => `Go to image ${n}`,
+      listen: "Listen",
+      hidePreview: "Hide preview",
+      previewTitle: name => `${name} — preview on Spotify`,
     },
     cart: {
       title: "Your cart",
@@ -553,6 +556,9 @@ export const translations = {
       prevImage: "Poprzednie zdjęcie",
       nextImage: "Następne zdjęcie",
       goToImage: n => `Przejdź do zdjęcia ${n}`,
+      listen: "Posłuchaj",
+      hidePreview: "Ukryj odtwarzacz",
+      previewTitle: name => `${name} — odsłuch na Spotify`,
     },
     cart: {
       title: "Twój koszyk",

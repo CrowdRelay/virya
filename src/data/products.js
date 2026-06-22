@@ -44,6 +44,7 @@ export const PRODUCTS = [
     name: "Echoes Of The Modern Mind",
     name_pl: "Echoes Of The Modern Mind",
     type: "album",
+    spotifyId: "5dAAKIVnr96ILc9gxPnRzt",
     price: 50,
     front: "merch/echoes.webp",
     back: "merch/echoesback.webp",
