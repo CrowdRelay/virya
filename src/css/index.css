@@ -4,6 +4,10 @@
 
 /* Visible keyboard-focus ring for all interactive elements. Mouse clicks
    don't trigger :focus-visible, so this only shows for keyboard/AT users. */
+:root {
+  color-scheme: dark;
+}
+
 @layer base {
   body {
     background-color: #09090b; /* zinc-950 — matches the layout container so wide viewports don't show white bars */
