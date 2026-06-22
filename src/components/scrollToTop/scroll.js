@@ -24,6 +24,9 @@ export const ScrollToTop = memo(
     svgPath = "M222.138,91.475l-89.6-89.6c-2.5-2.5-6.551-2.5-9.051,0l-89.6,89.6c-2.5,2.5-2.5,6.551,0,9.051s6.744,2.5,9.244,0L122,21.85  V249.6c0,3.535,2.466,6.4,6,6.4s6-2.865,6-6.4V21.85l78.881,78.676c1.25,1.25,2.992,1.875,4.629,1.875s3.326-0.625,4.576-1.875  C224.586,98.025,224.638,93.975,222.138,91.475z",
   }) => {
     const [visible, setVisible] = useState(false)
+    // Default 24px = Tailwind bottom-6. Raised when the footer scrolls into
+    // view so the button rests just above it instead of covering the icons.
+    const [bottom, setBottom] = useState(24)
 
     useEffect(() => {
       let ticking = false
@@ -32,11 +35,21 @@ export const ScrollToTop = memo(
         ticking = true
         requestAnimationFrame(() => {
           setVisible(document.documentElement.scrollTop > top)
+          const footer = document.querySelector("footer")
+          if (footer) {
+            const overlap = window.innerHeight - footer.getBoundingClientRect().top
+            setBottom(overlap > 24 ? overlap + 16 : 24)
+          }
           ticking = false
         })
       }
+      onScroll()
       document.addEventListener("scroll", onScroll, { passive: true })
-      return () => document.removeEventListener("scroll", onScroll)
+      window.addEventListener("resize", onScroll, { passive: true })
+      return () => {
+        document.removeEventListener("scroll", onScroll)
+        window.removeEventListener("resize", onScroll)
+      }
     }, [top])
 
     const handleClick = useCallback(() => toTop(smooth), [smooth])
@@ -47,6 +60,7 @@ export const ScrollToTop = memo(
       <button
         aria-label="Scroll to top"
         className={`z-20 scroll-to-top ${positionClassName} p-2 w-11 h-11 scroll-to-top-small lg:scroll-to-top-big bg-amber-400 hover:bg-amber-300 text-black transition-colors duration-200`}
+        style={{ bottom: `${bottom}px` }}
         onClick={handleClick}
       >
         <svg fill="#1f2936" viewBox={viewBox}>
