@@ -37,8 +37,10 @@ export const ScrollToTop = memo(
           setVisible(document.documentElement.scrollTop > top)
           const footer = document.querySelector("footer")
           if (footer) {
+            // Sit at the default 24px until the footer enters view, then ride
+            // 16px above it. max() keeps it continuous (no jump at the seam).
             const overlap = window.innerHeight - footer.getBoundingClientRect().top
-            setBottom(overlap > 24 ? overlap + 16 : 24)
+            setBottom(Math.max(24, overlap + 16))
           }
           ticking = false
         })
