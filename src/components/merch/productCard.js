@@ -65,6 +65,10 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
   const [announce, setAnnounce] = useState("")
   const [zoomed, setZoomed] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  // The inline embed is too cramped in the 2-col mobile grid, so below the `sm`
+  // breakpoint the preview opens in a modal instead.
+  const [isWide, setIsWide] = useState(true)
   const [slide, setSlide] = useState(0)
   const [dragX, setDragX] = useState(0)
   const [dragging, setDragging] = useState(false)
@@ -172,6 +176,30 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
     const id = setTimeout(() => setAnnounce(""), 1000)
     return () => clearTimeout(id)
   }, [announce])
+
+  // Track the `sm` breakpoint to decide inline embed vs. modal for the preview.
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)")
+    const update = () => setIsWide(mq.matches)
+    update()
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
+  }, [])
+
+  // On mobile the preview is a modal: close on Escape and lock body scroll.
+  useEffect(() => {
+    if (!playing || isWide) return
+    const onKey = e => {
+      if (e.key === "Escape") setPlaying(false)
+    }
+    document.addEventListener("keydown", onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      document.body.style.overflow = prev
+    }
+  }, [playing, isWide])
 
   // Close the zoom lightbox on Escape, navigate the carousel with arrows,
   // and lock body scroll while it's open.
@@ -295,7 +323,7 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
         </h2>
         <p
           className={`text-xs text-zinc-400 leading-snug mt-1 ${
-            bundle ? "mb-3" : "mb-4 flex-1"
+            bundle || product.spotifyId ? "mb-3" : "mb-4 flex-1"
           }`}
         >
           {blurb}
@@ -315,6 +343,43 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
               </li>
             ))}
           </ul>
+        )}
+
+        {product.spotifyId && (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={() => setPlaying(p => !p)}
+              aria-expanded={playing}
+              className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-amber-400 hover:text-amber-300 transition-colors"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-3.5 h-3.5"
+              >
+                {playing ? (
+                  <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+                ) : (
+                  <path d="M8 5v14l11-7z" />
+                )}
+              </svg>
+              {playing ? t("product.hidePreview") : t("product.listen")}
+            </button>
+            {playing && isWide && (
+              <iframe
+                title={t("product.previewTitle", name)}
+                src={`https://open.spotify.com/embed/album/${product.spotifyId}?utm_source=generator&theme=0`}
+                width="100%"
+                height="152"
+                frameBorder="0"
+                loading="lazy"
+                allow="encrypted-media; clipboard-write; fullscreen; picture-in-picture"
+                className="mt-3 block w-full rounded"
+              />
+            )}
+          </div>
         )}
 
         {needsSize && (
@@ -483,6 +548,46 @@ const ProductCard = memo(({ product, images, index = 0 }) => {
             <p className="text-[10px] text-zinc-400 leading-relaxed mt-4">
               {t("product.sizeChartNote")}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile preview modal — the inline embed is too small in the 2-col grid. */}
+      {playing && !isWide && product.spotifyId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("product.previewTitle", name)}
+          onClick={() => setPlaying(false)}
+        >
+          <div
+            className="w-full max-w-sm"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-black uppercase tracking-widest text-zinc-100">
+                {name}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setPlaying(false)}
+                aria-label={t("product.hidePreview")}
+                className="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none"
+              >
+                &times;
+              </button>
+            </div>
+            <iframe
+              title={t("product.previewTitle", name)}
+              src={`https://open.spotify.com/embed/album/${product.spotifyId}?utm_source=generator&theme=0`}
+              width="100%"
+              height="352"
+              frameBorder="0"
+              loading="lazy"
+              allow="encrypted-media; clipboard-write; fullscreen; picture-in-picture"
+              className="block w-full rounded"
+            />
           </div>
         </div>
       )}
