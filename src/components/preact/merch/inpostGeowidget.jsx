@@ -6,6 +6,8 @@ const STYLE_HREF = "https://geowidget.inpost.pl/inpost-geowidget.css"
 const TOKEN = import.meta.env.PUBLIC_INPOST_GEOWIDGET_TOKEN || ""
 const CALLBACK_NAME = "viryaAfterPointSelected"
 
+let activeHandler = null
+
 const normalizePoint = (p) => {
   if (!p) return null
   const address = p.address
@@ -14,6 +16,10 @@ const normalizePoint = (p) => {
     ? `${p.address_details.street || ""} ${p.address_details.building_number || ""}, ${p.address_details.city || ""}`.trim()
     : ""
   return { code: p.name || p.id || "", description: p.location_description || "", address }
+}
+
+if (typeof window !== "undefined") {
+  window[CALLBACK_NAME] = (point) => { if (activeHandler) activeHandler(point) }
 }
 
 const ensureAssets = () => {
@@ -74,18 +80,22 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     return () => { document.body.style.overflow = "" }
   }, [open])
 
-  // Set callback directly on widget element
+  // Set active handler when widget opens
+  useEffect(() => {
+    if (!open) return
+    activeHandler = handlePoint
+    return () => {
+      if (activeHandler === handlePoint) activeHandler = null
+    }
+  }, [open, handlePoint])
+
+  // Set callback via attribute - InPost widget reads the callback name from this attribute
   useEffect(() => {
     const widget = hostRef.current
     if (widget && scriptLoaded) {
-      // Set the callback function directly
-      widget.onpoint = handlePoint
-      
-      return () => {
-        widget.onpoint = null
-      }
+      widget.setAttribute('onpoint', CALLBACK_NAME)
     }
-  }, [scriptLoaded, handlePoint])
+  }, [scriptLoaded])
 
   if (!open) return null
 
