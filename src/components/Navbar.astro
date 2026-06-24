@@ -1,0 +1,249 @@
+---
+import { t, lp, type Lang } from "../i18n/t"
+
+interface Props {
+  lang?: Lang
+  displayLinks?: boolean
+  activePage?: string
+}
+const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
+---
+
+<nav
+  id="main-nav"
+  aria-label="Main navigation"
+  class="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5 transition-all duration-200"
+>
+  <div>
+    <div class="container mx-auto flex items-center">
+      <div class="flex flex-1 items-center">
+        <a title={t(lang, "nav.home")} class={`group flex my-2 cursor-pointer logo-link`} href={lp(lang, "/")}>
+          <img
+            src="/virya.webp"
+            title="Virya"
+            loading="eager"
+            alt="Virya logo"
+            width="50"
+            height="50"
+            class={`w-[50px] h-[50px] rounded-full ring-2 ring-offset-2 ring-offset-black transition-all duration-300 group-hover:ring-amber-400 group-hover:scale-110 group-hover:brightness-125 group-hover:shadow-[0_0_12px_rgba(251,191,36,0.5)] logo-ring ${activePage === "home" ? "ring-amber-400" : "ring-amber-400/40"}`}
+          />
+        </a>
+      </div>
+
+      <div class="hidden lg:flex items-center">
+        {displayLinks && <a href={lp(lang, "/about")} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "about" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.band")}</a>}
+        {displayLinks && <a href={lp(lang, "/merch")} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "merch" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.merch")}</a>}
+        {displayLinks && <a href={lp(lang, "/epk")} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "epk" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.epk")}</a>}
+        {displayLinks && activePage === "home" && (
+          <>
+            <a href={lp(lang, "/#music")} data-section="music" class="nav-link cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400">{t(lang, "nav.music")}</a>
+            <a href={lp(lang, "/#shows")} data-section="shows" class="nav-link cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400">{t(lang, "nav.shows")}</a>
+            <a href={lp(lang, "/#contact")} data-section="contact" class="nav-link cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400">{t(lang, "nav.contact")}</a>
+          </>
+        )}
+        <div class="flex items-center gap-1 ml-4 pl-4 border-l border-white/10 text-xs font-bold uppercase tracking-widest" aria-label={t(lang, "nav.language")}>
+          <button data-lang-switch="en" class={`px-1.5 py-1 transition-colors ${lang === "en" ? "text-amber-400" : "text-zinc-500 hover:text-zinc-100"}`} aria-label="Switch to English" aria-current={lang === "en" ? "true" : undefined}>EN</button>
+          <span class="text-zinc-700">/</span>
+          <button data-lang-switch="pl" class={`px-1.5 py-1 transition-colors ${lang === "pl" ? "text-amber-400" : "text-zinc-500 hover:text-zinc-100"}`} aria-label="Przełącz na polski" aria-current={lang === "pl" ? "true" : undefined}>PL</button>
+        </div>
+      </div>
+
+      <div class="flex lg:hidden items-center gap-2">
+        <div class="flex items-center gap-1 mr-1 text-xs font-bold uppercase tracking-widest">
+          <button data-lang-switch="en" class={`px-1.5 py-1 transition-colors ${lang === "en" ? "text-amber-400" : "text-zinc-500 hover:text-zinc-100"}`} aria-label="Switch to English">EN</button>
+          <span class="text-zinc-700">/</span>
+          <button data-lang-switch="pl" class={`px-1.5 py-1 transition-colors ${lang === "pl" ? "text-amber-400" : "text-zinc-500 hover:text-zinc-100"}`} aria-label="Przełącz na polski">PL</button>
+        </div>
+        {displayLinks && activePage === "home" && (
+          <a href={lp(lang, "/merch")} aria-label={t(lang, "nav.toMerch")} class="inline-flex items-center min-h-[44px] px-3 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors">
+            {t(lang, "nav.merch")}
+          </a>
+        )}
+        {displayLinks && (
+          <button
+            id="mobile-menu-btn"
+            class="p-2 text-zinc-300 hover:text-amber-400 transition-colors"
+            aria-label={t(lang, "nav.openMenu")}
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+          >
+            <svg id="icon-hamburger" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+            <svg id="icon-close" class="w-6 h-6 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        )}
+      </div>
+    </div>
+
+    {displayLinks && (
+      <div id="mobile-menu" hidden class="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
+        <a href={lp(lang, "/about")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.band")}</a>
+        <a href={lp(lang, "/merch")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.merch")}</a>
+        <a href={lp(lang, "/epk")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.epk")}</a>
+        {activePage === "home" && (
+          <>
+            <a href={lp(lang, "/#music")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.music")}</a>
+            <a href={lp(lang, "/#shows")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.shows")}</a>
+            <a href={lp(lang, "/#contact")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.contact")}</a>
+          </>
+        )}
+      </div>
+    )}
+  </div>
+</nav>
+
+<script>
+  function initNav() {
+    const nav = document.getElementById("main-nav")
+    if (!nav) return
+
+    // Scroll hide/show
+    let lastY = window.scrollY
+    let ticking = false
+    window.addEventListener("scroll", () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        const y = window.scrollY
+        if (y < 10 || y < lastY) {
+          nav.style.transform = "translateY(0)"
+        } else {
+          nav.style.transform = "translateY(-100%)"
+          // close mobile menu when nav hides
+          const menu = document.getElementById("mobile-menu")
+          if (menu && !menu.hidden) toggleMenu(false)
+        }
+        lastY = y
+        ticking = false
+      })
+    }, { passive: true })
+
+    // Active section via IntersectionObserver
+    const navLinks = nav.querySelectorAll<HTMLElement>("[data-section]")
+    const logoRing = nav.querySelector<HTMLElement>(".logo-ring")
+    if (navLinks.length > 0) {
+      const idByEl = new Map()
+      const visible = new Set()
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            const id = idByEl.get(e.target)
+            if (!id) return
+            if (e.isIntersecting) {
+              visible.add(id)
+            } else {
+              visible.delete(id)
+            }
+          })
+          // Find the topmost visible section
+          let activeId = null
+          for (const link of navLinks) {
+            const id = link.dataset.section
+            if (id && visible.has(id)) {
+              activeId = id
+              break
+            }
+          }
+          // Update all links
+          navLinks.forEach((l) => {
+            if (l.dataset.section === activeId) {
+              l.classList.add("text-amber-400")
+              l.classList.remove("text-zinc-400")
+            } else {
+              l.classList.remove("text-amber-400")
+              l.classList.add("text-zinc-400")
+            }
+          })
+          // Update logo: highlight when no section is active
+          if (logoRing) {
+            if (activeId) {
+              logoRing.classList.remove("ring-amber-400")
+              logoRing.classList.add("ring-amber-400/40")
+            } else {
+              logoRing.classList.add("ring-amber-400")
+              logoRing.classList.remove("ring-amber-400/40")
+            }
+          }
+        },
+        { rootMargin: "-150px 0px -50% 0px", threshold: 0 }
+      )
+      navLinks.forEach((link) => {
+        const id = link.dataset.section
+        if (id) {
+          const el = document.getElementById(id)
+          if (el) {
+            idByEl.set(el, id)
+            io.observe(el)
+          }
+        }
+      })
+    }
+
+    // Mobile menu toggle
+    const btn = document.getElementById("mobile-menu-btn")
+    const hamburger = document.getElementById("icon-hamburger")
+    const closeIcon = document.getElementById("icon-close")
+    const openLabel = btn?.getAttribute("aria-label") ?? "Open menu"
+
+    function toggleMenu(open: boolean) {
+      const menu = document.getElementById("mobile-menu")
+      if (!menu || !btn) return
+      menu.hidden = !open
+      btn.setAttribute("aria-expanded", String(open))
+      hamburger?.classList.toggle("hidden", open)
+      closeIcon?.classList.toggle("hidden", !open)
+    }
+
+    btn?.addEventListener("click", () => {
+      const menu = document.getElementById("mobile-menu")
+      toggleMenu(!!menu?.hidden)
+    })
+
+    nav.querySelectorAll(".mobile-nav-link").forEach((link) =>
+      link.addEventListener("click", () => toggleMenu(false))
+    )
+
+    // Smooth scroll for all hash anchor links (Music / Shows / Contact — desktop + mobile)
+    nav.querySelectorAll<HTMLAnchorElement>("a[href*='#']").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        const hash = link.hash
+        if (!hash) return
+        const target = document.querySelector(hash)
+        if (target) {
+          e.preventDefault()
+          target.scrollIntoView({ behavior: "smooth" })
+          const menu = document.getElementById("mobile-menu")
+          if (menu && !menu.hidden) toggleMenu(false)
+        }
+      })
+    })
+
+    // Logo click → smooth scroll to top when already on home page
+    const logo = nav.querySelector<HTMLAnchorElement>("a.group")
+    logo?.addEventListener("click", (e) => {
+      const p = window.location.pathname
+      const isHome = p === "/" || p === "/pl/" || p === "/pl"
+      if (isHome) {
+        e.preventDefault()
+        window.scrollTo({ top: 0, behavior: "smooth" })
+      }
+    })
+
+    // Lang switch
+    document.querySelectorAll<HTMLElement>("[data-lang-switch]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const target = el.dataset.langSwitch ?? "en"
+        try { localStorage.setItem("virya-lang", target) } catch {}
+        const p = location.pathname
+        const base = p.replace(/^(\/pl)+(?=\/|$)/, "") || "/"
+        location.href = (target === "pl" ? (base === "/" ? "/pl/" : `/pl${base}`) : base) + location.search + location.hash
+      })
+    })
+  }
+
+  document.addEventListener("astro:page-load", initNav)
+</script>

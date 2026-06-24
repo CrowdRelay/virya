@@ -1,0 +1,59 @@
+---
+import ClientRouter from "astro/components/ClientRouter.astro"
+import "../styles/global.css"
+
+interface Props {
+  title: string
+  description?: string
+  canonical?: string
+  ogImage?: string
+  ogType?: string
+  lang?: string
+  head?: string
+}
+
+const {
+  title,
+  description,
+  canonical,
+  ogImage = "https://www.virya.music/virya.webp",
+  ogType = "website",
+  lang = "en",
+  head,
+} = Astro.props
+
+const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.indexOf('/pl/')===0)return;var pref=localStorage.getItem('virya-lang');if(pref!=='pl'&&pref!=='en'){pref=(navigator.language||'').toLowerCase().indexOf('pl')===0?'pl':'en';}if(pref==='pl'){location.replace('/pl'+p+location.search+location.hash);}}catch(e){}})();`
+---
+
+<!doctype html>
+<html lang={lang} class="bg-zinc-950">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#09090b" />
+    <meta name="author" content="Virya" />
+    {description && <meta name="description" content={description} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Virya" />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:image" content={ogImage} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@viryaofficial" />
+    <meta name="twitter:creator" content="@viryaofficial" />
+    <meta name="twitter:title" content={title} />
+    {description && <meta name="twitter:description" content={description} />}
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="icon" href="/favicon-32x32.png" type="image/png" />
+    <title>{title}</title>
+    <slot name="head" />
+    <ClientRouter />
+    {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

@@ -1,7 +1,5 @@
 # Virya website
 
-1.  **Run in development**
-
 Go to https://www.virya.music to see resulting page.
 
 Netlify Status:

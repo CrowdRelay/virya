@@ -1,0 +1,21 @@
+# Netlify security headers — applied to every response.
+# https://docs.netlify.com/routing/headers/
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(self "https://geowidget.inpost.pl"), camera=(), microphone=(), payment=(self)
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: https:; media-src 'self'; font-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://geowidget.inpost.pl; style-src 'self' 'unsafe-inline' https://geowidget.inpost.pl; connect-src 'self' https://*.inpost.pl https://rest.bandsintown.com; frame-src https://open.spotify.com https://js.stripe.com https://geowidget.inpost.pl https://*.inpost.pl; form-action 'self'; frame-ancestors 'self'
+
+# CSP notes — sources allowed, and why:
+#   script/style geowidget.inpost.pl  → InPost Paczkomat picker assets
+#   connect *.inpost.pl               → geowidget API calls
+#   connect rest.bandsintown.com      → shows feed (also proxied via /api)
+#   frame geowidget/*.inpost.pl       → Paczkomat picker map iframe
+#   frame open.spotify.com            → artist embed player
+#   frame js.stripe.com               → Stripe (checkout itself is a top-level redirect)
+#   'unsafe-inline' script/style      → Gatsby inlines its runtime + critical CSS
+# If a third party breaks, check the browser console for the blocked URL and add
+# its origin to the matching directive.

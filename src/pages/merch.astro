@@ -1,0 +1,39 @@
+---
+import Layout from "../components/Layout.astro"
+import Navbar from "../components/Navbar.astro"
+import Footer from "../components/Footer.astro"
+import ScrollToTop from "../components/ScrollToTop.astro"
+import MerchClient from "../components/preact/merch/MerchClient"
+import { t } from "../i18n/t"
+import { getSeoTags } from "../utils/seo"
+
+const lang = "en"
+const { canonicalUrl, hreflangLinks } = getSeoTags("/merch/", lang)
+const title = "Merch | Virya Official Store"
+const description = "Official Virya merchandise. Albums, t-shirts, tote bags — all shipped to your InPost Paczkomat with free stickers on every order."
+---
+
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+  <Fragment slot="head">
+    {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
+    <link rel="preload" as="image" href="/images/merch/echoes.webp" />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Store",
+      "name": "Virya Official Store",
+      "url": "https://www.virya.music/merch",
+      "description": description,
+      "currenciesAccepted": "PLN",
+      "paymentAccepted": "Credit Card, BLIK",
+    })} />
+  </Fragment>
+
+  <div class="bg-zinc-950 min-h-screen flex flex-col">
+    <Navbar lang={lang} displayLinks={true} activePage="merch" />
+    <ScrollToTop />
+
+    <MerchClient client:load lang={lang} />
+
+    <Footer lang={lang} />
+  </div>
+</Layout>
