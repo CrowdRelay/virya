@@ -88,13 +88,10 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     return () => { document.body.style.overflow = "" }
   }, [open])
 
-  // Set the onpoint callback as a property and also listen for custom event
+  // Listen for custom event from InPost widget
   useEffect(() => {
     const widget = hostRef.current
     if (widget && scriptLoaded) {
-      widget.onpoint = window[CALLBACK_NAME]
-      
-      // Also try listening for custom event
       const onPointHandler = (e) => {
         if (e.detail) handlePoint(e.detail)
       }
