@@ -4,7 +4,6 @@ import { useI18n } from "../../../i18n/I18nContext"
 const SCRIPT_SRC = "https://geowidget.inpost.pl/inpost-geowidget.js"
 const STYLE_HREF = "https://geowidget.inpost.pl/inpost-geowidget.css"
 const TOKEN = import.meta.env.PUBLIC_INPOST_GEOWIDGET_TOKEN || ""
-const CALLBACK_NAME = "viryaAfterPointSelected"
 
 const normalizePoint = (p) => {
   if (!p) return null
@@ -74,28 +73,17 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     return () => { document.body.style.overflow = "" }
   }, [open])
 
-  // Wire the geowidget "select" callback. In geowidget v5 the `onpoint`
-  // attribute names a CustomEvent the widget DISPATCHES (point in e.detail) —
-  // it is not a window function it calls. Preact intercepts any on* prop as an
-  // event handler, so the attribute is set imperatively on the element. We
-  // listen for that event on both the element and document, and also expose a
-  // global function of the same name to cover builds that call it directly.
+  // Geowidget v5 dispatches a CustomEvent literally named "onpoint" on the
+  // element itself (point payload in e.detail) when the user picks a locker.
+  // Bind directly to it — no `onpoint` attribute / global function needed.
   useEffect(() => {
     if (!open || !scriptLoaded) return
     const el = hostRef.current
     if (!el) return
 
-    const listener = (e) => handlePoint(e?.detail ?? e)
-    el.setAttribute("onpoint", CALLBACK_NAME)
-    el.addEventListener(CALLBACK_NAME, listener)
-    document.addEventListener(CALLBACK_NAME, listener)
-    window[CALLBACK_NAME] = (point) => handlePoint(point)
-
-    return () => {
-      el.removeEventListener(CALLBACK_NAME, listener)
-      document.removeEventListener(CALLBACK_NAME, listener)
-      if (window[CALLBACK_NAME]) delete window[CALLBACK_NAME]
-    }
+    const listener = (e) => handlePoint(e.detail || {})
+    el.addEventListener("onpoint", listener)
+    return () => el.removeEventListener("onpoint", listener)
   }, [open, scriptLoaded, handlePoint])
 
   if (!open) return null
