@@ -56,7 +56,7 @@ const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
     <ScrollToTop />
 
     <main id="main-content" class="flex-1 pt-20">
-      <div class="px-6 lg:px-12 py-16 lg:py-24 max-w-4xl mx-auto">
+      <div class="px-6 lg:px-12 py-8 lg:py-24 max-w-4xl mx-auto">
         <a href={lp(lang, "/#shows")} onClick={(e) => { e.preventDefault(); window.location.href = lp(lang, "/"); setTimeout(() => { const el = document.getElementById('shows'); if (el) el.scrollIntoView({ behavior: 'smooth' }) }, 100) }} class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mb-10">
           ← {t(lang, "shows.heading")}
         </a>
@@ -109,7 +109,7 @@ const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
               height="240"
               loading="lazy"
               decoding="async"
-              class="w-full h-auto object-cover"
+              class="w-full h-auto object-cover max-h-[200px] lg:max-h-none"
             />
           </div>
         </div>
