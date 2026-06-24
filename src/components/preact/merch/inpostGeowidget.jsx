@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "preact/hooks"
+import { useEffect, useRef, useCallback, useState } from "preact/hooks"
 import { useI18n } from "../../../i18n/I18nContext"
 
 const SCRIPT_SRC = "https://geowidget.inpost.pl/inpost-geowidget.js"
@@ -41,6 +41,7 @@ const ensureAssets = () => {
 const InpostGeowidget = ({ open, onClose, onSelect }) => {
   const { t, lang } = useI18n()
   const hostRef = useRef(null)
+  const [scriptLoaded, setScriptLoaded] = useState(false)
 
   const handlePoint = useCallback((point) => {
     const normalized = normalizePoint(point)
@@ -49,17 +50,26 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     onClose()
   }, [onSelect, onClose])
 
-  useEffect(() => { if (open) ensureAssets() }, [open])
+  useEffect(() => {
+    if (!open) return
+    ensureAssets()
+    
+    // Wait for script to load
+    const checkScript = setInterval(() => {
+      if (typeof window !== "undefined" && window.InpostGeowidget) {
+        setScriptLoaded(true)
+        clearInterval(checkScript)
+      }
+    }, 100)
+
+    return () => clearInterval(checkScript)
+  }, [open])
 
   useEffect(() => {
     if (!open) return
     activeHandler = handlePoint
-    const host = hostRef.current
-    const onEvent = (e) => handlePoint(e.detail)
-    if (host) host.addEventListener("onpoint", onEvent)
     return () => {
       if (activeHandler === handlePoint) activeHandler = null
-      if (host) host.removeEventListener("onpoint", onEvent)
     }
   }, [open, handlePoint])
 
@@ -68,6 +78,14 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     document.body.style.overflow = open ? "hidden" : ""
     return () => { document.body.style.overflow = "" }
   }, [open])
+
+  // Set the onpoint attribute directly to avoid Preact event handling
+  useEffect(() => {
+    const widget = hostRef.current
+    if (widget && scriptLoaded) {
+      widget.setAttribute('onpoint', CALLBACK_NAME)
+    }
+  }, [scriptLoaded])
 
   if (!open) return null
 
@@ -85,13 +103,16 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
           <button onClick={onClose} aria-label={t("cart.close")} class="text-zinc-500 hover:text-amber-400 transition-colors text-xl leading-none">&times;</button>
         </div>
         <div class="flex-1 overflow-hidden">
-          {TOKEN ? (
+          {!scriptLoaded ? (
+            <div class="h-full flex items-center justify-center">
+              <p class="text-sm text-zinc-400">{t("cart.loading")}</p>
+            </div>
+          ) : TOKEN ? (
             <inpost-geowidget
               ref={hostRef}
               token={TOKEN}
               language={lang === "pl" ? "pl" : "en"}
               config="parcelCollect"
-              onpoint={CALLBACK_NAME}
               style={{ width: "100%", height: "100%", display: "block" }}
             />
           ) : (
