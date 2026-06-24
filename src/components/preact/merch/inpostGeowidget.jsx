@@ -88,13 +88,23 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     return () => { document.body.style.overflow = "" }
   }, [open])
 
-  // Set the onpoint attribute directly to avoid Preact event handling
+  // Set the onpoint callback as a property and also listen for custom event
   useEffect(() => {
     const widget = hostRef.current
     if (widget && scriptLoaded) {
-      widget.setAttribute('onpoint', CALLBACK_NAME)
+      widget.onpoint = window[CALLBACK_NAME]
+      
+      // Also try listening for custom event
+      const onPointHandler = (e) => {
+        if (e.detail) handlePoint(e.detail)
+      }
+      widget.addEventListener('onpoint', onPointHandler)
+      
+      return () => {
+        widget.removeEventListener('onpoint', onPointHandler)
+      }
     }
-  }, [scriptLoaded])
+  }, [scriptLoaded, handlePoint])
 
   if (!open) return null
 
