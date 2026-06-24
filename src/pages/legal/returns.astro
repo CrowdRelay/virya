@@ -1,0 +1,13 @@
+---
+import LegalPage from "../../components/LegalPage.astro"
+import { getSeoTags } from "../../utils/seo"
+
+const lang = "en"
+const { canonicalUrl, hreflangLinks } = getSeoTags("/legal/returns/", lang)
+---
+<LegalPage
+  lang={lang}
+  pageKey="returns"
+  canonical={canonicalUrl}
+  hreflangLinks={hreflangLinks}
+/>

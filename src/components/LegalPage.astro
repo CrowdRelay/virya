@@ -1,0 +1,102 @@
+---
+import { t, lp, type Lang } from "../i18n/t"
+import { translations } from "../i18n/translations"
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import ScrollToTop from "./ScrollToTop.astro"
+
+type PageKey = "terms" | "returns" | "privacy"
+
+interface Props {
+  lang?: Lang
+  pageKey: PageKey
+  canonical?: string
+  hreflangLinks?: { rel: string; hreflang: string; href: string }[]
+}
+
+const { lang = "en", pageKey, canonical, hreflangLinks = [] } = Astro.props
+
+const dict = (translations as Record<string, any>)[lang] ?? (translations as Record<string, any>).en
+const legalDict = dict.legal
+const page = legalDict[pageKey] as { title: string; sections: any[] }
+
+type ParaToken = { t?: string; link?: { label: string; href: string } }
+
+const resolveHref = (href: string): string => {
+  if (href.startsWith("http") || href.startsWith("mailto")) return href
+  return lp(lang, href)
+}
+---
+
+<Layout
+  title={`${page.title} | Virya`}
+  lang={lang}
+  canonical={canonical}
+>
+  <slot name="head" slot="head">
+    {hreflangLinks.map((l) => (
+      <link rel={l.rel} hreflang={l.hreflang} href={l.href} />
+    ))}
+  </slot>
+
+  <div class="bg-zinc-950 min-h-screen flex flex-col">
+    <Navbar lang={lang} displayLinks={false} />
+    <ScrollToTop />
+
+    <main id="main-content" class="flex-1 pt-20 lg:container lg:mx-auto px-6 lg:px-12 py-12">
+      <div class="flex items-center gap-4 mb-8 border-b border-zinc-800/60 pb-6">
+        <a
+          href={lp(lang, "/merch")}
+          class="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none"
+          title={t(lang, "legal.back")}
+        >
+          &#8656;
+        </a>
+        <h1 class="text-2xl lg:text-3xl font-black uppercase tracking-widest text-white">
+          {page.title}
+        </h1>
+      </div>
+
+      <p class="text-[10px] uppercase tracking-widest text-zinc-500 mb-10">
+        {legalDict.lastUpdated}: {legalDict.date}
+      </p>
+
+      <div class="max-w-2xl space-y-10">
+        {page.sections.map((section: any) => (
+          <section>
+            <h2 class="text-sm font-black uppercase tracking-widest text-zinc-100 mb-3">
+              {section.heading}
+            </h2>
+            {section.paras?.map((para: ParaToken[]) => (
+              <p class="text-sm text-zinc-400 leading-relaxed text-justify mb-3">
+                {para.map((token: ParaToken) =>
+                  token.link ? (
+                    <a
+                      href={resolveHref(token.link.href)}
+                      class="text-amber-400 underline underline-offset-2 hover:text-amber-300 transition-colors"
+                      {...(token.link.href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
+                    >
+                      {token.link.label}
+                    </a>
+                  ) : (
+                    token.t
+                  )
+                )}
+              </p>
+            ))}
+            {section.list && (
+              <ul class="list-disc list-inside space-y-1 text-sm text-zinc-400 mt-2">
+                {section.list.map((item: string) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))}
+      </div>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>

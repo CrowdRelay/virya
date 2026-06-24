@@ -1,0 +1,32 @@
+---
+---
+
+<div class="absolute inset-0 z-0 overflow-hidden">
+  <video
+    id="hero-video"
+    class="absolute inset-0 w-full h-full object-cover"
+    muted
+    loop
+    playsinline
+    poster="/poster.webp"
+    preload="metadata"
+    aria-hidden="true"
+  >
+    <source src="/rise.webm" type="video/webm" />
+    <source src="/rise.mp4" type="video/mp4" />
+    <track kind="captions" src="/captions_en.vtt" srclang="en" label="English" />
+  </video>
+  <div class="absolute inset-0 bg-black/60" aria-hidden="true"></div>
+</div>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const video = document.getElementById("hero-video") as HTMLVideoElement | null
+    if (!video) return
+    video.muted = true
+    video.play().catch(() => {
+      video.muted = true
+      video.play().catch(() => {})
+    })
+  })
+</script>

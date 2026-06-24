@@ -2,30 +2,28 @@
     "name": "virya-website",
     "private": true,
     "description": "A band's landing page",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "author": "Virya <virya.crew@gmail.com>",
+    "type": "module",
     "bugs": {
-        "url": "https://github.com/wojciechbator/virya-website"
+        "url": "https://github.com/wojciechbator/virya"
     },
     "dependencies": {
-        "gatsby": "^5.16.1",
-        "gatsby-plugin-image": "^3.13.1",
-        "gatsby-plugin-manifest": "^5.13.1",
-        "gatsby-plugin-postcss": "^6.13.1",
-        "gatsby-plugin-sharp": "^5.13.1",
-        "gatsby-plugin-sitemap": "^6.16.0",
-        "gatsby-source-filesystem": "^5.13.1",
-        "gatsby-transformer-sharp": "^5.13.1",
-        "graphql": "^16.6.0",
-        "nodemailer": "^8.0.11",
-        "postcss": "^8.3.5",
-        "react": "18.3.1",
-        "react-dom": "18.3.1",
-        "stripe": "^22.2.1"
+        "@astrojs/netlify": "^8.0.0",
+        "@astrojs/preact": "^6.0.0",
+        "@astrojs/sitemap": "^3.7.3",
+        "@tailwindcss/vite": "^4.3.1",
+        "astro": "^7.0.0",
+        "nodemailer": "^9.0.1",
+        "preact": "^10.29.2",
+        "stripe": "^22.2.1",
+        "tailwindcss": "^4.3.1"
     },
     "devDependencies": {
-        "prettier": "^2.7.1",
-        "tailwindcss": "^3.1.1"
+        "@types/node": "^26.0.0",
+        "@types/nodemailer": "^8.0.1",
+        "prettier": "^3.3.3",
+        "typescript": "^6.0.3"
     },
     "homepage": "https://www.virya.music",
     "keywords": [
@@ -35,30 +33,15 @@
         "guitar"
     ],
     "license": "0BSD",
-    "main": "n/a",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/wojciechbator/virya-website.git"
+        "url": "git+https://github.com/wojciechbator/virya.git"
     },
     "scripts": {
-        "build": "gatsby build",
-        "develop": "gatsby develop",
-        "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
-        "start": "npm run develop",
-        "serve": "gatsby serve",
-        "clean": "gatsby clean",
-        "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
-    },
-    "browserslist": [
-        "last 2 Chrome versions",
-        "last 2 Firefox versions",
-        "last 2 Safari versions",
-        "last 2 Edge versions",
-        "Firefox ESR",
-        "not dead",
-        "not ie 11"
-    ],
-    "engines": {
-        "node": ">=18.0.0"
+        "dev": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview",
+        "start": "astro dev",
+        "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,json,md}\""
     }
 }

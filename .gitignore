@@ -70,6 +70,5 @@ yarn-error.log
 # Local Netlify folder
 .netlify
 
-public/*
 !public/_redirects
 .claude

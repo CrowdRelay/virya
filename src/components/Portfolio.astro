@@ -1,0 +1,75 @@
+---
+import { t, lp, type Lang } from "../i18n/t"
+import items from "./portfolio/items.json"
+
+interface Props {
+  lang?: Lang
+}
+const { lang = "en" } = Astro.props
+
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+---
+
+<div class="py-16 lg:px-8 border-t border-zinc-800/60">
+  <div class="mx-4 mb-6">
+    <div class="flex items-center gap-4 mb-2">
+      <p class="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
+        {t(lang, "music.heading")}
+      </p>
+      <div class="flex-1 h-px bg-zinc-800" />
+    </div>
+    <p class="text-zinc-400 text-xs uppercase tracking-widest">{t(lang, "music.sub")}</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-1 overflow-hidden mx-4">
+    {items.map((item) => {
+      const text = lang === "pl" && item.text_pl ? item.text_pl : item.text
+      const slug = slugify(item.title)
+      return (
+        <div class="relative group block overflow-hidden">
+          <div class="z-10 absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 max-lg:opacity-100 max-lg:translate-y-0 transition-all duration-300 ease-out px-4 pt-12 pb-5">
+            <h2 class="text-sm lg:text-base font-black uppercase tracking-wide leading-tight mb-1">
+              <a href={lp(lang, `/music/${slug}`)} class="hover:text-amber-400 transition-colors">
+                {item.title}
+              </a>
+            </h2>
+            <p class="text-xs text-justify text-zinc-400 leading-snug mb-3 line-clamp-4">{text}</p>
+            <div class="flex gap-2 flex-wrap">
+              {item.link && (
+                <a href={item.link} rel="noreferrer" target="_blank" class="inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200">
+                  {t(lang, "music.listen")}
+                </a>
+              )}
+              {item.watch && (
+                <a href={item.watch} rel="noreferrer" target="_blank" class="inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200">
+                  {t(lang, "music.watch")}
+                </a>
+              )}
+              {item.buy && (
+                <a href={item.buy} rel="noreferrer" target="_blank" class="inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200">
+                  {t(lang, "music.buy")}
+                </a>
+              )}
+              {item.merch && (
+                <a href={lp(lang, item.merch)} class="inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 bg-amber-400 text-black hover:bg-amber-300 transition-all duration-200">
+                  {t(lang, "music.merch")}
+                </a>
+              )}
+            </div>
+          </div>
+          <a href={lp(lang, `/music/${slug}/`)} aria-label={item.title} class="block w-full aspect-square object-cover">
+            <img
+              src={`/covers/${item.src}`}
+              alt={item.alt}
+              loading="lazy"
+              decoding="async"
+              width="760"
+              height="760"
+              class="block w-full aspect-square object-cover rounded-sm transition-opacity duration-200 group-hover:opacity-80"
+            />
+          </a>
+        </div>
+      )
+    })}
+  </div>
+</div>

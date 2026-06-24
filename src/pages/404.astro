@@ -1,0 +1,29 @@
+---
+import Layout from "../components/Layout.astro"
+import Navbar from "../components/Navbar.astro"
+import Footer from "../components/Footer.astro"
+import { t, lp } from "../i18n/t"
+
+const lang = "en"
+---
+
+<Layout title="404 | Virya" lang={lang}>
+  <div class="bg-zinc-950 min-h-screen flex flex-col">
+    <Navbar lang={lang} displayLinks={false} />
+
+    <main id="main-content" class="flex-1 flex flex-col items-center justify-center px-6 text-center py-20">
+      <p class="text-[10px] font-bold uppercase tracking-[0.4em] text-amber-400 mb-6">404</p>
+      <h1 class="text-4xl lg:text-5xl font-black uppercase tracking-tight text-white mb-8">
+        {t(lang, "notFound.title")}
+      </h1>
+      <a
+        href={lp(lang, "/")}
+        class="text-xs font-bold uppercase tracking-widest px-6 py-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-colors"
+      >
+        {t(lang, "notFound.back")}
+      </a>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>
