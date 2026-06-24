@@ -73,4 +73,6 @@ yarn-error.log
 !public/_redirects
 .claude
 .devin
+.astro
+.agents
 dist/
