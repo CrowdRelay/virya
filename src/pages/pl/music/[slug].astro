@@ -3,6 +3,7 @@ import Layout from "../../../components/Layout.astro"
 import Navbar from "../../../components/Navbar.astro"
 import Footer from "../../../components/Footer.astro"
 import ScrollToTop from "../../../components/ScrollToTop.astro"
+import ChevronLeft from "../../../components/ChevronLeft.astro"
 import { t, lp } from "../../../i18n/t"
 import { getSeoTags } from "../../../utils/seo"
 import items from "../../../components/portfolio/items.json"
@@ -45,8 +46,9 @@ const displayText = lang === "pl" && item.text_pl ? item.text_pl : item.text
 
     <main id="main-content" class="flex-1 pt-20">
       <div class="px-6 lg:px-12 py-16 lg:py-24 max-w-4xl mx-auto">
-        <a href={lp(lang, "/#music")} class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mb-10">
-          ← {t(lang, "music.heading")}
+        <a href={lp(lang, "/#music")} class="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mb-10">
+          <ChevronLeft class="w-3.5 h-3.5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+          {t(lang, "music.heading")}
         </a>
 
         <div class="grid lg:grid-cols-[280px_1fr] gap-10 lg:gap-14 items-start">

@@ -5,6 +5,7 @@ import Layout from "./Layout.astro"
 import Navbar from "./Navbar.astro"
 import Footer from "./Footer.astro"
 import ScrollToTop from "./ScrollToTop.astro"
+import ChevronLeft from "./ChevronLeft.astro"
 
 type PageKey = "terms" | "returns" | "privacy"
 
@@ -48,9 +49,10 @@ const resolveHref = (href: string): string => {
       <div class="px-6 lg:px-12 py-16 lg:py-24 max-w-4xl mx-auto">
       <a
         href={lp(lang, "/merch")}
-        class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mb-10"
+        class="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mb-10"
       >
-        ← {t(lang, "legal.back")}
+        <ChevronLeft class="w-3.5 h-3.5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+        {t(lang, "legal.back")}
       </a>
       <div class="mb-8 border-b border-zinc-800/60 pb-6">
         <h1 class="text-2xl lg:text-3xl font-black uppercase tracking-widest text-white">
