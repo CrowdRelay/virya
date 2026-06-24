@@ -234,20 +234,20 @@ export const translations = {
       title: "Thank you 💪",
       body: "Your payment went through and your order is on its way to the crew. You'll get a confirmation by email, and we'll ship it to your chosen InPost Paczkomat.",
       stickers: "And yes — free stickers are in the box.",
-      back: "Back to store",
+      back: "To store",
     },
     cancel: {
       eyebrow: "Payment cancelled",
       title: "No worries",
       body: "Your payment was cancelled and you haven't been charged. Your cart is still saved — head back whenever you're ready.",
-      back: "Back to store",
+      back: "To store",
     },
     notFound: {
       title: "Division 404",
-      back: "Fly back to the main page",
+      back: "To main page",
     },
     legal: {
-      back: "Back to store",
+      back: "To store",
       lastUpdated: "Last updated",
       date: "17 June 2026",
       terms: {
@@ -604,20 +604,20 @@ export const translations = {
       title: "Dziękujemy 💪",
       body: "Płatność się powiodła, a Twoje zamówienie jest już w drodze do ekipy. Potwierdzenie dostaniesz e-mailem, a paczkę wyślemy do wybranego Paczkomatu InPost.",
       stickers: "I tak — naklejki są w paczce.",
-      back: "Wróć do sklepu",
+      back: "Do sklepu",
     },
     cancel: {
       eyebrow: "Płatność anulowana",
       title: "Nic się nie stało",
       body: "Płatność została anulowana i nic Cię nie obciążyło. Twój koszyk wciąż jest zapisany — wróć, kiedy będziesz gotów.",
-      back: "Wróć do sklepu",
+      back: "Do sklepu",
     },
     notFound: {
       title: "Dywizja 404",
-      back: "Wróć na stronę główną",
+      back: "Do strony głównej",
     },
     legal: {
-      back: "Wróć do sklepu",
+      back: "Do sklepu",
       lastUpdated: "Ostatnia aktualizacja",
       date: "17 czerwca 2026",
       terms: {
