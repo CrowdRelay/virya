@@ -68,48 +68,48 @@ const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
     <Navbar lang={lang} displayLinks={false} />
     <ScrollToTop />
 
-    <main id="main-content" class="flex-1 pt-20">
-      <div class="px-6 lg:px-12 py-8 lg:py-24 max-w-4xl mx-auto">
-        <a href={lp(lang, "/#shows")} onClick={(e) => { e.preventDefault(); window.location.href = lp(lang, "/"); setTimeout(() => { const el = document.getElementById('shows'); if (el) el.scrollIntoView({ behavior: 'smooth' }) }, 100) }} class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mb-10">
+    <main id="main-content" class="flex-1 pt-16 lg:pt-20">
+      <div class="w-full px-4 lg:px-12 py-4 lg:py-24 max-w-4xl mx-auto overflow-hidden">
+        <a href={lp(lang, "/#shows")} onClick={(e) => { e.preventDefault(); window.location.href = lp(lang, "/"); setTimeout(() => { const el = document.getElementById('shows'); if (el) el.scrollIntoView({ behavior: 'smooth' }) }, 100) }} class="inline-flex items-center gap-2 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mb-4 lg:mb-10">
           ← {t(lang, "shows.heading")}
         </a>
 
-        <div class="grid lg:grid-cols-[1fr_320px] gap-10 lg:gap-14 items-start">
-          <div>
-            <p class="text-[10px] font-bold uppercase tracking-widest text-amber-400/80 mb-3">{dateStr} · {timeStr}</p>
-            <h1 class="text-3xl lg:text-4xl font-black uppercase tracking-tight text-white mb-6">
+        <div class="grid lg:grid-cols-[1fr_320px] gap-4 lg:gap-14 items-start">
+          <div class="min-w-0 max-w-full">
+            <p class="text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-amber-400/80 mb-1 lg:mb-3 break-words">{dateStr} · {timeStr}</p>
+            <h1 class="text-xl lg:text-4xl font-black uppercase tracking-tight text-white mb-2 lg:mb-6 leading-tight break-words overflow-hidden">
               {gig.venue?.name || gig.title}
             </h1>
 
             {gig.venue?.city && (
-              <p class="text-sm text-zinc-400 uppercase tracking-widest mb-6">
+              <p class="text-xs lg:text-sm text-zinc-400 uppercase tracking-widest mb-3 lg:mb-6 break-words">
                 {gig.venue.city}{gig.venue.country ? `, ${gig.venue.country}` : ""}
               </p>
             )}
 
             {gig.description && (
-              <p class="text-zinc-300 leading-relaxed text-justify mb-8">{gig.description}</p>
+              <p class="text-zinc-300 leading-relaxed text-justify text-xs lg:text-base mb-4 lg:mb-8 break-words">{gig.description}</p>
             )}
 
             {gig.lineup && gig.lineup.length > 0 && (
-              <div class="mb-8">
-                <h2 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">{t(lang, "gig.lineup")}</h2>
-                <ul class="space-y-2">
+              <div class="mb-4 lg:mb-8">
+                <h2 class="text-[10px] lg:text-xs font-black uppercase tracking-widest text-zinc-400 mb-2 lg:mb-4">{t(lang, "gig.lineup")}</h2>
+                <ul class="space-y-1 lg:space-y-2">
                   {gig.lineup.map((act: string) => (
-                    <li class="text-sm text-zinc-200 border-l-2 border-amber-400/30 pl-3">{act}</li>
+                    <li class="text-xs lg:text-sm text-zinc-200 border-l-2 border-amber-400/30 pl-3 break-words">{act}</li>
                   ))}
                 </ul>
               </div>
             )}
 
-            <div class="flex flex-wrap gap-3">
+            <div class="flex flex-wrap gap-2 lg:gap-3">
               {gig.url && (
-                <a href={gig.url} target="_blank" rel="noreferrer" class="text-[11px] font-bold uppercase tracking-widest px-5 py-3 border border-zinc-700 text-zinc-200 hover:border-amber-400/60 hover:text-amber-400 transition-colors">
+                <a href={gig.url} target="_blank" rel="noreferrer" class="text-[10px] lg:text-[11px] font-bold uppercase tracking-widest px-4 lg:px-5 py-2 lg:py-3 border border-zinc-700 text-zinc-200 hover:border-amber-400/60 hover:text-amber-400 transition-colors">
                   {t(lang, "shows.event")}
                 </a>
               )}
               {gig.offers?.[0]?.url && (
-                <a href={gig.offers[0].url} target="_blank" rel="noreferrer" class="text-[11px] font-bold uppercase tracking-widest px-5 py-3 bg-amber-400 text-black hover:bg-amber-300 transition-colors">
+                <a href={gig.offers[0].url} target="_blank" rel="noreferrer" class="text-[10px] lg:text-[11px] font-bold uppercase tracking-widest px-4 lg:px-5 py-2 lg:py-3 bg-amber-400 text-black hover:bg-amber-300 transition-colors">
                   {t(lang, "gig.getTickets")}
                 </a>
               )}
@@ -124,7 +124,7 @@ const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
               height="240"
               loading="lazy"
               decoding="async"
-              class="w-full h-auto object-cover max-h-[200px] lg:max-h-none"
+              class="w-full aspect-square object-cover lg:aspect-auto lg:max-w-none lg:max-h-none"
             />
           </div>
         </div>
