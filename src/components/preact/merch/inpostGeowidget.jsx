@@ -1,9 +1,10 @@
-import { useEffect, useRef, useCallback, useState } from "preact/hooks"
+import { useEffect, useRef, useState } from "preact/hooks"
 import { useI18n } from "../../../i18n/I18nContext"
 
 const SCRIPT_SRC = "https://geowidget.inpost.pl/inpost-geowidget.js"
 const STYLE_HREF = "https://geowidget.inpost.pl/inpost-geowidget.css"
 const TOKEN = import.meta.env.PUBLIC_INPOST_GEOWIDGET_TOKEN || ""
+const CB_NAME = "__viryaGeopointCb"
 
 const normalizePoint = (p) => {
   if (!p) return null
@@ -33,58 +34,62 @@ const ensureAssets = () => {
 
 const InpostGeowidget = ({ open, onClose, onSelect }) => {
   const { t, lang } = useI18n()
-  const hostRef = useRef(null)
+  const containerRef = useRef(null)
   const [scriptLoaded, setScriptLoaded] = useState(false)
 
-  const handlePoint = useCallback((point) => {
-    const normalized = normalizePoint(point)
-    if (!normalized || !normalized.code) return
-    onSelect(normalized)
-    onClose()
-  }, [onSelect, onClose])
-
-  useEffect(() => {
-    if (!open) return
-    ensureAssets()
-    
-    // Wait for script to load and custom element to be defined
-    const checkScript = setInterval(() => {
-      if (typeof window !== "undefined" && customElements.get('inpost-geowidget')) {
-        setScriptLoaded(true)
-        clearInterval(checkScript)
-      }
-    }, 100)
-
-    // Fallback timeout after 5 seconds
-    const timeout = setTimeout(() => {
-      setScriptLoaded(true)
-      clearInterval(checkScript)
-    }, 5000)
-
-    return () => {
-      clearInterval(checkScript)
-      clearTimeout(timeout)
-    }
-  }, [open])
-
+  // Lock body scroll while open
   useEffect(() => {
     if (typeof document === "undefined") return
     document.body.style.overflow = open ? "hidden" : ""
     return () => { document.body.style.overflow = "" }
   }, [open])
 
-  // Geowidget v5 dispatches a CustomEvent literally named "onpoint" on the
-  // element itself (point payload in e.detail) when the user picks a locker.
-  // Bind directly to it — no `onpoint` attribute / global function needed.
+  // Load InPost script, wait for custom element to register
   useEffect(() => {
-    if (!open || !scriptLoaded) return
-    const el = hostRef.current
-    if (!el) return
+    if (!open) return
+    ensureAssets()
 
-    const listener = (e) => handlePoint(e.detail || {})
-    el.addEventListener("onpoint", listener)
-    return () => el.removeEventListener("onpoint", listener)
-  }, [open, scriptLoaded, handlePoint])
+    const check = setInterval(() => {
+      if (customElements.get("inpost-geowidget")) {
+        setScriptLoaded(true)
+        clearInterval(check)
+      }
+    }, 100)
+    const fallback = setTimeout(() => { setScriptLoaded(true); clearInterval(check) }, 5000)
+
+    return () => { clearInterval(check); clearTimeout(fallback) }
+  }, [open])
+
+  // Create the widget element imperatively so we can set the onpoint attribute
+  // BEFORE appending to DOM — the widget reads it in connectedCallback and uses
+  // window[onpoint](point) as its callback mechanism (closed shadow DOM, so
+  // CustomEvent listeners on the host don't fire from inside the shadow).
+  useEffect(() => {
+    if (!open || !scriptLoaded || !TOKEN) return
+    const container = containerRef.current
+    if (!container) return
+
+    window[CB_NAME] = (point) => {
+      const normalized = normalizePoint(point)
+      if (!normalized || !normalized.code) return
+      onSelect(normalized)
+      onClose()
+    }
+
+    const widget = document.createElement("inpost-geowidget")
+    widget.setAttribute("token", TOKEN)
+    widget.setAttribute("language", lang === "pl" ? "pl" : "en")
+    widget.setAttribute("config", "parcelCollect")
+    widget.setAttribute("onpoint", CB_NAME)
+    widget.style.cssText = "width:100%;height:100%;display:block"
+
+    container.appendChild(widget)
+
+    return () => {
+      if (container.contains(widget)) container.removeChild(widget)
+      delete window[CB_NAME]
+    }
+  }, [open, scriptLoaded, lang, onSelect, onClose])
 
   if (!open) return null
 
@@ -101,20 +106,13 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
           <p class="text-xs font-bold uppercase tracking-widest text-zinc-300">{t("cart.choosePaczkomatTitle")}</p>
           <button onClick={onClose} aria-label={t("cart.close")} class="text-zinc-500 hover:text-amber-400 transition-colors text-xl leading-none">&times;</button>
         </div>
-        <div class="flex-1 overflow-hidden relative z-10 pointer-events-auto">
-          {!scriptLoaded ? (
+        <div class="flex-1 overflow-hidden" ref={containerRef}>
+          {!scriptLoaded && (
             <div class="h-full flex items-center justify-center">
               <p class="text-sm text-zinc-400">{t("cart.loading")}</p>
             </div>
-          ) : TOKEN ? (
-            <inpost-geowidget
-              ref={hostRef}
-              token={TOKEN}
-              language={lang === "pl" ? "pl" : "en"}
-              config="parcelCollect"
-              style={{ width: "100%", height: "100%", display: "block", position: "relative", zIndex: 10 }}
-            />
-          ) : (
+          )}
+          {!TOKEN && scriptLoaded && (
             <div class="h-full flex items-center justify-center text-center px-6">
               <p class="text-sm text-zinc-400">
                 {t("cart.widgetMissing")}{" "}
