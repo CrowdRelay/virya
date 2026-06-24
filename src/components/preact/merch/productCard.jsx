@@ -185,7 +185,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
 
       <div class="flex flex-col flex-1 p-4">
         <h2 class="text-sm lg:text-base font-black uppercase tracking-wide leading-tight text-zinc-100">{name}</h2>
-        <p class={`text-xs text-zinc-400 leading-snug mt-1 ${bundle || product.spotifyId ? "mb-3" : "mb-4 flex-1"}`}>{blurb}</p>
+        <p class={`text-xs text-zinc-400 leading-snug mt-1 text-justify ${bundle || product.spotifyId ? "mb-3" : "mb-4 flex-1"}`}>{blurb}</p>
 
         {bundle && Array.isArray(includes) && (
           <ul class="mb-4 flex-1 space-y-1">
@@ -310,7 +310,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
                 ))}
               </tbody>
             </table>
-            <p class="text-[10px] text-zinc-400 leading-relaxed mt-4">{t("product.sizeChartNote")}</p>
+            <p class="text-[10px] text-zinc-400 leading-relaxed mt-4 text-justify">{t("product.sizeChartNote")}</p>
           </div>
         </div>
       )}
