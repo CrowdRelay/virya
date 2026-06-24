@@ -2,9 +2,9 @@ import nodemailer from "nodemailer"
 import { VAT_RATE, vatBreakdown } from "../data/products"
 
 export const sendOrderEmail = async ({ session, lineItems }) => {
-  const user = process.env.GMAIL_USER
-  const pass = process.env.GMAIL_APP_PASSWORD
-  const to = process.env.ORDER_EMAIL_TO || user
+  const user = import.meta.env.GMAIL_USER
+  const pass = import.meta.env.GMAIL_APP_PASSWORD
+  const to = import.meta.env.ORDER_EMAIL_TO || user
 
   if (!user || !pass) {
     console.warn(

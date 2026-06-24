@@ -26,12 +26,19 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session
-    if (session.payment_status !== "paid") {
+    const evtSession = event.data.object as Stripe.Checkout.Session
+    if (evtSession.payment_status !== "paid") {
       return new Response("Not paid yet", { status: 200 })
     }
 
     try {
+      // Re-fetch for authoritative metadata — duplicate webhook deliveries and
+      // Stripe retries must not re-send email / re-create the InPost shipment.
+      const session = await stripe.checkout.sessions.retrieve(evtSession.id)
+      if (session.metadata?.virya_processed === "1") {
+        return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 })
+      }
+
       const lineItemsResp = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 })
       const lineItems = lineItemsResp.data
 
@@ -39,6 +46,11 @@ export const POST: APIRoute = async ({ request }) => {
         sendOrderEmail({ session, lineItems }),
         createInpostShipment({ session }),
       ])
+
+      // Mark processed so subsequent deliveries short-circuit above.
+      await stripe.checkout.sessions.update(session.id, {
+        metadata: { ...session.metadata, virya_processed: "1" },
+      })
     } catch (err) {
       console.error("[stripe-webhook] post-payment tasks failed:", err)
     }
