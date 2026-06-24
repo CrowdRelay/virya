@@ -111,7 +111,7 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
           <p class="text-xs font-bold uppercase tracking-widest text-zinc-300">{t("cart.choosePaczkomatTitle")}</p>
           <button onClick={onClose} aria-label={t("cart.close")} class="text-zinc-500 hover:text-amber-400 transition-colors text-xl leading-none">&times;</button>
         </div>
-        <div class="flex-1 overflow-hidden relative z-10">
+        <div class="flex-1 overflow-hidden relative z-10 pointer-events-auto">
           {!scriptLoaded ? (
             <div class="h-full flex items-center justify-center">
               <p class="text-sm text-zinc-400">{t("cart.loading")}</p>
