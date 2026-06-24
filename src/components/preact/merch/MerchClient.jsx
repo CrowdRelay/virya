@@ -85,7 +85,7 @@ const MerchInner = () => {
                 </div>
               ))}
             </dl>
-            <div class="flex flex-wrap gap-4 mt-6 text-[10px] uppercase tracking-widest text-zinc-600">
+            <div class="flex flex-wrap gap-4 mt-6 text-[10px] uppercase tracking-widest text-zinc-400">
               <a href={lp("/legal/terms")} class="hover:text-amber-400 transition-colors">{t("merch.termsLink")}</a>
               <a href={lp("/legal/returns")} class="hover:text-amber-400 transition-colors">{t("merch.returnsLink")}</a>
               <a href={lp("/legal/privacy")} class="hover:text-amber-400 transition-colors">{t("merch.privacyLink")}</a>
