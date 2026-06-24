@@ -48,10 +48,33 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     {description && <meta name="twitter:description" content={description} />}
     <meta name="twitter:image" content={ogImage} />
     <link rel="icon" href="/favicon-32x32.png" type="image/png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/virya.webp" />
     <title>{title}</title>
     <slot name="head" />
     <ClientRouter />
     {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.error('Service worker registration failed:', err)
+          })
+        })
+      }
+
+      // Expose unregister function for cleanup if needed
+      window.unregisterServiceWorker = async () => {
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.getRegistration()
+          if (registration) {
+            await registration.unregister()
+            console.log('Service worker unregistered')
+            location.reload()
+          }
+        }
+      }
+    </script>
   </head>
   <body>
     <slot />
