@@ -70,7 +70,7 @@ const typeLabel = item.type === "album" ? t(lang, "release.albumType") : item.ty
           <div>
             <p class="text-[10px] font-bold uppercase tracking-widest text-amber-400/80 mb-2">{typeLabel}</p>
             <h1 class="text-3xl lg:text-4xl font-black uppercase tracking-tight text-white mb-4">{item.title}</h1>
-            <p class="text-zinc-400 text-sm leading-relaxed mb-8">{item.text}</p>
+            <p class="text-zinc-400 text-sm leading-relaxed mb-8 text-justify">{item.text}</p>
 
             <h2 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">{t(lang, "release.listenHeading")}</h2>
             <div class="flex flex-wrap gap-3">

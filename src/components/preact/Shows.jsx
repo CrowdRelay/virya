@@ -115,7 +115,7 @@ const ShowsInner = ({ lang }) => {
             <div class="border-l-2 border-zinc-700 pl-4 py-4">
               <p class="text-zinc-400 text-xs uppercase tracking-widest">{t("shows.none")}</p>
               <a href="#join" onClick={(e) => { e.preventDefault(); document.getElementById('join')?.scrollIntoView({ behavior: 'smooth' }) }} class="inline-flex items-center gap-2 mt-3 text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors">
-                {t("shows.joinCta")} <span aria-hidden="true">&rarr;</span>
+                {t("shows.joinCta")} <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 shrink-0 transition-transform group-hover:translate-x-0.5"><path d="M13 5l6 7-6 7M5 5l6 7-6 7" /></svg>
               </a>
             </div>
           ) : (
