@@ -129,6 +129,7 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
               token={TOKEN}
               language={lang === "pl" ? "pl" : "en"}
               config="parcelCollect"
+              onpoint={CALLBACK_NAME}
               style={{ width: "100%", height: "100%", display: "block", position: "relative", zIndex: 10 }}
             />
           ) : (
