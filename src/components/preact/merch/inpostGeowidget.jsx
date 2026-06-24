@@ -6,8 +6,6 @@ const STYLE_HREF = "https://geowidget.inpost.pl/inpost-geowidget.css"
 const TOKEN = import.meta.env.PUBLIC_INPOST_GEOWIDGET_TOKEN || ""
 const CALLBACK_NAME = "viryaAfterPointSelected"
 
-let activeHandler = null
-
 const normalizePoint = (p) => {
   if (!p) return null
   const address = p.address
@@ -16,10 +14,6 @@ const normalizePoint = (p) => {
     ? `${p.address_details.street || ""} ${p.address_details.building_number || ""}, ${p.address_details.city || ""}`.trim()
     : ""
   return { code: p.name || p.id || "", description: p.location_description || "", address }
-}
-
-if (typeof window !== "undefined") {
-  window[CALLBACK_NAME] = (point) => { if (activeHandler) activeHandler(point) }
 }
 
 const ensureAssets = () => {
@@ -75,30 +69,20 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
   }, [open])
 
   useEffect(() => {
-    if (!open) return
-    activeHandler = handlePoint
-    return () => {
-      if (activeHandler === handlePoint) activeHandler = null
-    }
-  }, [open, handlePoint])
-
-  useEffect(() => {
     if (typeof document === "undefined") return
     document.body.style.overflow = open ? "hidden" : ""
     return () => { document.body.style.overflow = "" }
   }, [open])
 
-  // Listen for custom event from InPost widget
+  // Set callback directly on widget element
   useEffect(() => {
     const widget = hostRef.current
     if (widget && scriptLoaded) {
-      const onPointHandler = (e) => {
-        if (e.detail) handlePoint(e.detail)
-      }
-      widget.addEventListener('onpoint', onPointHandler)
+      // Set the callback function directly
+      widget.onpoint = handlePoint
       
       return () => {
-        widget.removeEventListener('onpoint', onPointHandler)
+        widget.onpoint = null
       }
     }
   }, [scriptLoaded, handlePoint])
@@ -129,7 +113,6 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
               token={TOKEN}
               language={lang === "pl" ? "pl" : "en"}
               config="parcelCollect"
-              onpoint={CALLBACK_NAME}
               style={{ width: "100%", height: "100%", display: "block", position: "relative", zIndex: 10 }}
             />
           ) : (
