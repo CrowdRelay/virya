@@ -44,15 +44,15 @@ const resolveHref = (href: string): string => {
     <Navbar lang={lang} displayLinks={false} />
     <ScrollToTop />
 
-    <main id="main-content" class="flex-1 pt-20 lg:container lg:mx-auto px-6 lg:px-12 py-12">
-      <div class="flex items-center gap-4 mb-8 border-b border-zinc-800/60 pb-6">
-        <a
-          href={lp(lang, "/merch")}
-          class="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none"
-          title={t(lang, "legal.back")}
-        >
-          &#8656;
-        </a>
+    <main id="main-content" class="flex-1 pt-20">
+      <div class="px-6 lg:px-12 py-16 lg:py-24 max-w-4xl mx-auto">
+      <a
+        href={lp(lang, "/merch")}
+        class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mb-10"
+      >
+        ← {t(lang, "legal.back")}
+      </a>
+      <div class="mb-8 border-b border-zinc-800/60 pb-6">
         <h1 class="text-2xl lg:text-3xl font-black uppercase tracking-widest text-white">
           {page.title}
         </h1>
@@ -94,6 +94,7 @@ const resolveHref = (href: string): string => {
             )}
           </section>
         ))}
+      </div>
       </div>
     </main>
 
