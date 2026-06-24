@@ -89,13 +89,15 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     }
   }, [open, handlePoint])
 
-  // Set callback via attribute - InPost widget reads the callback name from this attribute
+  // Wire the geowidget "select" callback. Preact intercepts any on* prop as an
+  // event handler, so the onpoint attribute must be set imperatively on the
+  // custom element instead of via JSX. The widget calls window[onpoint](point).
   useEffect(() => {
-    const widget = hostRef.current
-    if (widget && scriptLoaded) {
-      widget.setAttribute('onpoint', CALLBACK_NAME)
-    }
-  }, [scriptLoaded])
+    if (!open || !scriptLoaded) return
+    const el = hostRef.current
+    if (!el) return
+    el.setAttribute("onpoint", CALLBACK_NAME)
+  }, [open, scriptLoaded])
 
   if (!open) return null
 

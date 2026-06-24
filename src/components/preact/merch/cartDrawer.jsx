@@ -163,14 +163,14 @@ const CartDrawer = () => {
             <div>
               <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">{t("cart.billing")}</p>
               <div class="grid grid-cols-2 gap-2">
-                <input type="text" value={invoice.name} onChange={setField("name")} placeholder={t("cart.firstName")} autoComplete="given-name" class={inputClass} />
-                <input type="text" value={invoice.surname} onChange={setField("surname")} placeholder={t("cart.surname")} autoComplete="family-name" class={inputClass} />
+                <input type="text" value={invoice.name} onInput={setField("name")} placeholder={t("cart.firstName")} autoComplete="given-name" class={inputClass} />
+                <input type="text" value={invoice.surname} onInput={setField("surname")} placeholder={t("cart.surname")} autoComplete="family-name" class={inputClass} />
               </div>
-              <input type="email" value={invoice.email} onChange={setField("email")} placeholder={t("cart.emailPh")} autoComplete="email" class={`${inputClass} mt-2 w-full`} />
-              <input type="text" value={invoice.address} onChange={setField("address")} placeholder={t("cart.addressPh")} autoComplete="street-address" class={`${inputClass} mt-2 w-full`} />
+              <input type="email" value={invoice.email} onInput={setField("email")} placeholder={t("cart.emailPh")} autoComplete="email" class={`${inputClass} mt-2 w-full`} />
+              <input type="text" value={invoice.address} onInput={setField("address")} placeholder={t("cart.addressPh")} autoComplete="street-address" class={`${inputClass} mt-2 w-full`} />
               <div class="grid grid-cols-2 gap-2 mt-2">
-                <input type="text" value={invoice.company} onChange={setField("company")} placeholder={t("cart.company")} autoComplete="organization" class={inputClass} />
-                <input type="text" value={invoice.nip} onChange={setField("nip")} placeholder={t("cart.nip")} class={inputClass} />
+                <input type="text" value={invoice.company} onInput={setField("company")} placeholder={t("cart.company")} autoComplete="organization" class={inputClass} />
+                <input type="text" value={invoice.nip} onInput={setField("nip")} placeholder={t("cart.nip")} class={inputClass} />
               </div>
             </div>
 

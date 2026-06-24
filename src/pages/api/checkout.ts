@@ -1,8 +1,9 @@
 import type { APIRoute } from "astro"
 import Stripe from "stripe"
-import { getProduct, SHIPPING_PLN, discountedPrice, productRequiresShipping, toMinorUnits, vatBreakdown } from "../../data/products"
+import { getProduct, SHIPPING_PLN, discountedPrice, productRequiresShipping, toMinorUnits, vatBreakdown, sizeInStock, productInStock } from "../../data/products"
 
 const SITE = "https://www.virya.music"
+const MAX_QTY = 20
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -28,9 +29,21 @@ export const POST: APIRoute = async ({ request }) => {
     const orderSummaryParts: string[] = []
     let needsShipping = false
 
-    for (const { id, size, qty } of items) {
+    for (const { id, size, qty: rawQty } of items) {
       const product = getProduct(id)
       if (!product) continue
+
+      const qty = Number.parseInt(rawQty, 10)
+      if (!Number.isFinite(qty) || qty < 1 || qty > MAX_QTY) {
+        return new Response(JSON.stringify({ error: "Invalid quantity" }), { status: 400 })
+      }
+      if (!productInStock(product)) {
+        return new Response(JSON.stringify({ error: `Out of stock: ${(product as any).name}` }), { status: 400 })
+      }
+      if (Array.isArray((product as any).sizes) && !sizeInStock(product, size)) {
+        return new Response(JSON.stringify({ error: "Invalid or out-of-stock size" }), { status: 400 })
+      }
+
       const unitPrice = discountedPrice(product)
       const lineTotal = unitPrice * qty
       goodsGross += lineTotal

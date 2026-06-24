@@ -4,8 +4,8 @@ const BASE_URLS = {
 }
 
 export const createInpostShipment = async ({ session }) => {
-  const token = process.env.INPOST_SHIPX_TOKEN
-  const orgId = process.env.INPOST_ORGANIZATION_ID
+  const token = import.meta.env.INPOST_SHIPX_TOKEN
+  const orgId = import.meta.env.INPOST_ORGANIZATION_ID
   if (!token || !orgId) {
     return {
       skipped: true,
@@ -19,7 +19,7 @@ export const createInpostShipment = async ({ session }) => {
   }
 
   const base =
-    BASE_URLS[process.env.INPOST_ENV === "sandbox" ? "sandbox" : "production"]
+    BASE_URLS[import.meta.env.INPOST_ENV === "sandbox" ? "sandbox" : "production"]
   const customer = session.customer_details || {}
 
   const body = {
