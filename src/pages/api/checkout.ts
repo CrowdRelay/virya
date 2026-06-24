@@ -101,7 +101,7 @@ export const POST: APIRoute = async ({ request }) => {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: lineItems,
-      payment_method_types: ["card", "blik", "revolut_pay", "samsung_pay"],
+      payment_method_types: ["card", "blik", "revolut_pay"],
       success_url: `${SITE}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${SITE}${cancelPath}`,
       customer_email: invoice?.email,
