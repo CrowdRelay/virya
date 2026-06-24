@@ -111,7 +111,7 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
           <p class="text-xs font-bold uppercase tracking-widest text-zinc-300">{t("cart.choosePaczkomatTitle")}</p>
           <button onClick={onClose} aria-label={t("cart.close")} class="text-zinc-500 hover:text-amber-400 transition-colors text-xl leading-none">&times;</button>
         </div>
-        <div class="flex-1 overflow-hidden">
+        <div class="flex-1 overflow-hidden relative z-10">
           {!scriptLoaded ? (
             <div class="h-full flex items-center justify-center">
               <p class="text-sm text-zinc-400">{t("cart.loading")}</p>
@@ -122,7 +122,7 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
               token={TOKEN}
               language={lang === "pl" ? "pl" : "en"}
               config="parcelCollect"
-              style={{ width: "100%", height: "100%", display: "block" }}
+              style={{ width: "100%", height: "100%", display: "block", position: "relative", zIndex: 10 }}
             />
           ) : (
             <div class="h-full flex items-center justify-center text-center px-6">
