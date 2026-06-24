@@ -80,14 +80,14 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
 
     {displayLinks && (
       <div id="mobile-menu" hidden class="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
-        <a href={lp(lang, "/about")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.band")}</a>
-        <a href={lp(lang, "/merch")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.merch")}</a>
-        <a href={lp(lang, "/epk")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.epk")}</a>
+        <a href={lp(lang, "/about")} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "about" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.band")}</a>
+        <a href={lp(lang, "/merch")} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "merch" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.merch")}</a>
+        <a href={lp(lang, "/epk")} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "epk" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.epk")}</a>
         {activePage === "home" && (
           <>
-            <a href={lp(lang, "/#music")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.music")}</a>
-            <a href={lp(lang, "/#shows")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.shows")}</a>
-            <a href={lp(lang, "/#contact")} class="mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.contact")}</a>
+            <a href={lp(lang, "/#music")} data-section="music" class="mobile-nav-link nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.music")}</a>
+            <a href={lp(lang, "/#shows")} data-section="shows" class="mobile-nav-link nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.shows")}</a>
+            <a href={lp(lang, "/#contact")} data-section="contact" class="mobile-nav-link nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.contact")}</a>
           </>
         )}
       </div>
@@ -201,6 +201,13 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
     btn?.addEventListener("click", () => {
       const menu = document.getElementById("mobile-menu")
       toggleMenu(!!menu?.hidden)
+    })
+
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("mobile-menu")
+      if (menu && !menu.hidden && nav && !nav.contains(e.target as Node)) {
+        toggleMenu(false)
+      }
     })
 
     nav.querySelectorAll(".mobile-nav-link").forEach((link) =>
