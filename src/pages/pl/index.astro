@@ -1,4 +1,6 @@
 ---
+export const prerender = true
+
 import Layout from "../../components/Layout.astro"
 import Navbar from "../../components/Navbar.astro"
 import Landing from "../../components/Landing.astro"
@@ -23,7 +25,7 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
 <Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
   <Fragment slot="head">
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
-    <link rel="preload" as="image" href="/poster.webp" />
+    <link rel="preload" as="image" href="/poster.webp" fetchpriority="high" />
   </Fragment>
 
   <div class="bg-zinc-950 min-h-screen flex flex-col">
