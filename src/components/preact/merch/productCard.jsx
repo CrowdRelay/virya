@@ -324,7 +324,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
             </div>
             <div class="relative">
               {!iframeLoaded && (
-                <div class="w-full h-[352px] bg-zinc-900/30 p-4 flex flex-col gap-3 rounded-2xl">
+                <div class="w-full h-[352px] bg-zinc-900 p-4 flex flex-col gap-3 rounded-2xl">
                   <div class="flex items-center gap-3 pb-3 border-b border-zinc-800/40">
                     <div class="w-12 h-12 bg-zinc-700/50 animate-pulse flex-shrink-0" />
                     <div class="flex-1 flex flex-col gap-2">
