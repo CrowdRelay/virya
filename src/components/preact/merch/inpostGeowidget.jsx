@@ -33,7 +33,7 @@ const ensureAssets = () => {
   if (!document.querySelector(`script[src="${SCRIPT_SRC}"]`)) {
     const script = document.createElement("script")
     script.src = SCRIPT_SRC
-    script.defer = true
+    script.async = true
     document.head.appendChild(script)
   }
 }
@@ -54,15 +54,24 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     if (!open) return
     ensureAssets()
     
-    // Wait for script to load
+    // Wait for script to load and custom element to be defined
     const checkScript = setInterval(() => {
-      if (typeof window !== "undefined" && window.InpostGeowidget) {
+      if (typeof window !== "undefined" && customElements.get('inpost-geowidget')) {
         setScriptLoaded(true)
         clearInterval(checkScript)
       }
     }, 100)
 
-    return () => clearInterval(checkScript)
+    // Fallback timeout after 5 seconds
+    const timeout = setTimeout(() => {
+      setScriptLoaded(true)
+      clearInterval(checkScript)
+    }, 5000)
+
+    return () => {
+      clearInterval(checkScript)
+      clearTimeout(timeout)
+    }
   }, [open])
 
   useEffect(() => {
