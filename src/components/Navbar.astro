@@ -150,12 +150,14 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
           }
           // Update all links
           navLinks.forEach((l) => {
+            // mobile menu links sit at zinc-300 (same as band/shop/epk); desktop at zinc-400
+            const idle = l.classList.contains("mobile-nav-link") ? "text-zinc-300" : "text-zinc-400"
             if (l.dataset.section === activeId) {
               l.classList.add("text-amber-400")
-              l.classList.remove("text-zinc-400")
+              l.classList.remove(idle)
             } else {
               l.classList.remove("text-amber-400")
-              l.classList.add("text-zinc-400")
+              l.classList.add(idle)
             }
           })
           // Update logo: highlight when no section is active
@@ -203,12 +205,25 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
       toggleMenu(!!menu?.hidden)
     })
 
-    document.addEventListener("click", (e) => {
-      const menu = document.getElementById("mobile-menu")
-      if (menu && !menu.hidden && nav && !nav.contains(e.target as Node)) {
-        toggleMenu(false)
-      }
-    })
+    // Bind outside-click once on document; query nav fresh each time so SPA
+    // swaps don't leave a stale (detached) nav ref that closes menu instantly.
+    if (!(window as any).__viryaOutsideClickBound) {
+      (window as any).__viryaOutsideClickBound = true
+      document.addEventListener("click", (e) => {
+        const currentNav = document.getElementById("main-nav")
+        const menu = document.getElementById("mobile-menu")
+        const currentBtn = document.getElementById("mobile-menu-btn")
+        if (!menu || menu.hidden) return
+        const target = e.target as Node
+        if (currentBtn?.contains(target)) return
+        if (currentNav && !currentNav.contains(target)) {
+          menu.hidden = true
+          currentBtn?.setAttribute("aria-expanded", "false")
+          document.getElementById("icon-hamburger")?.classList.remove("hidden")
+          document.getElementById("icon-close")?.classList.add("hidden")
+        }
+      })
+    }
 
     nav.querySelectorAll(".mobile-nav-link").forEach((link) =>
       link.addEventListener("click", () => toggleMenu(false))
