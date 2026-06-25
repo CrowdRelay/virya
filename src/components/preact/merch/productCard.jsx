@@ -39,7 +39,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
   const frontSrc = images[product.front]
   const backSrc = product.back ? images[product.back] : null
   const bundle = isBundle(product)
-  const showBack = bundle ? autoImageIndex === 1 : hovered && backSrc
+  const showBack = bundle ? (hovered ? !!backSrc : autoImageIndex === 1) : hovered && backSrc
   const needsSize = Array.isArray(product.sizes)
   const available = productInStock(product)
   const price = discountedPrice(product)
@@ -120,14 +120,18 @@ const ProductCard = ({ product, images, index = 0 }) => {
     return () => mq.removeEventListener("change", update)
   }, [])
 
-  // Auto-cycle images for bundles every 7 seconds
+  // Auto-cycle images for bundles every 7 seconds, pause on hover
   useEffect(() => {
     if (!bundle || !backSrc) return
+    if (hovered) {
+      setAutoImageIndex(0)
+      return
+    }
     const interval = setInterval(() => {
       setAutoImageIndex((prev) => (prev + 1) % 2)
     }, 7000)
     return () => clearInterval(interval)
-  }, [bundle, backSrc])
+  }, [bundle, backSrc, hovered])
 
   const requestSize = async (s) => {
     if (requested.includes(s)) return
