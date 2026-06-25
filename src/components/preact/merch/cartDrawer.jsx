@@ -142,7 +142,7 @@ const CartDrawer = () => {
           )}
           {lines.length > 0 && (
             <p class="mt-5 text-[11px] uppercase tracking-widest text-amber-400/90 border border-amber-400/30 px-3 py-2 flex items-center gap-1">
-              <span class="leading-none">+</span>
+              <span class="leading-none text-[16px] font-medium">+</span>
               {t("cart.freeStickers").replace(/^\+\s*/, "")}
             </p>
           )}
