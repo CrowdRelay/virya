@@ -1,6 +1,7 @@
 ---
 import { t, lp, type Lang } from "../i18n/t"
 import items from "./portfolio/items.json"
+import BlurImage from "./BlurImage.astro"
 
 interface Props {
   lang?: Lang
@@ -58,7 +59,7 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
             </div>
           </div>
           <a href={lp(lang, `/music/${slug}/`)} aria-label={item.title} class="block w-full aspect-square object-cover">
-            <img
+            <BlurImage
               src={`/covers/${item.src}`}
               alt={item.alt}
               loading="lazy"

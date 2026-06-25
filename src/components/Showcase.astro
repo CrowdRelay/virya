@@ -1,5 +1,6 @@
 ---
 import { t, type Lang } from "../i18n/t"
+import BlurImage from "./BlurImage.astro"
 
 interface Props {
   lang?: Lang
@@ -20,7 +21,7 @@ const { lang = "en" } = Astro.props
     </p>
 
     <div class="relative max-w-2xl mx-auto aspect-square overflow-hidden border border-zinc-800/60 bg-zinc-950" id="showcase-container">
-      <img
+      <BlurImage
         src="/showcase-poster.webp"
         alt={t(lang, "showcase.play")}
         width="672"

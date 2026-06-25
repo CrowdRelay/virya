@@ -1,6 +1,7 @@
 ---
 import { t, lp, type Lang } from "../i18n/t"
 import ChevronRight from "./ChevronRight.astro"
+import BlurImage from "./BlurImage.astro"
 
 interface Props {
   lang?: Lang
@@ -22,7 +23,7 @@ const { lang = "en" } = Astro.props
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
       <div class="overflow-hidden border border-zinc-800/60">
-        <img
+        <BlurImage
           src="/images/band.webp"
           alt="Virya — modern metalcore band from Poland"
           title="Virya"
