@@ -210,7 +210,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
         {product.spotifyId && (
           <div class="mb-4">
             <button type="button" onClick={() => { setPlaying((p) => !p); if (playing) setIframeLoaded(false) }} aria-expanded={playing}
-              class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-amber-400 hover:text-amber-300 transition-colors">
+              class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-amber-400 hover:text-amber-300 transition-colors cursor-pointer">
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5">
                 {playing ? <path d="M6 5h4v14H6zM14 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
               </svg>
@@ -253,7 +253,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
           <div class="mb-4">
             <div class="flex items-center justify-between mb-2">
               <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{t("product.size")}</p>
-              <button type="button" onClick={() => setGuideOpen(true)} class="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors">{t("product.sizeGuide")}</button>
+              <button type="button" onClick={() => setGuideOpen(true)} class="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors cursor-pointer">{t("product.sizeGuide")}</button>
             </div>
             <div class="flex flex-wrap gap-1.5">
               {product.sizes.map((s) => {
@@ -265,14 +265,14 @@ const ProductCard = ({ product, images, index = 0 }) => {
                 const low = sizeLowStock(product, s)
                 return (
                   <button key={s} onClick={() => { setSize(s); setError(false) }} title={low ? t("product.fewLeft", s) : undefined}
-                    class={`relative min-w-[2.25rem] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-colors ${size === s ? "border-amber-400 bg-amber-400 text-black" : "border-zinc-700 text-zinc-300 hover:border-amber-400/60"}`}>
+                    class={`relative min-w-[2.25rem] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-colors cursor-pointer ${size === s ? "border-amber-400 bg-amber-400 text-black" : "border-zinc-700 text-zinc-300 hover:border-amber-400/60"}`}>
                     {s}
                     {low && <span aria-hidden="true" class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />}
                   </button>
                 )
               })}
             </div>
-            <button type="button" onClick={() => setGuideOpen(true)} class="sm:hidden mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors">{t("product.sizeGuide")}</button>
+            <button type="button" onClick={() => setGuideOpen(true)} class="sm:hidden mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors cursor-pointer">{t("product.sizeGuide")}</button>
             <div role="status" aria-live="polite">
               {error && <p class="text-[10px] uppercase tracking-widest text-red-400 mt-2">{t("product.pickSize")}</p>}
               {selectedLow && <p class="text-[10px] uppercase tracking-widest text-amber-400/90 mt-2">{t("product.fewLeft", size)}</p>}
@@ -289,7 +289,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
             </span>
           </span>
           <button onClick={handleAdd} disabled={!available}
-            class="w-full sm:w-auto text-center whitespace-nowrap text-[11px] font-bold uppercase tracking-widest px-4 py-2.5 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-amber-400 transition-all duration-200">
+            class="w-full sm:w-auto text-center whitespace-nowrap text-[11px] font-bold uppercase tracking-widest px-4 py-2.5 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-amber-400 cursor-pointer transition-all duration-200">
             {available ? t("product.addToCart") : t("product.soldOut")}
           </button>
         </div>
@@ -302,7 +302,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
           <div class="w-full max-w-sm bg-zinc-950 border border-zinc-800 p-5" onClick={(e) => e.stopPropagation()}>
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-sm font-black uppercase tracking-widest text-zinc-100">{t("product.sizeGuideTitle")}</h3>
-              <button type="button" onClick={() => setGuideOpen(false)} aria-label={t("product.closeGuide")} class="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none">&times;</button>
+              <button type="button" onClick={() => setGuideOpen(false)} aria-label={t("product.closeGuide")} class="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
             </div>
             <table class="w-full text-left">
               <thead><tr class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-zinc-800">

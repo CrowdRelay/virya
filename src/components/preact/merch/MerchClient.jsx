@@ -14,7 +14,7 @@ const CartFab = () => {
     <button
       onClick={() => setOpen(true)}
       aria-label={`${t("cart.open")} (${count})`}
-      class="fixed bottom-6 right-6 z-30 flex items-center gap-3 bg-amber-400 hover:bg-amber-300 text-black px-5 py-3 shadow-xl transition-colors"
+      class="fixed bottom-6 right-6 z-30 flex items-center gap-3 bg-amber-400 hover:bg-amber-300 text-black px-5 py-3 shadow-xl transition-colors cursor-pointer"
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" class="w-6 h-6" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
