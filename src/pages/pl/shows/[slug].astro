@@ -1,6 +1,7 @@
 ---
 import Layout from "../../../components/Layout.astro"
 import Navbar from "../../../components/Navbar.astro"
+import BlurImage from "../../../components/BlurImage.astro"
 import Footer from "../../../components/Footer.astro"
 import ScrollToTop from "../../../components/ScrollToTop.astro"
 import ChevronLeft from "../../../components/ChevronLeft.astro"
@@ -104,7 +105,7 @@ const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
           </div>
 
           <div>
-            <img
+            <BlurImage
               src="/images/rise.webp"
               alt="Virya"
               width="320"

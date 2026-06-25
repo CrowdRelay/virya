@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "preact/hooks"
 import { useCartActions } from "./cartContext"
+import BlurImg from "../BlurImg"
 import { useI18n } from "../../../i18n/I18nContext"
 import {
   discountedPrice,
@@ -157,7 +158,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
         onMouseLeave={() => setHovered(false)}
       >
         {frontSrc && (
-          <img
+          <BlurImg
             src={frontSrc}
             alt={product.name}
             loading={index === 0 ? "eager" : "lazy"}
@@ -169,7 +170,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
           />
         )}
         {backSrc && (
-          <img
+          <BlurImg
             src={backSrc}
             alt={`${product.name} — back`}
             loading="lazy"

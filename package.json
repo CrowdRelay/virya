@@ -23,6 +23,7 @@
         "@types/node": "^26.0.0",
         "@types/nodemailer": "^8.0.1",
         "prettier": "^3.3.3",
+        "sharp": "^0.34.5",
         "typescript": "^6.0.3"
     },
     "homepage": "https://www.virya.music",
@@ -38,7 +39,10 @@
         "url": "git+https://github.com/wojciechbator/virya.git"
     },
     "scripts": {
+        "gen:placeholders": "node scripts/gen-placeholders.mjs",
+        "predev": "node scripts/gen-placeholders.mjs",
         "dev": "astro dev",
+        "prebuild": "node scripts/gen-placeholders.mjs",
         "build": "astro build",
         "preview": "astro preview",
         "start": "astro dev",
