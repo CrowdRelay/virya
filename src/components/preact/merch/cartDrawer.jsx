@@ -10,7 +10,7 @@ const inputClass =
 const QtyButton = ({ children, onClick, label }) => (
   <button onClick={onClick} aria-label={label}
     class="group w-7 h-7 flex items-center justify-center border border-zinc-700 hover:border-amber-400 transition-colors cursor-pointer">
-    <span class={`leading-none text-zinc-300 group-hover:text-amber-400 lg:translate-y-[-0.5px] ${children === "+" ? "text-[16px] font-medium" : "text-[18px] font-light"}`}>
+    <span class="leading-none text-zinc-300 group-hover:text-amber-400 text-[16px] relative top-[-0.5px]">
       {children}
     </span>
   </button>
@@ -142,7 +142,7 @@ const CartDrawer = () => {
           )}
           {lines.length > 0 && (
             <p class="mt-5 text-[11px] uppercase tracking-widest text-amber-400/90 border border-amber-400/30 px-3 py-2 flex items-center gap-1">
-              <span class="leading-none text-[16px] font-medium">+</span>
+              <span class="leading-none text-[16px] relative top-[-0.5px]">+</span>
               {t("cart.freeStickers").replace(/^\+\s*/, "")}
             </p>
           )}
