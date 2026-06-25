@@ -42,17 +42,17 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
           </>
         )}
         <div class="flex items-center gap-1 ml-4 pl-4 border-l border-white/10 text-xs font-bold uppercase tracking-widest" aria-label={t(lang, "nav.language")}>
-          <button data-lang-switch="en" class={`px-1.5 py-1 transition-colors ${lang === "en" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="Switch to English" aria-current={lang === "en" ? "true" : undefined}>EN</button>
+          <button data-lang-switch="en" class={`px-1.5 py-1 transition-colors cursor-pointer ${lang === "en" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="Switch to English" aria-current={lang === "en" ? "true" : undefined}>EN</button>
           <span class="text-zinc-700">/</span>
-          <button data-lang-switch="pl" class={`px-1.5 py-1 transition-colors ${lang === "pl" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="Przełącz na polski" aria-current={lang === "pl" ? "true" : undefined}>PL</button>
+          <button data-lang-switch="pl" class={`px-1.5 py-1 transition-colors cursor-pointer ${lang === "pl" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="Przełącz na polski" aria-current={lang === "pl" ? "true" : undefined}>PL</button>
         </div>
       </div>
 
       <div class="flex lg:hidden items-center gap-2">
         <div class="flex items-center gap-1 mr-1 text-xs font-bold uppercase tracking-widest">
-          <button data-lang-switch="en" class={`px-1.5 py-1 transition-colors ${lang === "en" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="Switch to English">EN</button>
+          <button data-lang-switch="en" class={`px-1.5 py-1 transition-colors cursor-pointer ${lang === "en" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="Switch to English">EN</button>
           <span class="text-zinc-700">/</span>
-          <button data-lang-switch="pl" class={`px-1.5 py-1 transition-colors ${lang === "pl" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="Przełącz na polski">PL</button>
+          <button data-lang-switch="pl" class={`px-1.5 py-1 transition-colors cursor-pointer ${lang === "pl" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="Przełącz na polski">PL</button>
         </div>
         {displayLinks && activePage === "home" && (
           <a href={lp(lang, "/merch")} aria-label={t(lang, "nav.toMerch")} class="inline-flex items-center min-h-[44px] px-3 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors">

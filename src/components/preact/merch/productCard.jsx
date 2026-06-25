@@ -264,7 +264,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
                 )
                 const low = sizeLowStock(product, s)
                 return (
-                  <button key={s} onClick={() => { setSize(s); setError(false) }} title={low ? t("product.fewLeft", s) : undefined}
+                  <button key={s} onClick={() => { setSize(size === s ? null : s); setError(false) }} title={low ? t("product.fewLeft", s) : undefined}
                     class={`relative min-w-[2.25rem] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-colors cursor-pointer ${size === s ? "border-amber-400 bg-amber-400 text-black" : "border-zinc-700 text-zinc-300 hover:border-amber-400/60"}`}>
                     {s}
                     {low && <span aria-hidden="true" class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />}
