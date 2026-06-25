@@ -10,7 +10,18 @@ const inputClass =
 const QtyButton = ({ children, onClick, label }) => (
   <button onClick={onClick} aria-label={label}
     class="w-7 h-7 flex items-center justify-center border border-zinc-700 text-zinc-300 hover:border-amber-400 hover:text-amber-400 transition-colors text-sm leading-[1] cursor-pointer">
-    {children}
+    {children === "+" ? (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" stroke-linecap="round" class="w-4 h-4">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    ) : children === "−" || children === "−" || children === "&minus;" ? (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" stroke-linecap="round" class="w-4 h-4">
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    ) : (
+      children
+    )}
   </button>
 )
 
@@ -138,7 +149,15 @@ const CartDrawer = () => {
               })}
             </ul>
           )}
-          {lines.length > 0 && <p class="mt-5 text-[11px] uppercase tracking-widest text-amber-400/90 border border-amber-400/30 px-3 py-2">{t("cart.freeStickers")}</p>}
+          {lines.length > 0 && (
+            <p class="mt-5 text-[11px] uppercase tracking-widest text-amber-400/90 border border-amber-400/30 px-3 py-2 flex items-center gap-1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" stroke-linecap="round" class="w-3 h-3">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              {t("cart.freeStickers").replace(/^\+\s*/, "")}
+            </p>
+          )}
         </div>
 
         {lines.length > 0 && (
