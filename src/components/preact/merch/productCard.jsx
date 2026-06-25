@@ -38,12 +38,12 @@ const ProductCard = ({ product, images, index = 0 }) => {
 
   const frontSrc = images[product.front]
   const backSrc = product.back ? images[product.back] : null
+  const bundle = isBundle(product)
   const showBack = bundle ? autoImageIndex === 1 : hovered && backSrc
   const needsSize = Array.isArray(product.sizes)
   const available = productInStock(product)
   const price = discountedPrice(product)
   const onSale = discountActive() && price < product.price
-  const bundle = isBundle(product)
   const lowStock = productLowStock(product)
   const selectedLow = needsSize && size && sizeLowStock(product, size)
   const blurb = lang === "pl" && product.blurb_pl ? product.blurb_pl : product.blurb
