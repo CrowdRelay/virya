@@ -94,7 +94,7 @@
 /* Quick Astro router fade (default ~0.2-0.3s) */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.12s;
+  animation-duration: 0.06s;
 }
 
 /* Respect reduced-motion preference */

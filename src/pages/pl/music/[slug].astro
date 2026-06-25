@@ -8,19 +8,21 @@ import { t, lp } from "../../../i18n/t"
 import { getSeoTags } from "../../../utils/seo"
 import items from "../../../components/portfolio/items.json"
 
+export const prerender = true
+
+export function getStaticPaths() {
+  const slugify = (str: string) =>
+    str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+  return items.map((item) => ({ params: { slug: slugify(item.title) }, props: { item } }))
+}
+
 const lang = "pl"
+const { item } = Astro.props
 const { slug } = Astro.params
-
-const slugify = (str: string) =>
-  str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
-
-const item = items.find((i) => slugify(i.title) === slug)
-
-if (!item) return Astro.redirect("/404")
 
 const title = `${item.title} | Virya`
 const description = (item.text_pl || item.text)?.slice(0, 155) + "…"
-const path = `/music/${slugify(item.title)}/`
+const path = `/music/${slug}/`
 const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
 
 const typeLabel = item.type === "album" ? t(lang, "release.albumType") : item.type === "ep" ? t(lang, "release.epType") : t(lang, "release.singleType")
