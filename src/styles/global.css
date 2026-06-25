@@ -91,6 +91,12 @@
   transform: matrix(0.95, 0, 0, 0.95, 0, 0);
 }
 
+/* Quick Astro router fade (default ~0.2-0.3s) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.12s;
+}
+
 /* Respect reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   .arrows path {
