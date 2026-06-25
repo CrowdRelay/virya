@@ -7,10 +7,22 @@ import InpostGeowidget from "./inpostGeowidget"
 const inputClass =
   "bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-amber-400/60 transition-colors"
 
+const PlusIcon = ({ class: cls }) => (
+  <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" class={cls}>
+    <path d="M8 1.5v13M1.5 8h13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+  </svg>
+)
+
+const MinusIcon = ({ class: cls }) => (
+  <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" class={cls}>
+    <path d="M1.5 8h13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+  </svg>
+)
+
 const QtyButton = ({ children, onClick, label }) => (
   <button onClick={onClick} aria-label={label}
     class="group w-7 h-7 flex items-center justify-center border border-zinc-700 hover:border-amber-400 transition-colors cursor-pointer">
-    <span class="leading-none text-zinc-300 group-hover:text-amber-400 text-[16px] relative top-[-0.5px]">
+    <span class="flex items-center justify-center text-zinc-300 group-hover:text-amber-400">
       {children}
     </span>
   </button>
@@ -127,9 +139,9 @@ const CartDrawer = () => {
                       {l.size && <p class="text-[10px] uppercase tracking-widest text-zinc-400 mt-0.5">{t("cart.sizeLabel", l.size)}</p>}
                       <div class="flex items-center justify-between mt-2">
                         <div class="flex items-center gap-2">
-                          <QtyButton label={t("cart.decrease")} onClick={() => setQty(l.id, l.size, l.qty - 1)}>&minus;</QtyButton>
+                          <QtyButton label={t("cart.decrease")} onClick={() => setQty(l.id, l.size, l.qty - 1)}><MinusIcon /></QtyButton>
                           <span class="text-sm text-zinc-200 w-5 text-center">{l.qty}</span>
-                          <QtyButton label={t("cart.increase")} onClick={() => setQty(l.id, l.size, l.qty + 1)}>+</QtyButton>
+                          <QtyButton label={t("cart.increase")} onClick={() => setQty(l.id, l.size, l.qty + 1)}><PlusIcon /></QtyButton>
                         </div>
                         <span class="text-sm font-bold text-zinc-100">{l.lineTotal} PLN</span>
                       </div>
@@ -141,8 +153,8 @@ const CartDrawer = () => {
             </ul>
           )}
           {lines.length > 0 && (
-            <p class="mt-5 text-[11px] uppercase tracking-widest text-amber-400/90 border border-amber-400/30 px-3 py-2 flex items-center gap-1">
-              <span class="leading-none text-[16px] relative top-[-0.5px]">+</span>
+            <p class="mt-5 text-[11px] uppercase tracking-widest text-amber-400/90 border border-amber-400/30 px-3 py-2 flex items-center gap-1.5">
+              <PlusIcon class="flex-shrink-0" />
               {t("cart.freeStickers").replace(/^\+\s*/, "")}
             </p>
           )}
