@@ -10,7 +10,7 @@ const inputClass =
 const QtyButton = ({ children, onClick, label }) => (
   <button onClick={onClick} aria-label={label}
     class="group w-7 h-7 flex items-center justify-center border border-zinc-700 hover:border-amber-400 transition-colors cursor-pointer">
-    <span class={`leading-none text-zinc-300 group-hover:text-amber-400 ${children === "+" ? "text-[16px] font-medium" : "text-[18px] font-light"}`}>
+    <span class={`leading-none text-zinc-300 group-hover:text-amber-400 lg:translate-y-[-0.5px] ${children === "+" ? "text-[16px] font-medium" : "text-[18px] font-light"}`}>
       {children}
     </span>
   </button>
