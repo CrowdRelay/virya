@@ -107,7 +107,7 @@ const ContactInner = () => {
               <button
                 type="submit"
                 disabled={loading || !form.message || !form.name || !form.email}
-                class="disabled:opacity-30 disabled:cursor-not-allowed w-full bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-sm py-3 px-4 transition-all duration-200 outline-none"
+                class="disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer w-full bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-sm py-3 px-4 transition-all duration-200 outline-none"
               >
                 {t("contact.send")}
               </button>
