@@ -1,9 +1,18 @@
-// Preact <img> with build-time blur LQIP background (from src/placeholders.json).
-// Mirrors BlurImage.astro for use inside Preact islands. Box shows blur until load.
+// Preact <img> with build-time blur LQIP + responsive srcset.
+// Mirrors BlurImage.astro for use inside Preact islands.
 import ph from "../../placeholders.json"
+import ss from "../../srcsets.json"
 
-export default function BlurImg({ src, style, class: cls, className, ...rest }) {
+export default function BlurImg({
+  src,
+  style,
+  class: cls,
+  className,
+  sizes = "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 1200px",
+  ...rest
+}) {
   const blur = ph[src]
+  const srcset = ss[src]
   const bg = blur
     ? {
         backgroundImage: `url(${blur})`,
@@ -16,6 +25,8 @@ export default function BlurImg({ src, style, class: cls, className, ...rest }) 
   return (
     <img
       src={src}
+      srcSet={srcset}
+      sizes={srcset ? sizes : undefined}
       class={cls || className}
       style={{ ...bg, ...(style || {}) }}
       onLoad={(e) => {

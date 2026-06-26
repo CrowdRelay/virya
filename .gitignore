@@ -76,3 +76,6 @@ yarn-error.log
 .astro
 .agents
 dist/
+# Generated responsive image variants
+public/resp/
+src/srcsets.json
