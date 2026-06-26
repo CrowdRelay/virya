@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, memo } from "preact/hooks"
 import { LanguageProvider, useI18n } from "../../i18n/I18nContext"
 import LangSwitch from "./LangSwitch"
+import BlurImg from "./BlurImg"
 
 const NavLink = memo(({ href, children, isActive }) => (
   <a
@@ -83,7 +84,7 @@ const NavbarInner = ({ displayLinks, activePage, activeSection }) => {
       <div class="bg-zinc-950/95 backdrop-blur-sm border-b border-zinc-800/60">
         <div class="flex items-center justify-between px-4 lg:px-8 h-16">
           <a href={lp("/")} class="flex items-center gap-3" aria-label="Virya home">
-            <img
+            <BlurImg
               src="/virya.webp"
               alt="Virya"
               width="32"

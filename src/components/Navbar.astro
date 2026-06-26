@@ -1,5 +1,6 @@
 ---
 import { t, lp, type Lang } from "../i18n/t"
+import BlurImage from "./BlurImage.astro"
 
 interface Props {
   lang?: Lang
@@ -18,7 +19,7 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
     <div class="container mx-auto flex items-center">
       <div class="flex flex-1 items-center">
         <a title={t(lang, "nav.home")} class={`group flex my-2 cursor-pointer logo-link`} href={lp(lang, "/")}>
-          <img
+          <BlurImage
             src="/virya.webp"
             title="Virya"
             loading="eager"
