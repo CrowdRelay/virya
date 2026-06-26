@@ -1,11 +1,10 @@
 ---
-// <img> with build-time blur LQIP background (from src/placeholders.json).
-// Box paints blurred placeholder until the real image loads — no alt-text flash.
-// Zero framework JS: onload clears the placeholder via inline handler.
 import ph from "../placeholders.json"
+import ss from "../srcsets.json"
 
-const { src, class: className, style = "", ...rest } = Astro.props
+const { src, class: className, style = "", sizes = "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 1200px", ...rest } = Astro.props
 const blur = (ph as Record<string, string>)[src as string]
+const srcset = (ss as Record<string, string>)[src as string]
 const bg = blur
   ? `background-image:url(${blur});background-size:cover;background-position:center;background-repeat:no-repeat;color:transparent;`
   : ""
@@ -13,6 +12,8 @@ const bg = blur
 
 <img
   src={src}
+  srcset={srcset}
+  sizes={srcset ? sizes : undefined}
   class={className}
   style={`${bg}${style}`}
   onload="this.style.backgroundImage='none';this.style.color=''"
