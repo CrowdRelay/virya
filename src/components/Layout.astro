@@ -55,6 +55,40 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     <ClientRouter />
     {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
     <script is:inline>
+      (function() {
+        function getBar() {
+          var b = document.getElementById('nav-progress');
+          if (!b) {
+            b = document.createElement('div');
+            b.id = 'nav-progress';
+            b.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;height:2px;width:0;background:#fbbf24;transition:none;pointer-events:none;opacity:0;';
+            document.documentElement.appendChild(b);
+          }
+          return b;
+        }
+        document.addEventListener('astro:before-preparation', function() {
+          var bar = getBar();
+          bar.style.transition = 'none';
+          bar.style.width = '0';
+          bar.style.opacity = '1';
+          bar.getBoundingClientRect();
+          bar.style.transition = 'width 0.8s ease';
+          bar.style.width = '85%';
+        });
+        document.addEventListener('astro:page-load', function() {
+          var bar = getBar();
+          bar.style.transition = 'width 0.1s ease';
+          bar.style.width = '100%';
+          setTimeout(function() {
+            bar.style.transition = 'opacity 0.3s ease';
+            bar.style.opacity = '0';
+            setTimeout(function() { bar.style.transition = 'none'; bar.style.width = '0'; }, 350);
+          }, 150);
+        });
+        getBar();
+      })();
+    </script>
+    <script is:inline>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').catch((err) => {
