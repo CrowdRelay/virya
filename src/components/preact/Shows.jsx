@@ -36,7 +36,7 @@ const ShowItem = ({ item, lang }) => {
   const gigSlug = item.id ? `gig-${item.id}` : null
 
   const content = (
-    <div class={`transform ease-in-out rounded-xl inset-0 opacity-75 hover:opacity-100 place-items-center lg:flex lg:flex-row p-2 text-white ${isToday ? "bg-red-900" : "bg-zinc-900/60"}`}>
+    <div class={`transform ease-in-out rounded-xl inset-0 opacity-75 hover:opacity-100 place-items-center lg:flex lg:flex-row p-2 text-white transition-colors duration-300 ${gigSlug ? "border border-amber-400/30 hover:border-amber-400/70" : ""} ${isToday ? "bg-red-900" : "bg-zinc-900/60"}`}>
       <h2 class="lg:text-2xl text-md lg:ml-2">{item.title}</h2>
       <div class="lg:flex lg:flex-row lg:flex-grow place-items-center justify-end">
         <h2 class="lg:text-2xl lg:my-8 text-md">
