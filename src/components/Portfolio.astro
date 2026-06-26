@@ -27,7 +27,7 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
       const text = lang === "pl" && item.text_pl ? item.text_pl : item.text
       const slug = slugify(item.title)
       return (
-        <div class="relative group block overflow-hidden">
+        <div class="relative group block overflow-hidden border border-amber-400/25 hover:border-amber-400/70 transition-colors duration-300">
           <div class="z-10 absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 max-lg:opacity-100 max-lg:translate-y-0 transition-all duration-300 ease-out px-4 pt-12 pb-5">
             <h2 class="text-sm lg:text-base font-black uppercase tracking-wide leading-tight mb-1">
               <a href={lp(lang, `/music/${slug}`)} class="hover:text-amber-400 transition-colors">
