@@ -137,21 +137,23 @@ const displayText = lang === "pl" && item.text_pl ? item.text_pl : item.text
       const openBtn = document.getElementById("open-lightbox")
       if (!lightbox || !openBtn) return
 
+      const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close() }
       const open = () => {
         lightbox.classList.remove("hidden")
         lightbox.classList.add("flex")
         document.body.style.overflow = "hidden"
+        document.addEventListener("keydown", onKey)
       }
       const close = () => {
         lightbox.classList.add("hidden")
         lightbox.classList.remove("flex")
         document.body.style.overflow = ""
+        document.removeEventListener("keydown", onKey)
       }
 
       openBtn.addEventListener("click", open)
       document.getElementById("lightbox-close")?.addEventListener("click", close)
       lightbox.addEventListener("click", (e) => { if (e.target === lightbox) close() })
-      document.addEventListener("keydown", (e) => { if (e.key === "Escape") close() })
     })
   </script>
 </Layout>
