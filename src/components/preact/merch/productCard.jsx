@@ -384,7 +384,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
               {zoomSrcs.map((src, i) => (
                 <div key={i} class="w-full min-w-0 flex-shrink-0 h-full flex items-center justify-center px-1">
                   <div class="w-full max-h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                    <img src={src} alt={product.name} loading="lazy" decoding="async" class="w-full max-h-full object-contain" draggable={false} />
+                    <img src={src} alt={product.name} loading="lazy" decoding="async" width="1000" height="1000" class="w-full max-h-full object-contain" draggable={false} />
                   </div>
                 </div>
               ))}
