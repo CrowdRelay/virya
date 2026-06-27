@@ -23,6 +23,7 @@
   document.addEventListener("astro:page-load", () => {
     const video = document.getElementById("hero-video") as HTMLVideoElement | null
     if (!video) return
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
     video.muted = true
     video.play().catch(() => {
       video.muted = true
