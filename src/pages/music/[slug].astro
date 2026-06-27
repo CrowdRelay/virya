@@ -29,7 +29,7 @@ const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
 const typeLabel = item.type === "album" ? t(lang, "release.albumType") : item.type === "ep" ? t(lang, "release.epType") : t(lang, "release.singleType")
 ---
 
-<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang} ogImage={`https://www.virya.music/covers/${item.src}`}>
   <Fragment slot="head">
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
     <script type="application/ld+json" set:html={JSON.stringify({
