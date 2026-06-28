@@ -24,7 +24,7 @@ const description = "Oficjalny sklep Virya. Albumy, koszulki, torby — wszystko
     <Navbar lang={lang} displayLinks={true} activePage="merch" />
     <ScrollToTop />
 
-    <MerchClient client:load lang={lang} />
+    <MerchClient client:idle lang={lang} />
 
     <Footer lang={lang} />
   </div>
