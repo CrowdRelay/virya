@@ -14,7 +14,7 @@ import {
   SIZE_CHART,
 } from "../../../data/products"
 
-const ProductCard = ({ product, images, index = 0 }) => {
+const ProductCard = ({ product, images, index = 0, isWide = true }) => {
   const { add } = useCartActions()
   const { t, lang } = useI18n()
   const [size, setSize] = useState(null)
@@ -26,7 +26,6 @@ const ProductCard = ({ product, images, index = 0 }) => {
   const [zoomed, setZoomed] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
   const [playing, setPlaying] = useState(false)
-  const [isWide, setIsWide] = useState(true)
   const [iframeLoaded, setIframeLoaded] = useState(false)
   const [slide, setSlide] = useState(0)
   const [dragX, setDragX] = useState(0)
@@ -113,14 +112,6 @@ const ProductCard = ({ product, images, index = 0 }) => {
     const id = setTimeout(() => setAnnounce(""), 1000)
     return () => clearTimeout(id)
   }, [announce])
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 640px)")
-    const update = () => setIsWide(mq.matches)
-    update()
-    mq.addEventListener("change", update)
-    return () => mq.removeEventListener("change", update)
-  }, [])
 
   useEffect(() => {
     if (!bundle || !backSrc) return
