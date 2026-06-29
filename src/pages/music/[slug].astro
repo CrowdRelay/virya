@@ -43,14 +43,14 @@ const typeLabel = item.type === "album" ? t(lang, "release.albumType") : item.ty
   </Fragment>
 
   <div class="bg-zinc-950 min-h-screen flex flex-col">
-    <Navbar lang={lang} displayLinks={false} />
+    <Navbar lang={lang} displayLinks={true} />
     <ScrollToTop />
 
     <main id="main-content" class="flex-1 pt-20">
-      <div class="px-6 lg:px-12 py-16 lg:py-24 max-w-5xl mx-auto">
-        <a href={lp(lang, "/#music")} class="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mb-10">
-          <ChevronLeft class="w-3.5 h-3.5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
-          {t(lang, "music.heading")}
+      <div class="px-6 py-16 lg:py-24 max-w-5xl mx-auto">
+        <a href={lp(lang, "/#music")} class="group inline-flex items-center gap-3 rounded-lg border border-zinc-800 hover:border-amber-400/60 bg-zinc-900/40 hover:bg-zinc-900 px-4 py-3 transition-colors mb-10">
+          <ChevronLeft class="shrink-0 w-4 h-4 text-amber-400 transition-transform group-hover:-translate-x-0.5" />
+          <span class="text-sm font-semibold uppercase tracking-widest text-zinc-200 group-hover:text-amber-400 transition-colors">{t(lang, "music.heading")}</span>
         </a>
 
         <div class="grid lg:grid-cols-[280px_1fr] gap-10 lg:gap-14 items-start">
