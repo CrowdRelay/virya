@@ -10,7 +10,7 @@ export default defineConfig({
   adapter: netlify(),
   prefetch: {
     prefetchAll: true,
-    defaultStrategy: "hover",
+    defaultStrategy: "viewport",
   },
   integrations: [
     preact(),
