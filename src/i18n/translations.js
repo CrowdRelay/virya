@@ -250,6 +250,8 @@ export const translations = {
       back: "To store",
       lastUpdated: "Last updated",
       date: "17 June 2026",
+      designedBy: "Site designed & built by",
+      designer: "Wojciech Bator",
       terms: {
         title: "Terms & Conditions",
         sections: [
@@ -620,6 +622,8 @@ export const translations = {
       back: "Do sklepu",
       lastUpdated: "Ostatnia aktualizacja",
       date: "17 czerwca 2026",
+      designedBy: "Strona zaprojektowana i zbudowana przez",
+      designer: "Wojciech Bator",
       terms: {
         title: "Regulamin",
         sections: [
