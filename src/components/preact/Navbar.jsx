@@ -39,7 +39,7 @@ const NavbarInner = ({ displayLinks, activePage, activeSection }) => {
         if (currentScrollY > lastScrollY.current) {
           setHeaderVisible(false)
           setMenuOpen(false)
-        } else {
+        } else if (currentScrollY < lastScrollY.current) {
           setHeaderVisible(true)
         }
         lastScrollY.current = currentScrollY
