@@ -1,10 +1,12 @@
-import { useState } from "preact/hooks"
+import { useState, useEffect, lazy, Suspense } from "preact/compat"
 import { LanguageProvider, useI18n } from "../../../i18n/I18nContext"
 import { CartProvider, useCart } from "./cartContext"
 import { useMerchImages } from "./useMerchImages"
 import ProductCard from "./productCard"
-import CartDrawer from "./cartDrawer"
 import { PRODUCTS, BUNDLES, discountActive, discountEndsLabel } from "../../../data/products"
+
+const cartDrawerPromise = import("./cartDrawer")
+const CartDrawer = lazy(() => cartDrawerPromise)
 
 const CartFab = () => {
   const { count, setOpen } = useCart()
@@ -29,7 +31,16 @@ const CartFab = () => {
 const MerchInner = () => {
   const { t, lang, lp } = useI18n()
   const images = useMerchImages()
+  const [isWide, setIsWide] = useState(true)
   const saleActive = discountActive()
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)")
+    const update = () => setIsWide(mq.matches)
+    update()
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
+  }, [])
   const saleLabel = saleActive ? discountEndsLabel(lang === "pl" ? "pl-PL" : "en-GB") : null
 
   return (
@@ -52,7 +63,7 @@ const MerchInner = () => {
 
           <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {PRODUCTS.map((product, i) => (
-              <ProductCard key={product.id} product={product} images={images} index={i} />
+              <ProductCard key={product.id} product={product} images={images} index={i} isWide={isWide} />
             ))}
           </div>
 
@@ -66,7 +77,7 @@ const MerchInner = () => {
               </div>
               <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {BUNDLES.map((product, i) => (
-                  <ProductCard key={product.id} product={product} images={images} index={PRODUCTS.length + i} />
+                  <ProductCard key={product.id} product={product} images={images} index={PRODUCTS.length + i} isWide={isWide} />
                 ))}
               </div>
             </div>
@@ -95,7 +106,9 @@ const MerchInner = () => {
       </main>
 
       <CartFab />
-      <CartDrawer />
+      <Suspense fallback={null}>
+        <CartDrawer />
+      </Suspense>
     </div>
   )
 }

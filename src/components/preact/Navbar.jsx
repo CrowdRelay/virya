@@ -26,6 +26,7 @@ const NavbarInner = ({ displayLinks, activePage, activeSection }) => {
     let ticking = false
     const handleScroll = () => {
       if (ticking) return
+      if (document.body.style.position === "fixed") return
       ticking = true
       requestAnimationFrame(() => {
         const currentScrollY = window.scrollY
