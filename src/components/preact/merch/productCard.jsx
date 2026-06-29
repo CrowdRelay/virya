@@ -51,6 +51,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
   const includes = lang === "pl" && product.includes_pl ? product.includes_pl : product.includes
   const name = lang === "pl" && product.name_pl ? product.name_pl : product.name
   const zoomSrcs = (bundle || backSrc ? [frontSrc, backSrc] : [frontSrc]).filter(Boolean)
+  const bundleDuration = 5000
 
   const handleTouchStart = useCallback((e) => {
     touchStartX.current = e.touches[0].clientX
@@ -121,7 +122,6 @@ const ProductCard = ({ product, images, index = 0 }) => {
     return () => mq.removeEventListener("change", update)
   }, [])
 
-  // Auto-cycle images for bundles every 7 seconds, pause on hover
   useEffect(() => {
     if (!bundle || !backSrc) return
     if (hovered) {
@@ -130,7 +130,7 @@ const ProductCard = ({ product, images, index = 0 }) => {
     }
     const interval = setInterval(() => {
       setAutoImageIndex((prev) => (prev + 1) % 2)
-    }, 7000)
+    }, bundleDuration)
     return () => clearInterval(interval)
   }, [bundle, backSrc, hovered])
 
