@@ -95,7 +95,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
   useEffect(() => {
     if (!guideOpen && !zoomed && !(playing && !isWide)) return
     const onKey = (e) => {
-      if (e.key === "Escape") { setGuideOpen(false); setZoomed(false); setPlaying(false) }
+      if (e.key === "Escape") { setGuideOpen(false); setZoomed(false); setSlide(0); setPlaying(false) }
       if (zoomed && zoomSrcs.length > 1) {
         if (e.key === "ArrowRight") setSlide((s) => (s + 1) % zoomSrcs.length)
         if (e.key === "ArrowLeft") setSlide((s) => (s - 1 + zoomSrcs.length) % zoomSrcs.length)
@@ -361,8 +361,8 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
       )}
 
       {zoomed && zoomSrcs.length > 0 && (
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 cursor-zoom-out" role="dialog" aria-modal="true" aria-label={name} onClick={() => setZoomed(false)}>
-          <button type="button" onClick={() => setZoomed(false)} aria-label={t("product.closeZoom")} class="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center text-zinc-300 hover:text-amber-400 transition-colors text-3xl leading-none lg:border lg:border-zinc-600/50 lg:rounded">&times;</button>
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 cursor-zoom-out" role="dialog" aria-modal="true" aria-label={name} onClick={() => { setZoomed(false); setSlide(0) }}>
+          <button type="button" onClick={() => { setZoomed(false); setSlide(0) }} aria-label={t("product.closeZoom")} class="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center text-zinc-300 hover:text-amber-400 transition-colors text-3xl leading-none lg:border lg:border-zinc-600/50 lg:rounded">&times;</button>
           {zoomSrcs.length > 1 && (
             <>
               <button type="button" onClick={(e) => { e.stopPropagation(); setSlide((s) => Math.max(0, s - 1)) }} aria-label={t("product.prevImage")} class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 lg:h-28 lg:border lg:border-zinc-600/50 lg:rounded flex items-center justify-center text-zinc-200 hover:text-amber-400 bg-black/40 hover:bg-black/60 transition-colors text-2xl leading-none">&#8249;</button>
