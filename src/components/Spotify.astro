@@ -79,7 +79,7 @@ const { lang = "en" } = Astro.props
       iframe.height = "450"
       iframe.setAttribute("frameborder", "0")
       iframe.setAttribute("allow", "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture")
-      iframe.className = "opacity-0 absolute inset-0 rounded-2xl"
+      iframe.className = "opacity-0 absolute inset-0 rounded-2xl outline-none border-0"
       iframe.addEventListener("load", () => {
         skeleton.remove()
         iframe.classList.remove("opacity-0", "absolute", "inset-0")
