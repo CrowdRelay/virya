@@ -5,8 +5,7 @@ import { useMerchImages } from "./useMerchImages"
 import ProductCard from "./productCard"
 import { PRODUCTS, BUNDLES, discountActive, discountEndsLabel } from "../../../data/products"
 
-const cartDrawerPromise = import("./cartDrawer")
-const CartDrawer = lazy(() => cartDrawerPromise)
+const CartDrawer = lazy(() => import("./cartDrawer"))
 
 const CartFab = () => {
   const { count, setOpen } = useCart()

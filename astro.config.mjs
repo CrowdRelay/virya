@@ -25,6 +25,15 @@ export default defineConfig({
     plugins: [tailwindcss()],
     build: {
       cssCodeSplit: true,
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            if (id.includes('node_modules/preact')) return 'preact'
+            if (id.includes('/i18n/translations') || id.includes('/i18n/I18nContext')) return 'i18n'
+            if (id.includes('/data/products')) return 'products'
+          },
+        },
+      },
     },
   },
 })

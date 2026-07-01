@@ -108,6 +108,7 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
       if (ticking) return
       ticking = true
       requestAnimationFrame(() => {
+        if (document.body.style.position === "fixed") { ticking = false; return }
         const y = window.scrollY
         if (y < 10 || y < lastY) {
           nav.style.transform = "translateY(0)"
