@@ -9,6 +9,16 @@
 # Netlify's _headers wins, so they are not duplicated here.
 
 [[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/api/bandsintown"
+  [headers.values]
+    Cache-Control = "public, max-age=1800, stale-while-revalidate=3600"
+
+[[headers]]
   for = "/covers/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
