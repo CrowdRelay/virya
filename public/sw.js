@@ -1,5 +1,5 @@
-const CACHE_NAME = 'virya-v4'
-const STATIC_CACHE = 'virya-static-v4'
+const CACHE_NAME = 'virya-v5'
+const STATIC_CACHE = 'virya-static-v5'
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
@@ -22,6 +22,22 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
+
+  // Cache YouTube thumbnails cache-first
+  if (url.hostname === 'i.ytimg.com') {
+    event.respondWith(
+      caches.open(STATIC_CACHE).then((cache) => {
+        return cache.match(event.request).then((response) => {
+          if (response) return response
+          return fetch(event.request).then((fetchResponse) => {
+            cache.put(event.request, fetchResponse.clone())
+            return fetchResponse
+          })
+        })
+      })
+    )
+    return
+  }
 
   // Cache static assets with cache-first
   if (url.pathname.match(/\.(webp|png|jpg|jpeg|svg|css|js|woff2?|ttf|otf)$/)) {

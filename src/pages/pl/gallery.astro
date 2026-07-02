@@ -11,6 +11,7 @@ import { t, lp } from "../../i18n/t"
 import { getSeoTags } from "../../utils/seo"
 import gallery from "../../data/gallery.json"
 import rawDims from "../../imageDimensions.json"
+import ph from "../../placeholders.json"
 
 const lang = "pl"
 const { canonicalUrl, hreflangLinks } = getSeoTags("/gallery/", lang)
@@ -35,9 +36,9 @@ const dims = rawDims as Record<string, { w: number; h: number }>
       <div class="px-6 lg:px-12 py-12 max-w-7xl mx-auto">
 
         <div class="mb-2">
-          <a href={lp(lang, "/")} class="inline-flex items-center gap-2 min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200 mb-6">
-            <ChevronLeft class="w-3 h-3" />
-            {t(lang, "nav.home")}
+          <a href={lp(lang, "/")} class="group inline-flex items-center gap-3 rounded-lg border border-zinc-800 hover:border-amber-400/60 bg-zinc-900/40 hover:bg-zinc-900 px-4 py-3 transition-colors mb-6">
+            <ChevronLeft class="shrink-0 w-4 h-4 text-amber-400 transition-transform group-hover:-translate-x-0.5" />
+            <span class="text-sm font-semibold uppercase tracking-widest text-zinc-200 group-hover:text-amber-400 transition-colors">{t(lang, "nav.home")}</span>
           </a>
         </div>
 
@@ -55,12 +56,14 @@ const dims = rawDims as Record<string, { w: number; h: number }>
           <div class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 [column-fill:balance]" id="photo-grid">
             {photos.map((photo, i) => {
               const alt = lang === "pl" ? (photo.alt_pl || photo.alt || t(lang, "gallery.photoAlt", i + 1)) : (photo.alt || t(lang, "gallery.photoAlt", i + 1))
+              const blur = (ph as Record<string, string>)[photo.src] || ""
               return (
                 <button
                   class="photo-btn block w-full group cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
                   data-index={i}
                   data-src={photo.src}
                   data-alt={alt}
+                  data-blur={blur}
                   aria-label={alt}
                 >
                   <BlurImage
@@ -129,7 +132,19 @@ const dims = rawDims as Record<string, { w: number; h: number }>
       if (!btn || !modalImg || !modalCaption || !modalDownload) return
       const src = btn.dataset.src || ""
       const alt = btn.dataset.alt || ""
+      const blur = btn.dataset.blur || ""
       const doSwap = () => {
+        if (blur) {
+          modalImg.style.backgroundImage = `url(${blur})`
+          modalImg.style.backgroundSize = "contain"
+          modalImg.style.backgroundRepeat = "no-repeat"
+          modalImg.style.backgroundPosition = "center"
+          modalImg.style.color = "transparent"
+          modalImg.addEventListener("load", () => {
+            modalImg.style.backgroundImage = ""
+            modalImg.style.color = ""
+          }, { once: true })
+        }
         modalImg.src = src
         modalImg.alt = alt
         modalCaption!.textContent = alt
