@@ -172,6 +172,9 @@ const dims = rawDims as Record<string, { w: number; h: number }>
     function prev() { openAt((current - 1 + buttons.length) % buttons.length) }
     function next() { openAt((current + 1) % buttons.length) }
 
+    const ac = new AbortController()
+    document.addEventListener("astro:before-preparation", () => ac.abort(), { once: true })
+
     buttons.forEach((btn, i) => btn.addEventListener("click", () => openAt(i)))
     closeBtn?.addEventListener("click", closeModal)
     prevBtn?.addEventListener("click", prev)
@@ -182,7 +185,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
       if (e.key === "Escape") closeModal()
       if (e.key === "ArrowLeft") prev()
       if (e.key === "ArrowRight") next()
-    })
+    }, { signal: ac.signal })
     let touchStartX = 0
     modal.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX }, { passive: true })
     modal.addEventListener("touchend", (e) => {
