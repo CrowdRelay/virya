@@ -153,6 +153,8 @@ export const translations = {
       play: (title) => `Play ${title}`,
       close: "Close video",
       watchOn: "Watch on YouTube",
+      playthrough: "Playthrough",
+      other: "Other",
     },
     press: {
       eyebrow: "Press",
@@ -579,6 +581,8 @@ export const translations = {
       play: (title) => `Odtwórz ${title}`,
       close: "Zamknij wideo",
       watchOn: "Oglądaj na YouTube",
+      playthrough: "Playthrough",
+      other: "Inne",
     },
     press: {
       eyebrow: "Prasa",

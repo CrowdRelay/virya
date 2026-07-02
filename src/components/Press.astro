@@ -21,7 +21,7 @@ const { lang = "en" } = Astro.props
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {press.map((item) => (
         <blockquote class="flex flex-col gap-4 border-l-2 border-amber-400/60 pl-5 py-2">
-          <p class="text-zinc-200 text-sm leading-relaxed font-light italic">
+          <p class="text-zinc-200 text-sm leading-relaxed font-light italic text-justify">
             &ldquo;{lang === "pl" ? item.quote_pl : item.quote}&rdquo;
           </p>
           <footer class="mt-auto">
@@ -36,7 +36,7 @@ const { lang = "en" } = Astro.props
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-block mt-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-amber-400 transition-colors"
+                class="inline-flex items-center min-h-[44px] mt-3 text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200"
               >
                 {t(lang, "press.readReview")} ↗
               </a>

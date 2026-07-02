@@ -118,9 +118,13 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
           nav.style.transform = "translateY(0)"
         } else {
           nav.style.transform = "translateY(-100%)"
-          // close mobile menu when nav hides
           const menu = document.getElementById("mobile-menu")
-          if (menu && !menu.hidden) toggleMenu(false)
+          if (menu && !menu.hidden) {
+            menu.hidden = true
+            document.getElementById("mobile-menu-btn")?.setAttribute("aria-expanded", "false")
+            document.getElementById("icon-hamburger")?.classList.remove("hidden")
+            document.getElementById("icon-close")?.classList.add("hidden")
+          }
         }
         lastY = y
         ticking = false
