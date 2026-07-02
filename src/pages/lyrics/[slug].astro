@@ -1,0 +1,135 @@
+---
+export const prerender = true
+
+import Layout from "../../components/Layout.astro"
+import Navbar from "../../components/Navbar.astro"
+import Footer from "../../components/Footer.astro"
+import ScrollToTop from "../../components/ScrollToTop.astro"
+import ChevronLeft from "../../components/ChevronLeft.astro"
+import BlurImage from "../../components/BlurImage.astro"
+import { t, lp } from "../../i18n/t"
+import { getSeoTags } from "../../utils/seo"
+import lyrics from "../../data/lyrics.json"
+
+export function getStaticPaths() {
+  return lyrics.map((item) => ({ params: { slug: item.slug }, props: { item } }))
+}
+
+const lang = "en"
+const { item } = Astro.props
+const { slug } = Astro.params
+
+const typeLabel =
+  item.type === "album" ? t(lang, "lyrics.albumType") :
+  item.type === "ep" ? t(lang, "lyrics.epType") :
+  t(lang, "lyrics.singleType")
+
+const path = `/lyrics/${slug}/`
+const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
+const title = `${item.title} — Lyrics | Virya`
+const description = `Song lyrics from ${item.title} by Virya.`
+---
+
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+  <Fragment slot="head">
+    {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
+  </Fragment>
+
+  <div class="bg-zinc-950 min-h-screen flex flex-col">
+    <Navbar lang={lang} displayLinks={true} activePage="lyrics" />
+    <ScrollToTop />
+
+    <main id="main-content" class="flex-1 pt-20">
+      <div class="px-6 py-12 max-w-5xl mx-auto">
+
+        <a href={lp(lang, "/lyrics/")} class="group inline-flex items-center gap-3 rounded-lg border border-zinc-800 hover:border-amber-400/60 bg-zinc-900/40 hover:bg-zinc-900 px-4 py-3 transition-colors mb-10">
+          <ChevronLeft class="shrink-0 w-4 h-4 text-amber-400 transition-transform group-hover:-translate-x-0.5" />
+          <span class="text-sm font-semibold uppercase tracking-widest text-zinc-200 group-hover:text-amber-400 transition-colors">{t(lang, "lyrics.back")}</span>
+        </a>
+
+        <div class="grid lg:grid-cols-[220px_1fr] gap-10 lg:gap-14 items-start">
+          <div class="lg:sticky lg:top-24 space-y-4">
+            <BlurImage
+              src={`/covers/${item.cover}`}
+              alt={item.title}
+              width="220"
+              height="220"
+              class="w-full aspect-square object-cover"
+            />
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-1">{typeLabel} · {item.year}</p>
+              <h1 class="text-xl font-black uppercase tracking-tight text-white leading-tight">{item.title}</h1>
+            </div>
+            {item.tracks.length > 1 && (
+              <nav class="border-t border-zinc-800 pt-4">
+                <p class="text-[9px] font-bold uppercase tracking-widest text-zinc-500 mb-2">{t(lang, "lyrics.chooseTrack")}</p>
+                <ul class="space-y-0.5">
+                  {item.tracks.map((track) => (
+                    <li>
+                      <a
+                        href={`#track-${track.number}`}
+                        class="track-link block text-xs text-zinc-400 hover:text-amber-400 transition-colors py-1.5 px-2 hover:bg-zinc-900/60 rounded"
+                      >
+                        <span class="text-zinc-600 mr-2">{String(track.number).padStart(2, "0")}</span>
+                        {track.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
+          </div>
+
+          <div class="space-y-16" id="lyrics-content">
+            {item.tracks.map((track) => (
+              <section id={`track-${track.number}`} class="scroll-mt-28">
+                {item.tracks.length > 1 && (
+                  <div class="flex items-center gap-3 mb-6">
+                    <span class="text-[10px] font-bold text-zinc-600">{String(track.number).padStart(2, "0")}</span>
+                    <h2 class="text-lg font-black uppercase tracking-tight text-zinc-100">{track.title}</h2>
+                    <div class="flex-1 h-px bg-zinc-800" />
+                  </div>
+                )}
+                {track.lyrics ? (
+                  <div class="font-mono text-sm leading-8 text-zinc-300 whitespace-pre-wrap selection:bg-amber-400/20">
+                    {track.lyrics}
+                  </div>
+                ) : (
+                  <p class="text-zinc-600 text-xs uppercase tracking-widest italic">{t(lang, "lyrics.soon")}</p>
+                )}
+              </section>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const links = document.querySelectorAll<HTMLAnchorElement>(".track-link")
+    const sections = document.querySelectorAll<HTMLElement>("[id^='track-']")
+
+    if (!sections.length) return
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return
+          const id = entry.target.id
+          links.forEach((l) => {
+            const active = l.getAttribute("href") === `#${id}`
+            l.classList.toggle("text-amber-400", active)
+            l.classList.toggle("text-zinc-400", !active)
+          })
+        })
+      },
+      { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
+    )
+    sections.forEach((s) => io.observe(s))
+  })
+</script>
