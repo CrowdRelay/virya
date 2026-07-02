@@ -10,6 +10,7 @@ import BlurImage from "../../../components/BlurImage.astro"
 import { t, lp } from "../../../i18n/t"
 import { getSeoTags } from "../../../utils/seo"
 import lyrics from "../../../data/lyrics.json"
+import items from "../../../components/portfolio/items.json"
 
 export function getStaticPaths() {
   return lyrics.map((item) => ({ params: { slug: item.slug }, props: { item } }))
@@ -24,15 +25,23 @@ const typeLabel =
   item.type === "ep" ? t(lang, "lyrics.epType") :
   t(lang, "lyrics.singleType")
 
+const tracks = [...item.tracks].sort((a, b) => a.number - b.number)
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+const portfolioItem = (items as Array<{title: string; link?: string}>).find(i => slugify(i.title) === slug)
+const schema = item.type === "single"
+  ? { "@context": "https://schema.org", "@type": "MusicRecording", "name": item.title, "byArtist": { "@type": "MusicGroup", "name": "Virya" }, "datePublished": String(item.year), ...(tracks[0]?.lyrics && tracks[0].lyrics !== "[ Instrumental ]" ? { "lyrics": { "@type": "CreativeWork", "text": tracks[0].lyrics } } : {}) }
+  : { "@context": "https://schema.org", "@type": "MusicAlbum", "name": item.title, "byArtist": { "@type": "MusicGroup", "name": "Virya" }, "datePublished": String(item.year), "track": tracks.map(tr => ({ "@type": "MusicRecording", "name": tr.title, "position": tr.number })) }
 const path = `/lyrics/${slug}/`
 const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
 const title = `${item.title} — Teksty | Virya`
 const description = `Teksty piosenek z wydawnictwa ${item.title} Virya.`
 ---
 
-<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang} ogImage={`https://www.virya.music/covers/${item.cover}`}>
   <Fragment slot="head">
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
+    <link rel="preload" as="image" href={`/covers/${item.cover}`} />
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   </Fragment>
 
   <div class="bg-zinc-950 min-h-screen flex flex-col">
@@ -59,12 +68,17 @@ const description = `Teksty piosenek z wydawnictwa ${item.title} Virya.`
             <div>
               <p class="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-1">{typeLabel} · {item.year}</p>
               <h1 class="text-xl font-black uppercase tracking-tight text-white leading-tight">{item.title}</h1>
+              {portfolioItem?.link && (
+                <a href={portfolioItem.link} target="_blank" rel="noreferrer" class="text-[9px] font-bold uppercase tracking-widest text-zinc-500 hover:text-amber-400 transition-colors mt-1 block">
+                  ▶ {t(lang, "music.streamSpotify")}
+                </a>
+              )}
             </div>
             {item.tracks.length > 1 && (
               <nav class="border-t border-zinc-800 pt-4">
                 <p class="text-[9px] font-bold uppercase tracking-widest text-zinc-500 mb-2">{t(lang, "lyrics.chooseTrack")}</p>
                 <ul class="space-y-0.5">
-                  {item.tracks.map((track) => (
+                  {tracks.map((track) => (
                     <li>
                       <a
                         href={`#track-${track.number}`}
@@ -81,7 +95,7 @@ const description = `Teksty piosenek z wydawnictwa ${item.title} Virya.`
           </div>
 
           <div class="space-y-16" id="lyrics-content">
-            {item.tracks.map((track) => (
+            {tracks.map((track) => (
               <section id={`track-${track.number}`} class="scroll-mt-28">
                 {item.tracks.length > 1 && (
                   <div class="flex items-center gap-3 mb-6">
@@ -90,7 +104,9 @@ const description = `Teksty piosenek z wydawnictwa ${item.title} Virya.`
                     <div class="flex-1 h-px bg-zinc-800" />
                   </div>
                 )}
-                {track.lyrics ? (
+                {track.lyrics === "[ Instrumental ]" ? (
+                  <span class="inline-block text-[10px] font-bold uppercase tracking-widest text-zinc-600 border border-zinc-800 px-2 py-0.5">Instrumental</span>
+                ) : track.lyrics ? (
                   <div class="font-mono text-sm leading-8 text-zinc-300 whitespace-pre-wrap selection:bg-amber-400/20">
                     {track.lyrics}
                   </div>
