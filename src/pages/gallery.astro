@@ -92,6 +92,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
         role="dialog"
         aria-modal="true"
       >
+        <div id="modal-blur" class="absolute inset-0 opacity-0 transition-opacity duration-300 bg-contain bg-center bg-no-repeat pointer-events-none" style="filter:blur(20px);transform:scale(1.05)"></div>
         <button id="modal-close" class="absolute top-4 right-4 text-zinc-400 hover:text-amber-400 transition-colors z-10 text-3xl leading-none" aria-label={t(lang, "gallery.close")}>&times;</button>
 
         <button id="modal-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.prev")}>
@@ -102,7 +103,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
         </button>
 
-        <div class="w-full max-w-5xl min-w-0 px-16 flex flex-col items-center gap-4">
+        <div class="relative z-10 w-full max-w-5xl min-w-0 px-16 flex flex-col items-center gap-4">
           <img id="modal-img" src="" alt="" class="max-h-[80vh] max-w-full object-contain" />
           <div class="flex items-center justify-between gap-3 flex-wrap w-full">
             <p id="modal-caption" class="text-xs text-zinc-400 uppercase tracking-widest"></p>
@@ -124,6 +125,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
     if (!modal) return
 
     const modalImg = document.getElementById("modal-img") as HTMLImageElement
+    const modalBlur = document.getElementById("modal-blur") as HTMLElement
     const modalCaption = document.getElementById("modal-caption")
     const modalDownload = document.getElementById("modal-download") as HTMLAnchorElement
     const closeBtn = document.getElementById("modal-close")
@@ -143,14 +145,10 @@ const dims = rawDims as Record<string, { w: number; h: number }>
 
       const doSwap = () => {
         if (blur) {
-          modalImg.style.backgroundImage = `url(${blur})`
-          modalImg.style.backgroundSize = "contain"
-          modalImg.style.backgroundRepeat = "no-repeat"
-          modalImg.style.backgroundPosition = "center"
-          modalImg.style.color = "transparent"
+          modalBlur.style.backgroundImage = `url(${blur})`
+          modalBlur.style.opacity = "1"
           modalImg.addEventListener("load", () => {
-            modalImg.style.backgroundImage = ""
-            modalImg.style.color = ""
+            modalBlur.style.opacity = "0"
           }, { once: true })
         }
         modalImg.src = src
@@ -176,6 +174,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
     function closeModal() {
       modal!.style.display = "none"
       if (modalImg) modalImg.style.opacity = "1"
+      if (modalBlur) modalBlur.style.opacity = "0"
       document.body.style.overflow = ""
     }
 

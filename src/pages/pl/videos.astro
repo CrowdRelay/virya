@@ -192,14 +192,22 @@ const description = "Oficjalne teledyski i nagrania koncertowe Virya — nowocze
     const filterBtns = document.querySelectorAll<HTMLElement>(".filter-btn")
     const cards = document.querySelectorAll<HTMLElement>(".video-card")
 
+    function applyFilter(filter: string) {
+      filterBtns.forEach((b) => b.removeAttribute("data-active"))
+      const active = Array.from(filterBtns).find((b) => b.dataset.filter === filter)
+      if (active) active.setAttribute("data-active", "")
+      cards.forEach((card) => {
+        card.style.display = filter === "all" || card.dataset.category === filter ? "" : "none"
+      })
+    }
+
+    applyFilter(sessionStorage.getItem("videoFilter") || "all")
+
     filterBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         const filter = btn.dataset.filter || "all"
-        filterBtns.forEach((b) => b.removeAttribute("data-active"))
-        btn.setAttribute("data-active", "")
-        cards.forEach((card) => {
-          card.style.display = filter === "all" || card.dataset.category === filter ? "" : "none"
-        })
+        sessionStorage.setItem("videoFilter", filter)
+        applyFilter(filter)
       })
     })
   })
