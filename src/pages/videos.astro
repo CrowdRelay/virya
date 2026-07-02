@@ -50,7 +50,6 @@ const description = "Official music videos and live performance footage from Vir
             { key: "official", label: t(lang, "videos.official") },
             { key: "live", label: t(lang, "videos.live") },
             { key: "playthrough", label: t(lang, "videos.playthrough") },
-            { key: "other", label: t(lang, "videos.other") },
           ].map(({ key, label }) => (
             <button
               data-filter={key}
@@ -101,8 +100,7 @@ const description = "Official music videos and live performance footage from Vir
                 <span class={`absolute top-3 left-3 text-[9px] font-bold uppercase tracking-widest px-2 py-1 ${video.category === "official" ? "bg-amber-400 text-black" : "bg-zinc-800 text-zinc-300"}`}>
                   {video.category === "official" ? t(lang, "videos.official") :
                    video.category === "live" ? t(lang, "videos.live") :
-                   video.category === "playthrough" ? t(lang, "videos.playthrough") :
-                   t(lang, "videos.other")}
+                   t(lang, "videos.playthrough")}
                 </span>
               </div>
               <div class="p-4">
@@ -186,9 +184,12 @@ const description = "Official music videos and live performance footage from Vir
       })
     })
 
+    const ac = new AbortController()
+    document.addEventListener("astro:before-preparation", () => ac.abort(), { once: true })
+
     closeBtn?.addEventListener("click", closeModal)
     modal?.addEventListener("click", (e) => { if (e.target === modal) closeModal() })
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal() })
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal() }, { signal: ac.signal })
 
     const filterBtns = document.querySelectorAll<HTMLElement>(".filter-btn")
     const cards = document.querySelectorAll<HTMLElement>(".video-card")
@@ -202,7 +203,8 @@ const description = "Official music videos and live performance footage from Vir
       })
     }
 
-    applyFilter(sessionStorage.getItem("videoFilter") || "all")
+    const saved = sessionStorage.getItem("videoFilter") || "all"
+    applyFilter(["all", "official", "live", "playthrough"].includes(saved) ? saved : "all")
 
     filterBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
