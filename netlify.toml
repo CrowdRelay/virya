@@ -54,6 +54,46 @@
     Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
 
 [[headers]]
+  for = "/videos/"
+  [headers.values]
+    Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/pl/videos/"
+  [headers.values]
+    Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/gallery/"
+  [headers.values]
+    Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/pl/gallery/"
+  [headers.values]
+    Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/news/"
+  [headers.values]
+    Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/pl/news/"
+  [headers.values]
+    Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/lyrics/*"
+  [headers.values]
+    Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/pl/lyrics/*"
+  [headers.values]
+    Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
+
+[[headers]]
   for = "/api/bandsintown"
   [headers.values]
     Cache-Control = "public, max-age=1800, stale-while-revalidate=3600"
@@ -65,6 +105,11 @@
 
 [[headers]]
   for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/resp/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 

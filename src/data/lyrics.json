@@ -1,0 +1,64 @@
+[
+  {
+    "slug": "echoes-of-the-modern-mind",
+    "title": "Echoes Of The Modern Mind",
+    "type": "album",
+    "year": 2025,
+    "cover": "echoes.webp",
+    "tracks": [
+      { "number": 1, "title": "TODO: Track 1", "lyrics": "" },
+      { "number": 2, "title": "TODO: Track 2", "lyrics": "" },
+      { "number": 3, "title": "TODO: Track 3", "lyrics": "" },
+      { "number": 4, "title": "TODO: Track 4", "lyrics": "" },
+      { "number": 5, "title": "TODO: Track 5", "lyrics": "" },
+      { "number": 6, "title": "TODO: Track 6", "lyrics": "" },
+      { "number": 7, "title": "TODO: Track 7", "lyrics": "" },
+      { "number": 8, "title": "TODO: Track 8", "lyrics": "" },
+      { "number": 9, "title": "TODO: Track 9", "lyrics": "" },
+      { "number": 10, "title": "TODO: Track 10", "lyrics": "" },
+      { "number": 11, "title": "TODO: Track 11", "lyrics": "" }
+    ]
+  },
+  {
+    "slug": "from-the-ashes",
+    "title": "From The Ashes",
+    "type": "ep",
+    "year": 2024,
+    "cover": "ashes.webp",
+    "tracks": [
+      { "number": 1, "title": "TODO: Track 1", "lyrics": "" },
+      { "number": 2, "title": "TODO: Track 2", "lyrics": "" },
+      { "number": 3, "title": "TODO: Track 3", "lyrics": "" }
+    ]
+  },
+  {
+    "slug": "seed-of-doubt",
+    "title": "Seed Of Doubt",
+    "type": "single",
+    "year": 2025,
+    "cover": "seed.webp",
+    "tracks": [
+      { "number": 1, "title": "Seed Of Doubt", "lyrics": "" }
+    ]
+  },
+  {
+    "slug": "unmasked",
+    "title": "Unmasked",
+    "type": "single",
+    "year": 2024,
+    "cover": "unmasked.webp",
+    "tracks": [
+      { "number": 1, "title": "Unmasked", "lyrics": "" }
+    ]
+  },
+  {
+    "slug": "rise",
+    "title": "Rise",
+    "type": "single",
+    "year": 2024,
+    "cover": "rise.webp",
+    "tracks": [
+      { "number": 1, "title": "Rise", "lyrics": "" }
+    ]
+  }
+]

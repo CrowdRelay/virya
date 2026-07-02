@@ -1,0 +1,49 @@
+---
+import { t, lp, type Lang } from "../i18n/t"
+import press from "../data/press.json"
+
+interface Props {
+  lang?: Lang
+}
+const { lang = "en" } = Astro.props
+---
+
+<section class="py-16 lg:px-8 border-t border-zinc-800/60">
+  <div class="mx-4">
+    <div class="flex items-center gap-4 mb-2">
+      <p class="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
+        {t(lang, "press.heading")}
+      </p>
+      <div class="flex-1 h-px bg-zinc-800" />
+    </div>
+    <p class="text-zinc-400 text-xs uppercase tracking-widest mb-10">{t(lang, "press.sub")}</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {press.map((item) => (
+        <blockquote class="flex flex-col gap-4 border-l-2 border-amber-400/60 pl-5 py-2">
+          <p class="text-zinc-200 text-sm leading-relaxed font-light italic">
+            &ldquo;{lang === "pl" ? item.quote_pl : item.quote}&rdquo;
+          </p>
+          <footer class="mt-auto">
+            <div class="text-[10px] uppercase tracking-widest text-amber-400 font-bold">
+              {item.publication}
+            </div>
+            <div class="text-[10px] uppercase tracking-widest text-zinc-500 mt-0.5">
+              {item.release} · {item.year}
+            </div>
+            {item.url && (
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-block mt-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-amber-400 transition-colors"
+              >
+                {t(lang, "press.readReview")} ↗
+              </a>
+            )}
+          </footer>
+        </blockquote>
+      ))}
+    </div>
+  </div>
+</section>

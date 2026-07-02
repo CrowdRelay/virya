@@ -2,7 +2,15 @@
 import ph from "../placeholders.json"
 import ss from "../srcsets.json"
 
-const { src, class: className, style = "", sizes = "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 1200px", ...rest } = Astro.props
+const {
+  src,
+  class: className,
+  style = "",
+  sizes = "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 1200px",
+  loading = "lazy",
+  decoding = "async",
+  ...rest
+} = Astro.props
 const blur = (ph as Record<string, string>)[src as string]
 const srcset = (ss as Record<string, string>)[src as string]
 const bg = blur
@@ -14,6 +22,8 @@ const bg = blur
   src={src}
   srcset={srcset}
   sizes={srcset ? sizes : undefined}
+  loading={loading}
+  decoding={decoding}
   class={className}
   style={`${bg}${style}`}
   onload="this.style.backgroundImage='none';this.style.color=''"

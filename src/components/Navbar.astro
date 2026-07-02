@@ -34,6 +34,8 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
       <div class="hidden lg:flex items-center">
         {displayLinks && <a href={lp(lang, "/about")} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "about" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.band")}</a>}
         {displayLinks && <a href={lp(lang, "/merch")} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "merch" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.merch")}</a>}
+        {displayLinks && <a href={lp(lang, "/videos/")} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "videos" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.videos")}</a>}
+        {displayLinks && <a href={lp(lang, "/gallery/")} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "gallery" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.gallery")}</a>}
         {displayLinks && <a href={lp(lang, "/epk")} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "epk" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.epk")}</a>}
         {displayLinks && activePage === "home" && (
           <>
@@ -83,6 +85,8 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
       <div id="mobile-menu" hidden class="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
         <a href={lp(lang, "/about")} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "about" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.band")}</a>
         <a href={lp(lang, "/merch")} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "merch" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.merch")}</a>
+        <a href={lp(lang, "/videos/")} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "videos" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.videos")}</a>
+        <a href={lp(lang, "/gallery/")} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "gallery" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.gallery")}</a>
         <a href={lp(lang, "/epk")} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "epk" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.epk")}</a>
         {activePage === "home" && (
           <>

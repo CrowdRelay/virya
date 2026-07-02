@@ -1,0 +1,197 @@
+---
+export const prerender = true
+
+import Layout from "../components/Layout.astro"
+import Navbar from "../components/Navbar.astro"
+import Footer from "../components/Footer.astro"
+import ScrollToTop from "../components/ScrollToTop.astro"
+import ChevronLeft from "../components/ChevronLeft.astro"
+import { t, lp } from "../i18n/t"
+import { getSeoTags } from "../utils/seo"
+import videos from "../data/videos.json"
+
+const lang = "en"
+const { canonicalUrl, hreflangLinks } = getSeoTags("/videos/", lang)
+const title = "Videos | Virya"
+const description = "Official music videos and live performance footage from Virya — modern metalcore from Poland."
+---
+
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+  <Fragment slot="head">
+    {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
+    <link rel="preconnect" href="https://i.ytimg.com" />
+    <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin />
+    <link rel="preload" as="image" href={`https://i.ytimg.com/vi/${videos[0].id}/hqdefault.jpg`} fetchpriority="high" />
+  </Fragment>
+
+  <div class="bg-zinc-950 min-h-screen flex flex-col">
+    <Navbar lang={lang} displayLinks={true} activePage="videos" />
+    <ScrollToTop />
+
+    <main id="main-content" class="flex-1 pt-20">
+      <div class="px-6 lg:px-12 py-12 max-w-7xl mx-auto">
+
+        <div class="mb-2">
+          <a href={lp(lang, "/")} class="group inline-flex items-center gap-2 text-zinc-500 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest mb-6">
+            <ChevronLeft class="w-3 h-3" />
+            {t(lang, "nav.home")}
+          </a>
+        </div>
+
+        <div class="mb-10">
+          <p class="text-xs font-bold uppercase tracking-[0.4em] text-amber-400 mb-3">{t(lang, "videos.eyebrow")}</p>
+          <h1 class="text-4xl lg:text-5xl font-black uppercase tracking-tight text-white mb-2">{t(lang, "videos.heading")}</h1>
+          <p class="text-sm text-zinc-400">{t(lang, "videos.sub")}</p>
+        </div>
+
+        <div class="flex gap-2 mb-8" id="filter-tabs">
+          {[
+            { key: "all", label: t(lang, "videos.all") },
+            { key: "official", label: t(lang, "videos.official") },
+            { key: "live", label: t(lang, "videos.live") },
+          ].map(({ key, label }) => (
+            <button
+              data-filter={key}
+              class={`filter-btn text-[10px] font-bold uppercase tracking-widest px-4 py-2 border transition-colors ${key === "all" ? "border-amber-400 bg-amber-400 text-black" : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="video-grid">
+          {videos.map((video, i) => (
+            <article
+              data-category={video.category}
+              class="video-card group cursor-pointer bg-zinc-900/40 border border-zinc-800/60 hover:border-amber-400/40 transition-colors duration-300"
+              data-id={video.id}
+              data-title={video.title}
+            >
+              <div class="relative aspect-video overflow-hidden bg-zinc-950">
+                <img
+                  src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
+                  alt={video.title}
+                  loading={i < 3 ? "eager" : "lazy"}
+                  decoding="async"
+                  fetchpriority={i < 3 ? "high" : "low"}
+                  width="480"
+                  height="360"
+                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                  <div class="w-14 h-14 rounded-full bg-amber-400 group-hover:bg-amber-300 flex items-center justify-center transition-colors shadow-lg">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-black ml-1" aria-hidden="true">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                </div>
+                <span class={`absolute top-3 left-3 text-[9px] font-bold uppercase tracking-widest px-2 py-1 ${video.category === "official" ? "bg-amber-400 text-black" : "bg-zinc-800 text-zinc-300"}`}>
+                  {video.category === "official" ? t(lang, "videos.official") : t(lang, "videos.live")}
+                </span>
+              </div>
+              <div class="p-4">
+                <h2 class="text-sm font-bold uppercase tracking-wide text-zinc-100 group-hover:text-amber-400 transition-colors leading-snug">{video.title}</h2>
+                <p class="text-[10px] text-zinc-500 mt-1 uppercase tracking-widest">{video.year}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+
+      </div>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>
+
+<div
+  id="video-modal"
+  class="fixed inset-0 z-50 bg-black/95 hidden items-center justify-center p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Video player"
+>
+  <button
+    id="modal-close"
+    class="absolute top-4 right-4 text-zinc-400 hover:text-amber-400 transition-colors z-10 text-3xl leading-none"
+    aria-label={t(lang, "videos.close")}
+  >&times;</button>
+  <div class="w-full max-w-4xl">
+    <div class="relative aspect-video bg-zinc-950">
+      <iframe
+        id="video-iframe"
+        src=""
+        title="Video player"
+        frameborder="0"
+        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+        allowfullscreen
+        class="absolute inset-0 w-full h-full"
+      ></iframe>
+    </div>
+    <div class="mt-4 flex items-center justify-between">
+      <p id="modal-title" class="text-sm font-bold uppercase tracking-widest text-zinc-100"></p>
+      <a id="modal-yt-link" href="#" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors">
+        {t(lang, "videos.watchOn")} ↗
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const modal = document.getElementById("video-modal")
+    const iframe = document.getElementById("video-iframe") as HTMLIFrameElement
+    const modalTitle = document.getElementById("modal-title")
+    const modalLink = document.getElementById("modal-yt-link") as HTMLAnchorElement
+    const closeBtn = document.getElementById("modal-close")
+
+    function openModal(id: string, title: string) {
+      if (!modal || !iframe || !modalTitle || !modalLink) return
+      iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`
+      modalTitle.textContent = title
+      modalLink.href = `https://www.youtube.com/watch?v=${id}`
+      modal.classList.remove("hidden")
+      modal.classList.add("flex")
+      document.body.style.overflow = "hidden"
+    }
+
+    function closeModal() {
+      if (!modal || !iframe) return
+      iframe.src = ""
+      modal.classList.add("hidden")
+      modal.classList.remove("flex")
+      document.body.style.overflow = ""
+    }
+
+    document.querySelectorAll(".video-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const id = (card as HTMLElement).dataset.id || ""
+        const title = (card as HTMLElement).dataset.title || ""
+        openModal(id, title)
+      })
+    })
+
+    closeBtn?.addEventListener("click", closeModal)
+    modal?.addEventListener("click", (e) => { if (e.target === modal) closeModal() })
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal() })
+
+    const filterBtns = document.querySelectorAll(".filter-btn")
+    const cards = document.querySelectorAll(".video-card") as NodeListOf<HTMLElement>
+
+    filterBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const filter = (btn as HTMLElement).dataset.filter || "all"
+        filterBtns.forEach((b) => {
+          b.classList.remove("border-amber-400", "bg-amber-400", "text-black")
+          b.classList.add("border-zinc-700", "text-zinc-400")
+        })
+        btn.classList.add("border-amber-400", "bg-amber-400", "text-black")
+        btn.classList.remove("border-zinc-700", "text-zinc-400")
+        cards.forEach((card) => {
+          const show = filter === "all" || card.dataset.category === filter
+          card.style.display = show ? "" : "none"
+        })
+      })
+    })
+  })
+</script>
