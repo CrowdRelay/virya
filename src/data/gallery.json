@@ -1,1 +1,23 @@
-[]
+[
+  { "src": "/images/gallery/Virya.png", "alt": "Virya band photo", "alt_pl": "Zdjęcie zespołu Virya" },
+  { "src": "/images/gallery/Band.JPG", "alt": "Virya on stage", "alt_pl": "Virya na scenie" },
+  { "src": "/images/gallery/Band and crowd.jpg", "alt": "Virya and crowd", "alt_pl": "Virya i tłum" },
+  { "src": "/images/gallery/Band and crowd cheer.jpg", "alt": "Virya with cheering crowd", "alt_pl": "Virya z rozentuzjazmowaną publicznością" },
+  { "src": "/images/gallery/Band neons.jpg", "alt": "Virya under neon lights", "alt_pl": "Virya w neonowym świetle" },
+  { "src": "/images/gallery/On stage.jpg", "alt": "Virya live on stage", "alt_pl": "Virya na żywo na scenie" },
+  { "src": "/images/gallery/On Stage 2.jpg", "alt": "Virya live performance", "alt_pl": "Virya koncert na żywo" },
+  { "src": "/images/gallery/Before the stage.jpg", "alt": "Before the show", "alt_pl": "Przed koncertem" },
+  { "src": "/images/gallery/Vox Front.jpg", "alt": "Vocalist front shot", "alt_pl": "Wokalista — widok z przodu" },
+  { "src": "/images/gallery/Vox side.jpg", "alt": "Vocalist side shot", "alt_pl": "Wokalista — widok z boku" },
+  { "src": "/images/gallery/Vox side Black white.jpg", "alt": "Vocalist black and white", "alt_pl": "Wokalista w czerni i bieli" },
+  { "src": "/images/gallery/Vox.jpeg", "alt": "Vocalist live", "alt_pl": "Wokalista na żywo" },
+  { "src": "/images/gallery/Guitarist.jpg", "alt": "Guitarist live", "alt_pl": "Gitarzysta na żywo" },
+  { "src": "/images/gallery/Guitarist 2.jpg", "alt": "Guitarist on stage", "alt_pl": "Gitarzysta na scenie" },
+  { "src": "/images/gallery/bassist.jpeg", "alt": "Bassist live", "alt_pl": "Basista na żywo" },
+  { "src": "/images/gallery/Bassist 2.jpg", "alt": "Bassist on stage", "alt_pl": "Basista na scenie" },
+  { "src": "/images/gallery/Bass side.jpg", "alt": "Bass guitar side shot", "alt_pl": "Gitara basowa — widok z boku" },
+  { "src": "/images/gallery/Drummer.JPG", "alt": "Drummer live", "alt_pl": "Perkusista na żywo" },
+  { "src": "/images/gallery/Drummer 2.jpg", "alt": "Drummer on stage", "alt_pl": "Perkusista na scenie" },
+  { "src": "/images/gallery/Family.png", "alt": "Virya band family shot", "alt_pl": "Virya — zdjęcie rodzinne" },
+  { "src": "/images/gallery/Weirdo.jpg", "alt": "Behind the scenes", "alt_pl": "Za kulisami" }
+]
