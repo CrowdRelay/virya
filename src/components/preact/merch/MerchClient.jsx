@@ -46,12 +46,6 @@ const MerchInner = () => {
     <div class="bg-zinc-950 min-h-screen">
       <main id="main-content" class="pt-20">
         <div class="px-6 lg:px-12 py-8 max-w-7xl mx-auto">
-          <div class="mb-6">
-            <a href={lp("/")} class="group inline-flex items-center gap-3 rounded-lg border border-zinc-800 hover:border-amber-400/60 bg-zinc-900/40 hover:bg-zinc-900 px-4 py-3 transition-colors">
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 w-4 h-4 text-amber-400 transition-transform group-hover:-translate-x-0.5"><path d="M11 5l-6 7 6 7M19 5l-6 7 6 7" /></svg>
-              <span class="text-sm font-semibold uppercase tracking-widest text-zinc-200 group-hover:text-amber-400 transition-colors">{t("nav.home")}</span>
-            </a>
-          </div>
           <div class="mb-10">
             <p class="text-xs font-bold uppercase tracking-[0.4em] text-amber-400 mb-3">
               {t("merch.eyebrow")}
