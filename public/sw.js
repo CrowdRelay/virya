@@ -1,7 +1,16 @@
-const CACHE_NAME = 'virya-v5'
-const STATIC_CACHE = 'virya-static-v5'
+const CACHE_NAME = 'virya-v6'
+const STATIC_CACHE = 'virya-static-v6'
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(
+        ['/', '/pl/', '/videos/', '/pl/videos/', '/gallery/', '/pl/gallery/'].map(
+          (u) => cache.add(u).catch(() => {})
+        )
+      )
+    )
+  )
   self.skipWaiting()
 })
 
@@ -27,12 +36,13 @@ self.addEventListener('fetch', (event) => {
   if (url.hostname === 'i.ytimg.com') {
     event.respondWith(
       caches.open(STATIC_CACHE).then((cache) => {
-        return cache.match(event.request).then((response) => {
-          if (response) return response
-          return fetch(event.request).then((fetchResponse) => {
-            cache.put(event.request, fetchResponse.clone())
-            return fetchResponse
-          })
+        return cache.match(event.request).then((cached) => {
+          if (cached) return cached
+          return fetch(new Request(event.request.url, { mode: 'no-cors', credentials: 'omit' }))
+            .then((res) => {
+              cache.put(event.request, res.clone())
+              return res
+            })
         })
       })
     )
