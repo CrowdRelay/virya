@@ -18,12 +18,6 @@
     background-color: #09090b;
   }
 
-  @media (hover: hover) {
-    body {
-      scrollbar-gutter: stable;
-    }
-  }
-
   a:focus-visible,
   button:focus-visible,
   input:focus-visible,

@@ -159,7 +159,7 @@ export const translations = {
     },
     press: {
       eyebrow: "Press",
-      heading: "What Critics Say",
+      heading: "Reviews",
       sub: "Reviews & praise from the music press",
       readReview: "Read review",
     },
@@ -588,7 +588,7 @@ export const translations = {
     },
     press: {
       eyebrow: "Prasa",
-      heading: "Co mówią krytycy",
+      heading: "Recenzje",
       sub: "Recenzje i opinie muzycznej prasy",
       readReview: "Czytaj recenzję",
     },
