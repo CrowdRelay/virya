@@ -8,6 +8,7 @@ import ChevronLeft from "../../components/ChevronLeft.astro"
 import { t, lp } from "../../i18n/t"
 import { getSeoTags } from "../../utils/seo"
 import items from "../../components/portfolio/items.json"
+import lyricsData from "../../data/lyrics.json"
 
 export const prerender = true
 
@@ -27,6 +28,7 @@ const path = `/music/${slug}/`
 const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
 
 const typeLabel = item.type === "album" ? t(lang, "release.albumType") : item.type === "ep" ? t(lang, "release.epType") : t(lang, "release.singleType")
+const hasLyrics = (lyricsData as Array<{slug: string}>).some(l => l.slug === slug)
 ---
 
 <Layout title={title} description={description} canonical={canonicalUrl} lang={lang} ogImage={`https://www.virya.music/covers/${item.src}`}>
@@ -95,6 +97,11 @@ const typeLabel = item.type === "album" ? t(lang, "release.albumType") : item.ty
               {item.merch && (
                 <a href={lp(lang, item.merch)} class="text-[11px] font-bold uppercase tracking-widest px-4 py-2 border border-zinc-700 text-zinc-300 hover:border-amber-400/60 hover:text-amber-400 transition-colors">
                   {t(lang, "nav.merch")}
+                </a>
+              )}
+              {hasLyrics && (
+                <a href={lp(lang, `/lyrics/${slug}/`)} class="text-[11px] font-bold uppercase tracking-widest px-4 py-2 border border-zinc-700 text-zinc-300 hover:border-amber-400/60 hover:text-amber-400 transition-colors">
+                  {t(lang, "music.lyrics")}
                 </a>
               )}
             </div>

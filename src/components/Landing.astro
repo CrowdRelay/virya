@@ -25,9 +25,12 @@
     if (!video) return
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
     video.muted = true
-    video.play().catch(() => {
-      video.muted = true
-      video.play().catch(() => {})
-    })
+    const tryPlay = () => video.play().catch(() => {})
+    if (video.readyState >= 2) {
+      tryPlay()
+    } else {
+      video.load()
+      video.addEventListener("loadeddata", tryPlay, { once: true })
+    }
   })
 </script>

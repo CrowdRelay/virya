@@ -30,7 +30,7 @@ const description = "Song lyrics from every Virya release — Echoes Of The Mode
       <div class="px-6 lg:px-12 py-12 max-w-5xl mx-auto">
 
         <div class="mb-2">
-          <a href={lp(lang, "/")} class="group inline-flex items-center gap-2 text-zinc-500 hover:text-amber-400 transition-colors text-[10px] uppercase tracking-widest mb-6">
+          <a href={lp(lang, "/")} class="inline-flex items-center gap-2 min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200 mb-6">
             <ChevronLeft class="w-3 h-3" />
             {t(lang, "nav.home")}
           </a>
@@ -63,9 +63,11 @@ const description = "Song lyrics from every Virya release — Echoes Of The Mode
                 <div class="min-w-0 pt-0.5">
                   <p class="text-[9px] font-bold uppercase tracking-widest text-amber-400 mb-1">{typeLabel} · {item.year}</p>
                   <h2 class="text-sm font-black uppercase tracking-tight text-zinc-100 group-hover:text-amber-400 transition-colors leading-snug">{item.title}</h2>
-                  <p class="text-[10px] text-zinc-500 mt-1.5 uppercase tracking-widest">
-                    {item.tracks.length} {t(lang, "release.tracksLabel")}
-                  </p>
+                  {item.type !== "single" && (
+                    <p class="text-[10px] text-zinc-500 mt-1.5 uppercase tracking-widest">
+                      {item.tracks.length} {t(lang, "release.tracksLabel")}
+                    </p>
+                  )}
                 </div>
               </a>
             )

@@ -1,5 +1,5 @@
-const CACHE_NAME = 'virya-v2'
-const STATIC_CACHE = 'virya-static-v2'
+const CACHE_NAME = 'virya-v4'
+const STATIC_CACHE = 'virya-static-v4'
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
@@ -44,18 +44,18 @@ self.addEventListener('fetch', (event) => {
   // Skip API routes — always network
   if (url.pathname.startsWith('/api/')) return
 
-  // Stale-while-revalidate for HTML: serve cache instantly, refresh in background
+  // Network-first for HTML: always fetch fresh, fall back to cache when offline
   if (event.request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
-      caches.open(CACHE_NAME).then((cache) => {
-        return cache.match(event.request).then((cached) => {
-          const fetchPromise = fetch(event.request).then((response) => {
-            if (response.ok) cache.put(event.request, response.clone())
-            return response
-          })
-          return cached || fetchPromise
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          }
+          return response
         })
-      })
+        .catch(() => caches.match(event.request))
     )
     return
   }

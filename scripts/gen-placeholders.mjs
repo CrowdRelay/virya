@@ -9,6 +9,7 @@ const PUBLIC = "public"
 const RESP_DIR = join("public", "resp")
 const PH_OUT = "src/placeholders.json"
 const SS_OUT = "src/srcsets.json"
+const DIM_OUT = "src/imageDimensions.json"
 const EXTS = new Set([".webp", ".jpg", ".jpeg", ".png", ".avif"])
 const WIDTHS = [400, 800, 1200]
 const MIN_RESPONSIVE = 200
@@ -28,6 +29,7 @@ await mkdir(RESP_DIR, { recursive: true })
 
 const placeholders = {}
 const srcsets = {}
+const dimensions = {}
 
 for await (const file of walk(PUBLIC)) {
   if (!EXTS.has(extname(file).toLowerCase())) continue
@@ -37,6 +39,7 @@ for await (const file of walk(PUBLIC)) {
   try {
     const meta = await sharp(file).metadata()
     const nativeW = meta.width || 0
+    dimensions[key] = { w: meta.width || 0, h: meta.height || 0 }
 
     const buf = await sharp(file)
       .resize(24, 24, { fit: "inside" })
@@ -76,5 +79,7 @@ for await (const file of walk(PUBLIC)) {
 
 await writeFile(PH_OUT, JSON.stringify(placeholders))
 await writeFile(SS_OUT, JSON.stringify(srcsets))
+await writeFile(DIM_OUT, JSON.stringify(dimensions))
 console.log(`[placeholders] ${Object.keys(placeholders).length} → ${PH_OUT}`)
 console.log(`[srcsets] ${Object.keys(srcsets).length} → ${SS_OUT}`)
+console.log(`[dimensions] ${Object.keys(dimensions).length} → ${DIM_OUT}`)
