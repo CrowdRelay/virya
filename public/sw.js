@@ -1,5 +1,5 @@
-const CACHE_NAME = 'virya-v6'
-const STATIC_CACHE = 'virya-static-v6'
+const CACHE_NAME = 'virya-v7'
+const STATIC_CACHE = 'virya-static-v7'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -26,7 +26,6 @@ self.addEventListener('activate', (event) => {
       )
     })
   )
-  self.clients.claim()
 })
 
 self.addEventListener('fetch', (event) => {
