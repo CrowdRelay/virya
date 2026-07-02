@@ -11,7 +11,7 @@
 :root {
   color-scheme: dark;
   scrollbar-gutter: stable;
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 
 @layer base {
