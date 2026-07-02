@@ -450,7 +450,7 @@ export const translations = {
       videos: "Wideo",
       gallery: "Galeria",
       news: "Aktualności",
-      lyrics: "Teksty",
+      lyrics: "Tekst",
     },
     hero: {
       eyebrow: "Nowoczesny Metalcore · Polska",
@@ -522,7 +522,7 @@ export const translations = {
       listen: "Słuchaj",
       watch: "Oglądaj",
       buy: "Kup",
-      lyrics: "Teksty",
+      lyrics: "Tekst",
       merch: "Sklep",
       browseMerch: "Przejdź do sklepu Virya",
     },
