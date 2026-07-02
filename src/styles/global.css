@@ -10,13 +10,13 @@
 
 :root {
   color-scheme: dark;
-  scrollbar-gutter: stable;
   overflow-x: hidden;
 }
 
 @layer base {
   body {
     background-color: #09090b;
+    scrollbar-gutter: stable;
   }
 
   a:focus-visible,
