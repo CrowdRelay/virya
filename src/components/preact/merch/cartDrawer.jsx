@@ -118,7 +118,7 @@ const CartDrawer = () => {
       >
         <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
           <h2 class="text-sm font-black uppercase tracking-widest text-zinc-100">{t("cart.title")}</h2>
-          <button onClick={() => setOpen(false)} aria-label={t("cart.close")} class="text-zinc-500 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
+          <button onClick={() => setOpen(false)} aria-label={t("cart.close")} class="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
         </div>
 
         <div class="flex-1 overflow-y-auto px-5 py-4">
