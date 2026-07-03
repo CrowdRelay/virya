@@ -69,14 +69,14 @@ const description = `Song lyrics from ${item.title} by Virya.`
               <p class="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-1">{typeLabel} · {item.year}</p>
               <h1 class="text-xl font-black uppercase tracking-tight text-white leading-tight">{item.title}</h1>
               {portfolioItem?.link && (
-                <a href={portfolioItem.link} target="_blank" rel="noreferrer" class="text-[9px] font-bold uppercase tracking-widest text-zinc-500 hover:text-amber-400 transition-colors mt-1 block">
+                <a href={portfolioItem.link} target="_blank" rel="noreferrer" class="text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors mt-1 block">
                   ▶ {t(lang, "music.streamSpotify")}
                 </a>
               )}
             </div>
             {item.tracks.length > 1 && (
               <nav class="border-t border-zinc-800 pt-4">
-                <p class="text-[9px] font-bold uppercase tracking-widest text-zinc-500 mb-2">{t(lang, "lyrics.chooseTrack")}</p>
+                <p class="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-2">{t(lang, "lyrics.chooseTrack")}</p>
                 <ul class="space-y-0.5">
                   {tracks.map((track) => (
                     <li>

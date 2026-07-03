@@ -53,7 +53,7 @@ const posts: Array<{
                 <a href={lp(lang, `/news/${post.slug}/`)} class="block">
                   <div class="flex items-center gap-3 mb-3">
                     <span class="text-[9px] font-bold uppercase tracking-widest text-amber-400 border border-amber-400/40 px-2 py-0.5">{post.tag}</span>
-                    <time class="text-[10px] uppercase tracking-widest text-zinc-500">{post.date}</time>
+                    <time class="text-[10px] uppercase tracking-widest text-zinc-400">{post.date}</time>
                   </div>
                   <h2 class="text-xl font-black uppercase tracking-tight text-zinc-100 group-hover:text-amber-400 transition-colors mb-3">
                     {lang === "pl" ? post.title_pl : post.title}
