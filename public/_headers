@@ -7,7 +7,7 @@
   Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(self)
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: https:; media-src 'self'; font-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://rest.bandsintown.com https://i.ytimg.com; frame-src https://open.spotify.com https://js.stripe.com https://www.youtube-nocookie.com; form-action 'self'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: https:; media-src 'self'; font-src 'self' data: https:; script-src 'self' 'unsafe-inline' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://rest.bandsintown.com https://i.ytimg.com; frame-src https://open.spotify.com https://js.stripe.com https://www.youtube-nocookie.com; form-action 'self'; frame-ancestors 'self'
 
 # Merch pages — override CSP to allow InPost geowidget assets and its
 # internal data:application/javascript, module pattern (web-component init).

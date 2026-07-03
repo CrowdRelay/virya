@@ -147,6 +147,10 @@ const description = `Teksty piosenek z wydawnictwa ${item.title} Virya.`
     sections.forEach((s) => io.observe(s))
   }
 
-  initLyrics()
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initLyrics)
+  } else {
+    initLyrics()
+  }
   document.addEventListener("astro:page-load", initLyrics)
 </script>

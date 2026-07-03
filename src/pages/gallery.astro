@@ -197,7 +197,11 @@ const dims = rawDims as Record<string, { w: number; h: number }>
     })
   }
 
-  initGallery()
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGallery)
+  } else {
+    initGallery()
+  }
   document.addEventListener("astro:page-load", initGallery)
 </script>
 
