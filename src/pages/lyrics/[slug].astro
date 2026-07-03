@@ -126,7 +126,7 @@ const description = `Song lyrics from ${item.title} by Virya.`
 </Layout>
 
 <script>
-  document.addEventListener("astro:page-load", () => {
+  const initLyrics = () => {
     const links = document.querySelectorAll<HTMLAnchorElement>(".track-link")
     const sections = document.querySelectorAll<HTMLElement>("[id^='track-']")
 
@@ -147,5 +147,8 @@ const description = `Song lyrics from ${item.title} by Virya.`
       { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
     )
     sections.forEach((s) => io.observe(s))
-  })
+  }
+
+  initLyrics()
+  document.addEventListener("astro:page-load", initLyrics)
 </script>
