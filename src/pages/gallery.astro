@@ -85,7 +85,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
         role="dialog"
         aria-modal="true"
       >
-        <div id="modal-blur" class="absolute inset-0 opacity-0 transition-opacity duration-300 bg-contain bg-center bg-no-repeat pointer-events-none" style="filter:blur(20px);transform:scale(1.05)"></div>
+        <div id="modal-blur" class="absolute inset-0 opacity-0 transition-opacity duration-300 bg-cover bg-center bg-no-repeat pointer-events-none" style="filter:blur(20px);transform:scale(1.05)"></div>
         <button id="modal-close" class="absolute top-4 right-4 text-zinc-400 hover:text-amber-400 transition-colors z-10 text-3xl leading-none" aria-label={t(lang, "gallery.close")}>&times;</button>
 
         <button id="modal-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.prev")}>
@@ -160,6 +160,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
 
       if (modal!.style.display !== "none") {
         modalImg.style.opacity = "0"
+        modalImg.src = ""
         modalSpinner!.classList.remove("hidden")
         const preload = new Image()
         preload.onload = doSwap
