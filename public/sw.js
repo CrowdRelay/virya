@@ -1,5 +1,5 @@
-const CACHE_NAME = 'virya-v8'
-const STATIC_CACHE = 'virya-static-v8'
+const CACHE_NAME = 'virya-v7'
+const STATIC_CACHE = 'virya-static-v7'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -48,24 +48,8 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Network-first for JS files to ensure fresh interactive code
-  if (url.pathname.match(/\.js$/)) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone()
-            caches.open(STATIC_CACHE).then((cache) => cache.put(event.request, clone))
-          }
-          return response
-        })
-        .catch(() => caches.match(event.request))
-    )
-    return
-  }
-
-  // Cache-first for images and fonts (static assets)
-  if (url.pathname.match(/\.(webp|png|jpg|jpeg|svg|css|woff2?|ttf|otf)$/)) {
+  // Cache static assets with cache-first
+  if (url.pathname.match(/\.(webp|png|jpg|jpeg|svg|css|js|woff2?|ttf|otf)$/)) {
     event.respondWith(
       caches.open(STATIC_CACHE).then((cache) => {
         return cache.match(event.request).then((response) => {

@@ -113,7 +113,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
 </Layout>
 
 <script>
-  document.addEventListener("astro:page-load", () => {
+  const initGallery = () => {
     const modal = document.getElementById("gallery-modal")
     if (!modal) return
 
@@ -195,7 +195,10 @@ const dims = rawDims as Record<string, { w: number; h: number }>
       const dx = e.changedTouches[0].clientX - touchStartX
       if (Math.abs(dx) > 50) dx < 0 ? next() : prev()
     })
-  })
+  }
+
+  initGallery()
+  document.addEventListener("astro:page-load", initGallery)
 </script>
 
 <style>
