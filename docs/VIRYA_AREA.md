@@ -120,13 +120,17 @@ release.
   configured radius plus at most 50 m of reported accuracy.
 - Credit reservation and voucher state transitions use compare-and-swap writes.
 - Only one request holds the voucher-processing lease at a time. Stripe coupon
-  and promotion creation use deterministic idempotency keys.
+  and promotion creation use deterministic idempotency keys. Recovery also
+  retrieves the deterministic coupon and searches the customer-facing code,
+  so it remains safe after Stripe's idempotency cache expires.
 - Functional responses are `no-store`; the service worker ignores all API and
   claim traffic.
 - If Stripe's outcome is uncertain, Credits remain reserved and the browser
   retries the same request ID. This prevents an active Stripe promotion from
   coexisting with a refunded balance. An expired processing lease can be
-  resumed safely with the same idempotency keys.
+  resumed safely with the same idempotency keys. A matching code that is
+  expired, inactive or already redeemed is never returned as a fresh voucher
+  and requires manual review instead of an automatic Credit refund.
 
 Browser geolocation can be spoofed by a determined attacker. The QR secret,
 limited activation window, minimum basket and hard `maxClaims` budget make that
