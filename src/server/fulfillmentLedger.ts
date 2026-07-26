@@ -7,10 +7,22 @@ type FulfillmentRecord = {
   leaseId: string
   expiresAt: number
   updatedAt: string
+  emailDone: boolean
+  shipmentDone: boolean
+  shipmentId?: string
 }
 
+export type FulfillmentProgress = Pick<
+  FulfillmentRecord,
+  "emailDone" | "shipmentDone" | "shipmentId"
+>
+
 type FulfillmentLease =
-  | { status: "acquired"; leaseId: string }
+  | {
+      status: "acquired"
+      leaseId: string
+      progress: FulfillmentProgress
+    }
   | { status: "busy" | "done" }
 
 const STORE_NAME = "virya-fulfillment"
@@ -40,11 +52,15 @@ const normalizeRecord = (value: unknown): FulfillmentRecord | null => {
       typeof record.updatedAt === "string"
         ? record.updatedAt
         : new Date(0).toISOString(),
+    emailDone: record.emailDone === true,
+    shipmentDone: record.shipmentDone === true,
+    shipmentId:
+      typeof record.shipmentId === "string" ? record.shipmentId : undefined,
   }
 }
 
 export const acquireFulfillmentLease = async (
-  sessionId: string
+  sessionId: string,
 ): Promise<FulfillmentLease> => {
   const key = recordKey(sessionId)
   const leaseId = randomUUID()
@@ -66,13 +82,26 @@ export const acquireFulfillmentLease = async (
       leaseId,
       expiresAt: Date.now() + LEASE_MS,
       updatedAt: new Date().toISOString(),
+      emailDone: record?.emailDone === true,
+      shipmentDone: record?.shipmentDone === true,
+      shipmentId: record?.shipmentId,
     }
     const write = await store().setJSON(
       key,
       next,
-      current ? { onlyIfMatch: current.etag } : { onlyIfNew: true }
+      current ? { onlyIfMatch: current.etag } : { onlyIfNew: true },
     )
-    if (write.modified) return { status: "acquired", leaseId }
+    if (write.modified) {
+      return {
+        status: "acquired",
+        leaseId,
+        progress: {
+          emailDone: next.emailDone,
+          shipmentDone: next.shipmentDone,
+          shipmentId: next.shipmentId,
+        },
+      }
+    }
   }
 
   throw new Error("Fulfillment lease is busy; retry")
@@ -81,7 +110,7 @@ export const acquireFulfillmentLease = async (
 const transitionFulfillmentLease = async (
   sessionId: string,
   leaseId: string,
-  status: "processing" | "done"
+  status: "processing" | "done",
 ) => {
   const key = recordKey(sessionId)
 
@@ -104,8 +133,11 @@ const transitionFulfillmentLease = async (
         leaseId,
         expiresAt: status === "done" ? 0 : Date.now() - 1,
         updatedAt: new Date().toISOString(),
+        emailDone: record.emailDone,
+        shipmentDone: record.shipmentDone,
+        shipmentId: record.shipmentId,
       } satisfies FulfillmentRecord,
-      { onlyIfMatch: current.etag }
+      { onlyIfMatch: current.etag },
     )
     if (write.modified) return
   }
@@ -118,3 +150,41 @@ export const completeFulfillmentLease = (sessionId: string, leaseId: string) =>
 
 export const releaseFulfillmentLease = (sessionId: string, leaseId: string) =>
   transitionFulfillmentLease(sessionId, leaseId, "processing")
+
+export const checkpointFulfillmentStep = async (
+  sessionId: string,
+  leaseId: string,
+  progress: Partial<FulfillmentProgress>,
+) => {
+  const key = recordKey(sessionId)
+
+  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
+    const current = await store().getWithMetadata(key, {
+      type: "json",
+      consistency: "strong",
+    })
+    const record = normalizeRecord(current?.data)
+    if (
+      !current ||
+      record?.status !== "processing" ||
+      record.leaseId !== leaseId ||
+      record.expiresAt <= Date.now()
+    ) {
+      throw new Error("Fulfillment lease ownership was lost")
+    }
+
+    const next: FulfillmentRecord = {
+      ...record,
+      emailDone: progress.emailDone ?? record.emailDone,
+      shipmentDone: progress.shipmentDone ?? record.shipmentDone,
+      shipmentId: progress.shipmentId ?? record.shipmentId,
+      updatedAt: new Date().toISOString(),
+    }
+    const write = await store().setJSON(key, next, {
+      onlyIfMatch: current.etag,
+    })
+    if (write.modified) return
+  }
+
+  throw new Error("Fulfillment checkpoint is busy; retry")
+}

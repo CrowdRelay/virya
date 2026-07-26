@@ -52,7 +52,7 @@ const retrieveCoupon = async (stripe: Stripe, couponId: string) => {
 const couponMatches = (
   coupon: Stripe.Coupon,
   couponId: string,
-  reservation: AreaVoucher
+  reservation: AreaVoucher,
 ) =>
   coupon.id === couponId &&
   coupon.amount_off === reservation.valuePln * 100 &&
@@ -63,22 +63,19 @@ const couponMatches = (
   (!coupon.metadata?.area_request ||
     coupon.metadata.area_request === reservation.requestId)
 
-const couponIsRedeemable = (
-  coupon: Stripe.Coupon,
-  reservation: AreaVoucher
-) =>
+const couponIsRedeemable = (coupon: Stripe.Coupon, reservation: AreaVoucher) =>
   coupon.valid &&
   coupon.times_redeemed === 0 &&
   reservation.expiresAt > Math.floor(Date.now() / 1000)
 
 const requireRedeemableCoupon = (
   coupon: Stripe.Coupon,
-  reservation: AreaVoucher
+  reservation: AreaVoucher,
 ) => {
   if (!couponIsRedeemable(coupon, reservation)) {
     throw new VoucherProvisionError(
       "The Stripe coupon exists but is no longer redeemable.",
-      null
+      null,
     )
   }
   return coupon
@@ -88,14 +85,14 @@ const getOrCreateCoupon = async (
   stripe: Stripe,
   couponId: string,
   reservation: AreaVoucher,
-  walletId: string
+  walletId: string,
 ) => {
   const existing = await retrieveCoupon(stripe, couponId)
   if (existing) {
     if (!couponMatches(existing, couponId, reservation)) {
       throw new VoucherProvisionError(
         "Existing Stripe coupon does not match the voucher reservation.",
-        null
+        null,
       )
     }
     return requireRedeemableCoupon(existing, reservation)
@@ -117,12 +114,12 @@ const getOrCreateCoupon = async (
           virya_credits: String(reservation.tokens),
         },
       },
-      { idempotencyKey: `area-coupon-${reservation.requestId}` }
+      { idempotencyKey: `area-coupon-${reservation.requestId}` },
     )
     if (!couponMatches(created, couponId, reservation)) {
       throw new VoucherProvisionError(
         "Stripe returned a coupon with unexpected properties.",
-        null
+        null,
       )
     }
     return requireRedeemableCoupon(created, reservation)
@@ -135,7 +132,7 @@ const getOrCreateCoupon = async (
         if (!couponMatches(reconciled, couponId, reservation)) {
           throw new VoucherProvisionError(
             "Reconciled Stripe coupon does not match the reservation.",
-            error
+            error,
           )
         }
         return requireRedeemableCoupon(reconciled, reservation)
@@ -144,7 +141,7 @@ const getOrCreateCoupon = async (
       throw new VoucherProvisionError(
         "Stripe rejected coupon creation.",
         error,
-        isDefinitiveStripeRejection(error)
+        isDefinitiveStripeRejection(error),
       )
     } catch (reconcileError) {
       if (reconcileError instanceof VoucherProvisionError) {
@@ -152,7 +149,7 @@ const getOrCreateCoupon = async (
       }
       throw new VoucherProvisionError(
         "Stripe coupon state could not be reconciled.",
-        error
+        error,
       )
     }
   }
@@ -166,21 +163,20 @@ const promotionCouponId = (promotion: Stripe.PromotionCode) => {
 const promotionMatches = (
   promotion: Stripe.PromotionCode,
   couponId: string,
-  reservation: AreaVoucher
+  reservation: AreaVoucher,
 ) =>
   promotion.code.toLowerCase() === reservation.code.toLowerCase() &&
   promotionCouponId(promotion) === couponId &&
   promotion.max_redemptions === 1 &&
   promotion.expires_at === reservation.expiresAt &&
-  promotion.restrictions.minimum_amount ===
-    reservation.minimumOrderPln * 100 &&
+  promotion.restrictions.minimum_amount === reservation.minimumOrderPln * 100 &&
   promotion.restrictions.minimum_amount_currency === "pln" &&
   (!promotion.metadata?.area_request ||
     promotion.metadata.area_request === reservation.requestId)
 
 const promotionIsRedeemable = (
   promotion: Stripe.PromotionCode,
-  reservation: AreaVoucher
+  reservation: AreaVoucher,
 ) =>
   promotion.active &&
   promotion.times_redeemed === 0 &&
@@ -189,24 +185,24 @@ const promotionIsRedeemable = (
 const findPromotion = async (
   stripe: Stripe,
   couponId: string,
-  reservation: AreaVoucher
+  reservation: AreaVoucher,
 ) => {
   const page = await stripe.promotionCodes.list({
     code: reservation.code,
     limit: 10,
   })
   const sameCode = page.data.filter(
-    (promotion) =>
-      promotion.code.toLowerCase() === reservation.code.toLowerCase()
+    promotion =>
+      promotion.code.toLowerCase() === reservation.code.toLowerCase(),
   )
-  const match = sameCode.find((promotion) =>
-    promotionMatches(promotion, couponId, reservation)
+  const match = sameCode.find(promotion =>
+    promotionMatches(promotion, couponId, reservation),
   )
   if (match) {
     if (!promotionIsRedeemable(match, reservation)) {
       throw new VoucherProvisionError(
         "The Stripe promotion exists but is no longer redeemable.",
-        null
+        null,
       )
     }
     return match
@@ -214,7 +210,7 @@ const findPromotion = async (
   if (sameCode.length > 0) {
     throw new VoucherProvisionError(
       "The Stripe promotion code is already used by another promotion.",
-      null
+      null,
     )
   }
   return null
@@ -224,7 +220,7 @@ const getOrCreatePromotion = async (
   stripe: Stripe,
   couponId: string,
   reservation: AreaVoucher,
-  walletId: string
+  walletId: string,
 ) => {
   const existing = await findPromotion(stripe, couponId, reservation)
   if (existing) return existing
@@ -246,18 +242,18 @@ const getOrCreatePromotion = async (
           virya_credits: String(reservation.tokens),
         },
       },
-      { idempotencyKey: `area-promotion-${reservation.requestId}` }
+      { idempotencyKey: `area-promotion-${reservation.requestId}` },
     )
     if (!promotionMatches(created, couponId, reservation)) {
       throw new VoucherProvisionError(
         "Stripe returned a promotion with unexpected properties.",
-        null
+        null,
       )
     }
     if (!promotionIsRedeemable(created, reservation)) {
       throw new VoucherProvisionError(
         "Stripe returned a promotion that is not redeemable.",
-        null
+        null,
       )
     }
     return created
@@ -271,7 +267,7 @@ const getOrCreatePromotion = async (
       throw new VoucherProvisionError(
         "Stripe rejected promotion-code creation.",
         error,
-        isDefinitiveStripeRejection(error)
+        isDefinitiveStripeRejection(error),
       )
     } catch (reconcileError) {
       if (reconcileError instanceof VoucherProvisionError) {
@@ -279,7 +275,7 @@ const getOrCreatePromotion = async (
       }
       throw new VoucherProvisionError(
         "Stripe promotion state could not be reconciled.",
-        error
+        error,
       )
     }
   }
@@ -315,7 +311,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     tokens < 1 ||
     tokens > MAX_TOKENS_PER_VOUCHER ||
     !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(
-      requestId
+      requestId,
     )
   ) {
     return areaJson({ error: "Invalid voucher request" }, 400)
@@ -342,9 +338,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       voucher: AreaVoucher | null
       insufficient: boolean
       ownsProcessingLease: boolean
-    }>(walletId, (wallet) => {
+    }>(walletId, wallet => {
       const existingIndex = wallet.vouchers.findIndex(
-        (voucher) => voucher.requestId === requestId
+        voucher => voucher.requestId === requestId,
       )
       const existing =
         existingIndex >= 0 ? wallet.vouchers[existingIndex] : undefined
@@ -431,7 +427,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     if (result.insufficient || !result.voucher) {
       return areaJson(
         { error: "Not enough VIRYA Credits.", retryWithNewRequest: true },
-        409
+        409,
       )
     }
 
@@ -442,7 +438,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     if (reservation.status === "failed") {
       return areaJson(
         { error: "Create a new voucher request.", retryWithNewRequest: true },
-        409
+        409,
       )
     }
     if (!result.ownsProcessingLease) {
@@ -452,7 +448,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           code: "VOUCHER_PENDING",
           retryWithNewRequest: false,
         },
-        409
+        409,
       )
     }
   } catch (error) {
@@ -468,20 +464,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       stripe,
       couponId,
       reservation,
-      walletId
+      walletId,
     )
     const promotion = await getOrCreatePromotion(
       stripe,
       coupon.id,
       reservation,
-      walletId
+      walletId,
     )
 
     const issued = await mutateAreaWallet<AreaVoucher | null>(
       walletId,
-      (wallet) => {
+      wallet => {
         let finalVoucher: AreaVoucher | null = null
-        const vouchers = wallet.vouchers.map((voucher) => {
+        const vouchers = wallet.vouchers.map(voucher => {
           if (voucher.requestId === requestId && voucher.status === "issued") {
             finalVoucher = voucher
             return voucher
@@ -507,7 +503,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           wallet: { ...wallet, vouchers },
           result: finalVoucher,
         }
-      }
+      },
     )
 
     if (!issued || issued.status !== "issued") {
@@ -521,10 +517,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       error instanceof VoucherProvisionError && error.safeToRefund
     let recovery = { refunded: false, retryReady: false }
     try {
-      recovery = await mutateAreaWallet(walletId, (wallet) => {
+      recovery = await mutateAreaWallet(walletId, wallet => {
         let refunded = false
         let retryReady = false
-        const vouchers = wallet.vouchers.map((voucher) => {
+        const vouchers = wallet.vouchers.map(voucher => {
           if (
             voucher.requestId !== requestId ||
             voucher.status !== "pending" ||
@@ -571,7 +567,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         retryWithNewRequest: recovery.refunded,
         retryReady: recovery.retryReady,
       },
-      503
+      503,
     )
   }
 }

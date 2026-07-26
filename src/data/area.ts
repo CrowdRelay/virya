@@ -1,4 +1,4 @@
-export const AREA_TOKEN_VALUE_PLN = 20
+export const AREA_TOKEN_VALUE_PLN = 50
 
 export type AreaLang = "en" | "pl"
 

@@ -758,7 +758,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
       const renderWallet = (data: any) => {
         const balance = Number(data?.tokenBalance || 0)
-        const value = balance * Number(data?.tokenValuePln || 20)
+        const tokenValuePln = Number(data?.tokenValuePln || 50)
+        const value = balance * tokenValuePln
         const balanceEl = root.querySelector<HTMLElement>("[data-wallet-balance]")
         const valueEl = root.querySelector<HTMLElement>("[data-wallet-value]")
         const statusEl = root.querySelector<HTMLElement>("[data-wallet-status]")
@@ -794,7 +795,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             for (let count = 1; count <= max; count += 1) {
               const option = document.createElement("option")
               option.value = String(count)
-              option.textContent = `${count} VIRYA = ${count * 20} PLN`
+              option.textContent = `${count} VIRYA = ${count * tokenValuePln} PLN`
               select.append(option)
             }
           }

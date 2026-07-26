@@ -7,10 +7,9 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
   const to = import.meta.env.ORDER_EMAIL_TO || user
 
   if (!user || !pass) {
-    console.warn(
-      "[orderEmail] GMAIL_USER / GMAIL_APP_PASSWORD not set — skipping email."
+    throw new Error(
+      "GMAIL_USER / GMAIL_APP_PASSWORD must be configured for order fulfilment.",
     )
-    return { skipped: true }
   }
 
   const meta = session.metadata || {}
@@ -23,7 +22,7 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
       li =>
         `  • ${li.quantity}× ${li.description} — ${(
           li.amount_total / 100
-        ).toFixed(2)} ${currency}`
+        ).toFixed(2)} ${currency}`,
     )
     .join("\n")
 
@@ -31,7 +30,7 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
   const shipping = Number.parseFloat(meta.shipping_pln || "0") || 0
   const discount = Math.max(
     0,
-    Number(session.total_details?.amount_discount || 0) / 100
+    Number(session.total_details?.amount_discount || 0) / 100,
   )
   const paidGoodsGross = (lineItems || [])
     .filter(li => li.description !== "InPost Paczkomat delivery")
@@ -43,7 +42,7 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
   // fallback for older sessions that do not expose detailed totals.
   const discountedGoodsGross = Math.max(
     0,
-    lineItems?.length ? paidGoodsGross : goodsGross - discount
+    lineItems?.length ? paidGoodsGross : goodsGross - discount,
   )
   const chargedShipping = lineItems?.length ? paidShipping : shipping
   const { net, vat } = vatBreakdown(discountedGoodsGross)
@@ -62,9 +61,7 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     `  Goods net:   ${f(net)} ${currency}`,
     `  VAT (${vatPct}%):   ${f(vat)} ${currency}`,
     `  Goods gross: ${f(discountedGoodsGross)} ${currency}`,
-    ...(discount > 0
-      ? [`  Discount:    -${f(discount)} ${currency}`]
-      : []),
+    ...(discount > 0 ? [`  Discount:    -${f(discount)} ${currency}`] : []),
     `  Delivery:    ${f(chargedShipping)} ${currency} (VAT-exempt)`,
     `  Grand total: ${total} ${currency}`,
   ]
@@ -99,6 +96,9 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: { user, pass },
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   })
 
   const buyerName =
@@ -114,6 +114,9 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     replyTo: meta.inv_email || customer.email || undefined,
     subject: `🛒 New order — ${total} ${currency} — ${buyerName}`,
     text,
+    // A stable Message-ID makes the rare SMTP-accepted / worker-crashed retry
+    // recognizable as the same notification instead of a new order.
+    messageId: `<virya-order-${session.id}@virya.music>`,
   })
 
   return { sent: true }

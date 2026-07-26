@@ -21,7 +21,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       teaserTrack: "Unknown transmission · 001",
     },
     stats: {
-      value: "20 PLN",
+      value: "50 PLN",
       valueLabel: "off merch per credit",
       cities: "6",
       citiesLabel: "pilot city signals",
@@ -94,7 +94,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
         "Pilot wallet: keep this browser's site data. Account recovery arrives before the public season.",
       voucherHeading: "Turn Credits into a merch code",
       voucherBody:
-        "Choose 1–5 Credits. You will receive one single-use Stripe code. Minimum order equals the discount plus 20 PLN.",
+        "Choose 1–5 Credits. You will receive one single-use Stripe code. Minimum order equals the discount plus 50 PLN.",
       voucherButton: "Create merch code",
       voucherWorking: "Creating a one-time code…",
       voucherEmpty: "Find a live drop to earn your first Credit.",
@@ -125,7 +125,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
           number: "03",
           title: "Unlock & use",
           body:
-            "A valid scan unlocks the lyric collectible and 1 VIRYA Credit, worth 20 PLN off in the merch store.",
+            "A valid scan unlocks the lyric collectible and 1 VIRYA Credit, worth 50 PLN off in the merch store.",
         },
       ],
     },
@@ -146,8 +146,8 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       heading: "Real hunt. Clear rules.",
       items: [
         "One collectible and 1 Credit per wallet per drop.",
-        "1 VIRYA Credit = 20 PLN off. Credits are free, non-transferable and cannot be exchanged for cash.",
-        "A generated merch code is single-use, expires after 12 months and requires an order at least 20 PLN higher than its discount.",
+        "1 VIRYA Credit = 50 PLN off. Credits are free, non-transferable and cannot be exchanged for cash.",
+        "A generated merch code is single-use, expires after 12 months and requires an order at least 50 PLN higher than its discount.",
         "Location is requested only after you choose to check a signal or claim a physical box. No background tracking.",
         "Stay on public, safe ground. Never enter private property, tracks, roads, rooftops or construction sites.",
         "Pilot collectibles and Credits are a loyalty feature, not cryptocurrency, an investment or a financial product.",
@@ -161,7 +161,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       eyebrow: "New // VIRYA Area",
       heading: "The next release might be hidden in your city.",
       body:
-        "Find a physical VIRYA box, decode a line from our lyrics and collect a Credit worth 20 PLN in the merch store.",
+        "Find a physical VIRYA box, decode a line from our lyrics and collect a Credit worth 50 PLN in the merch store.",
       cta: "Enter the Area",
       signal: "Pilot map online",
     },
@@ -186,7 +186,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       teaserTrack: "Nieznana transmisja · 001",
     },
     stats: {
-      value: "20 zł",
+      value: "50 zł",
       valueLabel: "rabatu na merch za Credit",
       cities: "6",
       citiesLabel: "miast w sygnale pilota",
@@ -262,7 +262,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
         "Portfel pilota: zachowaj dane tej strony w przeglądarce. Odzyskiwanie konta pojawi się przed publicznym sezonem.",
       voucherHeading: "Zamień Credits na kod do merchu",
       voucherBody:
-        "Wybierz 1–5 Credits. Dostaniesz jeden jednorazowy kod Stripe. Minimalny koszyk to wartość rabatu plus 20 zł.",
+        "Wybierz 1–5 Credits. Dostaniesz jeden jednorazowy kod Stripe. Minimalny koszyk to wartość rabatu plus 50 zł.",
       voucherButton: "Utwórz kod do merchu",
       voucherWorking: "Tworzę jednorazowy kod…",
       voucherEmpty: "Znajdź aktywny drop, żeby zdobyć pierwszy Credit.",
@@ -293,7 +293,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
           number: "03",
           title: "Odblokuj i użyj",
           body:
-            "Prawidłowy skan odsłania kolekcjonerski wers i daje 1 VIRYA Credit wart 20 zł rabatu w sklepie.",
+            "Prawidłowy skan odsłania kolekcjonerski wers i daje 1 VIRYA Credit wart 50 zł rabatu w sklepie.",
         },
       ],
     },
@@ -314,8 +314,8 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       heading: "Prawdziwy hunt. Jasne reguły.",
       items: [
         "Jedna karta i 1 Credit na portfel za każdy drop.",
-        "1 VIRYA Credit = 20 zł rabatu. Credits są darmowe, niezbywalne i niewymienialne na gotówkę.",
-        "Wygenerowany kod jest jednorazowy, wygasa po 12 miesiącach i wymaga koszyka co najmniej o 20 zł wyższego od rabatu.",
+        "1 VIRYA Credit = 50 zł rabatu. Credits są darmowe, niezbywalne i niewymienialne na gotówkę.",
+        "Wygenerowany kod jest jednorazowy, wygasa po 12 miesiącach i wymaga koszyka co najmniej o 50 zł wyższego od rabatu.",
         "O lokalizację pytamy tylko, gdy sprawdzasz sygnał lub odbierasz fizyczny box. Zero śledzenia w tle.",
         "Szukaj wyłącznie w bezpiecznych, publicznych miejscach. Nigdy nie wchodź na teren prywatny, tory, jezdnię, dach ani budowę.",
         "Karty i Credits w pilocie są funkcją lojalnościową, a nie kryptowalutą, inwestycją ani produktem finansowym.",
@@ -329,7 +329,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       eyebrow: "Nowość // VIRYA Area",
       heading: "Następny release może być ukryty w Twoim mieście.",
       body:
-        "Znajdź fizyczny box VIRYA, odkoduj wers z naszych tekstów i zbierz Credit wart 20 zł w sklepie.",
+        "Znajdź fizyczny box VIRYA, odkoduj wers z naszych tekstów i zbierz Credit wart 50 zł w sklepie.",
       cta: "Wejdź do Area",
       signal: "Mapa pilota online",
     },
