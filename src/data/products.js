@@ -58,7 +58,6 @@ export const PRODUCTS = [
   {
     id: "ashes-color",
     name: "From The Ashes — Colour Tee",
-    name_pl: "From The Ashes — Koszulka (kolor)",
     name_pl: "From The Ashes — Koszulka Kolorowa",
     type: "shirt",
     price: 70,
@@ -74,7 +73,6 @@ export const PRODUCTS = [
   {
     id: "ashes-bw",
     name: "From The Ashes — Mono Tee",
-    name_pl: "From The Ashes — Koszulka (mono)",
     name_pl: "From The Ashes — Koszulka monochrom",
     type: "shirt",
     price: 70,
@@ -89,7 +87,6 @@ export const PRODUCTS = [
   {
     id: "wave",
     name: "Wave Of Uncertainty Tee",
-    name_pl: "Wave Of Uncertainty — Koszulka",
     name_pl: "Fala Niepewności — Koszulka",
     type: "shirt",
     price: 70,
@@ -104,7 +101,6 @@ export const PRODUCTS = [
   {
     id: "virya-logo",
     name: "Virya Logo Tee",
-    name_pl: "Koszulka Virya Logo",
     name_pl: "Koszulka z Logo Viryi",
     type: "shirt",
     price: 60,
@@ -119,7 +115,6 @@ export const PRODUCTS = [
   {
     id: "bag",
     name: "Virya Tote Bag",
-    name_pl: "Torba Virya",
     name_pl: "Torba Viryi",
     type: "bag",
     price: 50,

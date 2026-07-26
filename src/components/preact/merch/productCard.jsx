@@ -157,6 +157,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
             decoding="async"
             width="400"
             height="400"
+            sizes="(max-width: 1023px) calc((100vw - 4.5rem) / 2), 380px"
             class={imgClass(showBack)}
           />
         )}
@@ -168,6 +169,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
             decoding="async"
             width="400"
             height="400"
+            sizes="(max-width: 1023px) calc((100vw - 4.5rem) / 2), 380px"
             class={`absolute inset-0 ${imgClass(!showBack)}`}
           />
         )}

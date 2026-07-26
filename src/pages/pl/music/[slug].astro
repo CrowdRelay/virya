@@ -68,7 +68,9 @@ const hasLyrics = (lyricsData as Array<{slug: string}>).some(l => l.slug === slu
               width="280"
               height="280"
               loading="eager"
+              fetchpriority="high"
               decoding="async"
+              sizes="(max-width: 1023px) calc(100vw - 3rem), 280px"
               class="block w-full aspect-square object-cover rounded-sm transition-opacity duration-200 group-hover:opacity-80"
             />
           </button>

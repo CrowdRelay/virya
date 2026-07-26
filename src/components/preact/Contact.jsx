@@ -3,7 +3,7 @@ import { LanguageProvider, useI18n } from "../../i18n/I18nContext"
 
 const ContactInner = () => {
   const { t } = useI18n()
-  const [form, setForm] = useState({ name: "", email: "", message: "" })
+  const [form, setForm] = useState({ name: "", email: "", message: "", website: "" })
   const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(false)
 
@@ -21,7 +21,7 @@ const ContactInner = () => {
       })
       if (res.ok) {
         setStatus("success")
-        setForm({ name: "", email: "", message: "" })
+        setForm({ name: "", email: "", message: "", website: "" })
       } else {
         setStatus("error")
       }
@@ -35,6 +35,21 @@ const ContactInner = () => {
   return (
     <div class="py-16 lg:px-8 border-t border-zinc-800/60">
       <form name="contact" method="POST" onSubmit={handleSubmit}>
+        <div class="hidden" aria-hidden="true">
+          <label for="contact-website">
+            Website
+          </label>
+          <input
+            id="contact-website"
+            name="website"
+            type="text"
+            value={form.website}
+            onInput={set("website")}
+            tabIndex={-1}
+            autocomplete="off"
+            maxLength={200}
+          />
+        </div>
         <div class="mx-4 mb-6">
           <div class="flex items-center gap-4 mb-2">
             <h2 class="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
@@ -72,6 +87,8 @@ const ContactInner = () => {
                 id="contact-name"
                 name="name"
                 type="text"
+                required
+                maxLength={100}
                 value={form.name}
                 onInput={set("name")}
                 class="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors"
@@ -85,6 +102,8 @@ const ContactInner = () => {
                 id="contact-email"
                 name="email"
                 type="email"
+                required
+                maxLength={254}
                 value={form.email}
                 onInput={set("email")}
                 autocomplete="email"
@@ -98,6 +117,8 @@ const ContactInner = () => {
               <textarea
                 id="contact-message"
                 name="message"
+                required
+                maxLength={5000}
                 value={form.message}
                 onInput={set("message")}
                 class="w-full h-32 bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors resize-none"

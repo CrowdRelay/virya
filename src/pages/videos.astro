@@ -74,9 +74,9 @@ const description = "Official music videos and live performance footage from Vir
                 <img
                   src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
                   alt={video.title}
-                  loading={i < 3 ? "eager" : "lazy"}
+                  loading={i === 0 ? "eager" : "lazy"}
                   decoding="async"
-                  fetchpriority={i < 3 ? "high" : "low"}
+                  fetchpriority={i === 0 ? "high" : "low"}
                   width="480"
                   height="360"
                   class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

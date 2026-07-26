@@ -2,7 +2,7 @@
 // 1. Scans public/ rasters → src/placeholders.json: { "/path": "data:image/webp;base64,..." } (blur LQIP)
 // 2. Generates public/resp/**/*-{w}w.webp responsive variants → src/srcsets.json: { "/path": "srcset string" }
 import sharp from "sharp"
-import { readdir, writeFile, mkdir } from "node:fs/promises"
+import { readdir, writeFile, mkdir, rm } from "node:fs/promises"
 import { join, relative, extname, basename, dirname } from "node:path"
 
 const PUBLIC = "public"
@@ -25,6 +25,7 @@ async function* walk(dir) {
 }
 
 await mkdir("src", { recursive: true })
+await rm(RESP_DIR, { recursive: true, force: true })
 await mkdir(RESP_DIR, { recursive: true })
 
 const placeholders = {}

@@ -60,6 +60,23 @@ const MerchInner = () => {
             )}
           </div>
 
+          <aside class="mb-10 flex flex-col gap-4 border border-amber-400/35 bg-amber-400/[.05] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-[.25em] text-amber-400">
+                {t("merch.areaBanner")}
+              </p>
+              <p class="mt-2 max-w-2xl text-xs leading-relaxed text-zinc-300">
+                {t("merch.areaBannerBody")}
+              </p>
+            </div>
+            <a
+              href={lp("/area/")}
+              class="inline-flex min-h-[44px] shrink-0 items-center justify-center border border-amber-400/60 px-4 text-[10px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black"
+            >
+              {t("merch.areaBannerCta")} <span class="ml-2" aria-hidden="true">→</span>
+            </a>
+          </aside>
+
           <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {PRODUCTS.map((product, i) => (
               <ProductCard key={product.id} product={product} images={images} index={i} isWide={isWide} />

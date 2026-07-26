@@ -1,14 +1,16 @@
 ---
 import ClientRouter from "astro/components/ClientRouter.astro"
 import "../styles/global.css"
+import { t, type Lang } from "../i18n/t"
 
 interface Props {
   title: string
   description?: string
   canonical?: string
   ogImage?: string
+  ogImageAlt?: string
   ogType?: string
-  lang?: string
+  lang?: Lang
   head?: string
 }
 
@@ -16,7 +18,8 @@ const {
   title,
   description,
   canonical,
-  ogImage = "https://www.virya.music/virya.webp",
+  ogImage = "https://www.virya.music/poster.webp",
+  ogImageAlt = title,
   ogType = "website",
   lang = "en",
   head,
@@ -40,6 +43,7 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     <meta property="og:title" content={title} />
     {description && <meta property="og:description" content={description} />}
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content={ogImageAlt} />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@viryaofficial" />
@@ -47,9 +51,7 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     <meta name="twitter:title" content={title} />
     {description && <meta name="twitter:description" content={description} />}
     <meta name="twitter:image" content={ogImage} />
-    <link rel="preconnect" href="https://open.spotify.com" />
-    <link rel="preconnect" href="https://i.ytimg.com" crossorigin />
-    <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
     <link rel="icon" href="/favicon-32x32.png" type="image/png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/virya.webp" />
@@ -114,6 +116,12 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     </script>
   </head>
   <body>
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[10000] focus:inline-flex focus:min-h-[44px] focus:items-center focus:bg-amber-400 focus:px-4 focus:py-2 focus:text-xs focus:font-bold focus:uppercase focus:tracking-widest focus:text-black"
+    >
+      {t(lang, "nav.skip")}
+    </a>
     <slot />
   </body>
 </html>

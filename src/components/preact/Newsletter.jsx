@@ -15,7 +15,7 @@ const NewsletterInner = () => {
     fetch("/api/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, website: honeypot }),
     })
       .then(() => setStatus("done"))
       .catch(() => setStatus("done"))
@@ -44,9 +44,10 @@ const NewsletterInner = () => {
               <label>
                 Don't fill this out:{" "}
                 <input
-                  name="bot-field"
+                  name="website"
                   tabIndex={-1}
                   autocomplete="off"
+                  maxLength={200}
                   value={honeypot}
                   onInput={(e) => setHoneypot(e.target.value)}
                 />
@@ -59,6 +60,7 @@ const NewsletterInner = () => {
                 name="email"
                 type="email"
                 required
+                maxLength={254}
                 value={email}
                 onInput={(e) => setEmail(e.target.value)}
                 placeholder={t("newsletter.placeholder")}
