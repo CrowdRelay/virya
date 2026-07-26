@@ -1,6 +1,15 @@
 import type { APIRoute } from "astro"
 import Stripe from "stripe"
-import { getProduct, SHIPPING_PLN, discountedPrice, productRequiresShipping, toMinorUnits, vatBreakdown, sizeInStock, productInStock } from "../../data/products"
+import {
+  getProduct,
+  SHIPPING_PLN,
+  discountedPrice,
+  productRequiresShipping,
+  toMinorUnits,
+  vatBreakdown,
+  sizeInStock,
+  productInStock,
+} from "../../data/products"
 
 const SITE = "https://www.virya.music"
 const MAX_QTY = 20
@@ -214,6 +223,7 @@ export const POST: APIRoute = async ({ request }) => {
       success_url: `${SITE}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${SITE}${cancelPath}`,
       customer_email: invoiceEmail,
+      ...(needsShipping ? { phone_number_collection: { enabled: true } } : {}),
       metadata,
     })
 

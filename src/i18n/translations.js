@@ -211,7 +211,7 @@ export const translations = {
       eyebrow: "Official store · Free stickers with every order · Stay Mad",
       areaBanner: "VIRYA Area rewards",
       areaBannerBody:
-        "Find a box, unlock a lyric and collect 1 VIRYA Credit worth 20 PLN off merch.",
+        "Find a box, unlock a lyric and collect 1 VIRYA Credit worth 50 PLN off merch.",
       areaBannerCta: "Open Area",
       saleBanner: date => `Sale on now — up to 30% off · ends ${date}`,
       bundles: "Bundles",
@@ -360,7 +360,7 @@ export const translations = {
             heading: "7. VIRYA Area pilot",
             paras: [
               [{ t: "VIRYA Area is a free location-based loyalty pilot. A valid physical-box scan and an in-zone location check unlock one digital lyric collectible and 1 VIRYA Credit per browser wallet per drop. The collectible is for personal display; all music, lyrics, artwork and related intellectual property remain with their respective owners." }],
-              [{ t: "1 VIRYA Credit gives 20 PLN off a Store order. Credits are non-transferable, have no cash value and are not cryptocurrency, an investment or a financial product. Exchanging Credits for a code consumes them. Each generated code is single-use, expires after 12 months and requires an order value at least 20 PLN higher than the discount." }],
+              [{ t: "1 VIRYA Credit gives 50 PLN off a Store order. Credits are non-transferable, have no cash value and are not cryptocurrency, an investment or a financial product. Exchanging Credits for a code consumes them. Each generated code is single-use, expires after 12 months and requires an order value at least 50 PLN higher than the discount." }],
               [{ t: "Participants must remain on publicly accessible, safe ground and obey local rules. Never enter private property, roads, railway areas, rooftops or construction sites. The operator may postpone, relocate or close a drop where safety, damage, abuse or circumstances outside its control require it; already issued merch codes retain their stated expiry." }],
             ],
           },
@@ -659,7 +659,7 @@ export const translations = {
         "Oficjalny sklep · Darmowe naklejki do każdego zamówienia · Stay Mad",
       areaBanner: "Nagrody VIRYA Area",
       areaBannerBody:
-        "Znajdź box, odblokuj wers i zbierz 1 VIRYA Credit wart 20 zł rabatu na merch.",
+        "Znajdź box, odblokuj wers i zbierz 1 VIRYA Credit wart 50 zł rabatu na merch.",
       areaBannerCta: "Otwórz Area",
       saleBanner: date => `Promocja trwa — do 30% taniej · kończy się ${date}`,
       bundles: "Zestawy",
@@ -808,7 +808,7 @@ export const translations = {
             heading: "7. Pilot VIRYA Area",
             paras: [
               [{ t: "VIRYA Area jest bezpłatnym, terenowym programem lojalnościowym w wersji pilotażowej. Prawidłowy skan fizycznego boxu oraz weryfikacja obecności w strefie odblokowują jedną cyfrową kartę z wersem i 1 VIRYA Credit na portfel przeglądarkowy dla danego dropu. Karta służy do osobistego wyświetlania; prawa do muzyki, tekstów, grafik i pozostałej własności intelektualnej pozostają przy ich właścicielach." }],
-              [{ t: "1 VIRYA Credit daje 20 zł rabatu na zamówienie w Sklepie. Credits są niezbywalne, nie mają wartości gotówkowej i nie są kryptowalutą, inwestycją ani produktem finansowym. Wymiana Credits na kod zużywa je. Każdy wygenerowany kod jest jednorazowy, wygasa po 12 miesiącach i wymaga zamówienia o wartości co najmniej 20 zł wyższej od rabatu." }],
+              [{ t: "1 VIRYA Credit daje 50 zł rabatu na zamówienie w Sklepie. Credits są niezbywalne, nie mają wartości gotówkowej i nie są kryptowalutą, inwestycją ani produktem finansowym. Wymiana Credits na kod zużywa je. Każdy wygenerowany kod jest jednorazowy, wygasa po 12 miesiącach i wymaga zamówienia o wartości co najmniej 50 zł wyższej od rabatu." }],
               [{ t: "Uczestnicy muszą pozostawać w bezpiecznych, publicznie dostępnych miejscach i przestrzegać lokalnych zasad. Nie wolno wchodzić na teren prywatny, jezdnie, obszary kolejowe, dachy ani budowy. Operator może przełożyć, przenieść lub zamknąć drop, jeśli wymaga tego bezpieczeństwo, uszkodzenie, nadużycie albo okoliczności poza jego kontrolą; już wydane kody do merchu zachowują podany termin ważności." }],
             ],
           },

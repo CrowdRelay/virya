@@ -18,7 +18,7 @@ const COLLECTIBLES: Record<string, AreaCollectible> = {
   },
   "poz-002": {
     dropId: "poz-002",
-    line: "Don't let your identity fade.",
+    line: "Take them out, embrace your scars.",
     track: "Unmasked",
     edition: "Signal",
     riddle: "Yanus",
@@ -32,14 +32,14 @@ const COLLECTIBLES: Record<string, AreaCollectible> = {
   },
   "waw-004": {
     dropId: "waw-004",
-    line: "So rise above it all!",
+    line: "Rise unbound.",
     track: "Rise",
     edition: "Genesis",
     riddle: "Yanus",
   },
   "ktw-005": {
     dropId: "ktw-005",
-    line: "Set me free, let me be.",
+    line: "I won't be the extension of your narcissism.",
     track: "Hybrid",
     edition: "Signal",
     riddle: "Yanus",

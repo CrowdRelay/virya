@@ -4,7 +4,7 @@ VIRYA Area is a location-based loyalty game attached to `virya.music`. A player
 tracks a public city signal, finds a physical VIRYA box, opens its QR/NFC link
 and explicitly confirms one location reading. A valid claim unlocks one lyric
 collectible and awards 1 VIRYA Credit. One Credit can be exchanged for a
-single-use 20 PLN Stripe promotion code.
+single-use 50 PLN Stripe promotion code.
 
 The pilot deliberately keeps rewards off-chain. Credits are free,
 non-transferable loyalty benefits with no cash value. This keeps checkout,
@@ -26,6 +26,7 @@ Credits and precise location data should stay off-chain.
    The secret lives in the URL fragment, so it is not sent in the initial HTTP
    request or normal referrer headers. The page reads it and immediately
    removes the fragment from browser history.
+
 4. Only after the player presses the claim button does the browser request a
    fresh position. The API verifies QR secret, activation window, accuracy and
    distance. Raw coordinates are not stored.
@@ -33,7 +34,7 @@ Credits and precise location data should stay off-chain.
    distance in a pseudonymous, HttpOnly browser wallet. It unlocks the private
    line and adds one Credit.
 6. The player may exchange 1–5 Credits for a one-time Stripe code. The code
-   expires after 12 months and requires an order at least 20 PLN higher than
+   expires after 12 months and requires an order at least 50 PLN higher than
    its discount. Stripe Checkout accepts promotion codes.
 
 Clearing site data loses access to the pilot wallet. Account recovery should be
@@ -77,12 +78,12 @@ The global claim cap is written with compare-and-swap storage, independently of
 the per-wallet limit. This puts a hard ceiling on nominal campaign exposure:
 
 ```text
-maximum discount exposure = maxClaims × 20 PLN per drop
+maximum discount exposure = maxClaims × 50 PLN per drop
 ```
 
-At the default of 25 claims, one city exposes at most 500 PLN and all six pilot
-cities at most 3,000 PLN. Every voucher still requires a paid basket at least
-20 PLN above the discount.
+At the default of 25 claims, one city exposes at most 1,250 PLN and all six pilot
+cities at most 7,500 PLN. Every voucher still requires a paid basket at least
+50 PLN above the discount.
 
 After setting the environment variable:
 
@@ -90,7 +91,7 @@ After setting the environment variable:
 2. open the Area map and confirm that the intended city says “live”;
 3. scan the production QR on iOS and Android;
 4. test once outside the zone and once inside it;
-5. generate a 20 PLN test voucher and complete a Stripe test checkout;
+5. generate a 50 PLN test voucher and complete a Stripe test checkout;
 6. inspect the Stripe webhook and order notification before going live.
 
 If a QR secret leaks before launch, replace the secret, redeploy and replace the

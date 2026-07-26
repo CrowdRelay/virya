@@ -4,6 +4,7 @@ import { sendOrderEmail } from "../../utils/orderEmail"
 import { createInpostShipment } from "../../utils/inpostShipment"
 import {
   acquireFulfillmentLease,
+  checkpointFulfillmentStep,
   completeFulfillmentLease,
   releaseFulfillmentLease,
 } from "../../server/fulfillmentLedger"
@@ -42,6 +43,8 @@ export const POST: APIRoute = async ({ request }) => {
   ) {
     const evtSession = event.data.object as Stripe.Checkout.Session
     let leaseId: string
+    let emailDone = false
+    let shipmentDone = false
 
     try {
       const lease = await acquireFulfillmentLease(evtSession.id)
@@ -49,7 +52,7 @@ export const POST: APIRoute = async ({ request }) => {
         if (lease.status === "done") {
           return new Response(
             JSON.stringify({ received: true, duplicate: true }),
-            { status: 200 }
+            { status: 200 },
           )
         }
         // A concurrent delivery must be retried. The lease owner will either
@@ -57,8 +60,13 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response("Fulfilment already processing", { status: 500 })
       }
       leaseId = lease.leaseId
+      emailDone = lease.progress.emailDone
+      shipmentDone = lease.progress.shipmentDone
     } catch (error) {
-      console.error("[stripe-webhook] could not acquire fulfilment lease:", error)
+      console.error(
+        "[stripe-webhook] could not acquire fulfilment lease:",
+        error,
+      )
       return new Response("Fulfilment temporarily unavailable", { status: 500 })
     }
 
@@ -66,21 +74,39 @@ export const POST: APIRoute = async ({ request }) => {
       // Trust the freshly retrieved session for payment and metadata, not the
       // webhook payload. Stripe retries must not repeat order fulfilment.
       let session = await stripe.checkout.sessions.retrieve(evtSession.id)
-      if (session.payment_status !== "paid") {
+      if (
+        session.payment_status !== "paid" &&
+        session.payment_status !== "no_payment_required"
+      ) {
         await releaseFulfillmentLease(session.id, leaseId)
         return new Response("Not paid yet", { status: 200 })
       }
       if (session.metadata?.virya_processed === "1") {
         await completeFulfillmentLease(session.id, leaseId)
-        return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 })
+        return new Response(
+          JSON.stringify({ received: true, duplicate: true }),
+          { status: 200 },
+        )
       }
 
-      if (session.metadata?.virya_email_done !== "1") {
+      if (session.metadata?.virya_email_done === "1" && !emailDone) {
+        await checkpointFulfillmentStep(session.id, leaseId, {
+          emailDone: true,
+        })
+        emailDone = true
+      }
+      if (!emailDone) {
         const lineItemsResp = await stripe.checkout.sessions.listLineItems(
           session.id,
-          { limit: 100 }
+          { limit: 100 },
         )
         await sendOrderEmail({ session, lineItems: lineItemsResp.data })
+        await checkpointFulfillmentStep(session.id, leaseId, {
+          emailDone: true,
+        })
+        emailDone = true
+      }
+      if (session.metadata?.virya_email_done !== "1") {
         session = await stripe.checkout.sessions.update(session.id, {
           metadata: {
             ...session.metadata,
@@ -89,13 +115,29 @@ export const POST: APIRoute = async ({ request }) => {
         })
       }
 
-      if (session.metadata?.virya_shipment_done !== "1") {
+      if (session.metadata?.virya_shipment_done === "1" && !shipmentDone) {
+        await checkpointFulfillmentStep(session.id, leaseId, {
+          shipmentDone: true,
+        })
+        shipmentDone = true
+      }
+      if (!shipmentDone) {
         const shipment = await createInpostShipment({ session })
         if (shipment?.created === false) {
           throw new Error(
-            `InPost shipment failed with status ${shipment.status ?? "unknown"}`
+            `InPost shipment failed with status ${shipment.status ?? "unknown"}`,
           )
         }
+        await checkpointFulfillmentStep(session.id, leaseId, {
+          shipmentDone: true,
+          shipmentId:
+            typeof shipment?.id === "string" || typeof shipment?.id === "number"
+              ? String(shipment.id)
+              : undefined,
+        })
+        shipmentDone = true
+      }
+      if (session.metadata?.virya_shipment_done !== "1") {
         session = await stripe.checkout.sessions.update(session.id, {
           metadata: {
             ...session.metadata,
@@ -120,7 +162,7 @@ export const POST: APIRoute = async ({ request }) => {
       } catch (releaseError) {
         console.error(
           "[stripe-webhook] could not release fulfilment lease:",
-          releaseError
+          releaseError,
         )
       }
       // A non-2xx response makes Stripe retry the signed event.
