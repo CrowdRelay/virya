@@ -63,6 +63,27 @@ const couponMatches = (
   (!coupon.metadata?.area_request ||
     coupon.metadata.area_request === reservation.requestId)
 
+const couponIsRedeemable = (
+  coupon: Stripe.Coupon,
+  reservation: AreaVoucher
+) =>
+  coupon.valid &&
+  coupon.times_redeemed === 0 &&
+  reservation.expiresAt > Math.floor(Date.now() / 1000)
+
+const requireRedeemableCoupon = (
+  coupon: Stripe.Coupon,
+  reservation: AreaVoucher
+) => {
+  if (!couponIsRedeemable(coupon, reservation)) {
+    throw new VoucherProvisionError(
+      "The Stripe coupon exists but is no longer redeemable.",
+      null
+    )
+  }
+  return coupon
+}
+
 const getOrCreateCoupon = async (
   stripe: Stripe,
   couponId: string,
@@ -77,7 +98,7 @@ const getOrCreateCoupon = async (
         null
       )
     }
-    return existing
+    return requireRedeemableCoupon(existing, reservation)
   }
 
   try {
@@ -104,7 +125,7 @@ const getOrCreateCoupon = async (
         null
       )
     }
-    return created
+    return requireRedeemableCoupon(created, reservation)
   } catch (error) {
     if (error instanceof VoucherProvisionError) throw error
 
@@ -117,7 +138,7 @@ const getOrCreateCoupon = async (
             error
           )
         }
-        return reconciled
+        return requireRedeemableCoupon(reconciled, reservation)
       }
 
       throw new VoucherProvisionError(
@@ -157,6 +178,14 @@ const promotionMatches = (
   (!promotion.metadata?.area_request ||
     promotion.metadata.area_request === reservation.requestId)
 
+const promotionIsRedeemable = (
+  promotion: Stripe.PromotionCode,
+  reservation: AreaVoucher
+) =>
+  promotion.active &&
+  promotion.times_redeemed === 0 &&
+  reservation.expiresAt > Math.floor(Date.now() / 1000)
+
 const findPromotion = async (
   stripe: Stripe,
   couponId: string,
@@ -173,12 +202,19 @@ const findPromotion = async (
   const match = sameCode.find((promotion) =>
     promotionMatches(promotion, couponId, reservation)
   )
-  if (match) return match
+  if (match) {
+    if (!promotionIsRedeemable(match, reservation)) {
+      throw new VoucherProvisionError(
+        "The Stripe promotion exists but is no longer redeemable.",
+        null
+      )
+    }
+    return match
+  }
   if (sameCode.length > 0) {
     throw new VoucherProvisionError(
       "The Stripe promotion code is already used by another promotion.",
-      null,
-      true
+      null
     )
   }
   return null
@@ -215,6 +251,12 @@ const getOrCreatePromotion = async (
     if (!promotionMatches(created, couponId, reservation)) {
       throw new VoucherProvisionError(
         "Stripe returned a promotion with unexpected properties.",
+        null
+      )
+    }
+    if (!promotionIsRedeemable(created, reservation)) {
+      throw new VoucherProvisionError(
+        "Stripe returned a promotion that is not redeemable.",
         null
       )
     }

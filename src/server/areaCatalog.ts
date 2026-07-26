@@ -11,7 +11,7 @@ export type AreaCollectible = {
 const COLLECTIBLES: Record<string, AreaCollectible> = {
   "wro-001": {
     dropId: "wro-001",
-    line: "Just a meatsack with a brain.",
+    line: "Damnation through automation.",
     track: "Technophobia",
     edition: "Genesis",
     riddle: "Yanus",
