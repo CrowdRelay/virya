@@ -64,6 +64,9 @@ const dims = rawDims as Record<string, { w: number; h: number }>
                     alt={alt}
                     width={dims[photo.src]?.w || 800}
                     height={dims[photo.src]?.h || 600}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    fetchpriority={i === 0 ? "high" : undefined}
+                    sizes="(max-width: 639px) calc(100vw - 3rem), (max-width: 1023px) calc((100vw - 4rem) / 2), 400px"
                     class="w-full object-cover transition-opacity duration-300 group-hover:opacity-80 break-inside-avoid"
                   />
                 </button>

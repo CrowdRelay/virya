@@ -49,7 +49,16 @@ const members = [
           </div>
 
           <aside class="space-y-8">
-            <BlurImage src="/images/band.webp" alt="Virya" width="380" height="285" loading="lazy" decoding="async" class="w-full h-auto" />
+            <BlurImage
+              src="/images/band.webp"
+              alt="Virya"
+              width="380"
+              height="285"
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 1023px) calc(100vw - 3rem), 380px"
+              class="w-full h-auto"
+            />
             <div>
               <h2 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">{t(lang, "band.lineup")}</h2>
               <ul class="space-y-3">

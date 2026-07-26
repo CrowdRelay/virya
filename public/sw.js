@@ -1,5 +1,7 @@
-const CACHE_NAME = 'virya-v7'
-const STATIC_CACHE = 'virya-static-v7'
+const CACHE_NAME = 'virya-v8'
+const STATIC_CACHE = 'virya-static-v8'
+const STATIC_ASSET_PATTERN = /\.(webp|png|jpg|jpeg|svg|css|js|woff2?|ttf|otf)$/
+const PRIVATE_HTML_PATTERN = /^\/(?:pl\/)?(?:merch\/(?:success|cancel)|area\/claim)(?:\/|$)/
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -31,25 +33,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
 
-  // Cache YouTube thumbnails cache-first
-  if (url.hostname === 'i.ytimg.com') {
-    event.respondWith(
-      caches.open(STATIC_CACHE).then((cache) => {
-        return cache.match(event.request).then((cached) => {
-          if (cached) return cached
-          return fetch(new Request(event.request.url, { mode: 'no-cors', credentials: 'omit' }))
-            .then((res) => {
-              cache.put(event.request, res.clone())
-              return res
-            })
-        })
-      })
-    )
-    return
-  }
+  // Never intercept writes, APIs, or cross-origin requests.
+  if (event.request.method !== 'GET') return
+  if (url.origin !== self.location.origin) return
+  if (url.pathname.startsWith('/api/')) return
 
-  // Cache static assets with cache-first
-  if (url.pathname.match(/\.(webp|png|jpg|jpeg|svg|css|js|woff2?|ttf|otf)$/)) {
+  // Cache same-origin static assets with cache-first.
+  if (STATIC_ASSET_PATTERN.test(url.pathname)) {
     event.respondWith(
       caches.open(STATIC_CACHE).then((cache) => {
         return cache.match(event.request).then((response) => {
@@ -57,7 +47,9 @@ self.addEventListener('fetch', (event) => {
             return response
           }
           return fetch(event.request).then((fetchResponse) => {
-            cache.put(event.request, fetchResponse.clone())
+            if (fetchResponse.ok) {
+              event.waitUntil(cache.put(event.request, fetchResponse.clone()))
+            }
             return fetchResponse
           })
         })
@@ -66,17 +58,24 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Skip API routes — always network
-  if (url.pathname.startsWith('/api/')) return
-
   // Network-first for HTML: always fetch fresh, fall back to cache when offline
   if (event.request.headers.get('accept')?.includes('text/html')) {
+    const canCache =
+      !url.search && !PRIVATE_HTML_PATTERN.test(url.pathname)
+
+    if (!canCache) {
+      event.respondWith(fetch(event.request))
+      return
+    }
+
     event.respondWith(
       fetch(event.request)
         .then((response) => {
           if (response.ok) {
             const clone = response.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+            )
           }
           return response
         })

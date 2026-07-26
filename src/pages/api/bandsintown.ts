@@ -2,16 +2,15 @@ import type { APIRoute } from "astro"
 
 const ARTIST = "virya"
 const APP_ID = import.meta.env.BANDSINTOWN_APP_ID || "virya-website"
-
-// Disable SSL verification for dev environment
-if (import.meta.env.DEV) {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
-}
+const REQUEST_TIMEOUT_MS = 8_000
 
 export const GET: APIRoute = async () => {
   try {
     const url = `https://rest.bandsintown.com/artists/${encodeURIComponent(ARTIST)}/events?app_id=${encodeURIComponent(APP_ID)}&date=upcoming`
-    const res = await fetch(url, { headers: { Accept: "application/json" } })
+    const res = await fetch(url, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
     if (!res.ok) {
       return new Response(JSON.stringify([]), {
         status: 200,

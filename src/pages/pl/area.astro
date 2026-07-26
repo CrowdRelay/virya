@@ -1,0 +1,59 @@
+---
+export const prerender = true
+
+import Layout from "../../components/Layout.astro"
+import Navbar from "../../components/Navbar.astro"
+import Footer from "../../components/Footer.astro"
+import ScrollToTop from "../../components/ScrollToTop.astro"
+import AreaExperience from "../../components/AreaExperience.astro"
+import { AREA_COPY } from "../../data/areaCopy"
+import { getSeoTags } from "../../utils/seo"
+
+const lang = "pl"
+const copy = AREA_COPY[lang]
+const { canonicalUrl, hreflangLinks } = getSeoTags("/area/", lang)
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "VIRYA Area",
+  url: canonicalUrl,
+  description: copy.meta.description,
+  applicationCategory: "GameApplication",
+  operatingSystem: "Any",
+  isAccessibleForFree: true,
+  inLanguage: "pl",
+  creator: {
+    "@type": "MusicGroup",
+    name: "Virya",
+    url: "https://www.virya.music/",
+  },
+}
+---
+
+<Layout
+  title={copy.meta.title}
+  description={copy.meta.description}
+  canonical={canonicalUrl}
+  lang={lang}
+  ogImage="https://www.virya.music/poster.webp"
+  ogType="website"
+>
+  <Fragment slot="head">
+    {hreflangLinks.map((link) => (
+      <link rel={link.rel} hreflang={link.hreflang} href={link.href} />
+    ))}
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="referrer" content="no-referrer" />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(schema).replace(/</g, "\\u003c")}
+    />
+  </Fragment>
+
+  <div class="flex min-h-screen flex-col bg-zinc-950">
+    <Navbar lang={lang} displayLinks={true} activePage="area" />
+    <ScrollToTop />
+    <AreaExperience lang={lang} />
+    <Footer lang={lang} />
+  </div>
+</Layout>

@@ -29,7 +29,24 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
 
   const goodsGross = Number.parseFloat(meta.goods_gross_pln || "0") || 0
   const shipping = Number.parseFloat(meta.shipping_pln || "0") || 0
-  const { net, vat } = vatBreakdown(goodsGross)
+  const discount = Math.max(
+    0,
+    Number(session.total_details?.amount_discount || 0) / 100
+  )
+  const paidGoodsGross = (lineItems || [])
+    .filter(li => li.description !== "InPost Paczkomat delivery")
+    .reduce((sum, li) => sum + Number(li.amount_total || 0) / 100, 0)
+  const paidShipping = (lineItems || [])
+    .filter(li => li.description === "InPost Paczkomat delivery")
+    .reduce((sum, li) => sum + Number(li.amount_total || 0) / 100, 0)
+  // Line item totals are Stripe's post-discount source of truth. Metadata is a
+  // fallback for older sessions that do not expose detailed totals.
+  const discountedGoodsGross = Math.max(
+    0,
+    lineItems?.length ? paidGoodsGross : goodsGross - discount
+  )
+  const chargedShipping = lineItems?.length ? paidShipping : shipping
+  const { net, vat } = vatBreakdown(discountedGoodsGross)
   const vatPct = Math.round(VAT_RATE * 100)
   const f = n => n.toFixed(2)
 
@@ -44,8 +61,11 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     "TAX BREAKDOWN",
     `  Goods net:   ${f(net)} ${currency}`,
     `  VAT (${vatPct}%):   ${f(vat)} ${currency}`,
-    `  Goods gross: ${f(goodsGross)} ${currency}`,
-    `  Delivery:    ${f(shipping)} ${currency} (VAT-exempt)`,
+    `  Goods gross: ${f(discountedGoodsGross)} ${currency}`,
+    ...(discount > 0
+      ? [`  Discount:    -${f(discount)} ${currency}`]
+      : []),
+    `  Delivery:    ${f(chargedShipping)} ${currency} (VAT-exempt)`,
     `  Grand total: ${total} ${currency}`,
   ]
 

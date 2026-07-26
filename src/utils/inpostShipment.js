@@ -2,6 +2,7 @@ const BASE_URLS = {
   production: "https://api.shipx-pl.easypack24.net",
   sandbox: "https://sandbox-api-shipx-pl.easypack24.net",
 }
+const REQUEST_TIMEOUT_MS = 10_000
 
 export const createInpostShipment = async ({ session }) => {
   const token = import.meta.env.INPOST_SHIPX_TOKEN
@@ -43,6 +44,7 @@ export const createInpostShipment = async ({ session }) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
 
   const data = await resp.json().catch(() => ({}))

@@ -8,7 +8,9 @@ export default function BlurImg({
   style,
   class: cls,
   className,
-  sizes = "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 1200px",
+  sizes = "100vw",
+  loading = "lazy",
+  decoding = "async",
   ...rest
 }) {
   const blur = ph[src]
@@ -27,6 +29,8 @@ export default function BlurImg({
       src={src}
       srcSet={srcset}
       sizes={srcset ? sizes : undefined}
+      loading={loading}
+      decoding={decoding}
       class={cls || className}
       style={{ ...bg, ...(style || {}) }}
       onLoad={(e) => {

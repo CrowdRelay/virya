@@ -34,38 +34,46 @@ const ShowItem = ({ item, lang }) => {
   const isToday = normalizedDate === normalizedToday
   const locale = lang === "pl" ? "pl-PL" : "en-GB"
   const gigSlug = item.id ? `gig-${item.id}` : null
+  const gigPath = gigSlug ? lp(`/shows/${gigSlug}/`) : null
 
-  const content = (
-    <div class={`transform ease-in-out rounded-xl inset-0 opacity-75 hover:opacity-100 place-items-center lg:flex lg:flex-row p-2 text-white transition-colors duration-300 ${gigSlug ? "border border-amber-400/30 hover:border-amber-400/70" : ""} ${isToday ? "bg-red-900" : "bg-zinc-900/60"}`}>
-      <h2 class="lg:text-2xl text-md lg:ml-2">{item.title}</h2>
+  return (
+    <article class={`relative transform ease-in-out rounded-xl inset-0 opacity-75 hover:opacity-100 place-items-center lg:flex lg:flex-row p-2 text-white transition-colors duration-300 ${gigPath ? "border border-amber-400/30 hover:border-amber-400/70" : ""} ${isToday ? "bg-red-900" : "bg-zinc-900/60"}`}>
+      <h2 class="lg:text-2xl text-md lg:ml-2">
+        {gigPath ? (
+          <a href={gigPath} class="hover:text-amber-300 transition-colors">
+            <span class="absolute inset-0" aria-hidden="true" />
+            {item.title}
+          </a>
+        ) : item.title}
+      </h2>
       <div class="lg:flex lg:flex-row lg:flex-grow place-items-center justify-end">
-        <h2 class="lg:text-2xl lg:my-8 text-md">
+        <p class="lg:text-2xl lg:my-8 text-md">
           <span>{isToday ? t("shows.today") : t("shows.date")}</span>{" "}
-          {date.toLocaleDateString(locale)}
-        </h2>
+          <time dateTime={item.date}>{date.toLocaleDateString(locale)}</time>
+        </p>
         {item.event && (
-          <a href={item.event} rel="noreferrer" target="_blank" onClick={(e) => e.stopPropagation()}>
-            <button class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] lg:px-6 lg:py-4 px-4 py-2 mx-3 lg:mx-6 my-3 lg:my-8 transition duration-500 ease-in-out focus:outline-none border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal rounded">
-              {t("shows.event")}
-            </button>
+          <a
+            href={item.event}
+            rel="noopener noreferrer"
+            target="_blank"
+            class="relative z-10 inline-flex items-center justify-center min-h-[44px] min-w-[44px] lg:px-6 lg:py-4 px-4 py-2 mx-3 lg:mx-6 my-3 lg:my-8 transition duration-500 ease-in-out border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal rounded"
+          >
+            {t("shows.event")}
           </a>
         )}
         {item.tickets && (
-          <a href={item.tickets} rel="noreferrer" target="_blank" onClick={(e) => e.stopPropagation()}>
-            <button class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] lg:px-6 lg:py-4 px-4 py-2 mx-3 lg:mx-6 my-3 lg:my-8 transition duration-500 ease-in-out focus:outline-none border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal rounded">
-              {t("shows.tickets")}
-            </button>
+          <a
+            href={item.tickets}
+            rel="noopener noreferrer"
+            target="_blank"
+            class="relative z-10 inline-flex items-center justify-center min-h-[44px] min-w-[44px] lg:px-6 lg:py-4 px-4 py-2 mx-3 lg:mx-6 my-3 lg:my-8 transition duration-500 ease-in-out border border-amber-300 hover:bg-amber-200 text-amber-300 hover:text-black font-normal rounded"
+          >
+            {t("shows.tickets")}
           </a>
         )}
       </div>
-    </div>
+    </article>
   )
-
-  if (gigSlug) {
-    const path = lang === "pl" ? `/pl/shows/${gigSlug}` : `/shows/${gigSlug}`
-    return <a href={path} class="block">{content}</a>
-  }
-  return content
 }
 
 const ShowsInner = ({ lang }) => {
