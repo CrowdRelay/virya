@@ -1,0 +1,95 @@
+import type { APIRoute } from "astro"
+import {
+  acquireAreaMagicUse,
+  areaAccountWalletId,
+  completeAreaMagicUse,
+  releaseAreaMagicUse,
+  setAreaSession,
+  upsertAreaAccount,
+  verifyAreaMagicToken,
+} from "../../../../server/areaAuth"
+import {
+  areaJson,
+  isSameOriginRequest,
+  readSmallJson,
+} from "../../../../server/areaHttp"
+import { migrateAreaWallet } from "../../../../server/areaLedger"
+
+export const prerender = false
+
+export const POST: APIRoute = async ({ request, cookies }) => {
+  if (!isSameOriginRequest(request)) {
+    return areaJson({ error: "Invalid request origin" }, 403)
+  }
+
+  let body: unknown
+  try {
+    body = await readSmallJson(request)
+  } catch {
+    return areaJson(
+      { error: "The sign-in link is invalid or expired.", code: "INVALID_LINK" },
+      400,
+    )
+  }
+
+  const token =
+    body && typeof body === "object" && typeof (body as any).token === "string"
+      ? (body as any).token
+      : ""
+  const payload = verifyAreaMagicToken(token)
+  if (!payload) {
+    return areaJson(
+      { error: "The sign-in link is invalid or expired.", code: "INVALID_LINK" },
+      400,
+    )
+  }
+
+  let lease: Awaited<ReturnType<typeof acquireAreaMagicUse>>
+  try {
+    lease = await acquireAreaMagicUse(payload)
+  } catch {
+    return areaJson(
+      { error: "Sign-in is temporarily unavailable.", code: "TEMPORARY" },
+      503,
+    )
+  }
+  if (lease.status === "used") {
+    return areaJson(
+      { error: "This sign-in link was already used.", code: "LINK_USED" },
+      409,
+    )
+  }
+  if (lease.status === "busy") {
+    return areaJson(
+      { error: "Sign-in is already processing.", code: "LINK_BUSY" },
+      409,
+    )
+  }
+
+  try {
+    const account = await upsertAreaAccount(payload.accountId, payload.email)
+    await migrateAreaWallet(
+      payload.walletId,
+      areaAccountWalletId(payload.accountId),
+    )
+    await completeAreaMagicUse(payload.nonce, lease.leaseId)
+    setAreaSession(cookies, payload.accountId)
+    return areaJson({
+      ok: true,
+      authenticated: true,
+      profile: { emailMasked: account.emailMasked },
+    })
+  } catch {
+    try {
+      await releaseAreaMagicUse(payload.nonce, lease.leaseId)
+    } catch {
+      // The expired lease is recoverable on the next verification attempt.
+    }
+    console.error("[area-auth-verify] verification unavailable")
+    return areaJson(
+      { error: "Sign-in is temporarily unavailable.", code: "TEMPORARY" },
+      503,
+    )
+  }
+}
+

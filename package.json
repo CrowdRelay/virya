@@ -15,6 +15,7 @@
         "@netlify/blobs": "^10.7.9",
         "@tailwindcss/vite": "^4.3.1",
         "astro": "^7.0.0",
+        "disposable-email-domains-js": "1.25.0",
         "nodemailer": "^9.0.1",
         "preact": "^10.29.2",
         "stripe": "^22.2.1",

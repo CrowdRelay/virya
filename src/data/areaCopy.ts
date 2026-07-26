@@ -5,7 +5,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     meta: {
       title: "VIRYA Area — Find the signal. Unlock the line.",
       description:
-        "A location-based VIRYA treasure hunt across Poland. Find hidden drops, unlock lyric collectibles and earn merch credits.",
+        "A 12-city location-based VIRYA treasure hunt across Poland. Find hidden drops, unlock lyric collectibles and earn merch credits.",
     },
     hero: {
       eyebrow: "Location game · Poland · Pilot",
@@ -23,7 +23,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     stats: {
       value: "50 PLN",
       valueLabel: "off merch per credit",
-      cities: "6",
+      cities: "12",
       citiesLabel: "pilot city signals",
       tracking: "0×",
       trackingLabel: "background tracking",
@@ -71,6 +71,39 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       outside: "You are outside the active drop zone.",
       full: "This drop has reached its claim limit.",
       rateLimited: "Too many attempts. Wait a few minutes and try again.",
+      accountRequired:
+        "Sign in to your player profile before unlocking this physical drop.",
+      accountCta: "Open player profile",
+      accountChecking: "Checking your player profile…",
+    },
+    profile: {
+      eyebrow: "Player identity",
+      heading: "Carry your Area with you",
+      body:
+        "Use a magic link to keep collectibles and Credits with your player profile across devices. We never show or share your full email.",
+      loggedOut: "Sign in with a one-time link",
+      emailLabel: "Email address",
+      emailPlaceholder: "you@example.com",
+      requestButton: "Send magic link",
+      requestWorking: "Sending secure link…",
+      requestSent:
+        "Check your inbox. Open the link on this device, then scan the physical box again.",
+      requestError: "The sign-in link could not be sent. Try again.",
+      verifying: "Verifying your secure sign-in…",
+      verifySuccess: "Player profile connected.",
+      verifyError: "This sign-in link is invalid or has expired. Request a new one.",
+      signedIn: "Signed in",
+      signedInAs: "Player profile",
+      signOut: "Sign out",
+      signOutWorking: "Signing out…",
+      signOutError: "Could not sign out. Try again.",
+      migrationTitle: "Browser collection detected",
+      migrationBody:
+        "Your earlier browser wallet is ready to be linked to this player profile. Keep this browser data until migration completes.",
+      unavailable:
+        "Profile status is temporarily unavailable. Your existing collection is safe.",
+      claimNote:
+        "Claims require a signed-in profile. Sign in first, then scan the original QR or NFC tag again.",
     },
     collection: {
       eyebrow: "Your collection",
@@ -86,12 +119,14 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       recoveredOn: "Recovered",
       editionNumber: "Artifact",
       riddle: "Riddle",
+      artworkAlt: "Unlocked VIRYA Area collectible artwork",
+      artworkPending: "Collectible artwork is syncing",
       wallet: "VIRYA balance",
       walletUnit: "Credits",
       walletValue: "merch value",
       loading: "Loading wallet…",
       browserNote:
-        "Pilot wallet: keep this browser's site data. Account recovery arrives before the public season.",
+        "Your signed-in player profile keeps the collection portable. Keep legacy browser data until any migration notice disappears.",
       voucherHeading: "Turn Credits into a merch code",
       voucherBody:
         "Choose 1–5 Credits. You will receive one single-use Stripe code. Minimum order equals the discount plus 50 PLN.",
@@ -104,6 +139,16 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       copyCode: "Copy code",
       copied: "Code copied",
       shop: "Go to the merch store",
+    },
+    community: {
+      eyebrow: "Community signal",
+      heading: "Poland unlocks this together",
+      body:
+        "Every verified physical find moves the shared signal. Community progress contains counts only — never player identities or locations.",
+      progress: "Verified community finds",
+      loading: "Reading the community signal…",
+      unavailable: "Community progress will appear when the signal responds.",
+      complete: "Community signal complete",
     },
     steps: {
       eyebrow: "Game loop",
@@ -170,7 +215,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     meta: {
       title: "VIRYA Area — Znajdź sygnał. Odblokuj wers.",
       description:
-        "Geolokalizacyjny treasure hunt VIRYA w Polsce. Znajduj ukryte dropy, odblokowuj kolekcjonerskie wersy i zdobywaj kredyty do merchu.",
+        "Geolokalizacyjny treasure hunt VIRYA w 12 miastach Polski. Znajduj ukryte dropy, odblokowuj kolekcjonerskie wersy i zdobywaj kredyty do merchu.",
     },
     hero: {
       eyebrow: "Gra terenowa · Polska · Pilot",
@@ -188,7 +233,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     stats: {
       value: "50 zł",
       valueLabel: "rabatu na merch za Credit",
-      cities: "6",
+      cities: "12",
       citiesLabel: "miast w sygnale pilota",
       tracking: "0×",
       trackingLabel: "śledzenia w tle",
@@ -239,13 +284,46 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       full: "Limit odbiorów tego dropu został wyczerpany.",
       rateLimited:
         "Za dużo prób. Odczekaj kilka minut i spróbuj ponownie.",
+      accountRequired:
+        "Zaloguj się do profilu gracza, zanim odblokujesz ten fizyczny drop.",
+      accountCta: "Otwórz profil gracza",
+      accountChecking: "Sprawdzam profil gracza…",
+    },
+    profile: {
+      eyebrow: "Tożsamość gracza",
+      heading: "Zabierz Area ze sobą",
+      body:
+        "Użyj magic linku, żeby kolekcja i Credits podążały za Twoim profilem między urządzeniami. Nigdy nie pokazujemy ani nie udostępniamy pełnego adresu e-mail.",
+      loggedOut: "Zaloguj się jednorazowym linkiem",
+      emailLabel: "Adres e-mail",
+      emailPlaceholder: "ty@example.com",
+      requestButton: "Wyślij magic link",
+      requestWorking: "Wysyłam bezpieczny link…",
+      requestSent:
+        "Sprawdź skrzynkę. Otwórz link na tym urządzeniu, a potem ponownie zeskanuj fizyczny box.",
+      requestError: "Nie udało się wysłać linku logowania. Spróbuj ponownie.",
+      verifying: "Potwierdzam bezpieczne logowanie…",
+      verifySuccess: "Profil gracza połączony.",
+      verifyError: "Link logowania jest nieprawidłowy albo wygasł. Poproś o nowy.",
+      signedIn: "Zalogowano",
+      signedInAs: "Profil gracza",
+      signOut: "Wyloguj się",
+      signOutWorking: "Wylogowuję…",
+      signOutError: "Nie udało się wylogować. Spróbuj ponownie.",
+      migrationTitle: "Wykryto kolekcję w przeglądarce",
+      migrationBody:
+        "Twój wcześniejszy portfel w przeglądarce jest gotowy do połączenia z profilem gracza. Zachowaj dane tej strony do końca migracji.",
+      unavailable:
+        "Status profilu jest chwilowo niedostępny. Twoja kolekcja jest bezpieczna.",
+      claimNote:
+        "Odbiór wymaga zalogowanego profilu. Najpierw się zaloguj, a potem ponownie zeskanuj oryginalny QR lub NFC.",
     },
     collection: {
       eyebrow: "Twoja kolekcja",
       heading: "Odzyskane Echoes",
       body:
         "Każdy prawidłowy box odsłania jeden wers z naszych numerów. Karta zostaje w portfelu VIRYA Area powiązanym z tą przeglądarką.",
-      progress: "Echoes recovered",
+      progress: "Odzyskane Echoes",
       complete: "Pełny sygnał odzyskany",
       completeBody:
         "Masz wszystkie Echoes z tego sezonu. Finałowa nagroda kolekcjonerska odblokuje się tutaj.",
@@ -254,12 +332,14 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       recoveredOn: "Odzyskano",
       editionNumber: "Artefakt",
       riddle: "Zagadka",
+      artworkAlt: "Odblokowana grafika kolekcjonerska VIRYA Area",
+      artworkPending: "Grafika kolekcjonerska jest synchronizowana",
       wallet: "Saldo VIRYA",
       walletUnit: "Credits",
       walletValue: "wartość w merchu",
       loading: "Ładuję portfel…",
       browserNote:
-        "Portfel pilota: zachowaj dane tej strony w przeglądarce. Odzyskiwanie konta pojawi się przed publicznym sezonem.",
+        "Zalogowany profil gracza przenosi kolekcję między urządzeniami. Zachowaj starsze dane przeglądarki, dopóki komunikat migracji nie zniknie.",
       voucherHeading: "Zamień Credits na kod do merchu",
       voucherBody:
         "Wybierz 1–5 Credits. Dostaniesz jeden jednorazowy kod Stripe. Minimalny koszyk to wartość rabatu plus 50 zł.",
@@ -272,6 +352,16 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       copyCode: "Kopiuj kod",
       copied: "Kod skopiowany",
       shop: "Przejdź do sklepu",
+    },
+    community: {
+      eyebrow: "Sygnał społeczności",
+      heading: "Polska odblokowuje to razem",
+      body:
+        "Każde potwierdzone fizyczne znalezisko wzmacnia wspólny sygnał. Postęp społeczności zawiera wyłącznie liczby — nigdy dane graczy ani lokalizacje.",
+      progress: "Potwierdzone znaleziska społeczności",
+      loading: "Odczytuję sygnał społeczności…",
+      unavailable: "Postęp społeczności pojawi się, gdy sygnał odpowie.",
+      complete: "Sygnał społeczności ukończony",
     },
     steps: {
       eyebrow: "Pętla gry",
