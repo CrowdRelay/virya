@@ -32,6 +32,20 @@ const clientCopy = {
   claimOutside: copy.claim.outside,
   claimFull: copy.claim.full,
   claimRateLimited: copy.claim.rateLimited,
+  claimAccountRequired: copy.claim.accountRequired,
+  claimAccountCta: copy.claim.accountCta,
+  claimAccountChecking: copy.claim.accountChecking,
+  profileRequestWorking: copy.profile.requestWorking,
+  profileRequestSent: copy.profile.requestSent,
+  profileRequestError: copy.profile.requestError,
+  profileVerifying: copy.profile.verifying,
+  profileVerifySuccess: copy.profile.verifySuccess,
+  profileVerifyError: copy.profile.verifyError,
+  profileSignedInAs: copy.profile.signedInAs,
+  profileSignOut: copy.profile.signOut,
+  profileSignOutWorking: copy.profile.signOutWorking,
+  profileSignOutError: copy.profile.signOutError,
+  profileUnavailable: copy.profile.unavailable,
   walletLoading: copy.collection.loading,
   walletUnit: copy.collection.walletUnit,
   walletValue: copy.collection.walletValue,
@@ -49,10 +63,17 @@ const clientCopy = {
       : "I found a VIRYA Area drop in {city} and unlocked “{line}” Who catches the next signal? #ViryaArea #StayMad",
   shareCopied: copy.share.copied,
   shareTitle: "VIRYA Area",
+  locked: copy.collection.locked,
   unlocked: copy.collection.unlocked,
   recoveredOn: copy.collection.recoveredOn,
   editionNumber: copy.collection.editionNumber,
   riddle: copy.collection.riddle,
+  artworkAlt: copy.collection.artworkAlt,
+  artworkPending: copy.collection.artworkPending,
+  communityProgress: copy.community.progress,
+  communityLoading: copy.community.loading,
+  communityUnavailable: copy.community.unavailable,
+  communityComplete: copy.community.complete,
 }
 const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 ---
@@ -106,7 +127,9 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               <div class="flex items-start justify-between">
                 <div>
                   <p class="text-[9px] font-black uppercase tracking-[0.35em] text-amber-400">VIRYA // AREA</p>
-                  <p class="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-400">Collectible 001 / 006</p>
+                  <p class="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-400">
+                    Collectible 001 / {String(AREA_DROPS.length).padStart(3, "0")}
+                  </p>
                 </div>
                 <img src="/virya.webp" alt="" width="48" height="48" class="h-12 w-12 rounded-full opacity-80" />
               </div>
@@ -151,6 +174,77 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           </div>
         ))}
       </dl>
+    </section>
+
+    <section id="area-profile" class="scroll-mt-24 border-b border-zinc-800/60 px-6 py-16 lg:px-12 lg:py-20">
+      <div class="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,.75fr)] lg:items-start">
+        <div class="max-w-3xl">
+          <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.profile.eyebrow}</p>
+          <h2 class="text-4xl font-black uppercase tracking-tight text-white lg:text-5xl">{copy.profile.heading}</h2>
+          <p class="mt-5 text-sm leading-relaxed text-zinc-400 lg:text-base">{copy.profile.body}</p>
+          <p class="mt-5 border-l border-amber-400 pl-4 text-xs leading-relaxed text-zinc-300">{copy.profile.claimNote}</p>
+        </div>
+
+        <div data-profile-shell aria-busy="true" class="border border-zinc-800 bg-zinc-900/40 p-6 lg:p-7">
+          <p data-profile-loading class="text-xs font-semibold text-zinc-400">{copy.claim.accountChecking}</p>
+
+          <div data-profile-logged-out hidden>
+            <h3 class="text-xl font-black uppercase text-white">{copy.profile.loggedOut}</h3>
+            <form data-auth-form class="mt-6" novalidate>
+              <label for={`area-profile-email-${lang}`} class="block text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
+                {copy.profile.emailLabel}
+              </label>
+              <div class="mt-2 flex flex-col gap-3 sm:flex-row">
+                <input
+                  id={`area-profile-email-${lang}`}
+                  data-auth-email
+                  type="email"
+                  inputmode="email"
+                  autocomplete="email"
+                  required
+                  maxlength="254"
+                  placeholder={copy.profile.emailPlaceholder}
+                  class="min-h-[48px] min-w-0 flex-1 border border-zinc-700 bg-zinc-950 px-4 text-sm text-white placeholder:text-zinc-600"
+                />
+                <button
+                  data-auth-request
+                  type="submit"
+                  class="min-h-[48px] bg-amber-400 px-5 text-[10px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300 disabled:cursor-wait disabled:opacity-50"
+                >
+                  {copy.profile.requestButton}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div data-profile-logged-in hidden>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p class="inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-[.24em] text-amber-400">
+                  <span class="h-2 w-2 rounded-full bg-amber-400" aria-hidden="true"></span>
+                  {copy.profile.signedIn}
+                </p>
+                <h3 class="mt-2 text-xl font-black uppercase text-white">{copy.profile.signedInAs}</h3>
+                <p data-profile-email class="mt-2 font-mono text-xs text-zinc-300"></p>
+              </div>
+              <button
+                data-auth-logout
+                type="button"
+                class="min-h-[44px] border border-zinc-700 px-4 text-[9px] font-black uppercase tracking-widest text-zinc-300 transition-colors hover:border-amber-400 hover:text-amber-400 disabled:cursor-wait disabled:opacity-50"
+              >
+                {copy.profile.signOut}
+              </button>
+            </div>
+          </div>
+
+          <aside data-migration-notice hidden class="mt-6 border-l-2 border-amber-400 bg-amber-400/[.06] p-4">
+            <h3 class="text-xs font-black uppercase tracking-widest text-amber-400">{copy.profile.migrationTitle}</h3>
+            <p class="mt-2 text-[10px] leading-relaxed text-zinc-300">{copy.profile.migrationBody}</p>
+          </aside>
+
+          <p data-profile-status role="status" aria-live="polite" class="mt-5 text-xs font-semibold text-amber-400"></p>
+        </div>
+      </div>
     </section>
 
     <section id="area-map" class="scroll-mt-24 px-6 py-20 lg:px-12 lg:py-28">
@@ -250,6 +344,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                   data-clue={drop.clue[lang]}
                   data-lat={drop.approximateLat}
                   data-lng={drop.approximateLng}
+                  aria-label={`${drop.number} — ${copy.map.selectAria(drop.city)}`}
                   aria-pressed={index === 0 ? "true" : "false"}
                   class={`area-drop-list min-h-[64px] border p-3 text-left transition-colors ${index === 0 ? "is-selected" : ""}`}
                 >
@@ -269,15 +364,25 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               <p class="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300">{copy.claim.body}</p>
               <p class="mt-3 max-w-3xl text-[10px] leading-relaxed text-zinc-400">{copy.claim.privacy}</p>
             </div>
-            <button
-              type="button"
-              data-claim-button
-              class="min-h-[48px] bg-amber-400 px-6 py-3 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300 disabled:cursor-wait disabled:opacity-50"
-            >
-              {copy.claim.button}
-            </button>
+            <div class="flex flex-col items-stretch gap-3 lg:w-80">
+              <div id="area-claim-auth-note" data-claim-auth-required hidden class="border border-zinc-700 bg-zinc-950/70 p-4 text-xs leading-relaxed text-zinc-300">
+                <p>{copy.claim.accountRequired}</p>
+                <a href="#area-profile" class="mt-3 inline-flex min-h-[44px] items-center font-black uppercase tracking-widest text-amber-400 hover:text-amber-300">
+                  {copy.claim.accountCta} <span class="ml-2" aria-hidden="true">↑</span>
+                </a>
+              </div>
+              <button
+                type="button"
+                data-claim-button
+                disabled
+                aria-describedby="area-claim-status area-claim-auth-note"
+                class="min-h-[48px] bg-amber-400 px-6 py-3 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300 disabled:cursor-wait disabled:opacity-50"
+              >
+                {copy.claim.button}
+              </button>
+            </div>
           </div>
-          <p data-claim-status role="status" aria-live="polite" class="mt-5 text-sm font-semibold text-amber-400"></p>
+          <p id="area-claim-status" data-claim-status role="status" aria-live="polite" class="mt-5 text-sm font-semibold text-amber-400"></p>
         </section>
       </div>
     </section>
@@ -317,35 +422,64 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           </aside>
         </div>
 
-        <div class="mt-8 border border-zinc-800 bg-zinc-900/30 p-5" aria-live="polite">
-          <div class="flex items-center justify-between gap-4">
-            <p class="text-[9px] font-black uppercase tracking-[.28em] text-zinc-400">{copy.collection.progress}</p>
-            <p class="font-mono text-sm font-black text-amber-400">
-              <span data-collection-count>0</span> / <span data-collection-size>{AREA_DROPS.length}</span>
+        <div class="mt-8 grid gap-3 lg:grid-cols-2">
+          <section class="border border-zinc-800 bg-zinc-900/30 p-5" aria-live="polite">
+            <div class="flex items-center justify-between gap-4">
+              <p class="text-[9px] font-black uppercase tracking-[.28em] text-zinc-400">{copy.collection.progress}</p>
+              <p class="font-mono text-sm font-black text-amber-400">
+                <span data-collection-count>0</span> / <span data-collection-size>{AREA_DROPS.length}</span>
+              </p>
+            </div>
+            <div
+              class="mt-3 h-1.5 overflow-hidden bg-zinc-800"
+              role="progressbar"
+              aria-label={copy.collection.progress}
+              aria-valuemin="0"
+              aria-valuemax={AREA_DROPS.length}
+              aria-valuenow="0"
+              data-collection-progress
+            >
+              <div data-collection-progress-bar class="h-full w-0 bg-amber-400 transition-[width] duration-500"></div>
+            </div>
+            <p data-collection-complete hidden class="mt-4 text-xs font-black uppercase tracking-widest text-amber-400">
+              {copy.collection.complete}
             </p>
-          </div>
-          <div
-            class="mt-3 h-1.5 overflow-hidden bg-zinc-800"
-            role="progressbar"
-            aria-label={copy.collection.progress}
-            aria-valuemin="0"
-            aria-valuemax={AREA_DROPS.length}
-            aria-valuenow="0"
-            data-collection-progress
-          >
-            <div data-collection-progress-bar class="h-full w-0 bg-amber-400 transition-[width] duration-500"></div>
-          </div>
-          <p data-collection-complete hidden class="mt-4 text-xs font-black uppercase tracking-widest text-amber-400">
-            {copy.collection.complete}
-          </p>
-          <p data-collection-complete-body hidden class="mt-2 text-xs leading-relaxed text-zinc-400">
-            {copy.collection.completeBody}
-          </p>
+            <p data-collection-complete-body hidden class="mt-2 text-xs leading-relaxed text-zinc-400">
+              {copy.collection.completeBody}
+            </p>
+          </section>
+
+          <section class="border border-amber-400/25 bg-amber-400/[.035] p-5">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">{copy.community.eyebrow}</p>
+                <h3 class="mt-2 text-lg font-black uppercase text-white">{copy.community.heading}</h3>
+              </div>
+              <p class="shrink-0 font-mono text-sm font-black text-amber-400">
+                <span data-community-count>—</span> / <span data-community-total>{AREA_DROPS.length}</span>
+              </p>
+            </div>
+            <p class="mt-3 text-xs leading-relaxed text-zinc-400">{copy.community.body}</p>
+            <div
+              class="mt-4 h-1.5 overflow-hidden bg-zinc-800"
+              role="progressbar"
+              aria-label={copy.community.progress}
+              aria-valuemin="0"
+              aria-valuemax={AREA_DROPS.length}
+              aria-valuetext={copy.community.loading}
+              data-community-progress
+            >
+              <div data-community-progress-bar class="h-full w-0 bg-amber-400 transition-[width] duration-500"></div>
+            </div>
+            <p data-community-status role="status" aria-live="polite" class="mt-3 text-[10px] text-zinc-400">
+              {copy.community.loading}
+            </p>
+          </section>
         </div>
 
         <div class="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {AREA_DROPS.map((drop) => (
-            <article data-collection-card={drop.id} class="area-collection-card relative min-h-72 overflow-hidden border border-zinc-800 bg-zinc-900/40 p-6">
+            <article data-collection-card={drop.id} class="area-collection-card relative min-h-80 overflow-hidden border border-zinc-800 bg-zinc-900/40 p-6">
               <div class="absolute inset-0 area-card-grid opacity-40" aria-hidden="true"></div>
               <div class="relative flex h-full flex-col">
                 <div class="flex items-start justify-between">
@@ -359,7 +493,22 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                   <span class="font-mono text-5xl text-zinc-700" aria-hidden="true">◇</span>
                   <p class="mt-4 font-mono text-[9px] uppercase tracking-[.28em] text-zinc-400">encrypted // {drop.id}</p>
                 </div>
-                <div data-card-unlocked hidden class="my-auto">
+                <div data-card-unlocked hidden class="my-6">
+                  <div data-card-artwork-wrap class="relative -mx-6 mb-6 aspect-[4/3] overflow-hidden border-y border-zinc-800 bg-zinc-950">
+                    <img
+                      data-card-artwork
+                      hidden
+                      alt=""
+                      width="800"
+                      height="600"
+                      loading="lazy"
+                      decoding="async"
+                      class="h-full w-full object-cover"
+                    />
+                    <div data-card-artwork-placeholder class="absolute inset-0 flex items-center justify-center p-6 text-center">
+                      <p class="font-mono text-[9px] uppercase tracking-[.25em] text-zinc-500">{copy.collection.artworkPending}</p>
+                    </div>
+                  </div>
                   <blockquote data-card-line class="border-l-2 border-amber-400 pl-4 text-2xl font-black uppercase leading-tight text-white"></blockquote>
                   <p data-card-track class="mt-4 text-[9px] font-black uppercase tracking-[.22em] text-amber-400"></p>
                   <p data-card-riddle class="mt-3 text-xs font-semibold text-zinc-200"></p>
@@ -561,12 +710,21 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       if (!copyNode) return
       const copy = JSON.parse(copyNode.textContent || "{}") as ClientCopy
       const lang = root.dataset.lang || "en"
+      const fragmentParams = new URLSearchParams(location.hash.slice(1))
+      const authToken = fragmentParams.get("auth")
+      const rawClaim = fragmentParams.get("claim")
+      if (authToken || rawClaim) {
+        history.replaceState(null, "", `${location.pathname}${location.search}`)
+      }
       const buttons = Array.from(root.querySelectorAll<HTMLElement>("[data-drop-button]"))
       const drops = new Map<string, DropInfo>()
       const liveDrops = new Map<string, { zoneLat: number; zoneLng: number; radiusMeters: number }>()
       const claimedDrops = new Set<string>()
-      let latestClaim: { city: string; line: string } | null = null
+      let latestClaim: { dropId: string; city: string; line: string } | null = null
       let claimRef: { dropId: string; key: string } | null = null
+      let isAuthenticated = false
+      let profileResolved = false
+      let hasCommunityProgress = false
 
       buttons.forEach((button) => {
         const id = button.dataset.dropId
@@ -589,7 +747,165 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       const selectedStatus = root.querySelector<HTMLElement>("[data-selected-status]")
       const selectedCoordinates = root.querySelector<HTMLElement>("[data-selected-coordinates]")
       const locationStatus = root.querySelector<HTMLElement>("[data-location-status]")
+      const profileShell = root.querySelector<HTMLElement>("[data-profile-shell]")
+      const profileLoading = root.querySelector<HTMLElement>("[data-profile-loading]")
+      const profileLoggedOut = root.querySelector<HTMLElement>("[data-profile-logged-out]")
+      const profileLoggedIn = root.querySelector<HTMLElement>("[data-profile-logged-in]")
+      const profileEmail = root.querySelector<HTMLElement>("[data-profile-email]")
+      const profileStatus = root.querySelector<HTMLElement>("[data-profile-status]")
+      const migrationNotice = root.querySelector<HTMLElement>("[data-migration-notice]")
+      const claimButton = root.querySelector<HTMLButtonElement>("[data-claim-button]")
+      const claimAuthRequired = root.querySelector<HTMLElement>("[data-claim-auth-required]")
+      const claimStatus = root.querySelector<HTMLElement>("[data-claim-status]")
       let selectedId = buttons[0]?.dataset.dropId || ""
+
+      const sendAreaEvent = (
+        event: "page_view" | "share",
+        dropId?: string
+      ) => {
+        const payload: Record<string, string> = {
+          event,
+          lang,
+          path: location.pathname,
+        }
+        if (dropId && drops.has(dropId)) payload.dropId = dropId
+        void fetch("/api/area/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(() => {
+          // Telemetry must never block the player experience.
+        })
+      }
+
+      const syncClaimAccess = () => {
+        if (claimButton) {
+          claimButton.disabled = !profileResolved || !isAuthenticated
+        }
+        if (claimAuthRequired) {
+          claimAuthRequired.hidden = !profileResolved || isAuthenticated
+        }
+        if (!claimRef || !claimStatus) return
+        if (!profileResolved) {
+          claimStatus.textContent = copy.claimAccountChecking
+        } else if (!isAuthenticated) {
+          claimStatus.textContent = copy.claimAccountRequired
+        } else if (
+          claimStatus.textContent === copy.claimAccountChecking ||
+          claimStatus.textContent === copy.claimAccountRequired
+        ) {
+          claimStatus.textContent = ""
+        }
+      }
+
+      const renderCommunity = (data: any) => {
+        const community =
+          data?.community ??
+          data?.communityProgress ??
+          data?.stats?.community
+        const count = root.querySelector<HTMLElement>("[data-community-count]")
+        const totalEl = root.querySelector<HTMLElement>("[data-community-total]")
+        const progress = root.querySelector<HTMLElement>("[data-community-progress]")
+        const bar = root.querySelector<HTMLElement>("[data-community-progress-bar]")
+        const status = root.querySelector<HTMLElement>("[data-community-status]")
+
+        if (!community || typeof community !== "object") {
+          if (!hasCommunityProgress && status) {
+            status.textContent = copy.communityUnavailable
+          }
+          return
+        }
+
+        const current = Number(
+          community.claimed ??
+          community.current ??
+          community.unlocked ??
+          community.count ??
+          community.verifiedClaims
+        )
+        const total = Number(
+          community.total ??
+          community.goal ??
+          community.target ??
+          community.collectionSize ??
+          drops.size
+        )
+        if (
+          !Number.isFinite(current) ||
+          current < 0 ||
+          !Number.isFinite(total) ||
+          total <= 0
+        ) {
+          if (!hasCommunityProgress && status) {
+            status.textContent = copy.communityUnavailable
+          }
+          return
+        }
+
+        hasCommunityProgress = true
+        const boundedCurrent = Math.min(current, total)
+        const providedPercent = Number(community.percent)
+        const percent = Number.isFinite(providedPercent)
+          ? Math.min(100, Math.max(0, providedPercent))
+          : Math.min(100, (boundedCurrent / total) * 100)
+        if (count) count.textContent = String(Math.round(boundedCurrent))
+        if (totalEl) totalEl.textContent = String(Math.round(total))
+        if (progress) {
+          progress.setAttribute("aria-valuemax", String(total))
+          progress.setAttribute("aria-valuenow", String(boundedCurrent))
+          progress.setAttribute(
+            "aria-valuetext",
+            `${Math.round(boundedCurrent)} / ${Math.round(total)}`
+          )
+        }
+        if (bar) bar.style.width = `${percent}%`
+        if (status) {
+          status.textContent =
+            boundedCurrent >= total
+              ? copy.communityComplete
+              : `${Math.round(boundedCurrent)} / ${Math.round(total)} · ${copy.communityProgress}`
+        }
+      }
+
+      const renderProfile = (data: any, message = "") => {
+        const profile =
+          data?.profile && typeof data.profile === "object"
+            ? data.profile
+            : data?.user && typeof data.user === "object"
+            ? data.user
+            : null
+        const authValue =
+          data?.authenticated ??
+          data?.loggedIn ??
+          profile?.authenticated
+        isAuthenticated = Boolean(
+          authValue ?? (profile && (profile.emailMasked || profile.email))
+        )
+        profileResolved = true
+
+        if (profileShell) profileShell.setAttribute("aria-busy", "false")
+        if (profileLoading) profileLoading.hidden = true
+        if (profileLoggedOut) profileLoggedOut.hidden = isAuthenticated
+        if (profileLoggedIn) profileLoggedIn.hidden = !isAuthenticated
+        if (profileEmail) {
+          profileEmail.textContent =
+            profile?.emailMasked ??
+            data?.emailMasked ??
+            ""
+        }
+        const migrationRequired = Boolean(
+          data?.migrationRequired ??
+          data?.migration?.required ??
+          profile?.migrationRequired
+        )
+        if (migrationNotice) {
+          migrationNotice.hidden = !migrationRequired
+        }
+        if (profileStatus) profileStatus.textContent = message
+        renderCommunity(data)
+        syncClaimAccess()
+      }
 
       const renderSelected = (id: string) => {
         const drop = drops.get(id)
@@ -654,10 +970,49 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
       const renderClaims = (claims: any[]) => {
         claimedDrops.clear()
+        latestClaim = null
+        root.querySelectorAll<HTMLElement>("[data-collection-card]").forEach((card) => {
+          card.classList.remove("is-unlocked")
+          const locked = card.querySelector<HTMLElement>("[data-card-locked]")
+          const unlocked = card.querySelector<HTMLElement>("[data-card-unlocked]")
+          const state = card.querySelector<HTMLElement>("[data-card-state]")
+          const line = card.querySelector<HTMLElement>("[data-card-line]")
+          const track = card.querySelector<HTMLElement>("[data-card-track]")
+          const riddle = card.querySelector<HTMLElement>("[data-card-riddle]")
+          const meta = card.querySelector<HTMLElement>("[data-card-meta]")
+          const artwork = card.querySelector<HTMLImageElement>("[data-card-artwork]")
+          const artworkPlaceholder = card.querySelector<HTMLElement>(
+            "[data-card-artwork-placeholder]"
+          )
+          if (locked) locked.hidden = false
+          if (unlocked) unlocked.hidden = true
+          if (state) {
+            state.textContent = copy.locked
+            state.classList.remove("text-amber-400")
+            state.classList.add("text-zinc-400")
+          }
+          if (line) line.textContent = ""
+          if (track) track.textContent = ""
+          if (riddle) riddle.textContent = ""
+          if (meta) meta.textContent = ""
+          if (artwork) {
+            artwork.onload = null
+            artwork.onerror = null
+            artwork.removeAttribute("src")
+            artwork.alt = ""
+            artwork.hidden = true
+          }
+          if (artworkPlaceholder) artworkPlaceholder.hidden = false
+        })
+
         claims.forEach((claim) => {
-          if (!claim?.dropId) return
+          if (!claim?.dropId || !drops.has(claim.dropId)) return
           claimedDrops.add(claim.dropId)
-          latestClaim = { city: claim.city || "", line: claim.line || "" }
+          latestClaim = {
+            dropId: claim.dropId,
+            city: claim.city || "",
+            line: claim.line || "",
+          }
           const card = root.querySelector<HTMLElement>(`[data-collection-card="${CSS.escape(claim.dropId)}"]`)
           if (!card) return
           card.classList.add("is-unlocked")
@@ -670,12 +1025,38 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           const state = card.querySelector<HTMLElement>("[data-card-state]")
           const meta = card.querySelector<HTMLElement>("[data-card-meta]")
           const riddle = card.querySelector<HTMLElement>("[data-card-riddle]")
+          const artwork = card.querySelector<HTMLImageElement>("[data-card-artwork]")
+          const artworkPlaceholder = card.querySelector<HTMLElement>(
+            "[data-card-artwork-placeholder]"
+          )
           if (line) line.textContent = `“${claim.line}”`
           if (track) track.textContent = `${claim.track} · ${claim.edition}`
           if (riddle) {
             riddle.textContent = claim.riddle
               ? `${copy.riddle}: ${claim.riddle}`
               : ""
+          }
+          const artworkPath =
+            typeof claim.artwork === "string"
+              ? claim.artwork
+              : typeof claim.artworkUrl === "string"
+              ? claim.artworkUrl
+              : ""
+          const expectedArtwork = `/area/collectibles/${claim.dropId}.webp`
+          if (artwork && artworkPath === expectedArtwork) {
+            artwork.alt = `${copy.artworkAlt} — ${claim.city || claim.dropId}`
+            artwork.hidden = false
+            artwork.onload = () => {
+              if (artworkPlaceholder) artworkPlaceholder.hidden = true
+            }
+            artwork.onerror = () => {
+              artwork.removeAttribute("src")
+              artwork.hidden = true
+              if (artworkPlaceholder) artworkPlaceholder.hidden = false
+            }
+            artwork.src = artworkPath
+          } else if (artworkPlaceholder) {
+            artworkPlaceholder.hidden = false
           }
           if (meta) {
             const recoveredAt = new Date(claim.claimedAt)
@@ -767,6 +1148,16 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         if (valueEl) valueEl.textContent = String(value)
         if (statusEl) statusEl.textContent = balance > 0 ? `${balance} ${copy.walletUnit} · ${value} PLN` : copy.voucherEmpty
 
+        if (
+          data &&
+          typeof data === "object" &&
+          ("authenticated" in data || "loggedIn" in data || data.profile || data.user)
+        ) {
+          renderProfile(data)
+        } else {
+          renderCommunity(data)
+        }
+
         liveDrops.clear()
         Array.isArray(data?.liveDrops) && data.liveDrops.forEach((drop: any) => {
           if (drop?.id) liveDrops.set(drop.id, drop)
@@ -820,8 +1211,106 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         }
       }
 
-      const claimParams = new URLSearchParams(location.hash.slice(1))
-      const rawClaim = claimParams.get("claim")
+      const loadProfile = async () => {
+        try {
+          const response = await fetch("/api/area/profile", {
+            headers: { Accept: "application/json" },
+            cache: "no-store",
+          })
+          if (!response.ok) throw new Error("profile unavailable")
+          renderProfile(await response.json())
+        } catch {
+          renderProfile({ authenticated: false }, copy.profileUnavailable)
+        }
+      }
+
+      const verifyAuth = async (token: string) => {
+        if (profileStatus) profileStatus.textContent = copy.profileVerifying
+        try {
+          const response = await fetch("/api/area/auth/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ token }),
+          })
+          const data = await response.json().catch(() => ({}))
+          if (!response.ok || !data?.authenticated) {
+            throw new Error(copy.profileVerifyError)
+          }
+          renderProfile(data, copy.profileVerifySuccess)
+          await loadWallet()
+        } catch (error) {
+          renderProfile(
+            { authenticated: false },
+            error instanceof Error ? error.message : copy.profileVerifyError
+          )
+          await loadWallet()
+        }
+      }
+
+      root.querySelector<HTMLFormElement>("[data-auth-form]")?.addEventListener("submit", async (event) => {
+        event.preventDefault()
+        const form = event.currentTarget as HTMLFormElement
+        const email = form.querySelector<HTMLInputElement>("[data-auth-email]")
+        const button = form.querySelector<HTMLButtonElement>("[data-auth-request]")
+        if (!email || !button) return
+        if (!form.checkValidity()) {
+          form.reportValidity()
+          return
+        }
+
+        const idleText = button.textContent || ""
+        button.disabled = true
+        button.textContent = copy.profileRequestWorking
+        if (profileStatus) profileStatus.textContent = copy.profileRequestWorking
+        try {
+          const response = await fetch("/api/area/auth/request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({
+              email: email.value.trim(),
+              lang,
+              returnTo: location.pathname,
+            }),
+          })
+          if (!response.ok) throw new Error(copy.profileRequestError)
+          if (profileStatus) profileStatus.textContent = copy.profileRequestSent
+          form.reset()
+        } catch (error) {
+          if (profileStatus) {
+            profileStatus.textContent =
+              error instanceof Error ? error.message : copy.profileRequestError
+          }
+        } finally {
+          button.disabled = false
+          button.textContent = idleText
+        }
+      })
+
+      root.querySelector<HTMLButtonElement>("[data-auth-logout]")?.addEventListener("click", async (event) => {
+        const button = event.currentTarget as HTMLButtonElement
+        const idleText = button.textContent || ""
+        button.disabled = true
+        button.textContent = copy.profileSignOutWorking
+        if (profileStatus) profileStatus.textContent = copy.profileSignOutWorking
+        try {
+          const response = await fetch("/api/area/auth/logout", {
+            method: "POST",
+            headers: { Accept: "application/json" },
+          })
+          if (!response.ok) throw new Error(copy.profileSignOutError)
+          renderProfile({ authenticated: false })
+          await loadWallet()
+        } catch (error) {
+          if (profileStatus) {
+            profileStatus.textContent =
+              error instanceof Error ? error.message : copy.profileSignOutError
+          }
+        } finally {
+          button.disabled = false
+          button.textContent = idleText
+        }
+      })
+
       if (rawClaim) {
         const separator = rawClaim.indexOf(".")
         if (separator > 0) {
@@ -834,12 +1323,20 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             if (panel) panel.hidden = false
           }
         }
-        history.replaceState(null, "", `${location.pathname}${location.search}`)
       }
 
       root.querySelector<HTMLButtonElement>("[data-claim-button]")?.addEventListener("click", async (event) => {
         const button = event.currentTarget as HTMLButtonElement
         const status = root.querySelector<HTMLElement>("[data-claim-status]")
+        if (!profileResolved || !isAuthenticated) {
+          if (status) {
+            status.textContent = profileResolved
+              ? copy.claimAccountRequired
+              : copy.claimAccountChecking
+          }
+          syncClaimAccess()
+          return
+        }
         if (!claimRef) {
           if (status) status.textContent = copy.claimGenericError
           return
@@ -868,6 +1365,16 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               OUTSIDE_ZONE: copy.claimOutside,
               DROP_FULL: copy.claimFull,
               RATE_LIMITED: copy.claimRateLimited,
+              AUTH_REQUIRED: copy.claimAccountRequired,
+              UNAUTHORIZED: copy.claimAccountRequired,
+              ACCOUNT_REQUIRED: copy.claimAccountRequired,
+            }
+            if (
+              data.code === "AUTH_REQUIRED" ||
+              data.code === "UNAUTHORIZED" ||
+              data.code === "ACCOUNT_REQUIRED"
+            ) {
+              renderProfile({ authenticated: false })
             }
             throw new Error(messages[data.code] || copy.claimGenericError)
           }
@@ -877,7 +1384,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         } catch (error) {
           if (status) status.textContent = error instanceof Error ? error.message : copy.claimGenericError
         } finally {
-          button.disabled = false
+          button.disabled = !isAuthenticated
         }
       })
 
@@ -940,13 +1447,23 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             await navigator.clipboard.writeText(`${text}\n${url}`)
             if (status) status.textContent = copy.shareCopied
           }
+          sendAreaEvent("share", latestClaim?.dropId)
         } catch {
           // User cancellation is not an error worth surfacing.
         }
       })
 
       renderSelected(selectedId)
-      void loadWallet()
+      syncClaimAccess()
+      sendAreaEvent("page_view")
+      if (authToken && authToken.length <= 2048) {
+        void verifyAuth(authToken)
+      } else {
+        if (authToken && profileStatus) {
+          profileStatus.textContent = copy.profileVerifyError
+        }
+        void Promise.all([loadProfile(), loadWallet()])
+      }
     })
   }
 

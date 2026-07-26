@@ -30,6 +30,9 @@ export type AreaWallet = {
   claims: AreaClaim[]
   vouchers: AreaVoucher[]
   attempts: number[]
+  migrations: string[]
+  migratedTo?: string
+  migratedAt?: string
   updatedAt: string
 }
 
@@ -50,6 +53,7 @@ const emptyWallet = (id: string): AreaWallet => ({
   claims: [],
   vouchers: [],
   attempts: [],
+  migrations: [],
   updatedAt: new Date().toISOString(),
 })
 
@@ -85,6 +89,13 @@ const normalizeWallet = (input: unknown, id: string): AreaWallet => {
   const attempts = Array.isArray(value.attempts)
     ? value.attempts.map(Number).filter(Number.isFinite).slice(-20)
     : []
+  const migrations = Array.isArray(value.migrations)
+    ? value.migrations
+        .filter((migration): migration is string =>
+          typeof migration === "string" && /^[a-f0-9]{64}$/.test(migration)
+        )
+        .slice(-50)
+    : []
 
   return {
     version: 1,
@@ -93,6 +104,11 @@ const normalizeWallet = (input: unknown, id: string): AreaWallet => {
     claims,
     vouchers,
     attempts,
+    migrations,
+    migratedTo:
+      typeof value.migratedTo === "string" ? value.migratedTo : undefined,
+    migratedAt:
+      typeof value.migratedAt === "string" ? value.migratedAt : undefined,
     updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : new Date().toISOString(),
   }
 }
@@ -232,4 +248,113 @@ export const reserveAreaDropClaim = async (
   }
 
   throw new Error("Area drop is busy; retry")
+}
+
+export const getAreaDropClaimCount = async (dropId: string) => {
+  try {
+    const record = await store().get(`drops/${dropId}`, {
+      type: "json",
+      consistency: "strong",
+    })
+    const stored = record as { claims?: unknown } | null
+    return Array.isArray(stored?.claims)
+      ? stored.claims.filter(value => typeof value === "string").length
+      : 0
+  } catch (error) {
+    if (!import.meta.env.DEV) throw error
+    return (memoryDropClaims.get(dropId) ?? []).length
+  }
+}
+
+export type AreaWalletMigration = {
+  migrated: boolean
+  alreadyMigrated: boolean
+  transferredClaims: number
+  transferredCredits: number
+}
+
+/**
+ * Migrate a legacy browser wallet into an account wallet exactly once.
+ *
+ * The target is updated first and records a deterministic migration ID. If the
+ * process is interrupted before the source is marked, a retry cannot credit
+ * the target twice. Overlapping claims are merged conservatively and never
+ * produce a duplicate Credit.
+ */
+export const migrateAreaWallet = async (
+  sourceWalletId: string,
+  targetWalletId: string,
+): Promise<AreaWalletMigration> => {
+  if (sourceWalletId === targetWalletId) {
+    return {
+      migrated: false,
+      alreadyMigrated: true,
+      transferredClaims: 0,
+      transferredCredits: 0,
+    }
+  }
+
+  const migrationId = createHash("sha256")
+    .update(`${sourceWalletId}\0${targetWalletId}`)
+    .digest("hex")
+  const source = await getAreaWallet(sourceWalletId)
+
+  const result = await mutateAreaWallet(targetWalletId, target => {
+    if (target.migrations.includes(migrationId)) {
+      return {
+        wallet: target,
+        result: {
+          migrated: false,
+          alreadyMigrated: true,
+          transferredClaims: 0,
+          transferredCredits: 0,
+        },
+      }
+    }
+
+    const existingDropIds = new Set(target.claims.map(claim => claim.dropId))
+    const uniqueClaims = source.claims.filter(
+      claim => !existingDropIds.has(claim.dropId),
+    )
+    const existingVoucherIds = new Set(
+      target.vouchers.map(voucher => voucher.requestId),
+    )
+    const uniqueVouchers = source.vouchers.filter(
+      voucher => !existingVoucherIds.has(voucher.requestId),
+    )
+    // A Credit can only originate from a claim. In an overlap conflict we
+    // prefer under-crediting for manual review over minting duplicate value.
+    const transferableCredits = Math.min(
+      source.tokenBalance,
+      uniqueClaims.length,
+    )
+
+    return {
+      wallet: {
+        ...target,
+        tokenBalance: target.tokenBalance + transferableCredits,
+        claims: [...target.claims, ...uniqueClaims],
+        vouchers: [...target.vouchers, ...uniqueVouchers],
+        migrations: [...target.migrations, migrationId],
+      },
+      result: {
+        migrated: true,
+        alreadyMigrated: false,
+        transferredClaims: uniqueClaims.length,
+        transferredCredits: transferableCredits,
+      },
+    }
+  })
+
+  await mutateAreaWallet(sourceWalletId, wallet => ({
+    wallet: {
+      ...wallet,
+      tokenBalance: 0,
+      migratedTo: targetWalletId,
+      migratedAt: new Date().toISOString(),
+    },
+    result: null,
+  }))
+
+  return result
 }
