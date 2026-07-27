@@ -1,4 +1,5 @@
 import { AREA_DROPS, getAreaDrop } from "../data/area"
+import { AREA_LIVE_DROPS } from "./areaLiveDrops"
 
 export type AreaCollectible = {
   dropId: string
@@ -51,15 +52,6 @@ const COLLECTIBLES: Record<string, AreaCollectible> = {
     edition: "Genesis",
     riddle: "Yanus",
   },
-}
-
-type LiveDropInput = {
-  lat?: unknown
-  lng?: unknown
-  radiusMeters?: unknown
-  maxClaims?: unknown
-  startsAt?: unknown
-  endsAt?: unknown
 }
 
 export type LiveDrop = {
@@ -124,45 +116,40 @@ const parseDate = (
     : { valid: false, value: null }
 }
 
-const parseLiveDrops = (): LiveDrop[] => {
-  const raw = import.meta.env.AREA_LIVE_DROPS_JSON
-  if (!raw) return []
+const parseLiveDrops = (): LiveDrop[] =>
+  Object.entries(AREA_LIVE_DROPS).flatMap(([id, value]) => {
+    if (!getAreaDrop(id)) return []
 
-  try {
-    const input = JSON.parse(raw) as Record<string, LiveDropInput>
-    if (!input || typeof input !== "object" || Array.isArray(input)) return []
+    const lat = Number(value.lat)
+    const lng = Number(value.lng)
+    const radius = Number(value.radiusMeters ?? 120)
+    const maxClaims = Number(value.maxClaims ?? 25)
+    const startsAt = parseDate(value.startsAt)
+    const endsAt = parseDate(value.endsAt)
 
-    return Object.entries(input).flatMap(([id, value]) => {
-      if (!getAreaDrop(id) || !value || typeof value !== "object") return []
+    if (
+      !Number.isFinite(lat) ||
+      lat < -90 ||
+      lat > 90 ||
+      !Number.isFinite(lng) ||
+      lng < -180 ||
+      lng > 180 ||
+      !Number.isFinite(radius) ||
+      !Number.isInteger(maxClaims) ||
+      maxClaims < 1 ||
+      maxClaims > 500 ||
+      !startsAt.valid ||
+      !endsAt.valid ||
+      (startsAt.value != null &&
+        endsAt.value != null &&
+        endsAt.value < startsAt.value)
+    ) {
+      console.error(`[area] Invalid live drop configuration: ${id}`)
+      return []
+    }
 
-      const lat = Number(value.lat)
-      const lng = Number(value.lng)
-      const radius = Number(value.radiusMeters ?? 120)
-      const maxClaims = Number(value.maxClaims ?? 25)
-      const startsAt = parseDate(value.startsAt)
-      const endsAt = parseDate(value.endsAt)
-
-      if (
-        !Number.isFinite(lat) ||
-        lat < -90 ||
-        lat > 90 ||
-        !Number.isFinite(lng) ||
-        lng < -180 ||
-        lng > 180 ||
-        !Number.isFinite(radius) ||
-        !Number.isInteger(maxClaims) ||
-        maxClaims < 1 ||
-        maxClaims > 500 ||
-        !startsAt.valid ||
-        !endsAt.valid ||
-        (startsAt.value != null &&
-          endsAt.value != null &&
-          endsAt.value < startsAt.value)
-      ) {
-        return []
-      }
-
-      return [{
+    return [
+      {
         id,
         lat,
         lng,
@@ -170,13 +157,9 @@ const parseLiveDrops = (): LiveDrop[] => {
         maxClaims,
         startsAt: startsAt.value,
         endsAt: endsAt.value,
-      }]
-    })
-  } catch {
-    console.error("[area] AREA_LIVE_DROPS_JSON is not valid JSON")
-    return []
-  }
-}
+      },
+    ]
+  })
 
 const isActive = (drop: LiveDrop, now = Date.now()) =>
   (drop.startsAt == null || drop.startsAt <= now) &&
