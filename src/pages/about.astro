@@ -1,0 +1,112 @@
+---
+export const prerender = true
+import Layout from "../components/Layout.astro"
+import Navbar from "../components/Navbar.astro"
+import BlurImage from "../components/BlurImage.astro"
+import Footer from "../components/Footer.astro"
+import ScrollToTop from "../components/ScrollToTop.astro"
+import ChevronRight from "../components/ChevronRight.astro"
+import { t, lp } from "../i18n/t"
+import { getSeoTags } from "../utils/seo"
+
+const lang = "en"
+const { canonicalUrl, hreflangLinks } = getSeoTags("/about/", lang)
+const title = `${t(lang, "band.storyHeading")} | Virya`
+const description = t(lang, "band.story1").slice(0, 155) + "…"
+
+const members = [
+  { name: "Wojciech Bator", roleKey: "band.roles.guitar" },
+  { name: "Marek Bienias", roleKey: "band.roles.vocals" },
+  { name: "Jakub Dąbrowski", roleKey: "band.roles.drums" },
+  { name: "Lubomyr Kosakovsky", roleKey: "band.roles.bass" },
+]
+---
+
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+  <Fragment slot="head">
+    {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
+  </Fragment>
+
+  <div class="bg-zinc-950 min-h-screen flex flex-col">
+    <Navbar lang={lang} displayLinks={true} activePage="about" />
+    <ScrollToTop />
+
+    <main id="main-content" class="flex-1 pt-20">
+      <div class="px-6 lg:px-12 pt-8 pb-16 lg:pb-24 max-w-5xl mx-auto">
+        <header class="mb-16">
+          <p class="text-xs font-bold uppercase tracking-[0.4em] text-amber-400 mb-4">{t(lang, "band.sub")}</p>
+          <h1 class="text-4xl lg:text-5xl font-black uppercase tracking-tight text-white">
+            {t(lang, "band.storyHeading")}
+          </h1>
+        </header>
+
+        <div class="grid lg:grid-cols-[1fr_380px] gap-12 lg:gap-16 items-start">
+          <div class="space-y-6">
+            <p class="text-zinc-300 leading-relaxed text-justify">{t(lang, "band.story1")}</p>
+            <p class="text-zinc-300 leading-relaxed text-justify">{t(lang, "band.story2")}</p>
+            <p class="text-zinc-300 leading-relaxed text-justify">{t(lang, "band.story3")}</p>
+            <p class="text-amber-400 font-bold text-sm uppercase tracking-widest pt-2">{t(lang, "band.noPain")}</p>
+          </div>
+
+          <aside class="space-y-8">
+            <BlurImage
+              src="/images/band.webp"
+              alt="Virya band"
+              width="380"
+              height="285"
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 1023px) calc(100vw - 3rem), 380px"
+              class="w-full h-auto"
+            />
+
+            <div>
+              <h2 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">{t(lang, "band.lineup")}</h2>
+              <ul class="space-y-3">
+                {members.map(({ name, roleKey }) => (
+                  <li class="border-l-2 border-amber-400/30 pl-3">
+                    <p class="text-sm font-bold text-zinc-100">{name}</p>
+                    <p class="text-[10px] uppercase tracking-widest text-zinc-400">{t(lang, roleKey)}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h2 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">{t(lang, "band.links")}</h2>
+              <div class="flex flex-col gap-2">
+                <a href="https://open.spotify.com/artist/6bbW0jOKAWJWm3h6CTWaAS" target="_blank" rel="noreferrer" class="border-l-2 border-zinc-700 hover:border-amber-400 pl-3 text-zinc-300 hover:text-amber-400 transition-colors">
+                  Spotify
+                </a>
+                <a href="https://www.youtube.com/@ViryaOfficial" target="_blank" rel="noreferrer" class="border-l-2 border-zinc-700 hover:border-amber-400 pl-3 text-zinc-300 hover:text-amber-400 transition-colors">
+                  YouTube
+                </a>
+                <a href="https://www.instagram.com/virya.official" target="_blank" rel="noreferrer" class="border-l-2 border-zinc-700 hover:border-amber-400 pl-3 text-zinc-300 hover:text-amber-400 transition-colors">
+                  Instagram
+                </a>
+                <a href="https://virya.bandcamp.com" target="_blank" rel="noreferrer" class="border-l-2 border-zinc-700 hover:border-amber-400 pl-3 text-zinc-300 hover:text-amber-400 transition-colors">
+                  Bandcamp
+                </a>
+                <a href="https://www.facebook.com/ViryaBand" target="_blank" rel="noreferrer" class="border-l-2 border-zinc-700 hover:border-amber-400 pl-3 text-zinc-300 hover:text-amber-400 transition-colors">
+                  Facebook
+                </a>
+                <a href="https://soundcloud.com/viryaofficial" target="_blank" rel="noreferrer" class="border-l-2 border-zinc-700 hover:border-amber-400 pl-3 text-zinc-300 hover:text-amber-400 transition-colors">
+                  SoundCloud
+                </a>
+                <a href="https://x.com/viryaofficial" target="_blank" rel="noreferrer" class="border-l-2 border-zinc-700 hover:border-amber-400 pl-3 text-zinc-300 hover:text-amber-400 transition-colors">
+                  Twitter
+                </a>
+              </div>
+            </div>
+
+            <a href={lp(lang, "/epk")} class="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-colors px-4 py-2.5">
+              {t(lang, "band.pressPack")} <ChevronRight class="w-3.5 h-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
+            </a>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>

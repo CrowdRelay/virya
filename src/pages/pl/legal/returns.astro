@@ -1,0 +1,9 @@
+---
+export const prerender = true
+import LegalPage from "../../../components/LegalPage.astro"
+import { getSeoTags } from "../../../utils/seo"
+
+const lang = "pl"
+const { canonicalUrl, hreflangLinks } = getSeoTags("/legal/returns/", lang)
+---
+<LegalPage lang={lang} pageKey="returns" canonical={canonicalUrl} hreflangLinks={hreflangLinks} />

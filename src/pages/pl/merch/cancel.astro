@@ -1,0 +1,31 @@
+---
+export const prerender = true
+
+import Layout from "../../../components/Layout.astro"
+import Navbar from "../../../components/Navbar.astro"
+import Footer from "../../../components/Footer.astro"
+import { t, lp } from "../../../i18n/t"
+
+const lang = "pl"
+---
+
+<Layout title="Płatność anulowana | Virya" lang={lang}>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex" />
+  </Fragment>
+
+  <div class="bg-zinc-950 min-h-screen flex flex-col">
+    <Navbar lang={lang} displayLinks={false} />
+
+    <main id="main-content" class="flex-1 flex flex-col items-center justify-center px-6 text-center py-20">
+      <p class="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400 mb-4">{t(lang, "cancel.eyebrow")}</p>
+      <h1 class="text-3xl lg:text-4xl font-black uppercase tracking-tight text-white mb-6">{t(lang, "cancel.title")}</h1>
+      <p class="text-zinc-300 text-sm leading-relaxed max-w-md mb-10">{t(lang, "cancel.body")}</p>
+      <a href={lp(lang, "/merch")} class="text-xs font-bold uppercase tracking-widest px-6 py-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-colors">
+        {t(lang, "cancel.back")}
+      </a>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>
