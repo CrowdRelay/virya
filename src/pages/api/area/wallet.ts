@@ -1,19 +1,28 @@
 import type { APIRoute } from "astro"
-import { AREA_COLLECTION_SIZE, getPublicCollectible, getPublicLiveDrops } from "../../../server/areaCatalog"
+import {
+  AREA_COLLECTION_SIZE,
+  getPublicCollectible,
+  getPublicLiveDrops,
+} from "../../../server/areaCatalog"
+import { getAreaActor } from "../../../server/areaActor"
 import { getAreaWallet } from "../../../server/areaLedger"
-import { areaJson, getAreaWalletId } from "../../../server/areaHttp"
-import { AREA_TOKEN_VALUE_PLN } from "../../../data/area"
+import { areaJson } from "../../../server/areaHttp"
 
 export const prerender = false
 
 export const GET: APIRoute = async ({ cookies }) => {
   try {
-    const walletId = getAreaWalletId(cookies)
-    const wallet = await getAreaWallet(walletId)
+    const actor = await getAreaActor(cookies)
+    const wallet = await getAreaWallet(actor.actorId)
 
     return areaJson({
+      authenticated: actor.authenticated,
       tokenBalance: wallet.tokenBalance,
-      tokenValuePln: AREA_TOKEN_VALUE_PLN,
+      rewardCredits: wallet.tokenBalance,
+      reward: {
+        creditsPerCode: 1,
+        benefit: "free-item-and-shipping",
+      },
       collectionSize: AREA_COLLECTION_SIZE,
       claims: wallet.claims
         .map((claim) => {
@@ -28,15 +37,32 @@ export const GET: APIRoute = async ({ cookies }) => {
         })
         .filter(Boolean),
       vouchers: wallet.vouchers
-        .filter((voucher) => voucher.status === "issued")
-        .map(({ code, tokens, valuePln, minimumOrderPln, createdAt, expiresAt }) => ({
-          code,
-          tokens,
-          valuePln,
-          minimumOrderPln,
-          createdAt,
-          expiresAt,
-        })),
+        .filter((reward) =>
+          ["issued", "reserved", "redeemed"].includes(reward.status),
+        )
+        .map(
+          ({
+            code,
+            tokens,
+            benefit,
+            createdAt,
+            expiresAt,
+            status,
+            freeProductId,
+            freeProductLabel,
+            redeemedAt,
+          }) => ({
+            code,
+            tokens,
+            benefit,
+            createdAt,
+            expiresAt,
+            status,
+            freeProductId,
+            freeProductLabel,
+            redeemedAt,
+          }),
+        ),
       liveDrops: getPublicLiveDrops(),
     })
   } catch (error) {

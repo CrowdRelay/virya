@@ -1,63 +1,66 @@
-# VIRYA Area — pilot operations
+# VIRYA Area — GPS hunt and free-merch reward
 
-VIRYA Area is a location-based loyalty game attached to `virya.music`. A player
-tracks a public city signal, finds a physical VIRYA box, opens its QR/NFC link
-and explicitly confirms one location reading. A valid claim unlocks one lyric
-collectible and awards 1 VIRYA Credit. One Credit can be exchanged for a
-single-use 50 PLN Stripe promotion code.
+VIRYA Area is a location-based loyalty game built into `virya.music`. A player
+follows a clue, reaches an active city zone, signs in and explicitly starts a
+short GPS verification. A valid claim unlocks one lyric collectible and awards
+1 VIRYA Credit.
 
-The pilot deliberately keeps rewards off-chain. Credits are free,
-non-transferable loyalty benefits with no cash value. This keeps checkout,
-fraud limits and privacy controllable while the game loop is validated. An
-optional on-chain edition can later represent collectible artwork only; merch
-Credits and precise location data should stay off-chain.
+One Credit can be converted into a single-use internal winning code. In one
+merch order that code makes the highest-priced single available item in the
+cart free and removes the InPost delivery charge. Additional items remain
+payable. No Stripe coupon is created and no physical sticker, QR code or NFC tag
+is required.
+
+Credits and codes stay off-chain. They have no cash value, cannot be withdrawn
+and are not cryptocurrency or an investment. Optional on-chain minting may
+later represent collectible artwork only.
 
 ## Player flow
 
-1. `/area/` or `/pl/area/` shows six public city signals and their clues.
+1. `/area/` or `/pl/area/` shows public city signals and clues.
 2. The nearest-city button compares the player's location locally in the
    browser. Nothing is sent during this search.
-3. A physical tag opens a URL such as:
+3. The player selects a live city, reaches the place suggested by the clue and
+   signs in through the magic-link profile.
+4. Pressing **Lock signal** calls `POST /api/area/challenge`. The server returns
+   a signed, actor-bound challenge valid for 90 seconds.
+5. The browser gathers at least three fresh high-accuracy readings over at
+   least six seconds and submits them to `POST /api/area/claim`.
+6. The server verifies challenge signature, player, activation window, sample
+   freshness, accuracy and distance. Raw samples are discarded.
+7. A successful claim stores the drop ID, time, edition number and rounded
+   verification distance, then adds 1 Credit.
+8. The player exchanges exactly 1 Credit for a one-time code such as
+   `VIRYA-AB12-CD34-EF56-7890-ABCD-EF12`.
+9. In the merch cart the player enters the code. Checkout validates the cart
+   server-side, sets one item to zero and sets InPost delivery to zero.
+10. Stripe Checkout may have a total of zero. The signed webhook marks the code
+    redeemed and performs normal email and shipment fulfilment.
 
-   ```text
-   https://www.virya.music/pl/area/#claim=wro-001.DROP_SECRET
-   ```
+## Environment
 
-   The secret lives in the URL fragment, so it is not sent in the initial HTTP
-   request or normal referrer headers. The page reads it and immediately
-   removes the fragment from browser history.
+Required server-side variables:
 
-4. Only after the player presses the claim button does the browser request a
-   fresh position. The API verifies QR secret, activation window, accuracy and
-   distance. Raw coordinates are not stored.
-5. A successful claim stores only the drop ID, time and rounded verification
-   distance in a pseudonymous, HttpOnly browser wallet. It unlocks the private
-   line and adds one Credit.
-6. The player may exchange 1–5 Credits for a one-time Stripe code. The code
-   expires after 12 months and requires an order at least 50 PLN higher than
-   its discount. Stripe Checkout accepts promotion codes.
-
-Clearing site data loses access to the pilot wallet. Account recovery should be
-added before a full public season.
-
-## Launching a physical drop
-
-Generate a unique secret for every printed tag:
-
-```sh
-openssl rand -hex 24
+```dotenv
+AREA_AUTH_SECRET=<at least 32 random bytes>
+AREA_CHALLENGE_SECRET=<at least 32 random bytes; optional but recommended>
+AREA_LIVE_DROPS_JSON={...}
 ```
 
-Add the drop to the server-only `AREA_LIVE_DROPS_JSON` variable in Netlify. Do
-not use a `PUBLIC_` prefix and never commit a real secret or exact coordinates.
+Generate secrets with:
+
+```sh
+openssl rand -hex 32
+```
+
+Example live zone:
 
 ```json
 {
   "wro-001": {
-    "secret": "at-least-24-random-characters",
     "lat": 51.1079,
     "lng": 17.0385,
-    "radiusMeters": 100,
+    "radiusMeters": 80,
     "maxClaims": 25,
     "startsAt": "2026-08-01T10:00:00+02:00",
     "endsAt": "2026-08-03T22:00:00+02:00"
@@ -65,106 +68,109 @@ not use a `PUBLIC_` prefix and never commit a real secret or exact coordinates.
 }
 ```
 
-Supported IDs are defined in `src/data/area.ts`. Exact coordinates and secrets
-are parsed only by `src/server/areaCatalog.ts`.
+Supported IDs are defined in `src/data/area.ts`. Exact coordinates are parsed
+only by `src/server/areaCatalog.ts`.
 
-- `radiusMeters`: 25–500 m. Start around 80–120 m outdoors.
-- `maxClaims`: 1–500 successful browser wallets. The default is 25.
-- `startsAt` / `endsAt`: optional ISO timestamps with an explicit `Z` or
-  `±hh:mm` timezone. Outside the window the claim is inactive. A malformed,
-  empty or reversed window makes the entire configured drop fail closed.
+- `radiusMeters`: 25–500 m. Start around 50–100 m outdoors and test the actual
+  site on several phones.
+- `maxClaims`: 1–500 successful player profiles. Default: 25.
+- `startsAt` / `endsAt`: optional ISO timestamps with explicit `Z` or
+  `±hh:mm`. Invalid windows fail closed.
 
-The global claim cap is written with compare-and-swap storage, independently of
-the per-wallet limit. This puts a hard ceiling on nominal campaign exposure:
+## GPS verification
+
+The server accepts 3–8 samples. The default frontend aims for four readings
+over at least six seconds.
+
+A sample must have reported accuracy no worse than 60 m. Its accepted distance
+is:
 
 ```text
-maximum discount exposure = maxClaims × 50 PLN per drop
+configured radius + min(reported accuracy × 0.35, 15 m)
 ```
 
-At the default of 25 claims, one city exposes at most 1,250 PLN and all six pilot
-cities at most 7,500 PLN. Every voucher still requires a paid basket at least
-50 PLN above the discount.
+At least three accurate readings must be inside the allowed distance and the
+median reading must also pass. Challenge tokens are HMAC-signed, bound to the
+logged-in actor and drop, and expire after 90 seconds.
 
-After setting the environment variable:
+Raw coordinates and samples are not retained. The wallet stores only a rounded
+verification distance. Browser geolocation can still be spoofed by a determined
+attacker; signed accounts, short challenges, rolling attempt limits and a hard
+`maxClaims` cap bound the exposure but do not create cryptographic proof of
+physical presence.
 
-1. deploy the site;
-2. open the Area map and confirm that the intended city says “live”;
-3. scan the production QR on iOS and Android;
-4. test once outside the zone and once inside it;
-5. generate a 50 PLN test voucher and complete a Stripe test checkout;
-6. inspect the Stripe webhook and order notification before going live.
+## Reward and checkout semantics
 
-If a QR secret leaks before launch, replace the secret, redeploy and replace the
-physical label. Never place a box on private property, near traffic, railways,
-rooftops, construction sites or anywhere that encourages unsafe access.
+- 1 successful drop = 1 Credit.
+- 1 Credit = 1 single-use winning code.
+- The code expires after 12 months.
+- The highest-priced single unit in the submitted cart is free. If quantity is
+  greater than one, only one unit is free.
+- InPost Paczkomat delivery is free in the same order.
+- Other items remain payable.
+- Normal Stripe promotion-code entry is disabled for a reward checkout.
+- The code is reserved for a checkout request for about 31 minutes.
+- Repeating the same request ID resumes the same open Stripe Checkout session.
+- `checkout.session.expired` and `checkout.session.async_payment_failed`
+  release the reservation.
+- `checkout.session.completed` and
+  `checkout.session.async_payment_succeeded` redeem the code after verifying
+  `paid` or `no_payment_required`.
 
-## What is stored
+Configure the Stripe webhook for all four event types above. A completely free
+order still reaches `checkout.session.completed` with
+`payment_status=no_payment_required`.
 
-- Netlify Blobs wallet: random wallet ID, claimed drop IDs, claim timestamps,
-  rounded distance, balance, claim-attempt timestamps and voucher status.
-- Netlify Blobs drop counter: hashes of wallet IDs, used only for the global
-  campaign cap.
-- Stripe: one single-use coupon and promotion code per Credit exchange.
-- Not stored: raw latitude/longitude, route history, background location, QR
-  secret in the public page payload, or precise coordinates in social sharing.
+## Storage
 
-The site privacy policy and terms describe this pilot. They should still be
-reviewed by Polish counsel before a large paid promotion or any on-chain
-release.
+Netlify Blobs stores:
 
-## Abuse and failure behaviour
+- account and session records for the Area magic-link profile;
+- account wallet: claims, Credit balance, attempts and issued-code history;
+- per-drop hashed actor claim list for atomic capacity and edition numbers;
+- reward-code record: hash, owner, status, expiry, checkout reservation and
+  redeemed product.
 
-- One wallet can claim a given drop only once.
-- Each drop has an atomic global claim cap.
-- Claim attempts are limited per wallet in a rolling ten-minute window.
-- Position accuracy must be 150 m or better; the accepted distance is the
-  configured radius plus at most 50 m of reported accuracy.
-- Credit reservation and voucher state transitions use compare-and-swap writes.
-- Only one request holds the voucher-processing lease at a time. Stripe coupon
-  and promotion creation use deterministic idempotency keys. Recovery also
-  retrieves the deterministic coupon and searches the customer-facing code,
-  so it remains safe after Stripe's idempotency cache expires.
-- Functional responses are `no-store`; the service worker ignores all API and
-  claim traffic.
-- If Stripe's outcome is uncertain, Credits remain reserved and the browser
-  retries the same request ID. This prevents an active Stripe promotion from
-  coexisting with a refunded balance. An expired processing lease can be
-  resumed safely with the same idempotency keys. A matching code that is
-  expired, inactive or already redeemed is never returned as a fresh voucher
-  and requires manual review instead of an automatic Credit refund.
+Stripe stores order metadata and line items. The raw winning code, GPS samples,
+route history and exact claimed coordinates are not written to Stripe.
 
-Browser geolocation can be spoofed by a determined attacker. The QR secret,
-limited activation window, minimum basket and hard `maxClaims` budget make that
-risk bounded for the pilot. A public season with materially higher value should
-add a recoverable account and verified-email or passkey-based redemption.
+## Failure and concurrency behaviour
+
+- A profile can claim a given drop only once.
+- `reserveAreaDropClaim` is idempotent for the same drop/profile pair and
+  returns a stable edition number.
+- Wallet and drop-cap writes use compare-and-swap storage.
+- Reward issuance uses a persistent request ID and processing lease.
+- Reward checkout uses a persistent request ID, code reservation and Stripe
+  idempotency key.
+- Webhook fulfilment uses a lease/checkpoint ledger, so Stripe retries do not
+  resend email or recreate shipments.
+- If checkout creation returns an uncertain error, the client retries with the
+  same request ID instead of minting another reservation.
+
+## Launch checklist
+
+1. Set strong `AREA_AUTH_SECRET` and `AREA_CHALLENGE_SECRET` values.
+2. Add one test live zone with a small radius and low `maxClaims`.
+3. Deploy and verify that only the intended city is marked live.
+4. Test login and signal lock on iOS Safari and Android Chrome.
+5. Test outside-zone, low-accuracy, expired-challenge and repeated-claim paths.
+6. Create a winning code and test carts containing one item, multiple items and
+   quantity greater than one.
+7. Complete a fully free order and a partially paid order in Stripe test mode.
+8. Verify reward release on session expiry and async payment failure.
+9. Verify order email, VAT metadata and InPost shipment creation.
+10. Review the privacy policy and terms with Polish counsel before a large
+    public promotion.
 
 ## Social rollout
 
-Use one clear campaign tag (`#ViryaArea`) and keep every asset on the same visual
-system as the Area cards.
+- T−48 h: distorted map crop and `SIGNAL DETECTED / [CITY REDACTED]`.
+- T−24 h: reveal city and activation window, not the exact neighbourhood.
+- T−2 h: publish a visual clue and safety reminder.
+- T0: Story/Reel linking to Area with campaign UTM parameters.
+- During: reshare finds that show the unlocked line but hide the exact place.
+- After: publish the verified count and next encrypted city.
 
-- T−48 h: distorted map crop plus “SIGNAL DETECTED / [CITY REDACTED]”.
-- T−24 h: reveal the city and activation window, but not the neighbourhood.
-- T−2 h: post one visual clue and a safety reminder.
-- T0: “signal live” Story/Reel linking to the Area map with
-  `utm_source`, `utm_medium` and `utm_campaign=virya_area`.
-- During: reshare finds that show the collectible line but hide the box and
-  exact surroundings.
-- After: publish claimed count, the unlocked lyric and the next encrypted city.
-- Finale: reward a completed collection with access, recognition or a
-  non-monetary limited edition; do not increase transferable token value.
-
-The built-in Share button already produces a spoiler-safe caption and tagged
-URL. A useful recurring format is: city + unlocked line + challenge to find the
-next signal.
-
-## Optional phase two
-
-Only after the pilot proves repeat play and safe operations:
-
-1. add a recoverable VIRYA account and migrate browser wallets;
-2. let a player optionally mint the already unlocked artwork;
-3. keep the claim proof, precise coordinates and merch balance off-chain;
-4. publish mint terms, network fees and transfer rules before enabling it;
-5. obtain a dedicated Polish/EU legal review before describing anything as a
-   token, NFT or cryptoasset in consumer-facing copy.
+The built-in share action includes the city and unlocked lyric but no exact
+coordinates.

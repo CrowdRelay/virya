@@ -1,5 +1,5 @@
 ---
-import { AREA_DROPS, AREA_TOKEN_VALUE_PLN } from "../data/area"
+import { AREA_DROPS } from "../data/area"
 import { AREA_COPY } from "../data/areaCopy"
 import { lp, type Lang } from "../i18n/t"
 
@@ -23,12 +23,14 @@ const clientCopy = {
       ? "{city} to Twój najbliższy sygnał — około {distance}."
       : "{city} is your nearest signal — about {distance} away.",
   claimWorking: copy.claim.working,
+  claimCollecting: copy.claim.collecting,
   claimSuccess: copy.claim.success,
   claimAlready: copy.claim.already,
   claimGenericError: copy.claim.genericError,
   claimInactive: copy.claim.inactive,
   claimInvalidCode: copy.claim.invalidCode,
   claimAccuracy: copy.claim.accuracy,
+  claimSamples: copy.claim.samples,
   claimOutside: copy.claim.outside,
   claimFull: copy.claim.full,
   claimRateLimited: copy.claim.rateLimited,
@@ -54,13 +56,17 @@ const clientCopy = {
   voucherEmpty: copy.collection.voucherEmpty,
   voucherSuccess: copy.collection.voucherSuccess,
   voucherError: copy.collection.voucherError,
+  codeBenefit: copy.collection.codeBenefit,
+  codeIssued: copy.collection.codeIssued,
+  codeReserved: copy.collection.codeReserved,
+  codeRedeemed: copy.collection.codeRedeemed,
   copyCode: copy.collection.copyCode,
   copied: copy.collection.copied,
   shareGeneric: copy.share.generic,
   shareClaimedTemplate:
     lang === "pl"
-      ? "Znalazłem drop VIRYA Area w {city} i odblokowałem „{line}” Kto łapie następny sygnał? #ViryaArea #StayMad"
-      : "I found a VIRYA Area drop in {city} and unlocked “{line}” Who catches the next signal? #ViryaArea #StayMad",
+      ? "Namierzyłem sygnał VIRYA Area w {city} i odblokowałem „{line}”. Kto łapie następny? #ViryaArea #StayMad"
+      : "I locked a VIRYA Area signal in {city} and unlocked “{line}”. Who catches the next one? #ViryaArea #StayMad",
   shareCopied: copy.share.copied,
   shareTitle: "VIRYA Area",
   locked: copy.collection.locked,
@@ -79,38 +85,38 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 ---
 
 <main id="main-content" class="flex-1">
-  <div data-area-experience data-lang={lang}>
+  <div data-area-experience data-lang={lang} class="area-experience min-w-0 overflow-x-clip">
     <script type="application/json" data-area-copy set:html={safeClientCopy}></script>
 
-    <header class="area-hero relative flex min-h-[88vh] items-center overflow-hidden border-b border-zinc-800/60 px-6 pb-16 pt-32 lg:px-12">
+    <header class="area-hero relative flex min-h-[100svh] items-center overflow-hidden border-b border-zinc-800/60 px-4 pb-12 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:px-6 sm:pb-16 sm:pt-32 lg:min-h-[88vh] lg:px-12">
       <div class="area-grid absolute inset-0 opacity-70" aria-hidden="true"></div>
       <div class="absolute left-[8%] top-28 h-56 w-56 rounded-full bg-amber-400/10 blur-[100px]" aria-hidden="true"></div>
-      <div class="relative mx-auto grid w-full max-w-7xl items-center gap-14 lg:grid-cols-[1.15fr_.85fr]">
-        <div>
-          <p class="mb-5 text-[10px] font-black uppercase tracking-[0.4em] text-amber-400">
+      <div class="relative mx-auto grid min-w-0 w-full max-w-7xl items-center gap-10 sm:gap-14 lg:grid-cols-[1.15fr_.85fr]">
+        <div class="min-w-0">
+          <p class="mb-5 max-w-full text-[9px] font-black uppercase leading-relaxed tracking-[0.28em] text-amber-400 sm:text-[10px] sm:tracking-[0.4em]">
             {copy.hero.eyebrow}
           </p>
-          <h1 class="max-w-4xl text-5xl font-black uppercase leading-[.92] tracking-[-.045em] text-white sm:text-6xl lg:text-8xl">
+          <h1 class="area-display-title max-w-4xl text-[clamp(2.4rem,10.8vw,3.6rem)] font-black uppercase leading-[.9] tracking-[-.04em] text-white sm:text-6xl lg:text-8xl">
             {copy.hero.title}
           </h1>
-          <p class="mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 lg:text-lg">
+          <p class="mt-6 max-w-2xl text-[0.95rem] leading-relaxed text-zinc-300 sm:mt-7 sm:text-base lg:text-lg">
             {copy.hero.body}
           </p>
-          <div class="mt-9 flex flex-wrap gap-3">
+          <div class="mt-8 grid min-w-0 grid-cols-1 gap-3 sm:mt-9 sm:flex sm:flex-wrap">
             <a
               href="#area-map"
-              class="inline-flex min-h-[48px] items-center justify-center bg-amber-400 px-6 py-3 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300"
+              class="inline-flex min-h-[48px] w-full min-w-0 items-center justify-center bg-amber-400 px-4 py-3 text-center text-[11px] font-black uppercase leading-snug tracking-[.15em] text-black transition-colors hover:bg-amber-300 sm:w-auto sm:px-6 sm:text-xs sm:tracking-widest"
             >
               {copy.hero.mapCta}
             </a>
             <a
               href="#how-it-works"
-              class="inline-flex min-h-[48px] items-center justify-center border border-zinc-600 px-6 py-3 text-xs font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-amber-400 hover:text-amber-400"
+              class="inline-flex min-h-[48px] w-full min-w-0 items-center justify-center border border-zinc-600 px-4 py-3 text-center text-[11px] font-black uppercase leading-snug tracking-[.15em] text-zinc-100 transition-colors hover:border-amber-400 hover:text-amber-400 sm:w-auto sm:px-6 sm:text-xs sm:tracking-widest"
             >
               {copy.hero.howCta}
             </a>
           </div>
-          <div class="mt-10 flex max-w-2xl items-start gap-3 border-l-2 border-amber-400 bg-zinc-900/50 p-4">
+          <div class="mt-8 flex min-w-0 max-w-2xl items-start gap-3 border-l-2 border-amber-400 bg-zinc-900/50 p-4 sm:mt-10">
             <span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_14px_rgba(251,191,36,.8)]" aria-hidden="true"></span>
             <p class="text-xs leading-relaxed text-zinc-400">
               <strong class="mr-2 uppercase tracking-widest text-zinc-100">{copy.hero.pilot}</strong>
@@ -119,14 +125,14 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           </div>
         </div>
 
-        <div class="relative mx-auto w-full max-w-md">
-          <div class="area-card relative aspect-[4/5] overflow-hidden border border-amber-400/50 bg-zinc-900 p-7 shadow-[0_28px_90px_rgba(0,0,0,.55)]">
+        <div class="relative mx-auto min-w-0 w-full max-w-md">
+          <div class="area-card relative min-h-[390px] w-full max-w-full overflow-hidden border border-amber-400/50 bg-zinc-900 p-5 shadow-[0_28px_90px_rgba(0,0,0,.55)] sm:aspect-[4/5] sm:min-h-0 sm:p-7">
             <div class="absolute inset-0 bg-[radial-gradient(circle_at_75%_15%,rgba(251,191,36,.22),transparent_30%),linear-gradient(145deg,transparent_25%,rgba(251,191,36,.06),transparent_60%)]" aria-hidden="true"></div>
             <div class="absolute -right-16 top-20 h-64 w-64 rounded-full border border-amber-400/10" aria-hidden="true"></div>
             <div class="relative flex h-full flex-col">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-[9px] font-black uppercase tracking-[0.35em] text-amber-400">VIRYA // AREA</p>
+              <div class="flex min-w-0 items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-[9px] font-black uppercase tracking-[0.28em] text-amber-400 sm:tracking-[0.35em]">VIRYA // AREA</p>
                   <p class="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-400">
                     Collectible 001 / {String(AREA_DROPS.length).padStart(3, "0")}
                   </p>
@@ -146,8 +152,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                   <p class="text-[8px] uppercase tracking-widest text-zinc-400">VIRYA</p>
                 </div>
                 <div>
-                  <p class="text-lg font-black text-white">{AREA_TOKEN_VALUE_PLN}</p>
-                  <p class="text-[8px] uppercase tracking-widest text-zinc-400">PLN</p>
+                  <p class="text-lg font-black text-white">ITEM</p>
+                  <p class="text-[8px] uppercase tracking-widest text-zinc-400">FREE</p>
                 </div>
                 <div>
                   <p class="text-lg font-black text-white">PL</p>
@@ -161,7 +167,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </div>
     </header>
 
-    <section aria-label="VIRYA Area facts" class="border-b border-zinc-800/60 bg-black/30 px-6 lg:px-12">
+    <section aria-label="VIRYA Area facts" class="border-b border-zinc-800/60 bg-black/30 px-4 sm:px-6 lg:px-12">
       <dl class="mx-auto grid max-w-7xl grid-cols-1 divide-y divide-zinc-800/60 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {[
           [copy.stats.value, copy.stats.valueLabel],
@@ -176,16 +182,16 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </dl>
     </section>
 
-    <section id="area-profile" class="scroll-mt-24 border-b border-zinc-800/60 px-6 py-16 lg:px-12 lg:py-20">
-      <div class="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,.75fr)] lg:items-start">
+    <section id="area-profile" class="scroll-mt-24 border-b border-zinc-800/60 px-4 py-14 sm:px-6 sm:py-16 lg:px-12 lg:py-20">
+      <div class="mx-auto grid min-w-0 max-w-7xl gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,.75fr)] lg:items-start">
         <div class="max-w-3xl">
           <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.profile.eyebrow}</p>
-          <h2 class="text-4xl font-black uppercase tracking-tight text-white lg:text-5xl">{copy.profile.heading}</h2>
+          <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.6rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-5xl">{copy.profile.heading}</h2>
           <p class="mt-5 text-sm leading-relaxed text-zinc-400 lg:text-base">{copy.profile.body}</p>
           <p class="mt-5 border-l border-amber-400 pl-4 text-xs leading-relaxed text-zinc-300">{copy.profile.claimNote}</p>
         </div>
 
-        <div data-profile-shell aria-busy="true" class="border border-zinc-800 bg-zinc-900/40 p-6 lg:p-7">
+        <div data-profile-shell aria-busy="true" class="min-w-0 border border-zinc-800 bg-zinc-900/40 p-4 sm:p-6 lg:p-7">
           <p data-profile-loading class="text-xs font-semibold text-zinc-400">{copy.claim.accountChecking}</p>
 
           <div data-profile-logged-out hidden>
@@ -247,17 +253,17 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </div>
     </section>
 
-    <section id="area-map" class="scroll-mt-24 px-6 py-20 lg:px-12 lg:py-28">
+    <section id="area-map" class="scroll-mt-24 px-4 py-16 sm:px-6 sm:py-20 lg:px-12 lg:py-28">
       <div class="mx-auto max-w-7xl">
         <div class="mb-12 max-w-3xl">
           <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.map.eyebrow}</p>
-          <h2 class="text-4xl font-black uppercase tracking-tight text-white lg:text-6xl">{copy.map.heading}</h2>
+          <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.75rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-6xl">{copy.map.heading}</h2>
           <p class="mt-5 text-sm leading-relaxed text-zinc-400 lg:text-base">{copy.map.body}</p>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,.65fr)]">
-          <div class="border border-zinc-800 bg-zinc-900/30 p-4 sm:p-7">
-            <div class="area-map relative mx-auto aspect-[1.1/1] max-w-2xl" role="group" aria-label={copy.map.mapLabel}>
+          <div class="min-w-0 overflow-hidden border border-zinc-800 bg-zinc-900/30 p-2 sm:p-7">
+            <div class="area-map relative mx-auto aspect-[1.1/1] w-full min-w-0 max-w-2xl" role="group" aria-label={copy.map.mapLabel}>
               <svg viewBox="0 0 600 540" class="absolute inset-0 h-full w-full" aria-hidden="true">
                 <defs>
                   <linearGradient id={`area-fill-${lang}`} x1="0" x2="1" y1="0" y2="1">
@@ -286,7 +292,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                   data-lng={drop.approximateLng}
                   aria-label={`${drop.number} — ${copy.map.markerAria(drop.city)}`}
                   aria-pressed={index === 0 ? "true" : "false"}
-                  class={`area-marker absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center ${index === 0 ? "is-selected" : ""}`}
+                  class={`area-marker absolute flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center sm:h-11 sm:w-11 ${index === 0 ? "is-selected" : ""}`}
                   style={`left:${drop.mapX}%;top:${drop.mapY}%`}
                 >
                   <span class="absolute inset-0 rounded-full border border-amber-400/20" aria-hidden="true"></span>
@@ -309,12 +315,12 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             </div>
           </div>
 
-          <div class="flex flex-col gap-6">
-            <aside class="border border-zinc-800 bg-zinc-900/50 p-6">
-              <div class="flex items-start justify-between gap-4">
-                <div>
+          <div class="flex min-w-0 flex-col gap-6">
+            <aside class="min-w-0 border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
+              <div class="flex min-w-0 flex-wrap items-start justify-between gap-4">
+                <div class="min-w-0">
                   <p class="text-[9px] font-black uppercase tracking-[.3em] text-zinc-400">{copy.map.selected}</p>
-                  <h3 data-selected-city class="mt-2 text-3xl font-black uppercase tracking-tight text-white">{firstDrop.city}</h3>
+                  <h3 data-selected-city class="mt-2 break-words text-[clamp(1.65rem,8vw,1.875rem)] font-black uppercase leading-none tracking-tight text-white">{firstDrop.city}</h3>
                   <p data-selected-region class="mt-1 text-[10px] uppercase tracking-widest text-zinc-400">{firstDrop.region}</p>
                 </div>
                 <span data-selected-number class="border border-amber-400/50 px-2 py-1 font-mono text-xs text-amber-400">#{firstDrop.number}</span>
@@ -328,11 +334,11 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               </div>
               <div class="mt-4">
                 <p class="text-[9px] font-black uppercase tracking-widest text-zinc-400">{copy.map.coordinates}</p>
-                <p data-selected-coordinates class="mt-1 font-mono text-[10px] uppercase tracking-wider text-zinc-400">{copy.map.encrypted}</p>
+                <p data-selected-coordinates class="mt-1 break-all font-mono text-[10px] uppercase tracking-wider text-zinc-400">{copy.map.encrypted}</p>
               </div>
             </aside>
 
-            <div class="grid grid-cols-2 gap-2" aria-label={copy.map.heading}>
+            <div class="grid min-w-0 grid-cols-1 gap-2 min-[360px]:grid-cols-2" aria-label={copy.map.heading}>
               {AREA_DROPS.map((drop, index) => (
                 <button
                   type="button"
@@ -356,7 +362,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           </div>
         </div>
 
-        <section data-claim-panel hidden class="mt-8 border border-amber-400/60 bg-amber-400/[.06] p-6 lg:p-8">
+        <section data-claim-panel hidden class="mt-8 min-w-0 border border-amber-400/60 bg-amber-400/[.06] p-4 sm:p-6 lg:p-8">
           <div class="grid items-center gap-7 lg:grid-cols-[1fr_auto]">
             <div>
               <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.claim.eyebrow}</p>
@@ -387,10 +393,10 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </div>
     </section>
 
-    <section id="how-it-works" class="scroll-mt-24 border-y border-zinc-800/60 bg-zinc-900/20 px-6 py-20 lg:px-12 lg:py-28">
+    <section id="how-it-works" class="scroll-mt-24 border-y border-zinc-800/60 bg-zinc-900/20 px-4 py-16 sm:px-6 sm:py-20 lg:px-12 lg:py-28">
       <div class="mx-auto max-w-7xl">
         <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.steps.eyebrow}</p>
-        <h2 class="text-4xl font-black uppercase tracking-tight text-white lg:text-6xl">{copy.steps.heading}</h2>
+        <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.75rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-6xl">{copy.steps.heading}</h2>
         <ol class="mt-12 grid gap-px overflow-hidden border border-zinc-800 bg-zinc-800 lg:grid-cols-3">
           {copy.steps.items.map((item: any) => (
             <li class="bg-zinc-950 p-7 lg:p-9">
@@ -403,19 +409,19 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </div>
     </section>
 
-    <section class="px-6 py-20 lg:px-12 lg:py-28">
+    <section class="px-4 py-16 sm:px-6 sm:py-20 lg:px-12 lg:py-28">
       <div class="mx-auto max-w-7xl">
         <div class="grid items-end gap-10 lg:grid-cols-[1fr_360px]">
           <div>
             <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.collection.eyebrow}</p>
-            <h2 class="text-4xl font-black uppercase tracking-tight text-white lg:text-6xl">{copy.collection.heading}</h2>
+            <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.75rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-6xl">{copy.collection.heading}</h2>
             <p class="mt-5 max-w-3xl text-sm leading-relaxed text-zinc-400">{copy.collection.body}</p>
           </div>
-          <aside class="border border-amber-400/30 bg-zinc-900/50 p-6">
+          <aside class="min-w-0 border border-amber-400/30 bg-zinc-900/50 p-4 sm:p-6">
             <p class="text-[9px] font-black uppercase tracking-[.28em] text-zinc-400">{copy.collection.wallet}</p>
-            <div class="mt-3 flex items-end justify-between gap-4">
+            <div class="mt-3 flex min-w-0 flex-col gap-3 min-[360px]:flex-row min-[360px]:items-end min-[360px]:justify-between">
               <p><span data-wallet-balance class="text-5xl font-black text-white">0</span> <span class="text-xs font-bold uppercase tracking-widest text-amber-400">{copy.collection.walletUnit}</span></p>
-              <p class="text-right"><span data-wallet-value class="text-xl font-black text-white">0</span><span class="ml-1 text-[10px] text-zinc-400">PLN</span><br /><span class="text-[8px] uppercase tracking-widest text-zinc-400">{copy.collection.walletValue}</span></p>
+              <p class="max-w-full text-left text-[9px] font-bold uppercase leading-relaxed tracking-widest text-zinc-400 min-[360px]:max-w-36 min-[360px]:text-right">{copy.collection.walletValue}</p>
             </div>
             <p data-wallet-status role="status" aria-live="polite" class="mt-4 text-[10px] text-zinc-400">{copy.collection.loading}</p>
             <p class="mt-3 border-t border-zinc-800 pt-3 text-[9px] leading-relaxed text-zinc-400">{copy.collection.browserNote}</p>
@@ -424,8 +430,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
         <div class="mt-8 grid gap-3 lg:grid-cols-2">
           <section class="border border-zinc-800 bg-zinc-900/30 p-5" aria-live="polite">
-            <div class="flex items-center justify-between gap-4">
-              <p class="text-[9px] font-black uppercase tracking-[.28em] text-zinc-400">{copy.collection.progress}</p>
+            <div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
+              <p class="min-w-0 text-[9px] font-black uppercase tracking-[.22em] text-zinc-400 sm:tracking-[.28em]">{copy.collection.progress}</p>
               <p class="font-mono text-sm font-black text-amber-400">
                 <span data-collection-count>0</span> / <span data-collection-size>{AREA_DROPS.length}</span>
               </p>
@@ -450,9 +456,9 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           </section>
 
           <section class="border border-amber-400/25 bg-amber-400/[.035] p-5">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">{copy.community.eyebrow}</p>
+            <div class="flex min-w-0 flex-wrap items-start justify-between gap-4">
+              <div class="min-w-0">
+                <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400 sm:tracking-[.28em]">{copy.community.eyebrow}</p>
                 <h3 class="mt-2 text-lg font-black uppercase text-white">{copy.community.heading}</h3>
               </div>
               <p class="shrink-0 font-mono text-sm font-black text-amber-400">
@@ -479,15 +485,15 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
         <div class="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {AREA_DROPS.map((drop) => (
-            <article data-collection-card={drop.id} class="area-collection-card relative min-h-80 overflow-hidden border border-zinc-800 bg-zinc-900/40 p-6">
+            <article data-collection-card={drop.id} class="area-collection-card relative min-h-72 min-w-0 overflow-hidden border border-zinc-800 bg-zinc-900/40 p-5 sm:min-h-80 sm:p-6">
               <div class="absolute inset-0 area-card-grid opacity-40" aria-hidden="true"></div>
               <div class="relative flex h-full flex-col">
-                <div class="flex items-start justify-between">
-                  <div>
+                <div class="flex min-w-0 flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0">
                     <p class="font-mono text-[9px] text-amber-400">#{drop.number}</p>
-                    <h3 class="mt-1 text-sm font-black uppercase tracking-widest text-white">{drop.city}</h3>
+                    <h3 class="mt-1 break-words text-sm font-black uppercase tracking-[.15em] text-white sm:tracking-widest">{drop.city}</h3>
                   </div>
-                  <span data-card-state class="text-[8px] font-black uppercase tracking-[.2em] text-zinc-400">{copy.collection.locked}</span>
+                  <span data-card-state class="max-w-full text-right text-[8px] font-black uppercase leading-relaxed tracking-[.16em] text-zinc-400 sm:tracking-[.2em]">{copy.collection.locked}</span>
                 </div>
                 <div data-card-locked class="my-auto text-center">
                   <span class="font-mono text-5xl text-zinc-700" aria-hidden="true">◇</span>
@@ -521,13 +527,10 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         </div>
 
         <div class="mt-8 grid min-w-0 gap-6 lg:grid-cols-2">
-          <section class="min-w-0 border border-zinc-800 bg-zinc-900/30 p-6 lg:p-8">
+          <section class="min-w-0 border border-zinc-800 bg-zinc-900/30 p-4 sm:p-6 lg:p-8">
             <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.collection.voucherHeading}</p>
             <p class="mt-3 text-sm leading-relaxed text-zinc-400">{copy.collection.voucherBody}</p>
-            <div class="mt-6 flex flex-col gap-3 sm:flex-row">
-              <select data-voucher-select disabled aria-label={copy.collection.voucherHeading} class="min-h-[46px] min-w-0 w-full max-w-full border border-zinc-700 bg-zinc-950 px-4 text-xs text-zinc-200 disabled:opacity-40">
-                <option value="">{copy.collection.voucherEmpty}</option>
-              </select>
+            <div class="mt-6">
               <button data-voucher-button type="button" disabled class="min-h-[46px] w-full bg-amber-400 px-5 text-[10px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
                 {copy.collection.voucherButton}
               </button>
@@ -542,11 +545,11 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             </a>
           </section>
 
-          <section class="min-w-0 border border-zinc-800 bg-zinc-900/30 p-6 lg:p-8">
+          <section class="min-w-0 border border-zinc-800 bg-zinc-900/30 p-4 sm:p-6 lg:p-8">
             <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.share.eyebrow}</p>
-            <h3 class="mt-3 text-2xl font-black uppercase text-white">{copy.share.heading}</h3>
+            <h3 class="area-section-title mt-3 text-[clamp(1.65rem,7vw,2rem)] font-black uppercase leading-tight text-white">{copy.share.heading}</h3>
             <p class="mt-3 text-sm leading-relaxed text-zinc-400">{copy.share.body}</p>
-            <button data-share-button type="button" class="mt-6 min-h-[46px] border border-amber-400/60 px-5 text-[10px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black">
+            <button data-share-button type="button" class="mt-6 min-h-[46px] w-full border border-amber-400/60 px-4 text-[10px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black sm:w-auto sm:px-5">
               {copy.share.button}
             </button>
             <p data-share-status role="status" aria-live="polite" class="mt-4 text-xs font-semibold text-amber-400"></p>
@@ -555,11 +558,11 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </div>
     </section>
 
-    <section class="border-t border-zinc-800/60 bg-black/30 px-6 py-20 lg:px-12 lg:py-28">
+    <section class="border-t border-zinc-800/60 bg-black/30 px-4 py-16 sm:px-6 sm:py-20 lg:px-12 lg:py-28">
       <div class="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.75fr_1.25fr]">
         <div>
           <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.rules.eyebrow}</p>
-          <h2 class="text-4xl font-black uppercase tracking-tight text-white lg:text-5xl">{copy.rules.heading}</h2>
+          <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.6rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-5xl">{copy.rules.heading}</h2>
         </div>
         <div>
           <ul class="space-y-4">
@@ -654,6 +657,69 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
     to { transform: scale(1.45); opacity: 0; }
   }
 
+  .area-experience {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .area-experience :where(section, header, div, aside, article, form, ol, ul, li) {
+    min-width: 0;
+  }
+
+  .area-display-title,
+  .area-section-title,
+  .area-experience :where(blockquote, code, [data-selected-city], [data-card-state]) {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  .area-display-title,
+  .area-section-title {
+    text-wrap: balance;
+  }
+
+  @media (max-width: 639px) {
+    .area-hero {
+      align-items: flex-start;
+    }
+
+    .area-card blockquote {
+      font-size: clamp(1.55rem, 7.8vw, 2rem);
+    }
+
+    .area-card .grid {
+      min-width: 0;
+    }
+
+    .area-marker {
+      touch-action: manipulation;
+    }
+
+    [data-voucher-list] > li {
+      align-items: stretch;
+    }
+
+    [data-voucher-list] > li > * {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    [data-voucher-list] button {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 359px) {
+    .area-display-title {
+      font-size: 2.25rem;
+    }
+
+    .area-card {
+      min-height: 360px;
+      padding: 1rem;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .area-marker.is-live::after {
       animation: none;
@@ -692,7 +758,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
     navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: true,
       maximumAge: 0,
-      timeout: 15000,
+      timeout: 10000,
     })
   })
 
@@ -712,8 +778,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       const lang = root.dataset.lang || "en"
       const fragmentParams = new URLSearchParams(location.hash.slice(1))
       const authToken = fragmentParams.get("auth")
-      const rawClaim = fragmentParams.get("claim")
-      if (authToken || rawClaim) {
+      if (authToken) {
         history.replaceState(null, "", `${location.pathname}${location.search}`)
       }
       const buttons = Array.from(root.querySelectorAll<HTMLElement>("[data-drop-button]"))
@@ -721,7 +786,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       const liveDrops = new Map<string, { zoneLat: number; zoneLng: number; radiusMeters: number }>()
       const claimedDrops = new Set<string>()
       let latestClaim: { dropId: string; city: string; line: string } | null = null
-      let claimRef: { dropId: string; key: string } | null = null
+      let isClaiming = false
       let isAuthenticated = false
       let profileResolved = false
       let hasCommunityProgress = false
@@ -780,20 +845,33 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       }
 
       const syncClaimAccess = () => {
+        const live = liveDrops.has(selectedId)
+        const claimed = claimedDrops.has(selectedId)
         if (claimButton) {
-          claimButton.disabled = !profileResolved || !isAuthenticated
+          claimButton.disabled =
+            isClaiming ||
+            !profileResolved ||
+            !isAuthenticated ||
+            !live ||
+            claimed
         }
         if (claimAuthRequired) {
           claimAuthRequired.hidden = !profileResolved || isAuthenticated
         }
-        if (!claimRef || !claimStatus) return
+        if (!claimStatus) return
         if (!profileResolved) {
           claimStatus.textContent = copy.claimAccountChecking
         } else if (!isAuthenticated) {
           claimStatus.textContent = copy.claimAccountRequired
+        } else if (!live) {
+          claimStatus.textContent = copy.claimInactive
+        } else if (claimed) {
+          claimStatus.textContent = copy.claimAlready
         } else if (
           claimStatus.textContent === copy.claimAccountChecking ||
-          claimStatus.textContent === copy.claimAccountRequired
+          claimStatus.textContent === copy.claimAccountRequired ||
+          claimStatus.textContent === copy.claimInactive ||
+          claimStatus.textContent === copy.claimAlready
         ) {
           claimStatus.textContent = ""
         }
@@ -935,6 +1013,9 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             ? `${live.zoneLat.toFixed(3)}, ${live.zoneLng.toFixed(3)} · r≈${live.radiusMeters}m`
             : copy.encrypted
         }
+        const panel = root.querySelector<HTMLElement>("[data-claim-panel]")
+        if (panel) panel.hidden = !live
+        syncClaimAccess()
       }
 
       buttons.forEach((button) =>
@@ -948,7 +1029,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         try {
           const position = await areaPosition()
           let nearest: { drop: DropInfo; distance: number } | null = null
-          drops.forEach((drop) => {
+          for (const drop of drops.values()) {
             const distance = areaDistance(
               position.coords.latitude,
               position.coords.longitude,
@@ -956,7 +1037,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               drop.lng
             )
             if (!nearest || distance < nearest.distance) nearest = { drop, distance }
-          })
+          }
           if (!nearest) throw new Error("no drops")
           renderSelected(nearest.drop.id)
           const result = copy.nearestTemplate
@@ -1114,17 +1195,24 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
         vouchers.forEach((voucher) => {
           const item = document.createElement("li")
-          item.className = "flex flex-wrap items-center justify-between gap-3 border border-zinc-800 bg-zinc-950 p-3"
+          item.className = "flex min-w-0 flex-col items-stretch gap-3 border border-zinc-800 bg-zinc-950 p-3 sm:flex-row sm:items-center sm:justify-between"
           const code = document.createElement("code")
-          code.className = "text-xs font-bold text-amber-400"
+          code.className = "break-all text-xs font-bold text-amber-400"
           code.textContent = voucher.code
           const meta = document.createElement("span")
           meta.className = "text-[9px] uppercase tracking-widest text-zinc-400"
-          meta.textContent = `−${voucher.valuePln} PLN · min. ${voucher.minimumOrderPln} PLN`
+          const statusLabel =
+            voucher.status === "redeemed"
+              ? copy.codeRedeemed
+              : voucher.status === "reserved"
+                ? copy.codeReserved
+                : copy.codeIssued
+          meta.textContent = `${copy.codeBenefit} · ${statusLabel}`
           const button = document.createElement("button")
           button.type = "button"
-          button.className = "min-h-[36px] border border-zinc-700 px-3 text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:border-amber-400 hover:text-amber-400"
+          button.className = "min-h-[40px] w-full border border-zinc-700 px-3 text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:border-amber-400 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
           button.textContent = copy.copyCode
+          button.disabled = voucher.status === "redeemed"
           button.addEventListener("click", async () => {
             await navigator.clipboard.writeText(voucher.code)
             button.textContent = copy.copied
@@ -1139,14 +1227,10 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
       const renderWallet = (data: any) => {
         const balance = Number(data?.tokenBalance || 0)
-        const tokenValuePln = Number(data?.tokenValuePln || 50)
-        const value = balance * tokenValuePln
         const balanceEl = root.querySelector<HTMLElement>("[data-wallet-balance]")
-        const valueEl = root.querySelector<HTMLElement>("[data-wallet-value]")
         const statusEl = root.querySelector<HTMLElement>("[data-wallet-status]")
         if (balanceEl) balanceEl.textContent = String(balance)
-        if (valueEl) valueEl.textContent = String(value)
-        if (statusEl) statusEl.textContent = balance > 0 ? `${balance} ${copy.walletUnit} · ${value} PLN` : copy.voucherEmpty
+        if (statusEl) statusEl.textContent = balance > 0 ? `${balance} ${copy.walletUnit} · ${copy.codeBenefit}` : copy.voucherEmpty
 
         if (
           data &&
@@ -1172,26 +1256,9 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         renderClaims(Array.isArray(data?.claims) ? data.claims : [])
         renderVouchers(Array.isArray(data?.vouchers) ? data.vouchers : [])
 
-        const select = root.querySelector<HTMLSelectElement>("[data-voucher-select]")
         const voucherButton = root.querySelector<HTMLButtonElement>("[data-voucher-button]")
-        if (select && voucherButton) {
-          select.textContent = ""
-          const max = Math.min(5, balance)
-          if (max === 0) {
-            const option = document.createElement("option")
-            option.value = ""
-            option.textContent = copy.voucherEmpty
-            select.append(option)
-          } else {
-            for (let count = 1; count <= max; count += 1) {
-              const option = document.createElement("option")
-              option.value = String(count)
-              option.textContent = `${count} VIRYA = ${count * tokenValuePln} PLN`
-              select.append(option)
-            }
-          }
-          select.disabled = max === 0
-          voucherButton.disabled = max === 0
+        if (voucherButton) {
+          voucherButton.disabled = balance < 1 || !isAuthenticated
           voucherButton.textContent = copy.voucherButton
         }
         renderSelected(selectedId)
@@ -1311,20 +1378,6 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         }
       })
 
-      if (rawClaim) {
-        const separator = rawClaim.indexOf(".")
-        if (separator > 0) {
-          const dropId = rawClaim.slice(0, separator)
-          const key = rawClaim.slice(separator + 1)
-          if (drops.has(dropId) && key) {
-            claimRef = { dropId, key }
-            renderSelected(dropId)
-            const panel = root.querySelector<HTMLElement>("[data-claim-panel]")
-            if (panel) panel.hidden = false
-          }
-        }
-      }
-
       root.querySelector<HTMLButtonElement>("[data-claim-button]")?.addEventListener("click", async (event) => {
         const button = event.currentTarget as HTMLButtonElement
         const status = root.querySelector<HTMLElement>("[data-claim-status]")
@@ -1337,30 +1390,75 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           syncClaimAccess()
           return
         }
-        if (!claimRef) {
-          if (status) status.textContent = copy.claimGenericError
+        if (!liveDrops.has(selectedId)) {
+          if (status) status.textContent = copy.claimInactive
+          syncClaimAccess()
           return
         }
 
-        button.disabled = true
+        isClaiming = true
+        syncClaimAccess()
         if (status) status.textContent = copy.claimWorking
         try {
-          const position = await areaPosition()
+          const challengeResponse = await fetch("/api/area/challenge", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ dropId: selectedId }),
+          })
+          const challengeData = await challengeResponse.json().catch(() => ({}))
+          if (!challengeResponse.ok || !challengeData.challenge) {
+            const challengeMessages: Record<string, string> = {
+              DROP_INACTIVE: copy.claimInactive,
+              AUTH_REQUIRED: copy.claimAccountRequired,
+              TEMPORARY: copy.claimGenericError,
+            }
+            throw new Error(challengeMessages[challengeData.code] || copy.claimGenericError)
+          }
+
+          const minSamples = Math.max(3, Number(challengeData.minSamples) || 3)
+          const maxSamples = Math.max(minSamples, Math.min(8, Number(challengeData.maxSamples) || 8))
+          const minDurationMs = Math.max(6000, Number(challengeData.minDurationMs) || 6000)
+          const targetSamples = Math.min(maxSamples, Math.max(minSamples, 4))
+          const startedAt = Date.now()
+          const samples: Array<{ lat: number; lng: number; accuracy: number; capturedAt: number }> = []
+
+          while (samples.length < targetSamples || Date.now() - startedAt < minDurationMs) {
+            if (samples.length >= maxSamples) break
+            if (status) {
+              status.textContent = copy.claimCollecting
+                .replace("{current}", String(Math.min(samples.length + 1, targetSamples)))
+                .replace("{total}", String(targetSamples))
+            }
+            const position = await areaPosition()
+            samples.push({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              accuracy: position.coords.accuracy,
+              capturedAt: Date.now(),
+            })
+            const elapsed = Date.now() - startedAt
+            const remainingDuration = Math.max(0, minDurationMs - elapsed)
+            const remainingSamples = Math.max(0, targetSamples - samples.length)
+            if (remainingDuration > 0 || remainingSamples > 0) {
+              await new Promise((resolve) => setTimeout(resolve, Math.min(2100, Math.max(650, remainingDuration))))
+            }
+          }
+
           const response = await fetch("/api/area/claim", {
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
-              ...claimRef,
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              accuracy: position.coords.accuracy,
+              dropId: selectedId,
+              challenge: challengeData.challenge,
+              samples,
             }),
           })
-          const data = await response.json()
+          const data = await response.json().catch(() => ({}))
           if (!response.ok) {
             const messages: Record<string, string> = {
               DROP_INACTIVE: copy.claimInactive,
-              INVALID_CODE: copy.claimInvalidCode,
+              CHALLENGE_INVALID: copy.claimInvalidCode,
+              NOT_ENOUGH_SAMPLES: copy.claimSamples,
               LOW_ACCURACY: copy.claimAccuracy,
               OUTSIDE_ZONE: copy.claimOutside,
               DROP_FULL: copy.claimFull,
@@ -1369,31 +1467,25 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               UNAUTHORIZED: copy.claimAccountRequired,
               ACCOUNT_REQUIRED: copy.claimAccountRequired,
             }
-            if (
-              data.code === "AUTH_REQUIRED" ||
-              data.code === "UNAUTHORIZED" ||
-              data.code === "ACCOUNT_REQUIRED"
-            ) {
+            if (["AUTH_REQUIRED", "UNAUTHORIZED", "ACCOUNT_REQUIRED"].includes(data.code)) {
               renderProfile({ authenticated: false })
             }
             throw new Error(messages[data.code] || copy.claimGenericError)
           }
           if (status) status.textContent = data.alreadyClaimed ? copy.claimAlready : copy.claimSuccess
-          claimRef = null
           await loadWallet()
         } catch (error) {
           if (status) status.textContent = error instanceof Error ? error.message : copy.claimGenericError
         } finally {
-          button.disabled = !isAuthenticated
+          isClaiming = false
+          syncClaimAccess()
         }
       })
 
       root.querySelector<HTMLButtonElement>("[data-voucher-button]")?.addEventListener("click", async (event) => {
         const button = event.currentTarget as HTMLButtonElement
-        const select = root.querySelector<HTMLSelectElement>("[data-voucher-select]")
         const status = root.querySelector<HTMLElement>("[data-voucher-status]")
-        const tokens = Number(select?.value)
-        if (!tokens) return
+        const tokens = 1
         const voucherRequestKey = "virya-area-voucher-request"
         button.disabled = true
         button.textContent = copy.voucherWorking
@@ -1425,7 +1517,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           if (status) status.textContent = error instanceof Error ? error.message : copy.voucherError
         } finally {
           button.textContent = copy.voucherButton
-          button.disabled = !!select?.disabled
+          const balance = Number(root.querySelector<HTMLElement>("[data-wallet-balance]")?.textContent || 0)
+          button.disabled = balance < 1 || !isAuthenticated
         }
       })
 

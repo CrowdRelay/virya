@@ -211,7 +211,7 @@ export const translations = {
       eyebrow: "Official store · Free stickers with every order · Stay Mad",
       areaBanner: "VIRYA Area rewards",
       areaBannerBody:
-        "Find a box, unlock a lyric and collect 1 VIRYA Credit worth 50 PLN off merch.",
+        "Reach a live signal, unlock a lyric and earn a code for one free merch item plus free InPost delivery.",
       areaBannerCta: "Open Area",
       saleBanner: date => `Sale on now — up to 30% off · ends ${date}`,
       bundles: "Bundles",
@@ -281,6 +281,17 @@ export const translations = {
       nip: "NIP (optional, B2B)",
       subtotal: "Subtotal",
       deliveryRow: "Delivery",
+      rewardHeading: "VIRYA Area winning code",
+      rewardPlaceholder: "VIRYA-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX",
+      rewardApply: "Apply",
+      rewardChecking: "Checking…",
+      rewardEnter: "Enter your VIRYA Area winning code.",
+      rewardInvalid: "This VIRYA Area code is invalid, expired or currently in use.",
+      rewardApplyFirst: "Apply the VIRYA Area code before checkout.",
+      rewardApplied: name => `${name} will be free. InPost delivery is free too.`,
+      rewardItemRow: "VIRYA Area free item",
+      rewardDeliveryRow: "VIRYA Area free delivery",
+      claimFreeOrder: "Confirm free order",
       total: "Total",
       vatNote: "Goods include 23% VAT · delivery exempt",
       pay: "Pay with Stripe",
@@ -359,8 +370,8 @@ export const translations = {
           {
             heading: "7. VIRYA Area pilot",
             paras: [
-              [{ t: "VIRYA Area is a free location-based loyalty pilot. A valid physical-box scan and an in-zone location check unlock one digital lyric collectible and 1 VIRYA Credit per browser wallet per drop. The collectible is for personal display; all music, lyrics, artwork and related intellectual property remain with their respective owners." }],
-              [{ t: "1 VIRYA Credit gives 50 PLN off a Store order. Credits are non-transferable, have no cash value and are not cryptocurrency, an investment or a financial product. Exchanging Credits for a code consumes them. Each generated code is single-use, expires after 12 months and requires an order value at least 50 PLN higher than the discount." }],
+              [{ t: "VIRYA Area is a free location-based loyalty pilot. A signed-in player who completes the short in-zone GPS verification unlocks one digital lyric collectible and 1 VIRYA Credit per drop. No physical marker or QR code is required. The collectible is for personal display; all music, lyrics, artwork and related intellectual property remain with their respective owners." }],
+              [{ t: "1 VIRYA Credit can be exchanged for one single-use winning code. In one Store order the code makes the highest-priced single available merchandise unit in the cart free and removes the InPost delivery charge; any additional items remain payable. Credits are account-bound. Winning codes are single-use, have no cash value, may not be resold and are not cryptocurrency, an investment or a financial product. The code expires after 12 months." }],
               [{ t: "Participants must remain on publicly accessible, safe ground and obey local rules. Never enter private property, roads, railway areas, rooftops or construction sites. The operator may postpone, relocate or close a drop where safety, damage, abuse or circumstances outside its control require it; already issued merch codes retain their stated expiry." }],
             ],
           },
@@ -420,7 +431,7 @@ export const translations = {
             heading: "What we collect & why",
             paras: [
               [{ t: "When you contact us or subscribe, we process your email (and name, if given) to reply and to send updates you asked for. When you order merch, we process your name, email, delivery point and billing details to fulfil and invoice the order. Legal bases: performance of a contract, your consent (newsletter), and our legitimate interest in responding to enquiries." }],
-              [{ t: "In VIRYA Area, finding the nearest city happens only on your device. When you actively claim a physical drop, the server temporarily processes one latitude, longitude and accuracy reading to verify the zone, then discards the raw coordinates. We store a pseudonymous browser-wallet identifier, the claimed drop, rounded verification distance, reward balance and issued-code history to operate the pilot and prevent duplicate claims. There is no background location tracking." }],
+              [{ t: "In VIRYA Area, finding the nearest city happens only on your device. When you start signal lock, the server temporarily processes several latitude, longitude, accuracy and timestamp readings to verify presence in the zone, then discards the raw samples. We store the signed-in account identifier, claimed drop, rounded verification distance, reward balance and issued-code history to operate the pilot and prevent duplicate claims. There is no background location tracking." }],
             ],
           },
           {
@@ -443,7 +454,7 @@ export const translations = {
           },
           {
             heading: "Cookies",
-            paras: [[{ t: "The site uses only what is needed to function and to remember your cart. VIRYA Area sets a strictly necessary, HttpOnly browser-wallet cookie so the server can return your collection and prevent duplicate claims. Embedded players (e.g. Spotify, YouTube) may set their own cookies when loaded." }]],
+            paras: [[{ t: "The site uses only what is needed to function and to remember your cart. VIRYA Area uses strictly necessary HttpOnly session and legacy wallet cookies so the server can return the signed-in collection, support migration and prevent duplicate claims. Embedded players (e.g. Spotify, YouTube) may set their own cookies when loaded." }]],
           },
         ],
       },
@@ -659,7 +670,7 @@ export const translations = {
         "Oficjalny sklep · Darmowe naklejki do każdego zamówienia · Stay Mad",
       areaBanner: "Nagrody VIRYA Area",
       areaBannerBody:
-        "Znajdź box, odblokuj wers i zbierz 1 VIRYA Credit wart 50 zł rabatu na merch.",
+        "Dotrzyj do aktywnego sygnału, odblokuj wers i zdobądź kod na jeden darmowy produkt oraz darmową dostawę InPost.",
       areaBannerCta: "Otwórz Area",
       saleBanner: date => `Promocja trwa — do 30% taniej · kończy się ${date}`,
       bundles: "Zestawy",
@@ -731,6 +742,17 @@ export const translations = {
       nip: "NIP (opcjonalnie, B2B)",
       subtotal: "Suma częściowa",
       deliveryRow: "Dostawa",
+      rewardHeading: "Wygrany kod VIRYA Area",
+      rewardPlaceholder: "VIRYA-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX",
+      rewardApply: "Zastosuj",
+      rewardChecking: "Sprawdzam…",
+      rewardEnter: "Wpisz wygrany kod VIRYA Area.",
+      rewardInvalid: "Ten kod VIRYA Area jest nieprawidłowy, wygasł albo jest teraz używany.",
+      rewardApplyFirst: "Najpierw zastosuj kod VIRYA Area.",
+      rewardApplied: name => `${name} będzie gratis. Dostawa InPost również jest darmowa.`,
+      rewardItemRow: "Darmowy produkt VIRYA Area",
+      rewardDeliveryRow: "Darmowa dostawa VIRYA Area",
+      claimFreeOrder: "Potwierdź darmowe zamówienie",
       total: "Razem",
       vatNote: "Towary zawierają 23% VAT · dostawa zwolniona",
       pay: "Zapłać przez Stripe",
@@ -807,8 +829,8 @@ export const translations = {
           {
             heading: "7. Pilot VIRYA Area",
             paras: [
-              [{ t: "VIRYA Area jest bezpłatnym, terenowym programem lojalnościowym w wersji pilotażowej. Prawidłowy skan fizycznego boxu oraz weryfikacja obecności w strefie odblokowują jedną cyfrową kartę z wersem i 1 VIRYA Credit na portfel przeglądarkowy dla danego dropu. Karta służy do osobistego wyświetlania; prawa do muzyki, tekstów, grafik i pozostałej własności intelektualnej pozostają przy ich właścicielach." }],
-              [{ t: "1 VIRYA Credit daje 50 zł rabatu na zamówienie w Sklepie. Credits są niezbywalne, nie mają wartości gotówkowej i nie są kryptowalutą, inwestycją ani produktem finansowym. Wymiana Credits na kod zużywa je. Każdy wygenerowany kod jest jednorazowy, wygasa po 12 miesiącach i wymaga zamówienia o wartości co najmniej 50 zł wyższej od rabatu." }],
+              [{ t: "VIRYA Area jest bezpłatnym, terenowym programem lojalnościowym w wersji pilotażowej. Zalogowany gracz, który przejdzie krótką weryfikację GPS w aktywnej strefie, odblokowuje jedną cyfrową kartę z wersem i 1 VIRYA Credit za dany drop. Fizyczny znacznik ani kod QR nie są wymagane. Karta służy do osobistego wyświetlania; prawa do muzyki, tekstów, grafik i pozostałej własności intelektualnej pozostają przy ich właścicielach." }],
+              [{ t: "1 VIRYA Credit można wymienić na jeden jednorazowy wygrany kod. W jednym zamówieniu w Sklepie kod zeruje cenę najdroższej pojedynczej dostępnej sztuki merchu w koszyku oraz koszt dostawy InPost; pozostałe produkty są płatne. Credits są przypisane do konta. Wygrane kody są jednorazowe, nie mają wartości gotówkowej, nie mogą być odsprzedawane i nie są kryptowalutą, inwestycją ani produktem finansowym. Kod wygasa po 12 miesiącach." }],
               [{ t: "Uczestnicy muszą pozostawać w bezpiecznych, publicznie dostępnych miejscach i przestrzegać lokalnych zasad. Nie wolno wchodzić na teren prywatny, jezdnie, obszary kolejowe, dachy ani budowy. Operator może przełożyć, przenieść lub zamknąć drop, jeśli wymaga tego bezpieczeństwo, uszkodzenie, nadużycie albo okoliczności poza jego kontrolą; już wydane kody do merchu zachowują podany termin ważności." }],
             ],
           },
@@ -868,7 +890,7 @@ export const translations = {
             heading: "Jakie dane zbieramy i w jakim celu",
             paras: [
               [{ t: "Gdy się z nami kontaktujesz lub zapisujesz na listę, przetwarzamy Twój e-mail (i imię, jeśli je podasz), aby odpowiedzieć i wysyłać zamówione aktualizacje. Gdy składasz zamówienie, przetwarzamy Twoje imię, e-mail, punkt dostawy i dane do faktury, aby zrealizować i zafakturować zamówienie. Podstawy prawne: wykonanie umowy, Twoja zgoda (newsletter) oraz nasz prawnie uzasadniony interes w odpowiadaniu na zapytania." }],
-              [{ t: "W VIRYA Area wyszukanie najbliższego miasta odbywa się wyłącznie na Twoim urządzeniu. Gdy sam uruchomisz odbiór fizycznego dropu, serwer tymczasowo przetwarza pojedynczy odczyt szerokości, długości i dokładności lokalizacji, aby zweryfikować strefę, po czym odrzuca surowe koordynaty. Przechowujemy pseudonimowy identyfikator portfela przeglądarkowego, odebrany drop, zaokrągloną odległość weryfikacji, saldo nagród i historię wydanych kodów, aby obsłużyć pilota i zapobiegać wielokrotnym odbiorom. Nie śledzimy lokalizacji w tle." }],
+              [{ t: "W VIRYA Area wyszukanie najbliższego miasta odbywa się wyłącznie na Twoim urządzeniu. Gdy sam uruchomisz blokadę sygnału, serwer tymczasowo przetwarza kilka odczytów szerokości, długości, dokładności i czasu, aby zweryfikować obecność w strefie, po czym odrzuca surowe pomiary. Przechowujemy identyfikator zalogowanego profilu, odebrany drop, zaokrągloną odległość weryfikacji, saldo nagród i historię wydanych kodów, aby obsłużyć pilota i zapobiegać wielokrotnym odbiorom. Nie śledzimy lokalizacji w tle." }],
             ],
           },
           {
@@ -891,7 +913,7 @@ export const translations = {
           },
           {
             heading: "Pliki cookie",
-            paras: [[{ t: "Strona używa tylko tego, co niezbędne do działania i zapamiętania koszyka. VIRYA Area ustawia ściśle niezbędny plik cookie HttpOnly portfela przeglądarkowego, aby serwer mógł zwrócić kolekcję i zapobiegać wielokrotnym odbiorom. Osadzone odtwarzacze (np. Spotify, YouTube) mogą ustawiać własne pliki cookie po załadowaniu." }]],
+            paras: [[{ t: "Strona używa tylko tego, co niezbędne do działania i zapamiętania koszyka. VIRYA Area używa ściśle niezbędnych plików cookie HttpOnly sesji oraz starszego portfela, aby serwer mógł zwrócić kolekcję zalogowanego profilu, obsłużyć migrację i zapobiegać wielokrotnym odbiorom. Osadzone odtwarzacze (np. Spotify, YouTube) mogą ustawiać własne pliki cookie po załadowaniu." }]],
           },
         ],
       },

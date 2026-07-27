@@ -35,5 +35,9 @@ const lang = "en"
 </Layout>
 
 <script>
-  try { localStorage.removeItem("virya-cart-v1") } catch {}
+  try {
+    localStorage.removeItem("virya-cart-v1")
+    sessionStorage.removeItem("virya-checkout-request")
+    sessionStorage.removeItem("virya-area-reward-code")
+  } catch {}
 </script>
