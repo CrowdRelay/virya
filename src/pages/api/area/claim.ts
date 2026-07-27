@@ -13,8 +13,11 @@ import {
   getPublicCollectible,
 } from "../../../server/areaCatalog"
 import {
+  commitAreaDropClaim,
   mutateAreaWallet,
+  releaseAreaDropClaim,
   reserveAreaDropClaim,
+  type AreaClaim,
 } from "../../../server/areaLedger"
 import {
   areaJson,
@@ -101,8 +104,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   const dropId = typeof body?.dropId === "string" ? body.dropId : ""
-  const challenge =
-    typeof body?.challenge === "string" ? body.challenge : ""
+  const challenge = typeof body?.challenge === "string" ? body.challenge : ""
   const rawSamples: unknown[] = Array.isArray(body?.samples) ? body.samples : []
   const samples = rawSamples.map(parseSample)
 
@@ -112,7 +114,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     challenge.length > 2048 ||
     rawSamples.length < AREA_CHALLENGE_MIN_SAMPLES ||
     rawSamples.length > AREA_CHALLENGE_MAX_SAMPLES ||
-    samples.some((sample) => sample === null)
+    samples.some(sample => sample === null)
   ) {
     return areaJson(
       { error: "Invalid claim data", code: "INVALID_REQUEST" },
@@ -141,10 +143,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       )
     }
 
-    const attempt = await mutateAreaWallet(actor.actorId, (wallet) => {
+    const attempt = await mutateAreaWallet(actor.actorId, wallet => {
       const now = Date.now()
       const attempts = wallet.attempts.filter(
-        (timestamp) => timestamp > now - ATTEMPT_WINDOW_MS,
+        timestamp => timestamp > now - ATTEMPT_WINDOW_MS,
       )
       const allowed = attempts.length < MAX_ATTEMPTS
       if (allowed) attempts.push(now)
@@ -190,7 +192,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const first = chronological[0]
     const last = chronological[chronological.length - 1]
     const withinChallengeWindow = chronological.every(
-      (sample) =>
+      sample =>
         sample.capturedAt >=
           verifiedChallenge.iat - SAMPLE_CLOCK_TOLERANCE_MS &&
         sample.capturedAt <=
@@ -210,7 +212,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const accurateSamples = chronological.filter(
-      (sample) => sample.accuracy <= MAX_ACCURACY_METERS,
+      sample => sample.accuracy <= MAX_ACCURACY_METERS,
     )
     if (accurateSamples.length < AREA_CHALLENGE_MIN_SAMPLES) {
       return areaJson(
@@ -222,7 +224,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       )
     }
 
-    const evaluated = accurateSamples.map((sample) => {
+    const evaluated = accurateSamples.map(sample => {
       const distance = distanceMeters(
         sample.lat,
         sample.lng,
@@ -237,10 +239,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       }
     })
     const inside = evaluated.filter(
-      (sample) => sample.distance <= sample.allowedDistance,
+      sample => sample.distance <= sample.allowedDistance,
     )
-    const medianDistance = median(evaluated.map((sample) => sample.distance))
-    const medianAccuracy = median(evaluated.map((sample) => sample.accuracy))
+    const medianDistance = median(evaluated.map(sample => sample.distance))
+    const medianAccuracy = median(evaluated.map(sample => sample.accuracy))
     const medianAllowedDistance =
       liveDrop.radiusMeters + Math.min(medianAccuracy * 0.35, 15)
 
@@ -252,7 +254,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         {
           error: "You are outside the drop zone.",
           code: "OUTSIDE_ZONE",
-          distanceMeters: Math.round(medianDistance),
         },
         422,
       )
@@ -273,32 +274,75 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       )
     }
 
-    const claim = await mutateAreaWallet(actor.actorId, (wallet) => {
-      const existing = wallet.claims.find((item) => item.dropId === dropId)
-      if (existing) {
-        return {
-          wallet,
-          result: { alreadyClaimed: true, claim: existing },
+    let claim: { alreadyClaimed: boolean; claim: AreaClaim }
+    try {
+      claim = await mutateAreaWallet<{
+        alreadyClaimed: boolean
+        claim: AreaClaim
+      }>(actor.actorId, wallet => {
+        const existing = wallet.claims.find(item => item.dropId === dropId)
+        if (existing) {
+          if (existing.editionNumber === capacity.editionNumber) {
+            return {
+              wallet,
+              result: { alreadyClaimed: true, claim: existing },
+            }
+          }
+          const reconciled = {
+            ...existing,
+            editionNumber: capacity.editionNumber,
+          }
+          return {
+            wallet: {
+              ...wallet,
+              claims: wallet.claims.map(item =>
+                item.dropId === dropId ? reconciled : item,
+              ),
+            },
+            result: { alreadyClaimed: true, claim: reconciled },
+          }
         }
-      }
 
-      const nextClaim = {
-        dropId,
-        claimedAt: new Date().toISOString(),
-        editionNumber: capacity.editionNumber,
-        // Raw coordinates and individual samples are deliberately not retained.
-        distanceMeters: Math.round(medianDistance),
-      }
+        const nextClaim = {
+          dropId,
+          claimedAt: new Date().toISOString(),
+          editionNumber: capacity.editionNumber,
+          // Raw coordinates and individual samples are deliberately not retained.
+          distanceMeters: Math.round(medianDistance),
+        }
 
-      return {
-        wallet: {
-          ...wallet,
-          tokenBalance: wallet.tokenBalance + 1,
-          claims: [...wallet.claims, nextClaim],
-        },
-        result: { alreadyClaimed: false, claim: nextClaim },
+        return {
+          wallet: {
+            ...wallet,
+            tokenBalance: wallet.tokenBalance + 1,
+            claims: [...wallet.claims, nextClaim],
+          },
+          result: { alreadyClaimed: false, claim: nextClaim },
+        }
+      })
+    } catch (error) {
+      try {
+        await releaseAreaDropClaim(
+          dropId,
+          actor.actorId,
+          capacity.leaseId,
+          liveDrop.maxClaims,
+        )
+      } catch (releaseError) {
+        console.error("[area-claim:release]", releaseError)
       }
-    })
+      throw error
+    }
+
+    const committed = await commitAreaDropClaim(
+      dropId,
+      actor.actorId,
+      capacity.leaseId,
+      liveDrop.maxClaims,
+    )
+    if (!committed) {
+      throw new Error("Area claim reservation could not be committed")
+    }
 
     return areaJson({
       ok: true,

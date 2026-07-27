@@ -1,5 +1,10 @@
-import { createHash } from "node:crypto"
+import { createHash, randomUUID } from "node:crypto"
 import { getStore } from "@netlify/blobs"
+import {
+  getAreaRewardRecord,
+  transferAreaRewardCodeOwner,
+  type AreaRewardRecord,
+} from "./areaReward"
 
 export type AreaClaim = {
   dropId: string
@@ -24,6 +29,16 @@ export type AreaVoucher = {
   freeProductId?: string
   freeProductLabel?: string
   redeemedAt?: string
+  migrationCompensated?: boolean
+}
+
+type AreaWalletMigrationState = {
+  targetWalletId: string
+  status: "processing" | "completed"
+  leaseId?: string
+  leaseExpiresAt?: number
+  startedAt: string
+  completedAt?: string
 }
 
 export type AreaWallet = {
@@ -34,6 +49,7 @@ export type AreaWallet = {
   vouchers: AreaVoucher[]
   attempts: number[]
   migrations: string[]
+  migration?: AreaWalletMigrationState
   migratedTo?: string
   migratedAt?: string
   updatedAt: string
@@ -44,10 +60,30 @@ type Mutation<T> = {
   result: T
 }
 
+type DropClaimEntry = {
+  claimKey: string
+  status: "pending" | "committed"
+  leaseId?: string
+  pendingExpiresAt?: number
+  editionNumber: number
+  committedAt?: string
+}
+
+type DropClaimRecord = {
+  version: 2
+  nextEditionNumber: number
+  claims: DropClaimEntry[]
+  updatedAt: string
+}
+
 const STORE_NAME = "virya-area"
-const MAX_CAS_ATTEMPTS = 6
+const MAX_CAS_ATTEMPTS = 8
+const CLAIM_LEASE_MS = 2 * 60 * 1000
+const MIGRATION_LEASE_MS = 2 * 60 * 1000
 const memoryWallets = new Map<string, AreaWallet>()
-const memoryDropClaims = new Map<string, string[]>()
+const memoryDropClaims = new Map<string, DropClaimRecord>()
+
+const isDevelopment = () => Boolean(import.meta.env?.DEV)
 
 const emptyWallet = (id: string): AreaWallet => ({
   version: 1,
@@ -65,38 +101,92 @@ const asInteger = (value: unknown, fallback = 0) => {
   return Number.isInteger(parsed) ? parsed : fallback
 }
 
+const normalizeMigration = (
+  input: unknown,
+): AreaWalletMigrationState | undefined => {
+  if (!input || typeof input !== "object") return undefined
+  const value = input as Partial<AreaWalletMigrationState>
+  if (
+    typeof value.targetWalletId !== "string" ||
+    !["processing", "completed"].includes(value.status ?? "") ||
+    typeof value.startedAt !== "string"
+  ) {
+    return undefined
+  }
+  return {
+    targetWalletId: value.targetWalletId,
+    status: value.status as AreaWalletMigrationState["status"],
+    leaseId: typeof value.leaseId === "string" ? value.leaseId : undefined,
+    leaseExpiresAt: Number.isInteger(value.leaseExpiresAt)
+      ? Number(value.leaseExpiresAt)
+      : undefined,
+    startedAt: value.startedAt,
+    completedAt:
+      typeof value.completedAt === "string" ? value.completedAt : undefined,
+  }
+}
+
 const normalizeWallet = (input: unknown, id: string): AreaWallet => {
   if (!input || typeof input !== "object") return emptyWallet(id)
   const value = input as Partial<AreaWallet>
 
-  const claims = Array.isArray(value.claims)
-    ? value.claims.filter((claim): claim is AreaClaim =>
-        !!claim &&
-        typeof claim.dropId === "string" &&
-        typeof claim.claimedAt === "string" &&
-        Number.isFinite(Number(claim.distanceMeters)) &&
-        (claim.editionNumber === undefined ||
-          (Number.isInteger(claim.editionNumber) && claim.editionNumber > 0))
-      ).slice(0, 100)
-    : []
+  const migratedTo =
+    typeof value.migratedTo === "string" ? value.migratedTo : undefined
+  const migratedAt =
+    typeof value.migratedAt === "string" ? value.migratedAt : undefined
+  const migration = normalizeMigration(value.migration)
+  const completedMigration =
+    Boolean(migratedTo && migratedAt) || migration?.status === "completed"
 
-  const vouchers = Array.isArray(value.vouchers)
-    ? value.vouchers.filter((voucher): voucher is AreaVoucher =>
-        !!voucher &&
-        typeof voucher.requestId === "string" &&
-        typeof voucher.code === "string" &&
-        voucher.benefit === "free-item-and-shipping" &&
-        ["pending", "issued", "reserved", "redeemed", "failed"].includes(voucher.status)
-      ).slice(-100)
-    : []
+  const claims = completedMigration
+    ? []
+    : Array.isArray(value.claims)
+      ? value.claims
+          .filter(
+            (claim): claim is AreaClaim =>
+              !!claim &&
+              typeof claim.dropId === "string" &&
+              typeof claim.claimedAt === "string" &&
+              Number.isFinite(Number(claim.distanceMeters)) &&
+              (claim.editionNumber === undefined ||
+                (Number.isInteger(claim.editionNumber) &&
+                  Number(claim.editionNumber) > 0)),
+          )
+          .slice(0, 100)
+      : []
 
-  const attempts = Array.isArray(value.attempts)
-    ? value.attempts.map(Number).filter(Number.isFinite).slice(-20)
-    : []
+  const vouchers = completedMigration
+    ? []
+    : Array.isArray(value.vouchers)
+      ? value.vouchers
+          .filter(
+            (voucher): voucher is AreaVoucher =>
+              !!voucher &&
+              typeof voucher.requestId === "string" &&
+              typeof voucher.code === "string" &&
+              voucher.benefit === "free-item-and-shipping" &&
+              ["pending", "issued", "reserved", "redeemed", "failed"].includes(
+                voucher.status,
+              ),
+          )
+          .map(voucher => ({
+            ...voucher,
+            migrationCompensated: Boolean(voucher.migrationCompensated),
+          }))
+          .slice(-100)
+      : []
+
+  const attempts = completedMigration
+    ? []
+    : Array.isArray(value.attempts)
+      ? value.attempts.map(Number).filter(Number.isFinite).slice(-20)
+      : []
   const migrations = Array.isArray(value.migrations)
     ? value.migrations
-        .filter((migration): migration is string =>
-          typeof migration === "string" && /^[a-f0-9]{64}$/.test(migration)
+        .filter(
+          (migrationId): migrationId is string =>
+            typeof migrationId === "string" &&
+            /^[a-f0-9]{64}$/.test(migrationId),
         )
         .slice(-50)
     : []
@@ -104,16 +194,20 @@ const normalizeWallet = (input: unknown, id: string): AreaWallet => {
   return {
     version: 1,
     id,
-    tokenBalance: Math.max(0, Math.min(100, asInteger(value.tokenBalance))),
+    tokenBalance: completedMigration
+      ? 0
+      : Math.max(0, Math.min(100, asInteger(value.tokenBalance))),
     claims,
     vouchers,
     attempts,
     migrations,
-    migratedTo:
-      typeof value.migratedTo === "string" ? value.migratedTo : undefined,
-    migratedAt:
-      typeof value.migratedAt === "string" ? value.migratedAt : undefined,
-    updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : new Date().toISOString(),
+    migration,
+    migratedTo,
+    migratedAt,
+    updatedAt:
+      typeof value.updatedAt === "string"
+        ? value.updatedAt
+        : new Date().toISOString(),
   }
 }
 
@@ -135,7 +229,7 @@ const readWalletRecord = async (id: string) => {
   try {
     return await readBlobWallet(id)
   } catch (error) {
-    if (!import.meta.env.DEV) throw error
+    if (!isDevelopment()) throw error
     return {
       wallet: normalizeWallet(memoryWallets.get(id), id),
       etag: undefined,
@@ -152,16 +246,19 @@ export const getAreaWallet = async (id: string) => {
 
 export const mutateAreaWallet = async <T>(
   id: string,
-  mutate: (wallet: AreaWallet) => Mutation<T>
+  mutate: (wallet: AreaWallet) => Mutation<T>,
 ): Promise<T> => {
   for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
     const current = await readWalletRecord(id)
     const mutation = mutate(current.wallet)
-    const next = normalizeWallet({
-      ...mutation.wallet,
+    const next = normalizeWallet(
+      {
+        ...mutation.wallet,
+        id,
+        updatedAt: new Date().toISOString(),
+      },
       id,
-      updatedAt: new Date().toISOString(),
-    }, id)
+    )
 
     if ("memory" in current && current.memory) {
       memoryWallets.set(id, next)
@@ -171,9 +268,7 @@ export const mutateAreaWallet = async <T>(
     const write = await store().setJSON(
       `wallets/${id}`,
       next,
-      current.exists
-        ? { onlyIfMatch: current.etag }
-        : { onlyIfNew: true }
+      current.exists ? { onlyIfMatch: current.etag } : { onlyIfNew: true },
     )
 
     if (write.modified) return mutation.result
@@ -185,82 +280,217 @@ export const mutateAreaWallet = async <T>(
 const walletClaimKey = (walletId: string) =>
   createHash("sha256").update(walletId).digest("hex")
 
+const normalizeDropClaimRecord = (
+  input: unknown,
+  maxClaims: number,
+  now = Date.now(),
+): DropClaimRecord => {
+  const value =
+    input && typeof input === "object"
+      ? (input as {
+          version?: unknown
+          claims?: unknown
+          nextEditionNumber?: unknown
+          updatedAt?: unknown
+        })
+      : {}
+
+  const candidates: DropClaimEntry[] = []
+  if (Array.isArray(value.claims)) {
+    value.claims.forEach((entry, index) => {
+      if (typeof entry === "string" && /^[a-f0-9]{64}$/.test(entry)) {
+        candidates.push({
+          claimKey: entry,
+          status: "committed",
+          editionNumber: index + 1,
+          committedAt: new Date(0).toISOString(),
+        })
+        return
+      }
+      if (!entry || typeof entry !== "object") return
+      const item = entry as Partial<DropClaimEntry>
+      if (
+        typeof item.claimKey !== "string" ||
+        !/^[a-f0-9]{64}$/.test(item.claimKey) ||
+        !["pending", "committed"].includes(item.status ?? "") ||
+        !Number.isInteger(item.editionNumber) ||
+        Number(item.editionNumber) < 1
+      ) {
+        return
+      }
+      if (
+        item.status === "pending" &&
+        (!item.leaseId ||
+          !Number.isInteger(item.pendingExpiresAt) ||
+          Number(item.pendingExpiresAt) <= now)
+      ) {
+        return
+      }
+      candidates.push({
+        claimKey: item.claimKey,
+        status: item.status as DropClaimEntry["status"],
+        leaseId:
+          item.status === "pending" && typeof item.leaseId === "string"
+            ? item.leaseId
+            : undefined,
+        pendingExpiresAt:
+          item.status === "pending" && Number.isInteger(item.pendingExpiresAt)
+            ? Number(item.pendingExpiresAt)
+            : undefined,
+        editionNumber: Number(item.editionNumber),
+        committedAt:
+          item.status === "committed" && typeof item.committedAt === "string"
+            ? item.committedAt
+            : undefined,
+      })
+    })
+  }
+
+  const byWallet = new Map<string, DropClaimEntry>()
+  for (const entry of candidates.sort(
+    (a, b) => a.editionNumber - b.editionNumber,
+  )) {
+    const existing = byWallet.get(entry.claimKey)
+    if (
+      !existing ||
+      (existing.status === "pending" && entry.status === "committed")
+    ) {
+      byWallet.set(entry.claimKey, entry)
+    }
+  }
+  const claims = [...byWallet.values()]
+    .sort((a, b) => a.editionNumber - b.editionNumber)
+    .slice(0, Math.max(1, Math.min(500, maxClaims)))
+  const highestEdition = claims.reduce(
+    (highest, claim) => Math.max(highest, claim.editionNumber),
+    0,
+  )
+
+  return {
+    version: 2,
+    nextEditionNumber: Math.max(
+      highestEdition + 1,
+      asInteger(value.nextEditionNumber, highestEdition + 1),
+    ),
+    claims,
+    updatedAt:
+      typeof value.updatedAt === "string"
+        ? value.updatedAt
+        : new Date().toISOString(),
+  }
+}
+
+const readDropRecord = async (dropId: string, maxClaims: number) => {
+  const blobKey = `drops/${dropId}`
+  try {
+    const record = await store().getWithMetadata(blobKey, {
+      type: "json",
+      consistency: "strong",
+    })
+    return {
+      record: normalizeDropClaimRecord(record?.data, maxClaims),
+      etag: record?.etag,
+      exists: !!record,
+      memory: false as const,
+      blobKey,
+    }
+  } catch (error) {
+    if (!isDevelopment()) throw error
+    return {
+      record: normalizeDropClaimRecord(memoryDropClaims.get(dropId), maxClaims),
+      etag: undefined,
+      exists: memoryDropClaims.has(dropId),
+      memory: true as const,
+      blobKey,
+    }
+  }
+}
+
+const writeDropRecord = async (
+  dropId: string,
+  next: DropClaimRecord,
+  current: Awaited<ReturnType<typeof readDropRecord>>,
+) => {
+  if (current.memory) {
+    memoryDropClaims.set(dropId, next)
+    return true
+  }
+  const write = await store().setJSON(
+    current.blobKey,
+    next,
+    current.exists ? { onlyIfMatch: current.etag } : { onlyIfNew: true },
+  )
+  return write.modified
+}
+
+export type AreaDropReservation =
+  | {
+      reserved: true
+      alreadyReserved: boolean
+      alreadyCommitted: boolean
+      remaining: number
+      editionNumber: number
+      leaseId?: string
+    }
+  | {
+      reserved: false
+      alreadyReserved: false
+      alreadyCommitted: false
+      remaining: 0
+    }
+
 export const reserveAreaDropClaim = async (
   dropId: string,
   walletId: string,
-  maxClaims: number
-) => {
+  maxClaims: number,
+): Promise<AreaDropReservation> => {
   const claimKey = walletClaimKey(walletId)
-  const blobKey = `drops/${dropId}`
 
   for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
-    try {
-      const record = await store().getWithMetadata(blobKey, {
-        type: "json",
-        consistency: "strong",
-      })
-      const stored = record?.data as { claims?: unknown } | null
-      const claims = Array.isArray(stored?.claims)
-        ? stored.claims
-            .filter((value): value is string => typeof value === "string")
-            .slice(0, maxClaims)
-        : []
+    const current = await readDropRecord(dropId, maxClaims)
+    const claims = current.record.claims
+    const existing = claims.find(entry => entry.claimKey === claimKey)
+    if (existing) {
+      return {
+        reserved: true,
+        alreadyReserved: true,
+        alreadyCommitted: existing.status === "committed",
+        remaining: Math.max(0, maxClaims - claims.length),
+        editionNumber: existing.editionNumber,
+        leaseId: existing.status === "pending" ? existing.leaseId : undefined,
+      }
+    }
+    if (claims.length >= maxClaims) {
+      return {
+        reserved: false,
+        alreadyReserved: false,
+        alreadyCommitted: false,
+        remaining: 0,
+      }
+    }
 
-      const existingIndex = claims.indexOf(claimKey)
-      if (existingIndex >= 0) {
-        return {
-          reserved: true,
-          alreadyReserved: true,
-          remaining: Math.max(0, maxClaims - claims.length),
-          editionNumber: existingIndex + 1,
-        }
-      }
-      if (claims.length >= maxClaims) {
-        return { reserved: false, alreadyReserved: false, remaining: 0 }
-      }
-
-      const write = await store().setJSON(
-        blobKey,
-        {
-          version: 1,
-          claims: [...claims, claimKey],
-          updatedAt: new Date().toISOString(),
-        },
-        record
-          ? { onlyIfMatch: record.etag }
-          : { onlyIfNew: true }
-      )
-
-      if (write.modified) {
-        return {
-          reserved: true,
-          alreadyReserved: false,
-          remaining: Math.max(0, maxClaims - claims.length - 1),
-          editionNumber: claims.length + 1,
-        }
-      }
-    } catch (error) {
-      if (!import.meta.env.DEV) throw error
-
-      const claims = memoryDropClaims.get(dropId) ?? []
-      const existingIndex = claims.indexOf(claimKey)
-      if (existingIndex >= 0) {
-        return {
-          reserved: true,
-          alreadyReserved: true,
-          remaining: Math.max(0, maxClaims - claims.length),
-          editionNumber: existingIndex + 1,
-        }
-      }
-      if (claims.length >= maxClaims) {
-        return { reserved: false, alreadyReserved: false, remaining: 0 }
-      }
-      memoryDropClaims.set(dropId, [...claims, claimKey])
+    const leaseId = randomUUID()
+    const nextEntry: DropClaimEntry = {
+      claimKey,
+      status: "pending",
+      leaseId,
+      pendingExpiresAt: Date.now() + CLAIM_LEASE_MS,
+      editionNumber: current.record.nextEditionNumber,
+    }
+    const next: DropClaimRecord = {
+      version: 2,
+      nextEditionNumber: current.record.nextEditionNumber + 1,
+      claims: [...claims, nextEntry],
+      updatedAt: new Date().toISOString(),
+    }
+    if (await writeDropRecord(dropId, next, current)) {
       return {
         reserved: true,
         alreadyReserved: false,
-        remaining: Math.max(0, maxClaims - claims.length - 1),
-        editionNumber: claims.length + 1,
+        alreadyCommitted: false,
+        remaining: Math.max(0, maxClaims - next.claims.length),
+        editionNumber: nextEntry.editionNumber,
+        leaseId,
       }
     }
   }
@@ -268,19 +498,82 @@ export const reserveAreaDropClaim = async (
   throw new Error("Area drop is busy; retry")
 }
 
+export const commitAreaDropClaim = async (
+  dropId: string,
+  walletId: string,
+  leaseId: string | undefined,
+  maxClaims: number,
+) => {
+  const claimKey = walletClaimKey(walletId)
+  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
+    const current = await readDropRecord(dropId, maxClaims)
+    const index = current.record.claims.findIndex(
+      entry => entry.claimKey === claimKey,
+    )
+    if (index < 0) return false
+    const existing = current.record.claims[index]
+    if (existing.status === "committed") return true
+    if (!leaseId || existing.leaseId !== leaseId) return false
+
+    const claims = [...current.record.claims]
+    claims[index] = {
+      claimKey,
+      status: "committed",
+      editionNumber: existing.editionNumber,
+      committedAt: new Date().toISOString(),
+    }
+    const next = {
+      ...current.record,
+      claims,
+      updatedAt: new Date().toISOString(),
+    }
+    if (await writeDropRecord(dropId, next, current)) return true
+  }
+  throw new Error("Area drop commit is busy; retry")
+}
+
+export const releaseAreaDropClaim = async (
+  dropId: string,
+  walletId: string,
+  leaseId: string | undefined,
+  maxClaims: number,
+) => {
+  if (!leaseId) return false
+  const claimKey = walletClaimKey(walletId)
+  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
+    const current = await readDropRecord(dropId, maxClaims)
+    const existing = current.record.claims.find(
+      entry => entry.claimKey === claimKey,
+    )
+    if (!existing || existing.status === "committed") return false
+    if (existing.leaseId !== leaseId) return false
+
+    const next = {
+      ...current.record,
+      claims: current.record.claims.filter(
+        entry => entry.claimKey !== claimKey,
+      ),
+      updatedAt: new Date().toISOString(),
+    }
+    if (await writeDropRecord(dropId, next, current)) return true
+  }
+  throw new Error("Area drop release is busy; retry")
+}
+
 export const getAreaDropClaimCount = async (dropId: string) => {
-  try {
-    const record = await store().get(`drops/${dropId}`, {
-      type: "json",
-      consistency: "strong",
-    })
-    const stored = record as { claims?: unknown } | null
-    return Array.isArray(stored?.claims)
-      ? stored.claims.filter(value => typeof value === "string").length
-      : 0
-  } catch (error) {
-    if (!import.meta.env.DEV) throw error
-    return (memoryDropClaims.get(dropId) ?? []).length
+  const current = await readDropRecord(dropId, 500)
+  return current.record.claims.filter(entry => entry.status === "committed")
+    .length
+}
+
+export const getAreaCommunityProgress = async (dropIds: string[]) => {
+  const counts = await Promise.all(dropIds.map(getAreaDropClaimCount))
+  const current = counts.filter(count => count > 0).length
+  const total = dropIds.length
+  return {
+    current,
+    total,
+    percent: total > 0 ? Math.round((current / total) * 10_000) / 100 : 0,
   }
 }
 
@@ -291,13 +584,78 @@ export type AreaWalletMigration = {
   transferredCredits: number
 }
 
+export class AreaWalletMigrationConflictError extends Error {
+  constructor() {
+    super("Area wallet was already linked to another account")
+    this.name = "AreaWalletMigrationConflictError"
+  }
+}
+
+type MigrationLease =
+  | { status: "acquired"; leaseId: string; source: AreaWallet }
+  | { status: "completed" }
+  | { status: "busy" }
+  | { status: "conflict" }
+
+const acquireMigrationLease = async (
+  sourceWalletId: string,
+  targetWalletId: string,
+): Promise<MigrationLease> => {
+  const leaseId = randomUUID()
+  return mutateAreaWallet<MigrationLease>(sourceWalletId, wallet => {
+    const boundTarget = wallet.migration?.targetWalletId ?? wallet.migratedTo
+    if (boundTarget && boundTarget !== targetWalletId) {
+      return { wallet, result: { status: "conflict" } as const }
+    }
+    if (
+      wallet.migration?.status === "completed" ||
+      (wallet.migratedTo === targetWalletId && wallet.migratedAt)
+    ) {
+      return { wallet, result: { status: "completed" } as const }
+    }
+    if (
+      wallet.migration?.status === "processing" &&
+      Number(wallet.migration.leaseExpiresAt) > Date.now()
+    ) {
+      return { wallet, result: { status: "busy" } as const }
+    }
+
+    const migration: AreaWalletMigrationState = {
+      targetWalletId,
+      status: "processing",
+      leaseId,
+      leaseExpiresAt: Date.now() + MIGRATION_LEASE_MS,
+      startedAt: wallet.migration?.startedAt ?? new Date().toISOString(),
+    }
+    const source = { ...wallet, migration }
+    return {
+      wallet: source,
+      result: { status: "acquired", leaseId, source } as const,
+    }
+  })
+}
+
+const voucherFromRewardRecord = (
+  voucher: AreaVoucher,
+  record: AreaRewardRecord,
+): AreaVoucher => ({
+  ...voucher,
+  status: record.status,
+  reservationId: record.reservationId,
+  reservedUntil: record.reservedUntil,
+  checkoutSessionId: record.checkoutSessionId,
+  freeProductId: record.freeProductId,
+  freeProductLabel: record.freeProductLabel,
+  redeemedAt: record.redeemedAt,
+  processingId: undefined,
+  processingExpiresAt: undefined,
+})
+
 /**
- * Migrate a legacy browser wallet into an account wallet exactly once.
- *
- * The target is updated first and records a deterministic migration ID. If the
- * process is interrupted before the source is marked, a retry cannot credit
- * the target twice. Overlapping claims are merged conservatively and never
- * produce a duplicate Credit.
+ * Migrate a legacy browser wallet into one account wallet. The source becomes
+ * permanently bound to the first target before any value is copied. Retries
+ * for that same target are idempotent; attempts to migrate the source to a
+ * different account are rejected even after a crashed lease expires.
  */
 export const migrateAreaWallet = async (
   sourceWalletId: string,
@@ -312,12 +670,28 @@ export const migrateAreaWallet = async (
     }
   }
 
-  const migrationId = createHash("sha256")
-    .update(`${sourceWalletId}\0${targetWalletId}`)
-    .digest("hex")
-  const source = await getAreaWallet(sourceWalletId)
+  const lease = await acquireMigrationLease(sourceWalletId, targetWalletId)
+  if (lease.status === "completed") {
+    return {
+      migrated: false,
+      alreadyMigrated: true,
+      transferredClaims: 0,
+      transferredCredits: 0,
+    }
+  }
+  if (lease.status === "busy") {
+    throw new Error("Area wallet migration is already processing")
+  }
+  if (lease.status === "conflict") {
+    throw new AreaWalletMigrationConflictError()
+  }
 
-  const result = await mutateAreaWallet(targetWalletId, target => {
+  const migrationId = createHash("sha256")
+    .update(`area-wallet-migration\0${sourceWalletId}`)
+    .digest("hex")
+  const source = lease.source
+
+  const targetResult = await mutateAreaWallet(targetWalletId, target => {
     if (target.migrations.includes(migrationId)) {
       return {
         wallet: target,
@@ -340,8 +714,6 @@ export const migrateAreaWallet = async (
     const uniqueVouchers = source.vouchers.filter(
       voucher => !existingVoucherIds.has(voucher.requestId),
     )
-    // A Credit can only originate from a claim. In an overlap conflict we
-    // prefer under-crediting for manual review over minting duplicate value.
     const transferableCredits = Math.min(
       source.tokenBalance,
       uniqueClaims.length,
@@ -364,15 +736,86 @@ export const migrateAreaWallet = async (
     }
   })
 
-  await mutateAreaWallet(sourceWalletId, wallet => ({
-    wallet: {
-      ...wallet,
-      tokenBalance: 0,
-      migratedTo: targetWalletId,
-      migratedAt: new Date().toISOString(),
-    },
-    result: null,
-  }))
+  const rewardStates = new Map<string, AreaRewardRecord | null>()
+  for (const voucher of source.vouchers) {
+    if (voucher.status === "failed") {
+      rewardStates.set(voucher.requestId, null)
+      continue
+    }
+    const transferred = await transferAreaRewardCodeOwner({
+      code: voucher.code,
+      requestId: voucher.requestId,
+      sourceOwnerId: sourceWalletId,
+      targetOwnerId: targetWalletId,
+    })
+    rewardStates.set(
+      voucher.requestId,
+      transferred ?? (await getAreaRewardRecord(voucher.code)),
+    )
+  }
 
-  return result
+  await mutateAreaWallet(targetWalletId, wallet => {
+    let compensation = 0
+    const vouchers = wallet.vouchers.map(voucher => {
+      if (!rewardStates.has(voucher.requestId)) return voucher
+      const record = rewardStates.get(voucher.requestId)
+      if (record) return voucherFromRewardRecord(voucher, record)
+      if (
+        voucher.status !== "redeemed" &&
+        voucher.status !== "failed" &&
+        !voucher.migrationCompensated
+      ) {
+        compensation += Math.max(0, asInteger(voucher.tokens, 1))
+        return {
+          ...voucher,
+          status: "failed" as const,
+          processingId: undefined,
+          processingExpiresAt: undefined,
+          reservationId: undefined,
+          reservedUntil: undefined,
+          checkoutSessionId: undefined,
+          migrationCompensated: true,
+        }
+      }
+      return voucher
+    })
+    return {
+      wallet: {
+        ...wallet,
+        tokenBalance: wallet.tokenBalance + compensation,
+        vouchers,
+      },
+      result: null,
+    }
+  })
+
+  await mutateAreaWallet(sourceWalletId, wallet => {
+    if (
+      wallet.migration?.targetWalletId !== targetWalletId ||
+      wallet.migration.leaseId !== lease.leaseId
+    ) {
+      throw new Error("Area wallet migration lease was lost")
+    }
+    const completedAt = new Date().toISOString()
+    return {
+      wallet: {
+        ...wallet,
+        tokenBalance: 0,
+        claims: [],
+        vouchers: [],
+        attempts: [],
+        migratedTo: targetWalletId,
+        migratedAt: completedAt,
+        migration: {
+          targetWalletId,
+          status: "completed",
+          startedAt: wallet.migration.startedAt,
+          completedAt,
+        },
+      },
+      result: null,
+    }
+  })
+
+  return targetResult
 }

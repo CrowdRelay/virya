@@ -48,6 +48,9 @@
         "build": "astro build",
         "preview": "astro preview",
         "start": "astro dev",
-        "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,json,md}\""
+        "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,json,md}\"",
+        "check": "tsc --noEmit",
+        "audit:area": "node scripts/audit-area.mjs",
+        "test": "npm run check && npm run audit:area"
     }
 }

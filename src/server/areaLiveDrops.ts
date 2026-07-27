@@ -1,9 +1,9 @@
 /**
  * Private, server-only VIRYA AREA drop configuration.
  *
- * Keep this file under src/server and never import it from an Astro component
- * or other browser-bundled code. The exact coordinates are used only by
- * server endpoints during GPS verification.
+ * Exact coordinates must be supplied through AREA_LIVE_DROPS_JSON in the
+ * server environment. Keeping them out of the repository prevents accidental
+ * disclosure through source archives, public forks and client bundles.
  */
 
 export type AreaLiveDropConfig = {
@@ -11,57 +11,54 @@ export type AreaLiveDropConfig = {
   lng: number
   radiusMeters: number
   maxClaims: number
-  startsAt: string
-  endsAt: string
+  startsAt?: string
+  endsAt?: string
 }
 
-export const AREA_LIVE_DROPS = {
-  "wro-001": {
-    lat: 51.108,
-    lng: 17.039,
-    radiusMeters: 100,
-    maxClaims: 25,
-    startsAt: "2026-07-27T08:00:00+02:00",
-    endsAt: "2026-12-31T23:59:59+01:00",
-  },
-  "poz-002": {
-    lat: 52.407,
-    lng: 16.929,
-    radiusMeters: 100,
-    maxClaims: 25,
-    startsAt: "2026-07-27T08:00:00+02:00",
-    endsAt: "2026-12-31T23:59:59+01:00",
-  },
-  "gdn-003": {
-    lat: 54.352,
-    lng: 18.646,
-    radiusMeters: 100,
-    maxClaims: 25,
-    startsAt: "2026-07-27T08:00:00+02:00",
-    endsAt: "2026-12-31T23:59:59+01:00",
-  },
-  "waw-004": {
-    lat: 52.23,
-    lng: 21.012,
-    radiusMeters: 100,
-    maxClaims: 25,
-    startsAt: "2026-07-27T08:00:00+02:00",
-    endsAt: "2026-12-31T23:59:59+01:00",
-  },
-  "ktw-005": {
-    lat: 50.264,
-    lng: 19.023,
-    radiusMeters: 100,
-    maxClaims: 25,
-    startsAt: "2026-07-27T08:00:00+02:00",
-    endsAt: "2026-12-31T23:59:59+01:00",
-  },
-  "krk-006": {
-    lat: 50.065,
-    lng: 19.945,
-    radiusMeters: 100,
-    maxClaims: 25,
-    startsAt: "2026-07-27T08:00:00+02:00",
-    endsAt: "2026-12-31T23:59:59+01:00",
-  },
-} as const satisfies Record<string, AreaLiveDropConfig>
+type AreaLiveDropMap = Record<string, AreaLiveDropConfig>
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value)
+
+let cachedRaw: string | undefined
+let cachedConfig: AreaLiveDropMap = {}
+
+export const getAreaLiveDropConfigs = (): AreaLiveDropMap => {
+  const raw = import.meta.env.AREA_LIVE_DROPS_JSON?.trim()
+  if (!raw) return {}
+  if (raw === cachedRaw) return cachedConfig
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (!isPlainObject(parsed)) {
+      console.error("[area] AREA_LIVE_DROPS_JSON must be a JSON object")
+      cachedRaw = raw
+      cachedConfig = {}
+      return cachedConfig
+    }
+
+    const next: AreaLiveDropMap = {}
+    for (const [dropId, value] of Object.entries(parsed)) {
+      if (!isPlainObject(value)) continue
+      next[dropId] = {
+        lat: Number(value.lat),
+        lng: Number(value.lng),
+        radiusMeters: Number(value.radiusMeters),
+        maxClaims: Number(value.maxClaims),
+        startsAt:
+          typeof value.startsAt === "string" ? value.startsAt : undefined,
+        endsAt: typeof value.endsAt === "string" ? value.endsAt : undefined,
+      }
+    }
+
+    cachedRaw = raw
+    cachedConfig = next
+    return cachedConfig
+  } catch {
+    // Never log the raw value because it contains exact locations.
+    console.error("[area] AREA_LIVE_DROPS_JSON contains invalid JSON")
+    cachedRaw = raw
+    cachedConfig = {}
+    return cachedConfig
+  }
+}

@@ -8,8 +8,9 @@ short GPS verification. A valid claim unlocks one lyric collectible and awards
 One Credit can be converted into a single-use internal winning code. In one
 merch order that code makes the highest-priced single available item in the
 cart free and removes the InPost delivery charge. Additional items remain
-payable. No Stripe coupon is created and no physical sticker, QR code or NFC tag
-is required.
+payable. No Stripe coupon is created. The current pilot uses account-bound GPS
+verification; see **Anti-cheat boundary** below before attaching higher-value
+or scarce physical rewards.
 
 Credits and codes stay off-chain. They have no cash value, cannot be withdrawn
 and are not cryptocurrency or an investment. Optional on-chain minting may
@@ -53,13 +54,13 @@ Generate secrets with:
 openssl rand -hex 32
 ```
 
-Example live zone:
+Example live zone (use the real point only in the server environment):
 
 ```json
 {
   "wro-001": {
-    "lat": 51.1079,
-    "lng": 17.0385,
+    "lat": 50.000001,
+    "lng": 19.000001,
     "radiusMeters": 80,
     "maxClaims": 25,
     "startsAt": "2026-08-01T10:00:00+02:00",
@@ -68,8 +69,9 @@ Example live zone:
 }
 ```
 
-Supported IDs are defined in `src/data/area.ts`. Exact coordinates are parsed
-only by `src/server/areaCatalog.ts`.
+Supported IDs are defined in `src/data/area.ts`. Exact coordinates are loaded
+by `src/server/areaLiveDrops.ts`, validated by `src/server/areaCatalog.ts` and
+must never be copied into `src/data/area.ts` or a `PUBLIC_` environment value.
 
 - `radiusMeters`: 25–500 m. Start around 50–100 m outdoors and test the actual
   site on several phones.
@@ -94,10 +96,50 @@ median reading must also pass. Challenge tokens are HMAC-signed, bound to the
 logged-in actor and drop, and expire after 90 seconds.
 
 Raw coordinates and samples are not retained. The wallet stores only a rounded
-verification distance. Browser geolocation can still be spoofed by a determined
-attacker; signed accounts, short challenges, rolling attempt limits and a hard
-`maxClaims` cap bound the exposure but do not create cryptographic proof of
-physical presence.
+verification distance. Failed claims never return the measured distance, so the
+endpoint cannot be used as a distance oracle to triangulate the hidden point.
+
+### Anti-cheat boundary
+
+Browser geolocation can still be spoofed by a determined attacker. Signed
+accounts, short challenges, rolling attempt limits, hidden coordinates and a
+hard `maxClaims` cap reduce the exposure, but web GPS alone is not cryptographic
+proof of physical presence.
+
+For higher-value drops, combine this flow with a physical second factor at the
+location, preferably a pool of individually numbered one-time QR/scratch codes.
+A single permanent QR can be photographed and shared, so it should not be the
+only proof for a scarce reward.
+
+## Consistency and migration
+
+- Drop capacity uses CAS with short `pending` leases and a final `committed`
+  state. An expired pending reservation is removed automatically.
+- Wallet writes are idempotent per player and drop. A retry reconciles the
+  edition number without awarding a second Credit.
+- A legacy browser wallet is permanently bound to the first account that
+  migrates it. The same browser may still sign into another account, but the
+  already-bound wallet is not copied again.
+- Reward-code ownership is transferred together with a legacy migration so
+  checkout and Stripe webhook updates reach the account wallet.
+- If a legacy voucher has no matching global reward record, it is marked failed
+  and its spent Credit is compensated once.
+
+## Validation commands
+
+Run before deployment:
+
+```sh
+npm ci
+npm test
+npm run build
+```
+
+`npm test` runs TypeScript validation and `scripts/audit-area.mjs`. The audit
+guards against reintroducing exact zone geometry into the client, restoring the
+removed `/api/area/profile` call, leaking distance in `OUTSIDE_ZONE`, or making
+public city reference coordinates too precise. GitHub Actions runs these checks
+before the production build.
 
 ## Reward and checkout semantics
 

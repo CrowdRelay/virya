@@ -39,7 +39,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       claimed: "Collected",
       selected: "Selected drop",
       coordinates: "Approximate zone",
-      encrypted: "Coordinates encrypted until the signal goes live.",
+      encrypted: "Exact coordinates stay encrypted. Follow the clue inside the announced city zone.",
       nearest: "Find my nearest signal",
       nearestNote:
         "Your position is compared on this device. It is not sent or saved for this search.",
@@ -256,7 +256,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       claimed: "Zebrany",
       selected: "Wybrany drop",
       coordinates: "Przybliżona strefa",
-      encrypted: "Koordynaty zaszyfrowane do chwili aktywacji sygnału.",
+      encrypted: "Dokładne koordynaty pozostają zaszyfrowane. Idź za wskazówką w ogłoszonej strefie miasta.",
       nearest: "Znajdź najbliższy sygnał",
       nearestNote:
         "Pozycja jest porównywana na tym urządzeniu. Przy tym wyszukiwaniu niczego nie wysyłamy ani nie zapisujemy.",
