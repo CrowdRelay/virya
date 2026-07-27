@@ -783,7 +783,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       }
       const buttons = Array.from(root.querySelectorAll<HTMLElement>("[data-drop-button]"))
       const drops = new Map<string, DropInfo>()
-      const liveDrops = new Map<string, { zoneLat: number; zoneLng: number; radiusMeters: number }>()
+      const liveDrops = new Set<string>()
       const claimedDrops = new Set<string>()
       let latestClaim: { dropId: string; city: string; line: string } | null = null
       let isClaiming = false
@@ -834,6 +834,11 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           path: location.pathname,
         }
         if (dropId && drops.has(dropId)) payload.dropId = dropId
+        if (event === "page_view") {
+          const sessionKey = `virya-area-page-view:${location.pathname}`
+          if (sessionStorage.getItem(sessionKey) === "1") return
+          sessionStorage.setItem(sessionKey, "1")
+        }
         void fetch("/api/area/events", {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -1000,7 +1005,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         if (selectedClue) selectedClue.textContent = `“${drop.clue}”`
 
         const isClaimed = claimedDrops.has(id)
-        const live = liveDrops.get(id)
+        const live = liveDrops.has(id)
         if (selectedStatus) {
           selectedStatus.lastChild!.textContent = isClaimed
             ? ` ${copy.claimed}`
@@ -1009,9 +1014,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             : ` ${copy.signal}`
         }
         if (selectedCoordinates) {
-          selectedCoordinates.textContent = live
-            ? `${live.zoneLat.toFixed(3)}, ${live.zoneLng.toFixed(3)} · r≈${live.radiusMeters}m`
-            : copy.encrypted
+          selectedCoordinates.textContent = copy.encrypted
         }
         const panel = root.querySelector<HTMLElement>("[data-claim-panel]")
         if (panel) panel.hidden = !live
@@ -1244,7 +1247,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
         liveDrops.clear()
         Array.isArray(data?.liveDrops) && data.liveDrops.forEach((drop: any) => {
-          if (drop?.id) liveDrops.set(drop.id, drop)
+          if (typeof drop?.id === "string") liveDrops.add(drop.id)
         })
         buttons.forEach((button) => {
           button.classList.toggle(
@@ -1275,18 +1278,6 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         } catch {
           const status = root.querySelector<HTMLElement>("[data-wallet-status]")
           if (status) status.textContent = copy.voucherError
-        }
-      }
-
-      const loadProfile = async () => {
-        try {
-          const response = await fetch("/api/area/profile", {
-            headers: { Accept: "application/json" },
-            cache: "no-store",
-          })
-          if (!response.ok) throw new Error("profile unavailable")
-          renderProfile(await response.json())
-        } catch {
           renderProfile({ authenticated: false }, copy.profileUnavailable)
         }
       }
@@ -1555,7 +1546,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         if (authToken && profileStatus) {
           profileStatus.textContent = copy.profileVerifyError
         }
-        void Promise.all([loadProfile(), loadWallet()])
+        void loadWallet()
       }
     })
   }

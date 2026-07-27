@@ -53,15 +53,11 @@ const store = () => getStore({ name: STORE_NAME, consistency: "strong" })
 export const normalizeAreaRewardCode = (value: unknown) => {
   if (typeof value !== "string") return null
   const code = value.trim().toUpperCase().replace(/\s+/g, "")
-  return /^VIRYA-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){5}$/.test(code)
-    ? code
-    : null
+  return /^VIRYA-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){5}$/.test(code) ? code : null
 }
 
 export const areaRewardCodeHash = (code: string) =>
-  createHash("sha256")
-    .update(`virya-area-reward\0${code}`)
-    .digest("hex")
+  createHash("sha256").update(`virya-area-reward\0${code}`).digest("hex")
 
 const ownerHash = (ownerId: string) =>
   createHash("sha256").update(`virya-area-owner\0${ownerId}`).digest("hex")
@@ -160,9 +156,7 @@ const writeRecord = async (
   const write = await store().setJSON(
     keyForHash(hash),
     next,
-    current.exists
-      ? { onlyIfMatch: current.etag }
-      : { onlyIfNew: true },
+    current.exists ? { onlyIfMatch: current.etag } : { onlyIfNew: true },
   )
   return write.modified
 }
@@ -202,6 +196,60 @@ export const registerAreaRewardCode = async (input: RegisterInput) => {
   }
 
   throw new Error("Area reward registration is busy; retry")
+}
+
+export const getAreaRewardRecord = async (rawCode: unknown) => {
+  const code = normalizeAreaRewardCode(rawCode)
+  if (!code) return null
+  return (await readRecord(areaRewardCodeHash(code))).record
+}
+
+/**
+ * Rebind a legacy reward to the account wallet selected by the one-time
+ * migration. Ownership is changed with CAS, so Stripe webhooks and checkout
+ * status updates always resolve to exactly one wallet.
+ */
+export const transferAreaRewardCodeOwner = async ({
+  code: rawCode,
+  requestId,
+  sourceOwnerId,
+  targetOwnerId,
+}: {
+  code: unknown
+  requestId: string
+  sourceOwnerId: string
+  targetOwnerId: string
+}) => {
+  const code = normalizeAreaRewardCode(rawCode)
+  if (!code) return null
+  const hash = areaRewardCodeHash(code)
+  const sourceHash = ownerHash(sourceOwnerId)
+  const targetHash = ownerHash(targetOwnerId)
+
+  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
+    const current = await readRecord(hash)
+    const record = current.record
+    if (!record) return null
+    if (record.requestId !== requestId) {
+      throw new Error("Area reward migration request mismatch")
+    }
+    if (record.ownerHash === targetHash && record.ownerId === targetOwnerId) {
+      return record
+    }
+    if (record.ownerHash !== sourceHash || record.ownerId !== sourceOwnerId) {
+      throw new Error("Area reward is owned by another wallet")
+    }
+
+    const next: AreaRewardRecord = {
+      ...record,
+      ownerId: targetOwnerId,
+      ownerHash: targetHash,
+      updatedAt: new Date().toISOString(),
+    }
+    if (await writeRecord(hash, next, current)) return next
+  }
+
+  throw new Error("Area reward ownership transfer is busy; retry")
 }
 
 export const previewAreaRewardCode = async (

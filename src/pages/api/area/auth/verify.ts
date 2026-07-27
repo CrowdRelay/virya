@@ -13,7 +13,10 @@ import {
   isSameOriginRequest,
   readSmallJson,
 } from "../../../../server/areaHttp"
-import { migrateAreaWallet } from "../../../../server/areaLedger"
+import {
+  AreaWalletMigrationConflictError,
+  migrateAreaWallet,
+} from "../../../../server/areaLedger"
 
 export const prerender = false
 
@@ -27,7 +30,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     body = await readSmallJson(request)
   } catch {
     return areaJson(
-      { error: "The sign-in link is invalid or expired.", code: "INVALID_LINK" },
+      {
+        error: "The sign-in link is invalid or expired.",
+        code: "INVALID_LINK",
+      },
       400,
     )
   }
@@ -39,7 +45,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const payload = verifyAreaMagicToken(token)
   if (!payload) {
     return areaJson(
-      { error: "The sign-in link is invalid or expired.", code: "INVALID_LINK" },
+      {
+        error: "The sign-in link is invalid or expired.",
+        code: "INVALID_LINK",
+      },
       400,
     )
   }
@@ -68,10 +77,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     const account = await upsertAreaAccount(payload.accountId, payload.email)
-    await migrateAreaWallet(
-      payload.walletId,
-      areaAccountWalletId(payload.accountId),
-    )
+    try {
+      await migrateAreaWallet(
+        payload.walletId,
+        areaAccountWalletId(payload.accountId),
+      )
+    } catch (error) {
+      // A browser wallet is intentionally transferable only once. Reusing the
+      // same browser for another account must not block that account's login;
+      // it simply signs in without copying the already-bound legacy wallet.
+      if (!(error instanceof AreaWalletMigrationConflictError)) throw error
+    }
     await completeAreaMagicUse(payload.nonce, leaseId)
     setAreaSession(cookies, payload.accountId)
     return areaJson({
@@ -92,4 +108,3 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     )
   }
 }
-

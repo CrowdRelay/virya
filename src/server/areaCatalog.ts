@@ -1,5 +1,5 @@
 import { AREA_DROPS, getAreaDrop } from "../data/area"
-import { AREA_LIVE_DROPS } from "./areaLiveDrops"
+import { getAreaLiveDropConfigs } from "./areaLiveDrops"
 
 export type AreaCollectible = {
   dropId: string
@@ -65,19 +65,27 @@ export type LiveDrop = {
 }
 
 const parseDate = (
-  value: unknown
+  value: unknown,
 ): { valid: true; value: number | null } | { valid: false; value: null } => {
   if (value === undefined) return { valid: true, value: null }
   if (typeof value !== "string") return { valid: false, value: null }
 
   const match =
     /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/.exec(
-      value
+      value,
     )
   if (!match) return { valid: false, value: null }
 
-  const [, yearText, monthText, dayText, hourText, minuteText, secondText, zone] =
-    match
+  const [
+    ,
+    yearText,
+    monthText,
+    dayText,
+    hourText,
+    minuteText,
+    secondText,
+    zone,
+  ] = match
   const year = Number(yearText)
   const month = Number(monthText)
   const day = Number(dayText)
@@ -117,7 +125,7 @@ const parseDate = (
 }
 
 const parseLiveDrops = (): LiveDrop[] =>
-  Object.entries(AREA_LIVE_DROPS).flatMap(([id, value]) => {
+  Object.entries(getAreaLiveDropConfigs()).flatMap(([id, value]) => {
     if (!getAreaDrop(id)) return []
 
     const lat = Number(value.lat)
@@ -166,19 +174,12 @@ const isActive = (drop: LiveDrop, now = Date.now()) =>
   (drop.endsAt == null || drop.endsAt >= now)
 
 export const getLiveDrop = (id: string) =>
-  parseLiveDrops().find((drop) => drop.id === id && isActive(drop))
+  parseLiveDrops().find(drop => drop.id === id && isActive(drop))
 
 export const getPublicLiveDrops = () =>
   parseLiveDrops()
-    .filter((drop) => isActive(drop) && Boolean(COLLECTIBLES[drop.id]))
-    .map((drop) => ({
-      id: drop.id,
-      // A roughly 100 m zone is enough for the hunt; exact verification stays
-      // server-side.
-      zoneLat: Number(drop.lat.toFixed(3)),
-      zoneLng: Number(drop.lng.toFixed(3)),
-      radiusMeters: drop.radiusMeters,
-    }))
+    .filter(drop => isActive(drop) && Boolean(COLLECTIBLES[drop.id]))
+    .map(drop => ({ id: drop.id }))
 
 export const getCollectible = (dropId: string) => COLLECTIBLES[dropId]
 

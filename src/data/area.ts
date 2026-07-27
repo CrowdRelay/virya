@@ -14,8 +14,9 @@ export type AreaDrop = {
   clue: Record<AreaLang, string>
 }
 
-// Public campaign data only. Exact claim coordinates are read from
-// AREA_LIVE_DROPS_JSON on the server and never enter the browser bundle.
+// Public campaign data only. These are coarse city-level reference points
+// used solely by the client-side "nearest city" helper. Exact claim
+// coordinates come from AREA_LIVE_DROPS_JSON on the server.
 export const AREA_DROPS: AreaDrop[] = [
   {
     id: "wro-001",
@@ -24,8 +25,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Dolny Śląsk",
     mapX: 34,
     mapY: 70,
-    approximateLat: 51.108,
-    approximateLng: 17.039,
+    approximateLat: 51.1,
+    approximateLng: 17.0,
     clue: {
       en: "A signal is forming somewhere between concrete, water and noise.",
       pl: "Sygnał zbiera się gdzieś pomiędzy betonem, wodą i hałasem.",
@@ -38,8 +39,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Wielkopolska",
     mapX: 29,
     mapY: 45,
-    approximateLat: 52.407,
-    approximateLng: 16.929,
+    approximateLat: 52.4,
+    approximateLng: 16.9,
     clue: {
       en: "Follow the gold signal. Leave the obvious route behind.",
       pl: "Idź za złotym sygnałem. Zostaw oczywistą trasę za sobą.",
@@ -52,8 +53,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Pomorze",
     mapX: 49,
     mapY: 17,
-    approximateLat: 54.352,
-    approximateLng: 18.646,
+    approximateLat: 54.4,
+    approximateLng: 18.6,
     clue: {
       en: "Look for the echo where steel meets salt.",
       pl: "Szukaj echa tam, gdzie stal spotyka sól.",
@@ -66,8 +67,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Mazowsze",
     mapX: 68,
     mapY: 48,
-    approximateLat: 52.23,
-    approximateLng: 21.012,
+    approximateLat: 52.2,
+    approximateLng: 21.0,
     clue: {
       en: "The loudest city hides its quietest transmission.",
       pl: "Najgłośniejsze miasto ukrywa najcichszą transmisję.",
@@ -80,8 +81,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Śląsk",
     mapX: 53,
     mapY: 79,
-    approximateLat: 50.264,
-    approximateLng: 19.023,
+    approximateLat: 50.3,
+    approximateLng: 19.0,
     clue: {
       en: "An industrial pulse is waiting below the surface.",
       pl: "Przemysłowy puls czeka tuż pod powierzchnią.",
@@ -94,8 +95,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Małopolska",
     mapX: 65,
     mapY: 86,
-    approximateLat: 50.065,
-    approximateLng: 19.945,
+    approximateLat: 50.1,
+    approximateLng: 19.9,
     clue: {
       en: "Old stone. New noise. One line locked inside.",
       pl: "Stary kamień. Nowy hałas. Jedna linia zamknięta w środku.",
@@ -108,8 +109,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Łódzkie",
     mapX: 53,
     mapY: 56,
-    approximateLat: 51.759,
-    approximateLng: 19.456,
+    approximateLat: 51.8,
+    approximateLng: 19.5,
     clue: {
       en: "Follow the thread through brick, rails and reinvention.",
       pl: "Idź za nicią przez cegłę, tory i miasto wymyślone na nowo.",
@@ -122,8 +123,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Zachodniopomorskie",
     mapX: 14,
     mapY: 29,
-    approximateLat: 53.429,
-    approximateLng: 14.553,
+    approximateLat: 53.4,
+    approximateLng: 14.6,
     clue: {
       en: "The signal drifts inland from water shaped like a maze.",
       pl: "Sygnał płynie w głąb lądu od wody ułożonej jak labirynt.",
@@ -136,8 +137,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Lubelskie",
     mapX: 82,
     mapY: 63,
-    approximateLat: 51.247,
-    approximateLng: 22.568,
+    approximateLat: 51.2,
+    approximateLng: 22.6,
     clue: {
       en: "Listen where old gates carry a new frequency.",
       pl: "Słuchaj tam, gdzie stare bramy niosą nową częstotliwość.",
@@ -150,8 +151,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Podkarpackie",
     mapX: 82,
     mapY: 87,
-    approximateLat: 50.041,
-    approximateLng: 21.999,
+    approximateLat: 50.0,
+    approximateLng: 22.0,
     clue: {
       en: "A southern pulse hides between motion and open sky.",
       pl: "Południowy puls ukrywa się między ruchem a otwartym niebem.",
@@ -164,8 +165,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Podlaskie",
     mapX: 85,
     mapY: 35,
-    approximateLat: 53.133,
-    approximateLng: 23.169,
+    approximateLat: 53.1,
+    approximateLng: 23.2,
     clue: {
       en: "At the forest's edge, the quiet signal travels furthest.",
       pl: "Na skraju lasu cichy sygnał dociera najdalej.",
@@ -178,8 +179,8 @@ export const AREA_DROPS: AreaDrop[] = [
     region: "Kujawsko-Pomorskie",
     mapX: 47,
     mapY: 37,
-    approximateLat: 53.014,
-    approximateLng: 18.598,
+    approximateLat: 53.0,
+    approximateLng: 18.6,
     clue: {
       en: "Look up, then follow the orbit back to the street.",
       pl: "Spójrz w górę, potem sprowadź orbitę z powrotem na ulicę.",
@@ -188,4 +189,4 @@ export const AREA_DROPS: AreaDrop[] = [
 ]
 
 export const getAreaDrop = (id: string) =>
-  AREA_DROPS.find((drop) => drop.id === id)
+  AREA_DROPS.find(drop => drop.id === id)
