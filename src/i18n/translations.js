@@ -141,6 +141,7 @@ export const translations = {
       terms: "Terms",
       returns: "Returns",
       privacy: "Privacy",
+      dataDeletion: "Data deletion",
       press: "Press",
       videos: "Videos",
       gallery: "Gallery",
@@ -416,6 +417,45 @@ export const translations = {
           },
         ],
       },
+      dataDeletion: {
+        title: "Virya Automation — Data Deletion",
+        sections: [
+          {
+            heading: "Who operates the application",
+            paras: [[
+              { t: "Virya Automation is an internal social-media and workflow automation application operated by WB Soft Wojciech Bator, ul. Braniborska 50/2, 53-680 Wrocław, Poland, NIP: 8943126279. For privacy and deletion requests, contact " },
+              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
+              { t: "." },
+            ]],
+          },
+          {
+            heading: "How to request deletion",
+            paras: [[
+              { t: "Send an email to " },
+              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
+              { t: " with the subject “Virya Automation — Data Deletion Request”. Include the name or username of the connected Facebook or Instagram account and, if available, the Page or Business Account name. Do not send passwords, access tokens or other authentication secrets." },
+            ]],
+          },
+          {
+            heading: "What we will delete",
+            paras: [[{ t: "Where associated with your account and stored by us, we will delete or irreversibly anonymise OAuth access tokens, Facebook Page and Instagram account identifiers, cached profile or public business metadata, and automation logs that are no longer needed to operate or secure the service." }]],
+          },
+          {
+            heading: "Timeframe and confirmation",
+            paras: [[{ t: "We will verify the request where reasonably necessary, complete deletion within 30 days and confirm completion by email. We may retain the minimum information required by law, to prevent fraud, or to establish, exercise or defend legal claims. Any retained information will be isolated from normal application use." }]],
+          },
+          {
+            heading: "Revoke future access",
+            paras: [[{ t: "You may also remove Virya Automation from your Meta account settings under Business Integrations or Apps and Websites. Removing access stops future API access but may not delete information already stored by the application, so contact us using the procedure above if you also want our stored copy deleted." }]],
+          },
+          {
+            heading: "Scope of this page",
+            paras: [[
+              { t: "This procedure concerns information processed by Virya Automation. To delete your Facebook or Instagram account itself, use the account deletion controls provided directly by Meta." },
+            ]],
+          },
+        ],
+      },
       privacy: {
         title: "Privacy Policy",
         sections: [
@@ -599,6 +639,7 @@ export const translations = {
       terms: "Regulamin",
       returns: "Zwroty",
       privacy: "Prywatność",
+      dataDeletion: "Usuwanie danych",
       press: "Prasa",
       videos: "Wideo",
       gallery: "Galeria",
@@ -872,6 +913,43 @@ export const translations = {
           {
             heading: "Rozmiary i wznowienia",
             paras: [[{ t: "Przed zamówieniem sprawdź wskazówki dotyczące rozmiaru przy każdym produkcie. Jeśli Twój rozmiar jest wyprzedany, kliknij go przy produkcie, aby zgłosić zapotrzebowanie — na tej podstawie decydujemy o wznowieniach i odezwiemy się, gdy wróci." }]],
+          },
+        ],
+      },
+      dataDeletion: {
+        title: "Virya Automation — usuwanie danych",
+        sections: [
+          {
+            heading: "Operator aplikacji",
+            paras: [[
+              { t: "Virya Automation jest wewnętrzną aplikacją do automatyzacji social mediów i workflowów, prowadzoną przez WB Soft Wojciech Bator, ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. W sprawach prywatności i usuwania danych napisz na " },
+              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
+              { t: "." },
+            ]],
+          },
+          {
+            heading: "Jak zgłosić żądanie usunięcia",
+            paras: [[
+              { t: "Wyślij wiadomość na " },
+              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
+              { t: " z tematem „Virya Automation — żądanie usunięcia danych”. Podaj nazwę lub nazwę użytkownika połączonego konta Facebook albo Instagram oraz, jeśli jest dostępna, nazwę strony lub konta firmowego. Nie wysyłaj haseł, tokenów dostępu ani innych sekretów uwierzytelniających." },
+            ]],
+          },
+          {
+            heading: "Jakie dane usuniemy",
+            paras: [[{ t: "Jeżeli są powiązane z Twoim kontem i przechowywane przez nas, usuniemy lub nieodwracalnie zanonimizujemy tokeny OAuth, identyfikatory stron Facebook i kont Instagram, zapisane metadane profilu lub publiczne dane firmowe oraz logi automatyzacji, które nie są już potrzebne do działania ani zabezpieczenia usługi." }]],
+          },
+          {
+            heading: "Termin i potwierdzenie",
+            paras: [[{ t: "W razie potrzeby zweryfikujemy zasadność żądania, zakończymy usuwanie w ciągu 30 dni i potwierdzimy wykonanie e-mailem. Możemy zachować minimalny zakres informacji wymagany prawem, potrzebny do zapobiegania nadużyciom albo do ustalenia, dochodzenia lub obrony roszczeń. Takie dane będą odseparowane od zwykłego działania aplikacji." }]],
+          },
+          {
+            heading: "Cofnięcie dostępu na przyszłość",
+            paras: [[{ t: "Możesz również usunąć Virya Automation w ustawieniach konta Meta, w sekcji Integracje firmowe albo Aplikacje i witryny. Cofnięcie dostępu zatrzymuje przyszły dostęp API, ale nie musi automatycznie usuwać informacji wcześniej zapisanych przez aplikację. Aby usunąć także naszą kopię danych, skorzystaj z procedury opisanej powyżej." }]],
+          },
+          {
+            heading: "Zakres tej strony",
+            paras: [[{ t: "Ta procedura dotyczy informacji przetwarzanych przez Virya Automation. Aby usunąć całe konto Facebook lub Instagram, skorzystaj z mechanizmów usuwania konta udostępnianych bezpośrednio przez Meta." }]],
           },
         ],
       },
