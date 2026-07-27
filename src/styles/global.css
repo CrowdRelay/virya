@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+@source "../components/**/*.{astro,jsx,tsx}";
+@source "../pages/**/*.{astro,jsx,tsx}";
+
+@theme {
+  --color-amber-400: oklch(0.828 0.189 84.429);
+  --color-amber-300: oklch(0.879 0.169 91.605);
+}
+
+:root {
+  color-scheme: dark;
+  overflow-x: hidden;
+}
+
+@layer base {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  body {
+    background-color: #09090b;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
+  }
+
+  #main-nav {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  summary:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #fbbf24;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+/* Animated scroll-down chevrons in the hero */
+.arrows {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2rem;
+  height: 2.5rem;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.arrows path {
+  stroke: currentColor;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  color: rgb(161 161 170);
+}
+
+.arrows:hover path {
+  color: rgb(251 191 36);
+}
+
+.arrows path.a1 {
+  animation: arrowFade 1.8s ease-in-out 4s infinite backwards;
+}
+
+.arrows path.a2 {
+  animation: arrowFade 1.8s ease-in-out 4.3s infinite backwards;
+}
+
+.arrows path.a3 {
+  animation: arrowFade 1.8s ease-in-out 4.6s infinite backwards;
+}
+
+@keyframes arrowFade {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Scroll-to-top button */
+.scroll-to-top {
+  position: fixed;
+  cursor: pointer;
+  transition: opacity 1s ease-in-out;
+  box-shadow: 0 9px 25px 0 rgba(251 191 36 0.28);
+  outline: none;
+}
+
+.scroll-to-top:active {
+  transform: matrix(0.95, 0, 0, 0.95, 0, 0);
+}
+
+/* Quick Astro router fade (default ~0.2-0.3s) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.06s;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .arrows path {
+    animation: none;
+    opacity: 1;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

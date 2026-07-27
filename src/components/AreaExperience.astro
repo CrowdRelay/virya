@@ -402,7 +402,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             <li class="bg-zinc-950 p-7 lg:p-9">
               <span class="font-mono text-xs text-amber-400">{item.number}</span>
               <h3 class="mt-8 text-xl font-black uppercase tracking-tight text-white">{item.title}</h3>
-              <p class="mt-4 text-sm leading-relaxed text-zinc-400 text-justify">{item.body}</p>
+              <p class="mt-4 text-sm leading-relaxed text-zinc-400">{item.body}</p>
             </li>
           ))}
         </ol>
@@ -567,13 +567,13 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         <div>
           <ul class="space-y-4">
             {copy.rules.items.map((item: string) => (
-              <li class="flex gap-4 border-b border-zinc-800/60 pb-4 text-sm leading-relaxed text-zinc-300 text-justify">
+              <li class="flex gap-4 border-b border-zinc-800/60 pb-4 text-sm leading-relaxed text-zinc-300">
                 <span class="font-mono text-amber-400" aria-hidden="true">+</span>
-                <span class="text-justify">{item}</span>
+                {item}
               </li>
             ))}
           </ul>
-          <p class="mt-7 border-l border-zinc-700 pl-4 text-xs leading-relaxed text-zinc-400 text-justify">{copy.rules.chain}</p>
+          <p class="mt-7 border-l border-zinc-700 pl-4 text-xs leading-relaxed text-zinc-400">{copy.rules.chain}</p>
           <div class="mt-7 flex flex-wrap gap-5 text-[10px] font-black uppercase tracking-widest">
             <a href={lp(lang, "/legal/privacy/")} class="text-amber-400 hover:text-amber-300">{copy.rules.privacy}</a>
             <a href={lp(lang, "/legal/terms/")} class="text-zinc-400 hover:text-amber-400">{copy.rules.terms}</a>

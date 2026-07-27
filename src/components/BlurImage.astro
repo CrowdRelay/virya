@@ -1,0 +1,32 @@
+---
+import ph from "../placeholders.json"
+import ss from "../srcsets.json"
+
+const {
+  src,
+  class: className,
+  style = "",
+  sizes = "100vw",
+  loading = "lazy",
+  decoding = "async",
+  ...rest
+} = Astro.props
+const blur = (ph as Record<string, string>)[src as string]
+const srcset = (ss as Record<string, string>)[src as string]
+const bg = blur
+  ? `background-image:url(${blur});background-size:cover;background-position:center;background-repeat:no-repeat;color:transparent;`
+  : ""
+---
+
+<img
+  src={src}
+  srcset={srcset}
+  sizes={srcset ? sizes : undefined}
+  loading={loading}
+  decoding={decoding}
+  class={className}
+  style={`${bg}${style}`}
+  onload="this.style.backgroundImage='none';this.style.color=''"
+  onerror="this.style.color=''"
+  {...rest}
+/>

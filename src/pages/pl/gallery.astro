@@ -1,0 +1,196 @@
+---
+export const prerender = true
+
+import Layout from "../../components/Layout.astro"
+import Navbar from "../../components/Navbar.astro"
+import Footer from "../../components/Footer.astro"
+import ScrollToTop from "../../components/ScrollToTop.astro"
+import BlurImage from "../../components/BlurImage.astro"
+import { t, lp } from "../../i18n/t"
+import { getSeoTags } from "../../utils/seo"
+import gallery from "../../data/gallery.json"
+import rawDims from "../../imageDimensions.json"
+import ph from "../../placeholders.json"
+
+const lang = "pl"
+const { canonicalUrl, hreflangLinks } = getSeoTags("/gallery/", lang)
+const title = "Galeria | Virya"
+const description = "Galeria zdjęć — oficjalne zdjęcia prasowe i materiały koncertowe z Virya, nowoczesny metalcore z Polski."
+
+type GalleryItem = { src: string; alt?: string; alt_pl?: string; caption?: string; caption_pl?: string }
+const photos: GalleryItem[] = gallery as GalleryItem[]
+const dims = rawDims as Record<string, { w: number; h: number }>
+---
+
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+  <Fragment slot="head">
+    {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
+  </Fragment>
+
+  <div class="bg-zinc-950 min-h-screen flex flex-col">
+    <Navbar lang={lang} displayLinks={true} activePage="gallery" />
+    <ScrollToTop />
+
+    <main id="main-content" class="flex-1 pt-20">
+      <div class="px-6 lg:px-12 pt-8 pb-12 max-w-7xl mx-auto">
+
+
+        <div class="mb-10">
+          <p class="text-xs font-bold uppercase tracking-[0.4em] text-amber-400 mb-3">{t(lang, "gallery.eyebrow")}</p>
+          <h1 class="text-4xl lg:text-5xl font-black uppercase tracking-tight text-white mb-2">{t(lang, "gallery.heading")}</h1>
+          <p class="text-sm text-zinc-400">{t(lang, "gallery.sub")}</p>
+        </div>
+
+        {photos.length === 0 ? (
+          <div class="border-l-2 border-amber-400/40 pl-6 py-4">
+            <p class="text-zinc-400 text-sm leading-relaxed">{t(lang, "gallery.soon")}</p>
+          </div>
+        ) : (
+          <div class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 [column-fill:balance]" id="photo-grid">
+            {photos.map((photo, i) => {
+              const alt = lang === "pl" ? (photo.alt_pl || photo.alt || t(lang, "gallery.photoAlt", i + 1)) : (photo.alt || t(lang, "gallery.photoAlt", i + 1))
+              const blur = (ph as Record<string, string>)[photo.src] || ""
+              return (
+                <button
+                  class="photo-btn block w-full group cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                  data-index={i}
+                  data-src={photo.src}
+                  data-alt={alt}
+                  data-blur={blur}
+                  aria-label={alt}
+                >
+                  <BlurImage
+                    src={photo.src}
+                    alt={alt}
+                    width={dims[photo.src]?.w || 800}
+                    height={dims[photo.src]?.h || 600}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    fetchpriority={i === 0 ? "high" : undefined}
+                    sizes="(max-width: 639px) calc(100vw - 3rem), (max-width: 1023px) calc((100vw - 4rem) / 2), 400px"
+                    class="w-full object-cover transition-opacity duration-300 group-hover:opacity-80 break-inside-avoid"
+                  />
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+      </div>
+    </main>
+
+    {photos.length > 0 && (
+      <div
+        id="gallery-modal"
+        style="display:none"
+        class="fixed inset-0 z-50 bg-black/98 flex items-center justify-center overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div id="modal-blur" class="absolute inset-0 opacity-0 transition-opacity duration-300 bg-contain bg-center bg-no-repeat pointer-events-none" style="filter:blur(20px);transform:scale(1.05)"></div>
+        <button id="modal-close" class="absolute top-4 right-4 text-zinc-400 hover:text-amber-400 transition-colors z-10 text-3xl leading-none" aria-label={t(lang, "gallery.close")}>&times;</button>
+        <button id="modal-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.prev")}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button id="modal-next" class="absolute right-14 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.next")}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <div class="relative z-10 w-full max-w-5xl min-w-0 px-16 flex flex-col items-center gap-4">
+          <img id="modal-img" src="" alt="" class="max-h-[80vh] max-w-full object-contain" />
+          <div class="flex items-center justify-between gap-3 flex-wrap w-full">
+            <p id="modal-caption" class="text-xs text-zinc-400 uppercase tracking-widest"></p>
+            <a id="modal-download" href="" download class="inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200">
+              {t(lang, "gallery.download")}
+            </a>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <Footer lang={lang} />
+  </div>
+</Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const modal = document.getElementById("gallery-modal")
+    if (!modal) return
+    const modalImg = document.getElementById("modal-img") as HTMLImageElement
+    const modalBlur = document.getElementById("modal-blur") as HTMLElement
+    const modalCaption = document.getElementById("modal-caption")
+    const modalDownload = document.getElementById("modal-download") as HTMLAnchorElement
+    const closeBtn = document.getElementById("modal-close")
+    const prevBtn = document.getElementById("modal-prev")
+    const nextBtn = document.getElementById("modal-next")
+    const buttons = Array.from(document.querySelectorAll<HTMLElement>(".photo-btn"))
+    let current = 0
+
+    function openAt(index: number) {
+      current = index
+      const btn = buttons[current]
+      if (!btn || !modalImg || !modalCaption || !modalDownload) return
+      const src = btn.dataset.src || ""
+      const alt = btn.dataset.alt || ""
+      const blur = btn.dataset.blur || ""
+      const doSwap = () => {
+        if (blur) {
+          modalBlur.style.backgroundImage = `url(${blur})`
+          modalBlur.style.opacity = "1"
+          modalImg.addEventListener("load", () => {
+            modalBlur.style.opacity = "0"
+          }, { once: true })
+        }
+        modalImg.src = src
+        modalImg.alt = alt
+        modalCaption!.textContent = alt
+        modalDownload!.href = src
+        modalImg.style.opacity = "1"
+      }
+      if (modal!.style.display !== "none") {
+        modalImg.style.opacity = "0"
+        const preload = new Image()
+        preload.onload = doSwap
+        preload.onerror = doSwap
+        preload.src = src
+        return
+      }
+      doSwap()
+      modal!.style.display = "flex"
+      document.body.style.overflow = "hidden"
+    }
+
+    function closeModal() {
+      modal!.style.display = "none"
+      if (modalImg) modalImg.style.opacity = "1"
+      if (modalBlur) modalBlur.style.opacity = "0"
+      document.body.style.overflow = ""
+    }
+
+    function prev() { openAt((current - 1 + buttons.length) % buttons.length) }
+    function next() { openAt((current + 1) % buttons.length) }
+
+    const ac = new AbortController()
+    document.addEventListener("astro:before-preparation", () => ac.abort(), { once: true })
+
+    buttons.forEach((btn, i) => btn.addEventListener("click", () => openAt(i)))
+    closeBtn?.addEventListener("click", closeModal)
+    prevBtn?.addEventListener("click", prev)
+    nextBtn?.addEventListener("click", next)
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal() })
+    document.addEventListener("keydown", (e) => {
+      if (modal.style.display === "none") return
+      if (e.key === "Escape") closeModal()
+      if (e.key === "ArrowLeft") prev()
+      if (e.key === "ArrowRight") next()
+    }, { signal: ac.signal })
+    let touchStartX = 0
+    modal.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX }, { passive: true })
+    modal.addEventListener("touchend", (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX
+      if (Math.abs(dx) > 50) dx < 0 ? next() : prev()
+    })
+  })
+</script>
+
+<style>
+  #modal-img { transition: opacity 0.15s ease; }
+</style>
