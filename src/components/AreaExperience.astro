@@ -99,7 +99,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           <h1 class="area-display-title max-w-4xl text-[clamp(2.4rem,10.8vw,3.6rem)] font-black uppercase leading-[.9] tracking-[-.04em] text-white sm:text-6xl lg:text-8xl">
             {copy.hero.title}
           </h1>
-          <p class="mt-6 max-w-2xl text-[0.95rem] leading-relaxed text-zinc-300 sm:mt-7 sm:text-base lg:text-lg">
+          <p class="mt-6 max-w-2xl text-[0.95rem] leading-relaxed text-zinc-300 text-justify sm:mt-7 sm:text-base lg:text-lg">
             {copy.hero.body}
           </p>
           <div class="mt-8 grid min-w-0 grid-cols-1 gap-3 sm:mt-9 sm:flex sm:flex-wrap">
@@ -118,7 +118,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           </div>
           <div class="mt-8 flex min-w-0 max-w-2xl items-start gap-3 border-l-2 border-amber-400 bg-zinc-900/50 p-4 sm:mt-10">
             <span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_14px_rgba(251,191,36,.8)]" aria-hidden="true"></span>
-            <p class="text-xs leading-relaxed text-zinc-400">
+            <p class="text-xs leading-relaxed text-zinc-400 text-justify">
               <strong class="mr-2 uppercase tracking-widest text-zinc-100">{copy.hero.pilot}</strong>
               {copy.hero.pilotBody}
             </p>
@@ -187,8 +187,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         <div class="max-w-3xl">
           <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.profile.eyebrow}</p>
           <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.6rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-5xl">{copy.profile.heading}</h2>
-          <p class="mt-5 text-sm leading-relaxed text-zinc-400 lg:text-base">{copy.profile.body}</p>
-          <p class="mt-5 border-l border-amber-400 pl-4 text-xs leading-relaxed text-zinc-300">{copy.profile.claimNote}</p>
+          <p class="mt-5 text-sm leading-relaxed text-zinc-400 text-justify lg:text-base">{copy.profile.body}</p>
+          <p class="mt-5 border-l border-amber-400 pl-4 text-xs leading-relaxed text-zinc-300 text-justify">{copy.profile.claimNote}</p>
         </div>
 
         <div data-profile-shell aria-busy="true" class="min-w-0 border border-zinc-800 bg-zinc-900/40 p-4 sm:p-6 lg:p-7">
@@ -245,7 +245,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
           <aside data-migration-notice hidden class="mt-6 border-l-2 border-amber-400 bg-amber-400/[.06] p-4">
             <h3 class="text-xs font-black uppercase tracking-widest text-amber-400">{copy.profile.migrationTitle}</h3>
-            <p class="mt-2 text-[10px] leading-relaxed text-zinc-300">{copy.profile.migrationBody}</p>
+            <p class="mt-2 text-[10px] leading-relaxed text-zinc-300 text-justify">{copy.profile.migrationBody}</p>
           </aside>
 
           <p data-profile-status role="status" aria-live="polite" class="mt-5 text-xs font-semibold text-amber-400"></p>
@@ -258,7 +258,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         <div class="mb-12 max-w-3xl">
           <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.map.eyebrow}</p>
           <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.75rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-6xl">{copy.map.heading}</h2>
-          <p class="mt-5 text-sm leading-relaxed text-zinc-400 lg:text-base">{copy.map.body}</p>
+          <p class="mt-5 text-sm leading-relaxed text-zinc-400 text-justify lg:text-base">{copy.map.body}</p>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,.65fr)]">
@@ -310,7 +310,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                 <svg aria-hidden="true" viewBox="0 0 24 24" class="mr-2 h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
                 {copy.map.nearest}
               </button>
-              <p class="mt-3 max-w-xl text-[10px] leading-relaxed text-zinc-400">{copy.map.nearestNote}</p>
+              <p class="mt-3 max-w-xl text-[10px] leading-relaxed text-zinc-400 text-justify">{copy.map.nearestNote}</p>
               <p data-location-status role="status" aria-live="polite" class="mt-3 text-xs font-semibold text-amber-400"></p>
             </div>
           </div>
@@ -367,12 +367,12 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             <div>
               <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.claim.eyebrow}</p>
               <h3 class="mt-2 text-2xl font-black uppercase text-white">{copy.claim.heading}</h3>
-              <p class="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300">{copy.claim.body}</p>
-              <p class="mt-3 max-w-3xl text-[10px] leading-relaxed text-zinc-400">{copy.claim.privacy}</p>
+              <p class="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify">{copy.claim.body}</p>
+              <p class="mt-3 max-w-3xl text-[10px] leading-relaxed text-zinc-400 text-justify">{copy.claim.privacy}</p>
             </div>
             <div class="flex flex-col items-stretch gap-3 lg:w-80">
               <div id="area-claim-auth-note" data-claim-auth-required hidden class="border border-zinc-700 bg-zinc-950/70 p-4 text-xs leading-relaxed text-zinc-300">
-                <p>{copy.claim.accountRequired}</p>
+                <p class="text-justify">{copy.claim.accountRequired}</p>
                 <a href="#area-profile" class="mt-3 inline-flex min-h-[44px] items-center font-black uppercase tracking-widest text-amber-400 hover:text-amber-300">
                   {copy.claim.accountCta} <span class="ml-2" aria-hidden="true">↑</span>
                 </a>
@@ -402,7 +402,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             <li class="bg-zinc-950 p-7 lg:p-9">
               <span class="font-mono text-xs text-amber-400">{item.number}</span>
               <h3 class="mt-8 text-xl font-black uppercase tracking-tight text-white">{item.title}</h3>
-              <p class="mt-4 text-sm leading-relaxed text-zinc-400">{item.body}</p>
+              <p class="mt-4 text-sm leading-relaxed text-zinc-400 text-justify">{item.body}</p>
             </li>
           ))}
         </ol>
@@ -415,7 +415,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           <div>
             <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.collection.eyebrow}</p>
             <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.75rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-6xl">{copy.collection.heading}</h2>
-            <p class="mt-5 max-w-3xl text-sm leading-relaxed text-zinc-400">{copy.collection.body}</p>
+            <p class="mt-5 max-w-3xl text-sm leading-relaxed text-zinc-400 text-justify">{copy.collection.body}</p>
           </div>
           <aside class="min-w-0 border border-amber-400/30 bg-zinc-900/50 p-4 sm:p-6">
             <p class="text-[9px] font-black uppercase tracking-[.28em] text-zinc-400">{copy.collection.wallet}</p>
@@ -424,7 +424,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               <p class="max-w-full text-left text-[9px] font-bold uppercase leading-relaxed tracking-widest text-zinc-400 min-[360px]:max-w-36 min-[360px]:text-right">{copy.collection.walletValue}</p>
             </div>
             <p data-wallet-status role="status" aria-live="polite" class="mt-4 text-[10px] text-zinc-400">{copy.collection.loading}</p>
-            <p class="mt-3 border-t border-zinc-800 pt-3 text-[9px] leading-relaxed text-zinc-400">{copy.collection.browserNote}</p>
+            <p class="mt-3 border-t border-zinc-800 pt-3 text-[9px] leading-relaxed text-zinc-400 text-justify">{copy.collection.browserNote}</p>
           </aside>
         </div>
 
@@ -450,7 +450,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             <p data-collection-complete hidden class="mt-4 text-xs font-black uppercase tracking-widest text-amber-400">
               {copy.collection.complete}
             </p>
-            <p data-collection-complete-body hidden class="mt-2 text-xs leading-relaxed text-zinc-400">
+            <p data-collection-complete-body hidden class="mt-2 text-xs leading-relaxed text-zinc-400 text-justify">
               {copy.collection.completeBody}
             </p>
           </section>
@@ -465,7 +465,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                 <span data-community-count>—</span> / <span data-community-total>{AREA_DROPS.length}</span>
               </p>
             </div>
-            <p class="mt-3 text-xs leading-relaxed text-zinc-400">{copy.community.body}</p>
+            <p class="mt-3 text-xs leading-relaxed text-zinc-400 text-justify">{copy.community.body}</p>
             <div
               class="mt-4 h-1.5 overflow-hidden bg-zinc-800"
               role="progressbar"
@@ -529,7 +529,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         <div class="mt-8 grid min-w-0 gap-6 lg:grid-cols-2">
           <section class="min-w-0 border border-zinc-800 bg-zinc-900/30 p-4 sm:p-6 lg:p-8">
             <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.collection.voucherHeading}</p>
-            <p class="mt-3 text-sm leading-relaxed text-zinc-400">{copy.collection.voucherBody}</p>
+            <p class="mt-3 text-sm leading-relaxed text-zinc-400 text-justify">{copy.collection.voucherBody}</p>
             <div class="mt-6">
               <button data-voucher-button type="button" disabled class="min-h-[46px] w-full bg-amber-400 px-5 text-[10px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
                 {copy.collection.voucherButton}
@@ -548,7 +548,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           <section class="min-w-0 border border-zinc-800 bg-zinc-900/30 p-4 sm:p-6 lg:p-8">
             <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.share.eyebrow}</p>
             <h3 class="area-section-title mt-3 text-[clamp(1.65rem,7vw,2rem)] font-black uppercase leading-tight text-white">{copy.share.heading}</h3>
-            <p class="mt-3 text-sm leading-relaxed text-zinc-400">{copy.share.body}</p>
+            <p class="mt-3 text-sm leading-relaxed text-zinc-400 text-justify">{copy.share.body}</p>
             <button data-share-button type="button" class="mt-6 min-h-[46px] w-full border border-amber-400/60 px-4 text-[10px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black sm:w-auto sm:px-5">
               {copy.share.button}
             </button>
@@ -569,11 +569,11 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             {copy.rules.items.map((item: string) => (
               <li class="flex gap-4 border-b border-zinc-800/60 pb-4 text-sm leading-relaxed text-zinc-300">
                 <span class="font-mono text-amber-400" aria-hidden="true">+</span>
-                {item}
+                <span class="text-justify">{item}</span>
               </li>
             ))}
           </ul>
-          <p class="mt-7 border-l border-zinc-700 pl-4 text-xs leading-relaxed text-zinc-400">{copy.rules.chain}</p>
+          <p class="mt-7 border-l border-zinc-700 pl-4 text-xs leading-relaxed text-zinc-400 text-justify">{copy.rules.chain}</p>
           <div class="mt-7 flex flex-wrap gap-5 text-[10px] font-black uppercase tracking-widest">
             <a href={lp(lang, "/legal/privacy/")} class="text-amber-400 hover:text-amber-300">{copy.rules.privacy}</a>
             <a href={lp(lang, "/legal/terms/")} class="text-zinc-400 hover:text-amber-400">{copy.rules.terms}</a>
