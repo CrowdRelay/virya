@@ -53,18 +53,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       503,
     )
   }
-  if (lease.status === "used") {
-    return areaJson(
-      { error: "This sign-in link was already used.", code: "LINK_USED" },
-      409,
-    )
+  if (lease.status !== "acquired") {
+    return lease.status === "used"
+      ? areaJson(
+          { error: "This sign-in link was already used.", code: "LINK_USED" },
+          409,
+        )
+      : areaJson(
+          { error: "Sign-in is already processing.", code: "LINK_BUSY" },
+          409,
+        )
   }
-  if (lease.status === "busy") {
-    return areaJson(
-      { error: "Sign-in is already processing.", code: "LINK_BUSY" },
-      409,
-    )
-  }
+  const leaseId = lease.leaseId
 
   try {
     const account = await upsertAreaAccount(payload.accountId, payload.email)
@@ -72,7 +72,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       payload.walletId,
       areaAccountWalletId(payload.accountId),
     )
-    await completeAreaMagicUse(payload.nonce, lease.leaseId)
+    await completeAreaMagicUse(payload.nonce, leaseId)
     setAreaSession(cookies, payload.accountId)
     return areaJson({
       ok: true,
@@ -81,7 +81,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     })
   } catch {
     try {
-      await releaseAreaMagicUse(payload.nonce, lease.leaseId)
+      await releaseAreaMagicUse(payload.nonce, leaseId)
     } catch {
       // The expired lease is recoverable on the next verification attempt.
     }

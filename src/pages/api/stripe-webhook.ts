@@ -8,6 +8,11 @@ import {
   completeFulfillmentLease,
   releaseFulfillmentLease,
 } from "../../server/fulfillmentLedger"
+import { mutateAreaWallet } from "../../server/areaLedger"
+import {
+  redeemAreaRewardCode,
+  releaseAreaRewardCode,
+} from "../../server/areaReward"
 
 export const POST: APIRoute = async ({ request }) => {
   const stripeKey = import.meta.env.STRIPE_SECRET_KEY?.trim()
@@ -35,6 +40,49 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (err) {
     console.error("[stripe-webhook] signature verification failed:", err)
     return new Response("Webhook signature invalid", { status: 400 })
+  }
+
+  if (
+    event.type === "checkout.session.expired" ||
+    event.type === "checkout.session.async_payment_failed"
+  ) {
+    const session = event.data.object as Stripe.Checkout.Session
+    const codeHash = session.metadata?.area_reward_code_hash
+    const reservationId = session.metadata?.area_reward_reservation_id
+    if (codeHash && reservationId) {
+      try {
+        const released = await releaseAreaRewardCode({
+          codeHash,
+          reservationId,
+          checkoutSessionId: session.id,
+        })
+        if (released) {
+          await mutateAreaWallet(released.ownerId, wallet => ({
+            wallet: {
+              ...wallet,
+              vouchers: wallet.vouchers.map(item =>
+                item.requestId === released.requestId &&
+                item.status === "reserved"
+                  ? {
+                      ...item,
+                      status: "issued" as const,
+                      reservationId: undefined,
+                      reservedUntil: undefined,
+                      checkoutSessionId: undefined,
+                      freeProductId: undefined,
+                      freeProductLabel: undefined,
+                    }
+                  : item,
+              ),
+            },
+            result: null,
+          }))
+        }
+      } catch (error) {
+        console.error("[stripe-webhook] reward release failed:", error)
+        return new Response("Reward release temporarily failed", { status: 500 })
+      }
+    }
   }
 
   if (
@@ -81,6 +129,39 @@ export const POST: APIRoute = async ({ request }) => {
         await releaseFulfillmentLease(session.id, leaseId)
         return new Response("Not paid yet", { status: 200 })
       }
+
+      const rewardCodeHash = session.metadata?.area_reward_code_hash
+      const rewardReservationId =
+        session.metadata?.area_reward_reservation_id
+      if (rewardCodeHash && rewardReservationId) {
+        const reward = await redeemAreaRewardCode({
+          codeHash: rewardCodeHash,
+          reservationId: rewardReservationId,
+          checkoutSessionId: session.id,
+        })
+        if (!reward) {
+          throw new Error("VIRYA Area reward could not be reconciled")
+        }
+        await mutateAreaWallet(reward.ownerId, wallet => ({
+          wallet: {
+            ...wallet,
+            vouchers: wallet.vouchers.map(item =>
+              item.requestId === reward.requestId
+                ? {
+                    ...item,
+                    status: "redeemed" as const,
+                    checkoutSessionId: session.id,
+                    freeProductId: reward.freeProductId,
+                    freeProductLabel: reward.freeProductLabel,
+                    redeemedAt: reward.redeemedAt,
+                  }
+                : item,
+            ),
+          },
+          result: null,
+        }))
+      }
+
       if (session.metadata?.virya_processed === "1") {
         await completeFulfillmentLease(session.id, leaseId)
         return new Response(

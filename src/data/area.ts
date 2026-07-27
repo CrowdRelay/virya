@@ -1,4 +1,4 @@
-export const AREA_TOKEN_VALUE_PLN = 50
+export const AREA_REWARD_CREDITS_PER_CODE = 1
 
 export type AreaLang = "en" | "pl"
 
@@ -14,8 +14,8 @@ export type AreaDrop = {
   clue: Record<AreaLang, string>
 }
 
-// Public campaign data only. Exact claim coordinates and QR secrets are read
-// from AREA_LIVE_DROPS_JSON on the server and never enter the browser bundle.
+// Public campaign data only. Exact claim coordinates are read from
+// AREA_LIVE_DROPS_JSON on the server and never enter the browser bundle.
 export const AREA_DROPS: AreaDrop[] = [
   {
     id: "wro-001",

@@ -33,8 +33,12 @@ const readStored = () => {
 export const CartProvider = ({ children }) => {
   const [lines, setLines] = useState([])
   const [open, setOpen] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
 
-  useEffect(() => { setLines(readStored()) }, [])
+  useEffect(() => {
+    setLines(readStored())
+    setHydrated(true)
+  }, [])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -85,7 +89,10 @@ export const CartProvider = ({ children }) => {
   const total = subtotal + shipping
 
   const actions = useMemo(() => ({ setOpen, add, setQty, remove, clear }), [setOpen, add, setQty, remove, clear])
-  const state = useMemo(() => ({ lines: detailed, count, subtotal, shipping, needsShipping, total, open }), [detailed, count, subtotal, shipping, needsShipping, total, open])
+  const state = useMemo(
+    () => ({ lines: detailed, count, subtotal, shipping, needsShipping, total, open, hydrated }),
+    [detailed, count, subtotal, shipping, needsShipping, total, open, hydrated],
+  )
 
   return (
     <CartActionsContext.Provider value={actions}>

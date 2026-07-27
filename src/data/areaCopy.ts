@@ -5,24 +5,24 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     meta: {
       title: "VIRYA Area — Find the signal. Unlock the line.",
       description:
-        "A 12-city location-based VIRYA treasure hunt across Poland. Find hidden drops, unlock lyric collectibles and earn merch credits.",
+        "A 12-city location game across Poland. Reach live zones, unlock lyric collectibles and earn a free merch item with free delivery.",
     },
     hero: {
       eyebrow: "Location game · Poland · Pilot",
       title: "Poland is the map. Our words are the loot.",
       body:
-        "We are planting VIRYA boxes in cities across Poland. Reach the zone, find the physical marker, scan its QR or NFC tag and unlock a lyric collectible plus 1 VIRYA Credit.",
+        "Follow the clues, reach a live VIRYA zone and lock the signal with your phone. A verified find unlocks a lyric collectible plus 1 VIRYA Credit.",
       mapCta: "Open the pilot map",
       howCta: "How it works",
       pilot: "Pilot signal",
       pilotBody:
-        "The infrastructure is armed. A city becomes claimable only when we publish an active drop.",
+        "A city becomes claimable only while we publish an active signal. No sticker, QR code or hidden physical object is required.",
       teaserLine: "[ SIGNAL LOCKED ]",
       teaserTrack: "Unknown transmission · 001",
     },
     stats: {
-      value: "50 PLN",
-      valueLabel: "off merch per credit",
+      value: "1 ITEM",
+      valueLabel: "free with each reward code",
       cities: "12",
       citiesLabel: "pilot city signals",
       tracking: "0×",
@@ -30,7 +30,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     },
     map: {
       eyebrow: "Area // Poland",
-      heading: "Track the next box",
+      heading: "Track the next signal",
       body:
         "The map reveals a city and an approximate zone. The final metres belong to the street, the clue and your instincts.",
       mapLabel: "Stylised map of Poland with VIRYA drop cities",
@@ -52,27 +52,30 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       markerAria: (city: string) => `${city} VIRYA Area marker`,
     },
     claim: {
-      eyebrow: "Physical signal detected",
-      heading: "You found the box",
+      eyebrow: "Live signal detected",
+      heading: "Lock the zone",
       body:
-        "The code is loaded. We now need one fresh location reading to confirm that you are standing inside the drop zone.",
+        "When you believe you reached the place from the clue, start signal lock. The phone gathers several fresh GPS readings for a few seconds and the server verifies that you stayed inside the live zone.",
       privacy:
-        "The server checks distance and accuracy, then discards the raw coordinates. No route or background location is stored.",
-      button: "Confirm location & unlock",
-      working: "Checking the signal…",
-      success: "Signal decoded. The collectible is now yours.",
+        "Raw coordinates and individual readings are discarded after verification. We store only the unlocked drop, approximate verification distance and time. No route or background location is stored.",
+      button: "Lock signal & unlock",
+      working: "Starting secure signal lock…",
+      collecting: "Hold position outdoors — sample {current}/{total}",
+      success:
+        "Signal decoded. The collectible and 1 VIRYA Credit are now yours.",
       already: "You already collected this drop.",
-      missing:
-        "This scan is incomplete. Scan the original QR or NFC tag on the physical box.",
-      genericError: "The signal could not be verified. Try again at the box.",
+      missing: "Select a live city signal first.",
+      genericError:
+        "The signal could not be verified. Stay in the zone and try again outdoors.",
       inactive: "This signal is not live right now.",
-      invalidCode: "This is not a valid physical-box code.",
+      invalidCode: "The location challenge expired. Start signal lock again.",
       accuracy: "Location is too imprecise. Move outdoors and try again.",
+      samples: "Not enough fresh GPS readings. Keep the page open and retry.",
       outside: "You are outside the active drop zone.",
       full: "This drop has reached its claim limit.",
       rateLimited: "Too many attempts. Wait a few minutes and try again.",
       accountRequired:
-        "Sign in to your player profile before unlocking this physical drop.",
+        "Sign in to your player profile before locking a live signal.",
       accountCta: "Open player profile",
       accountChecking: "Checking your player profile…",
     },
@@ -87,7 +90,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       requestButton: "Send magic link",
       requestWorking: "Sending secure link…",
       requestSent:
-        "Check your inbox. Open the link on this device, then scan the physical box again.",
+        "Check your inbox and open the link on this device. Then return to the live zone and lock the signal.",
       requestError: "The sign-in link could not be sent. Try again.",
       verifying: "Verifying your secure sign-in…",
       verifySuccess: "Player profile connected.",
@@ -103,13 +106,13 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       unavailable:
         "Profile status is temporarily unavailable. Your existing collection is safe.",
       claimNote:
-        "Claims require a signed-in profile. Sign in first, then scan the original QR or NFC tag again.",
+        "A signed-in profile is required to claim a drop and prevents the same player from farming the reward on multiple browser cookies.",
     },
     collection: {
       eyebrow: "Your collection",
       heading: "Echoes recovered",
       body:
-        "Each valid box reveals one line from our songs. The line stays in the VIRYA Area wallet linked to this browser.",
+        "Each verified zone reveals one line from our songs. Your collection and Credits stay with the signed-in VIRYA Area profile.",
       progress: "Echoes recovered",
       complete: "Full signal recovered",
       completeBody:
@@ -123,28 +126,32 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       artworkPending: "Collectible artwork is syncing",
       wallet: "VIRYA balance",
       walletUnit: "Credits",
-      walletValue: "merch value",
+      walletValue: "free reward codes available",
       loading: "Loading wallet…",
       browserNote:
-        "Your signed-in player profile keeps the collection portable. Keep legacy browser data until any migration notice disappears.",
-      voucherHeading: "Turn Credits into a merch code",
+        "One Credit creates one single-use reward code. The code makes one item in the cart free and removes InPost delivery cost.",
+      voucherHeading: "Turn 1 Credit into a winning code",
       voucherBody:
-        "Choose 1–5 Credits. You will receive one single-use Stripe code. Minimum order equals the discount plus 50 PLN.",
-      voucherButton: "Create merch code",
-      voucherWorking: "Creating a one-time code…",
+        "Create a single-use VIRYA Area code. Add any available merch item to the cart; the highest-priced single unit becomes free and InPost delivery is free too.",
+      voucherButton: "Create winning code",
+      voucherWorking: "Creating a one-time reward code…",
       voucherEmpty: "Find a live drop to earn your first Credit.",
-      voucherSuccess: "Your code is ready. Enter it at Stripe Checkout.",
-      voucherError: "The merch code could not be created. Your balance is safe.",
-      codes: "Your merch codes",
+      voucherSuccess: "Your winning code is ready. Copy it and use it in the merch cart.",
+      voucherError: "The reward code could not be created. Your Credit is safe.",
+      codes: "Your winning codes",
+      codeBenefit: "1 free item + free InPost delivery",
+      codeIssued: "Ready",
+      codeReserved: "Checkout open",
+      codeRedeemed: "Used",
       copyCode: "Copy code",
       copied: "Code copied",
-      shop: "Go to the merch store",
+      shop: "Choose your free merch",
     },
     community: {
       eyebrow: "Community signal",
       heading: "Poland unlocks this together",
       body:
-        "Every verified physical find moves the shared signal. Community progress contains counts only — never player identities or locations.",
+        "Every verified zone find moves the shared signal. Community progress contains counts only — never player identities or locations.",
       progress: "Verified community finds",
       loading: "Reading the community signal…",
       unavailable: "Community progress will appear when the signal responds.",
@@ -156,21 +163,21 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       items: [
         {
           number: "01",
-          title: "Track the box",
+          title: "Follow the clue",
           body:
-            "Watch the map and socials. We reveal the city, time window and a clue — never a boring pin straight to the prize.",
+            "Watch the map and socials. We reveal the city, live window and a clue — not the exact prize coordinates.",
         },
         {
           number: "02",
-          title: "Scan on location",
+          title: "Lock the signal",
           body:
-            "The phone's normal camera opens a protected QR link. NFC can open the same link. No camera permission on the website.",
+            "Reach the place, open VIRYA Area and hold position while the phone gathers several fresh GPS readings. No QR or sticker is required.",
         },
         {
           number: "03",
-          title: "Unlock & use",
+          title: "Unlock & redeem",
           body:
-            "A valid scan unlocks the lyric collectible and 1 VIRYA Credit, worth 50 PLN off in the merch store.",
+            "A verified find unlocks a lyric collectible and 1 Credit. Convert it into a code for one free merch item and free InPost delivery.",
         },
       ],
     },
@@ -178,27 +185,27 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       eyebrow: "Social signal",
       heading: "Leave a clue, not a spoiler.",
       body:
-        "Share the city and your unlocked line. Exact coordinates and scan data never enter the post.",
+        "Share the city and your unlocked line. Exact coordinates and verification readings never enter the post.",
       button: "Share VIRYA Area",
       copied: "Share text copied",
       generic:
-        "VIRYA Area is waking up across Poland. Find a box, unlock a lyric and earn merch credit. Who catches the next signal? #ViryaArea #StayMad",
+        "VIRYA Area is waking up across Poland. Reach a signal, unlock a lyric and win free merch. Who catches the next one? #ViryaArea #StayMad",
       claimed: (city: string, line: string) =>
-        `I found a VIRYA Area drop in ${city} and unlocked “${line}” Who catches the next signal? #ViryaArea #StayMad`,
+        `I locked a VIRYA Area signal in ${city} and unlocked “${line}” Who catches the next one? #ViryaArea #StayMad`,
     },
     rules: {
       eyebrow: "Pilot rules",
       heading: "Real hunt. Clear rules.",
       items: [
-        "One collectible and 1 Credit per wallet per drop.",
-        "1 VIRYA Credit = 50 PLN off. Credits are free, non-transferable and cannot be exchanged for cash.",
-        "A generated merch code is single-use, expires after 12 months and requires an order at least 50 PLN higher than its discount.",
-        "Location is requested only after you choose to check a signal or claim a physical box. No background tracking.",
+        "One collectible and 1 Credit per player profile per drop.",
+        "1 Credit creates one single-use code for one free available merch item and free InPost delivery in the same order.",
+        "When several units are in the cart, the highest-priced single unit is free. Other units remain payable. The code expires after 12 months.",
+        "Location is requested only after you start signal lock. We collect several short-lived readings and never track in the background.",
         "Stay on public, safe ground. Never enter private property, tracks, roads, rooftops or construction sites.",
-        "Pilot collectibles and Credits are a loyalty feature, not cryptocurrency, an investment or a financial product.",
+        "Collectibles and Credits are a loyalty feature, not cryptocurrency, an investment or a financial product.",
       ],
       chain:
-        "Optional on-chain minting can come later for the collectible artwork. The merch Credit will remain off-chain and no precise location will ever be written to a blockchain.",
+        "Optional on-chain minting can come later for collectible artwork. The merch reward stays off-chain and no precise location is written to a blockchain.",
       privacy: "Read the privacy policy",
       terms: "Read the store terms",
     },
@@ -206,7 +213,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       eyebrow: "New // VIRYA Area",
       heading: "The next release might be hidden in your city.",
       body:
-        "Find a physical VIRYA box, decode a line from our lyrics and collect a Credit worth 50 PLN in the merch store.",
+        "Reach a live signal, decode a line from our lyrics and win one free merch item with free delivery.",
       cta: "Enter the Area",
       signal: "Pilot map online",
     },
@@ -215,24 +222,24 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     meta: {
       title: "VIRYA Area — Znajdź sygnał. Odblokuj wers.",
       description:
-        "Geolokalizacyjny treasure hunt VIRYA w 12 miastach Polski. Znajduj ukryte dropy, odblokowuj kolekcjonerskie wersy i zdobywaj kredyty do merchu.",
+        "Gra geolokalizacyjna VIRYA w 12 miastach Polski. Docieraj do aktywnych stref, odblokowuj wersy i wygrywaj darmowy merch z darmową dostawą.",
     },
     hero: {
       eyebrow: "Gra terenowa · Polska · Pilot",
       title: "Polska jest mapą. Nasze słowa są lootem.",
       body:
-        "Rozstawiamy boxy VIRYA w miastach całej Polski. Dotrzyj do strefy, znajdź fizyczny znacznik, zeskanuj QR lub NFC i odblokuj kolekcjonerski wers oraz 1 VIRYA Credit.",
+        "Idź za wskazówkami, dotrzyj do aktywnej strefy VIRYA i zablokuj sygnał telefonem. Potwierdzone znalezisko odblokowuje kolekcjonerski wers oraz 1 VIRYA Credit.",
       mapCta: "Otwórz mapę pilota",
       howCta: "Jak to działa",
       pilot: "Sygnał pilota",
       pilotBody:
-        "Infrastruktura jest uzbrojona. Miasto staje się dostępne dopiero, gdy opublikujemy aktywny drop.",
+        "Miasto można odebrać tylko wtedy, gdy opublikujemy aktywny sygnał. Nie potrzeba naklejki, QR-u ani ukrytego fizycznego przedmiotu.",
       teaserLine: "[ SYGNAŁ ZABLOKOWANY ]",
       teaserTrack: "Nieznana transmisja · 001",
     },
     stats: {
-      value: "50 zł",
-      valueLabel: "rabatu na merch za Credit",
+      value: "1 ITEM",
+      valueLabel: "gratis za każdy kod",
       cities: "12",
       citiesLabel: "miast w sygnale pilota",
       tracking: "0×",
@@ -240,7 +247,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     },
     map: {
       eyebrow: "Area // Polska",
-      heading: "Namierz następny box",
+      heading: "Namierz następny sygnał",
       body:
         "Mapa ujawnia miasto i przybliżoną strefę. Ostatnie metry należą do ulicy, wskazówki i Twojego instynktu.",
       mapLabel: "Stylizowana mapa Polski z miastami dropów VIRYA",
@@ -262,30 +269,32 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       markerAria: (city: string) => `Znacznik VIRYA Area: ${city}`,
     },
     claim: {
-      eyebrow: "Wykryto fizyczny sygnał",
-      heading: "Masz box",
+      eyebrow: "Wykryto aktywny sygnał",
+      heading: "Zablokuj strefę",
       body:
-        "Kod jest załadowany. Potrzebujemy teraz jednego świeżego odczytu lokalizacji, żeby potwierdzić, że stoisz w strefie dropu.",
+        "Gdy uznasz, że dotarłeś do miejsca ze wskazówki, uruchom blokadę sygnału. Telefon przez kilka sekund zbierze kilka świeżych odczytów GPS, a serwer sprawdzi, czy pozostałeś w aktywnej strefie.",
       privacy:
-        "Serwer sprawdza odległość i dokładność, a potem odrzuca surowe koordynaty. Nie zapisujemy trasy ani lokalizacji w tle.",
-      button: "Potwierdź lokalizację i odblokuj",
-      working: "Sprawdzam sygnał…",
-      success: "Sygnał odkodowany. Karta jest Twoja.",
+        "Po weryfikacji odrzucamy surowe koordynaty i pojedyncze pomiary. Zapisujemy tylko odblokowany drop, orientacyjny dystans weryfikacji i czas. Nie zapisujemy trasy ani lokalizacji w tle.",
+      button: "Zablokuj sygnał i odblokuj",
+      working: "Uruchamiam bezpieczną blokadę sygnału…",
+      collecting: "Pozostań na miejscu pod gołym niebem — pomiar {current}/{total}",
+      success:
+        "Sygnał odkodowany. Karta i 1 VIRYA Credit są Twoje.",
       already: "Ten drop jest już w Twojej kolekcji.",
-      missing:
-        "Skan jest niepełny. Zeskanuj oryginalny QR lub NFC na fizycznym boxie.",
+      missing: "Najpierw wybierz aktywny sygnał miasta.",
       genericError:
-        "Nie udało się potwierdzić sygnału. Spróbuj ponownie przy boxie.",
+        "Nie udało się potwierdzić sygnału. Pozostań w strefie i spróbuj ponownie na otwartej przestrzeni.",
       inactive: "Ten sygnał nie jest teraz aktywny.",
-      invalidCode: "To nie jest prawidłowy kod z fizycznego boxu.",
+      invalidCode: "Wyzwanie lokalizacyjne wygasło. Uruchom blokadę sygnału ponownie.",
       accuracy:
         "Lokalizacja jest zbyt niedokładna. Wyjdź na otwartą przestrzeń i spróbuj ponownie.",
+      samples:
+        "Za mało świeżych pomiarów GPS. Zostaw stronę otwartą i spróbuj ponownie.",
       outside: "Jesteś poza aktywną strefą dropu.",
       full: "Limit odbiorów tego dropu został wyczerpany.",
-      rateLimited:
-        "Za dużo prób. Odczekaj kilka minut i spróbuj ponownie.",
+      rateLimited: "Za dużo prób. Odczekaj kilka minut i spróbuj ponownie.",
       accountRequired:
-        "Zaloguj się do profilu gracza, zanim odblokujesz ten fizyczny drop.",
+        "Zaloguj się do profilu gracza, zanim zablokujesz aktywny sygnał.",
       accountCta: "Otwórz profil gracza",
       accountChecking: "Sprawdzam profil gracza…",
     },
@@ -300,7 +309,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       requestButton: "Wyślij magic link",
       requestWorking: "Wysyłam bezpieczny link…",
       requestSent:
-        "Sprawdź skrzynkę. Otwórz link na tym urządzeniu, a potem ponownie zeskanuj fizyczny box.",
+        "Sprawdź skrzynkę i otwórz link na tym urządzeniu. Potem wróć do aktywnej strefy i zablokuj sygnał.",
       requestError: "Nie udało się wysłać linku logowania. Spróbuj ponownie.",
       verifying: "Potwierdzam bezpieczne logowanie…",
       verifySuccess: "Profil gracza połączony.",
@@ -316,13 +325,13 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       unavailable:
         "Status profilu jest chwilowo niedostępny. Twoja kolekcja jest bezpieczna.",
       claimNote:
-        "Odbiór wymaga zalogowanego profilu. Najpierw się zaloguj, a potem ponownie zeskanuj oryginalny QR lub NFC.",
+        "Odbiór wymaga zalogowanego profilu. Dzięki temu ten sam gracz nie może farmić nagrody przez czyszczenie cookies.",
     },
     collection: {
       eyebrow: "Twoja kolekcja",
       heading: "Odzyskane Echoes",
       body:
-        "Każdy prawidłowy box odsłania jeden wers z naszych numerów. Karta zostaje w portfelu VIRYA Area powiązanym z tą przeglądarką.",
+        "Każda potwierdzona strefa odsłania jeden wers z naszych numerów. Kolekcja i Credits zostają na zalogowanym profilu VIRYA Area.",
       progress: "Odzyskane Echoes",
       complete: "Pełny sygnał odzyskany",
       completeBody:
@@ -336,28 +345,32 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       artworkPending: "Grafika kolekcjonerska jest synchronizowana",
       wallet: "Saldo VIRYA",
       walletUnit: "Credits",
-      walletValue: "wartość w merchu",
+      walletValue: "dostępne kody nagród",
       loading: "Ładuję portfel…",
       browserNote:
-        "Zalogowany profil gracza przenosi kolekcję między urządzeniami. Zachowaj starsze dane przeglądarki, dopóki komunikat migracji nie zniknie.",
-      voucherHeading: "Zamień Credits na kod do merchu",
+        "Jeden Credit tworzy jeden jednorazowy kod. Kod zeruje cenę jednego produktu w koszyku i koszt dostawy InPost.",
+      voucherHeading: "Zamień 1 Credit na wygrany kod",
       voucherBody:
-        "Wybierz 1–5 Credits. Dostaniesz jeden jednorazowy kod Stripe. Minimalny koszyk to wartość rabatu plus 50 zł.",
-      voucherButton: "Utwórz kod do merchu",
-      voucherWorking: "Tworzę jednorazowy kod…",
+        "Utwórz jednorazowy kod VIRYA Area. Dodaj do koszyka dowolny dostępny merch; najdroższa pojedyncza sztuka będzie gratis, a dostawa InPost również będzie darmowa.",
+      voucherButton: "Utwórz wygrany kod",
+      voucherWorking: "Tworzę jednorazowy kod nagrody…",
       voucherEmpty: "Znajdź aktywny drop, żeby zdobyć pierwszy Credit.",
-      voucherSuccess: "Kod jest gotowy. Wpisz go w Stripe Checkout.",
-      voucherError: "Nie udało się utworzyć kodu. Twoje saldo jest bezpieczne.",
-      codes: "Twoje kody do merchu",
+      voucherSuccess: "Wygrany kod jest gotowy. Skopiuj go i użyj w koszyku merchu.",
+      voucherError: "Nie udało się utworzyć kodu nagrody. Twój Credit jest bezpieczny.",
+      codes: "Twoje wygrane kody",
+      codeBenefit: "1 produkt gratis + darmowa dostawa InPost",
+      codeIssued: "Gotowy",
+      codeReserved: "Checkout otwarty",
+      codeRedeemed: "Wykorzystany",
       copyCode: "Kopiuj kod",
       copied: "Kod skopiowany",
-      shop: "Przejdź do sklepu",
+      shop: "Wybierz darmowy merch",
     },
     community: {
       eyebrow: "Sygnał społeczności",
       heading: "Polska odblokowuje to razem",
       body:
-        "Każde potwierdzone fizyczne znalezisko wzmacnia wspólny sygnał. Postęp społeczności zawiera wyłącznie liczby — nigdy dane graczy ani lokalizacje.",
+        "Każde potwierdzone znalezisko strefy wzmacnia wspólny sygnał. Postęp społeczności zawiera wyłącznie liczby — nigdy dane graczy ani lokalizacje.",
       progress: "Potwierdzone znaleziska społeczności",
       loading: "Odczytuję sygnał społeczności…",
       unavailable: "Postęp społeczności pojawi się, gdy sygnał odpowie.",
@@ -369,21 +382,21 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       items: [
         {
           number: "01",
-          title: "Namierz box",
+          title: "Idź za wskazówką",
           body:
-            "Śledź mapę i sociale. Ujawniamy miasto, okno czasowe i wskazówkę — nigdy nudną pinezkę prowadzącą prosto do nagrody.",
+            "Śledź mapę i sociale. Ujawniamy miasto, czas aktywności i trop — nie dokładne koordynaty nagrody.",
         },
         {
           number: "02",
-          title: "Zeskanuj na miejscu",
+          title: "Zablokuj sygnał",
           body:
-            "Zwykły aparat telefonu otwiera chroniony link QR. NFC może otworzyć ten sam link. Strona nie potrzebuje dostępu do kamery.",
+            "Dotrzyj na miejsce, otwórz VIRYA Area i pozostań chwilę w strefie, gdy telefon zbiera kilka świeżych pomiarów GPS. QR ani naklejka nie są potrzebne.",
         },
         {
           number: "03",
-          title: "Odblokuj i użyj",
+          title: "Odblokuj i odbierz",
           body:
-            "Prawidłowy skan odsłania kolekcjonerski wers i daje 1 VIRYA Credit wart 50 zł rabatu w sklepie.",
+            "Potwierdzone znalezisko odsłania wers i daje 1 Credit. Zamień go na kod na jeden darmowy produkt oraz darmową dostawę InPost.",
         },
       ],
     },
@@ -391,27 +404,27 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       eyebrow: "Sygnał społeczności",
       heading: "Zostaw trop, nie spoiler.",
       body:
-        "Udostępnij miasto i odblokowany wers. Dokładne koordynaty i dane skanu nigdy nie trafiają do posta.",
+        "Udostępnij miasto i odblokowany wers. Dokładne koordynaty oraz pomiary weryfikacyjne nigdy nie trafiają do posta.",
       button: "Udostępnij VIRYA Area",
       copied: "Tekst do udostępnienia skopiowany",
       generic:
-        "VIRYA Area budzi się w całej Polsce. Znajdź box, odblokuj wers i zgarnij Credit do merchu. Kto łapie następny sygnał? #ViryaArea #StayMad",
+        "VIRYA Area budzi się w całej Polsce. Dotrzyj do sygnału, odblokuj wers i wygraj darmowy merch. Kto łapie następny? #ViryaArea #StayMad",
       claimed: (city: string, line: string) =>
-        `Znalazłem drop VIRYA Area w ${city} i odblokowałem „${line}” Kto łapie następny sygnał? #ViryaArea #StayMad`,
+        `Zablokowałem sygnał VIRYA Area w ${city} i odblokowałem „${line}” Kto łapie następny? #ViryaArea #StayMad`,
     },
     rules: {
       eyebrow: "Zasady pilota",
       heading: "Prawdziwy hunt. Jasne reguły.",
       items: [
-        "Jedna karta i 1 Credit na portfel za każdy drop.",
-        "1 VIRYA Credit = 50 zł rabatu. Credits są darmowe, niezbywalne i niewymienialne na gotówkę.",
-        "Wygenerowany kod jest jednorazowy, wygasa po 12 miesiącach i wymaga koszyka co najmniej o 50 zł wyższego od rabatu.",
-        "O lokalizację pytamy tylko, gdy sprawdzasz sygnał lub odbierasz fizyczny box. Zero śledzenia w tle.",
+        "Jedna karta i 1 Credit na profil gracza za każdy drop.",
+        "1 Credit tworzy jeden jednorazowy kod na jeden dowolny dostępny produkt gratis i darmową dostawę InPost w tym samym zamówieniu.",
+        "Przy kilku sztukach w koszyku gratis jest najdroższa pojedyncza sztuka. Pozostałe są płatne. Kod wygasa po 12 miesiącach.",
+        "O lokalizację pytamy tylko po uruchomieniu blokady sygnału. Zbieramy kilka krótkotrwałych pomiarów i nie śledzimy w tle.",
         "Szukaj wyłącznie w bezpiecznych, publicznych miejscach. Nigdy nie wchodź na teren prywatny, tory, jezdnię, dach ani budowę.",
-        "Karty i Credits w pilocie są funkcją lojalnościową, a nie kryptowalutą, inwestycją ani produktem finansowym.",
+        "Karty i Credits są funkcją lojalnościową, a nie kryptowalutą, inwestycją ani produktem finansowym.",
       ],
       chain:
-        "Opcjonalny mint on-chain może później objąć grafikę karty. Credit do merchu zostanie off-chain, a dokładna lokalizacja nigdy nie trafi do blockchaina.",
+        "Opcjonalny mint on-chain może później objąć grafikę karty. Nagroda merchowa pozostaje off-chain, a dokładna lokalizacja nigdy nie trafi do blockchaina.",
       privacy: "Przeczytaj politykę prywatności",
       terms: "Przeczytaj regulamin sklepu",
     },
@@ -419,7 +432,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       eyebrow: "Nowość // VIRYA Area",
       heading: "Następny release może być ukryty w Twoim mieście.",
       body:
-        "Znajdź fizyczny box VIRYA, odkoduj wers z naszych tekstów i zbierz Credit wart 50 zł w sklepie.",
+        "Dotrzyj do aktywnego sygnału, odkoduj wers z naszych tekstów i wygraj jeden produkt gratis z darmową dostawą.",
       cta: "Wejdź do Area",
       signal: "Mapa pilota online",
     },

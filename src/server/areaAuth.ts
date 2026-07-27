@@ -201,7 +201,9 @@ export const verifyAreaMagicToken = (token: string): MagicPayload | null => {
     (payload.lang !== "en" && payload.lang !== "pl") ||
     typeof payload.nonce !== "string" ||
     !/^[A-Za-z0-9_-]{32}$/.test(payload.nonce) ||
+    typeof payload.iat !== "number" ||
     !Number.isInteger(payload.iat) ||
+    typeof payload.exp !== "number" ||
     !Number.isInteger(payload.exp) ||
     payload.iat > now + 60 ||
     payload.exp <= now ||

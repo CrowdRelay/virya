@@ -14,8 +14,29 @@
 }
 
 @layer base {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
   body {
     background-color: #09090b;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
+  }
+
+  #main-nav {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    padding-left: max(0.75rem, env(safe-area-inset-left));
   }
 
   a:focus-visible,

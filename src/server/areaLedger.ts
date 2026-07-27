@@ -12,15 +12,18 @@ export type AreaVoucher = {
   requestId: string
   code: string
   tokens: number
-  valuePln: number
-  minimumOrderPln: number
+  benefit: "free-item-and-shipping"
   createdAt: string
   expiresAt: number
-  status: "pending" | "issued" | "failed"
+  status: "pending" | "issued" | "reserved" | "redeemed" | "failed"
   processingId?: string
   processingExpiresAt?: number
-  couponId?: string
-  promotionCodeId?: string
+  reservationId?: string
+  reservedUntil?: number
+  checkoutSessionId?: string
+  freeProductId?: string
+  freeProductLabel?: string
+  redeemedAt?: string
 }
 
 export type AreaWallet = {
@@ -82,7 +85,8 @@ const normalizeWallet = (input: unknown, id: string): AreaWallet => {
         !!voucher &&
         typeof voucher.requestId === "string" &&
         typeof voucher.code === "string" &&
-        ["pending", "issued", "failed"].includes(voucher.status)
+        voucher.benefit === "free-item-and-shipping" &&
+        ["pending", "issued", "reserved", "redeemed", "failed"].includes(voucher.status)
       ).slice(-100)
     : []
 
@@ -202,8 +206,14 @@ export const reserveAreaDropClaim = async (
             .slice(0, maxClaims)
         : []
 
-      if (claims.includes(claimKey)) {
-        return { reserved: true, alreadyReserved: true, remaining: Math.max(0, maxClaims - claims.length) }
+      const existingIndex = claims.indexOf(claimKey)
+      if (existingIndex >= 0) {
+        return {
+          reserved: true,
+          alreadyReserved: true,
+          remaining: Math.max(0, maxClaims - claims.length),
+          editionNumber: existingIndex + 1,
+        }
       }
       if (claims.length >= maxClaims) {
         return { reserved: false, alreadyReserved: false, remaining: 0 }
@@ -226,14 +236,21 @@ export const reserveAreaDropClaim = async (
           reserved: true,
           alreadyReserved: false,
           remaining: Math.max(0, maxClaims - claims.length - 1),
+          editionNumber: claims.length + 1,
         }
       }
     } catch (error) {
       if (!import.meta.env.DEV) throw error
 
       const claims = memoryDropClaims.get(dropId) ?? []
-      if (claims.includes(claimKey)) {
-        return { reserved: true, alreadyReserved: true, remaining: Math.max(0, maxClaims - claims.length) }
+      const existingIndex = claims.indexOf(claimKey)
+      if (existingIndex >= 0) {
+        return {
+          reserved: true,
+          alreadyReserved: true,
+          remaining: Math.max(0, maxClaims - claims.length),
+          editionNumber: existingIndex + 1,
+        }
       }
       if (claims.length >= maxClaims) {
         return { reserved: false, alreadyReserved: false, remaining: 0 }
@@ -243,6 +260,7 @@ export const reserveAreaDropClaim = async (
         reserved: true,
         alreadyReserved: false,
         remaining: Math.max(0, maxClaims - claims.length - 1),
+        editionNumber: claims.length + 1,
       }
     }
   }

@@ -32,11 +32,13 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     0,
     Number(session.total_details?.amount_discount || 0) / 100,
   )
+  const isShippingLine = li =>
+    String(li.description || "").startsWith("InPost Paczkomat delivery")
   const paidGoodsGross = (lineItems || [])
-    .filter(li => li.description !== "InPost Paczkomat delivery")
+    .filter(li => !isShippingLine(li))
     .reduce((sum, li) => sum + Number(li.amount_total || 0) / 100, 0)
   const paidShipping = (lineItems || [])
-    .filter(li => li.description === "InPost Paczkomat delivery")
+    .filter(isShippingLine)
     .reduce((sum, li) => sum + Number(li.amount_total || 0) / 100, 0)
   // Line item totals are Stripe's post-discount source of truth. Metadata is a
   // fallback for older sessions that do not expose detailed totals.
@@ -45,6 +47,10 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     lineItems?.length ? paidGoodsGross : goodsGross - discount,
   )
   const chargedShipping = lineItems?.length ? paidShipping : shipping
+  const areaRewardDiscount =
+    Number.parseFloat(meta.area_reward_discount_pln || "0") || 0
+  const areaRewardShipping =
+    Number.parseFloat(meta.area_reward_shipping_pln || "0") || 0
   const { net, vat } = vatBreakdown(discountedGoodsGross)
   const vatPct = Math.round(VAT_RATE * 100)
   const f = n => n.toFixed(2)
@@ -61,8 +67,14 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     `  Goods net:   ${f(net)} ${currency}`,
     `  VAT (${vatPct}%):   ${f(vat)} ${currency}`,
     `  Goods gross: ${f(discountedGoodsGross)} ${currency}`,
-    ...(discount > 0 ? [`  Discount:    -${f(discount)} ${currency}`] : []),
+    ...(discount > 0 ? [`  Stripe discount: -${f(discount)} ${currency}`] : []),
+    ...(areaRewardDiscount > 0
+      ? [`  Area free item: -${f(areaRewardDiscount)} ${currency}`]
+      : []),
     `  Delivery:    ${f(chargedShipping)} ${currency} (VAT-exempt)`,
+    ...(areaRewardShipping > 0
+      ? [`  Area free delivery: -${f(areaRewardShipping)} ${currency}`]
+      : []),
     `  Grand total: ${total} ${currency}`,
   ]
 
@@ -87,6 +99,14 @@ export const sendOrderEmail = async ({ session, lineItems }) => {
     "",
     "ITEMS",
     itemRows || `  ${meta.order_summary || "—"}`,
+    ...(meta.area_reward === "free-item-and-shipping"
+      ? [
+          "",
+          "VIRYA AREA REWARD",
+          `  Free item: ${meta.area_reward_product_label || "—"}`,
+          "  Delivery: free",
+        ]
+      : []),
     "",
     meta.free_stickers === "yes" ? "  + Free stickers included" : "",
     "",

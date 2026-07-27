@@ -54,7 +54,6 @@ const COLLECTIBLES: Record<string, AreaCollectible> = {
 }
 
 type LiveDropInput = {
-  secret?: unknown
   lat?: unknown
   lng?: unknown
   radiusMeters?: unknown
@@ -65,7 +64,6 @@ type LiveDropInput = {
 
 export type LiveDrop = {
   id: string
-  secret: string
   lat: number
   lng: number
   radiusMeters: number
@@ -137,7 +135,6 @@ const parseLiveDrops = (): LiveDrop[] => {
     return Object.entries(input).flatMap(([id, value]) => {
       if (!getAreaDrop(id) || !value || typeof value !== "object") return []
 
-      const secret = typeof value.secret === "string" ? value.secret : ""
       const lat = Number(value.lat)
       const lng = Number(value.lng)
       const radius = Number(value.radiusMeters ?? 120)
@@ -146,7 +143,6 @@ const parseLiveDrops = (): LiveDrop[] => {
       const endsAt = parseDate(value.endsAt)
 
       if (
-        secret.length < 24 ||
         !Number.isFinite(lat) ||
         lat < -90 ||
         lat > 90 ||
@@ -168,7 +164,6 @@ const parseLiveDrops = (): LiveDrop[] => {
 
       return [{
         id,
-        secret,
         lat,
         lng,
         radiusMeters: Math.min(500, Math.max(25, Math.round(radius))),
@@ -192,7 +187,7 @@ export const getLiveDrop = (id: string) =>
 
 export const getPublicLiveDrops = () =>
   parseLiveDrops()
-    .filter((drop) => isActive(drop))
+    .filter((drop) => isActive(drop) && Boolean(COLLECTIBLES[drop.id]))
     .map((drop) => ({
       id: drop.id,
       // A roughly 100 m zone is enough for the hunt; exact verification stays
