@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from "node:fs"
 import { resolve } from "node:path"
+import { BUNDLES, isAreaRewardEligible } from "../src/data/products.js"
 
 const root = process.cwd()
 const read = path => readFileSync(resolve(root, path), "utf8")
@@ -14,6 +15,11 @@ const wallet = read("src/pages/api/area/wallet.ts")
 const claim = read("src/pages/api/area/claim.ts")
 const experience = read("src/components/AreaExperience.astro")
 const publicDrops = read("src/data/area.ts")
+
+assert(
+  BUNDLES.length > 0 && BUNDLES.every(isAreaRewardEligible),
+  "Every merch bundle must count as one complete AREA free item.",
+)
 
 assert(
   liveConfig.includes("AREA_LIVE_DROPS_JSON"),

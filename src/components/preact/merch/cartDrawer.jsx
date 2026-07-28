@@ -3,6 +3,7 @@ import { useCart, lineKey } from "./cartContext"
 import { useMerchImages } from "./useMerchImages"
 import { useI18n } from "../../../i18n/I18nContext"
 import InpostGeowidget from "./inpostGeowidget"
+import { isAreaRewardEligible } from "../../../data/products"
 
 const inputClass =
   "bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-amber-400/60 transition-colors"
@@ -66,7 +67,14 @@ const CartDrawer = () => {
   const previousCartSignature = useRef(null)
 
   const rewardEntry = rewardApplied && lines.length
-    ? lines.reduce((best, line) => !best || line.unitPrice > best.unitPrice ? line : best, null)
+    ? lines.reduce(
+        (best, line) =>
+          isAreaRewardEligible(line.product) &&
+          (!best || line.unitPrice > best.unitPrice)
+            ? line
+            : best,
+        null,
+      )
     : null
   const rewardItemDiscount = rewardEntry?.unitPrice || 0
   const rewardShippingDiscount = rewardApplied ? shipping : 0

@@ -186,6 +186,11 @@ export const getProduct = id => ALL_PRODUCTS.find(p => p.id === id)
 
 export const isBundle = product => !!product && product.bundle === true
 
+// AREA rewards cover one complete sellable cart unit. Bundles are units too;
+// set areaRewardEligible: false only for a future explicitly excluded product.
+export const isAreaRewardEligible = product =>
+  !!product && product.areaRewardEligible !== false
+
 export const discountRate = product =>
   isBundle(product) ? BUNDLE_DISCOUNT_RATE : DISCOUNT_RATE
 
