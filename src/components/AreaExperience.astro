@@ -116,6 +116,14 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               {copy.hero.howCta}
             </a>
           </div>
+          <ol class="mt-7 grid max-w-2xl grid-cols-1 gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3" aria-label={copy.steps.heading}>
+            {copy.steps.items.map((item: any) => (
+              <li class="flex items-center gap-3 bg-zinc-950 px-4 py-3">
+                <span class="font-mono text-[10px] text-amber-400">{item.number}</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-zinc-200">{item.title}</span>
+              </li>
+            ))}
+          </ol>
           <div class="mt-8 flex min-w-0 max-w-2xl items-start gap-3 border-l-2 border-amber-400 bg-zinc-900/50 p-4 sm:mt-10">
             <span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_14px_rgba(251,191,36,.8)]" aria-hidden="true"></span>
             <p class="text-xs leading-relaxed text-zinc-400 text-justify">

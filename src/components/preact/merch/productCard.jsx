@@ -35,6 +35,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
   const touchStartY = useRef(0)
   const swiping = useRef(false)
   const dragXRef = useRef(0)
+  const cardRef = useRef(null)
 
   const frontSrc = images[product.front]
   const backSrc = product.back ? images[product.back] : null
@@ -94,8 +95,23 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
 
   useEffect(() => {
     if (!guideOpen && !zoomed && !(playing && !isWide)) return
+    const dialog = cardRef.current?.querySelector('[role="dialog"]')
+    const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
     const onKey = (e) => {
       if (e.key === "Escape") { setGuideOpen(false); setZoomed(false); setSlide(0); setPlaying(false) }
+      if (e.key === "Tab" && dialog) {
+        const items = Array.from(dialog.querySelectorAll(focusableSelector)).filter((item) => item.offsetParent !== null)
+        const first = items[0]
+        const last = items[items.length - 1]
+        if (first && e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (last && !e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
       if (zoomed && zoomSrcs.length > 1) {
         if (e.key === "ArrowRight") setSlide((s) => (s + 1) % zoomSrcs.length)
         if (e.key === "ArrowLeft") setSlide((s) => (s - 1 + zoomSrcs.length) % zoomSrcs.length)
@@ -104,7 +120,12 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
     const prev = document.body.style.overflow
     document.body.style.overflow = "hidden"
     document.addEventListener("keydown", onKey)
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev }
+    requestAnimationFrame(() => dialog?.querySelector(focusableSelector)?.focus())
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      document.body.style.overflow = prev
+      if (returnFocus?.isConnected) returnFocus.focus()
+    }
   }, [guideOpen, zoomed, playing, isWide, zoomSrcs.length])
 
   useEffect(() => {
@@ -142,7 +163,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
     `block w-full h-auto transition-opacity duration-500 ${hidden ? "opacity-0" : "opacity-100"} ${available ? "" : "grayscale"}`
 
   return (
-    <div class={`group flex flex-col bg-zinc-900/40 border border-zinc-800/60 hover:border-amber-400/40 transition-colors duration-300 ${available ? "" : "opacity-60"}`}>
+    <div ref={cardRef} class={`group flex flex-col bg-zinc-900/40 border border-zinc-800/60 hover:border-amber-400/40 transition-colors duration-300 ${available ? "" : "opacity-60"}`}>
       <div
         class="relative overflow-hidden bg-zinc-950"
         onMouseEnter={() => setHovered(true)}
@@ -258,12 +279,12 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
                 const inStock = sizeInStock(product, s)
                 if (!inStock) return (
                   <button key={s} onClick={() => requestSize(s)} title={t("product.restockTitle", s)} aria-label={t("product.restockAria", s)}
-                    class="relative min-w-[2.25rem] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-zinc-800 text-zinc-400 line-through cursor-pointer hover:border-amber-400/40 hover:text-amber-400/80 transition-colors">{s}</button>
+                    class="relative min-h-[44px] min-w-[44px] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-zinc-800 text-zinc-400 line-through cursor-pointer hover:border-amber-400/40 hover:text-amber-400/80 transition-colors">{s}</button>
                 )
                 const low = sizeLowStock(product, s)
                 return (
                   <button key={s} onClick={() => { setSize(size === s ? null : s); setError(false) }} title={low ? t("product.fewLeft", s) : undefined}
-                    class={`relative min-w-[2.25rem] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-colors cursor-pointer ${size === s ? "border-amber-400 bg-amber-400 text-black" : "border-zinc-700 text-zinc-300 hover:border-amber-400/60"}`}>
+                    class={`relative min-h-[44px] min-w-[44px] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-colors cursor-pointer ${size === s ? "border-amber-400 bg-amber-400 text-black" : "border-zinc-700 text-zinc-300 hover:border-amber-400/60"}`}>
                     {s}
                     {low && <span aria-hidden="true" class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />}
                   </button>

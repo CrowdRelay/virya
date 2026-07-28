@@ -48,13 +48,14 @@ const dims = rawDims as Record<string, { w: number; h: number }>
             <p class="text-zinc-400 text-sm leading-relaxed">{t(lang, "gallery.soon")}</p>
           </div>
         ) : (
+          <>
           <div class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 [column-fill:balance]" id="photo-grid">
             {photos.map((photo, i) => {
               const dim = dims[photo.src]
               const blur = (ph as Record<string, string>)[photo.src] || ""
               return (
                 <button
-                  class="photo-btn block w-full group cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                  class={`photo-btn w-full group cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${i >= 12 ? "hidden gallery-extra" : "block"}`}
                   data-index={i}
                   data-src={photo.src}
                   data-alt={photo.alt || t(lang, "gallery.photoAlt", i + 1)}
@@ -75,6 +76,14 @@ const dims = rawDims as Record<string, { w: number; h: number }>
               )
             })}
           </div>
+          {photos.length > 12 && (
+            <div class="mt-8 flex justify-center">
+              <button id="gallery-show-more" type="button" class="inline-flex min-h-[44px] items-center justify-center border border-amber-400/60 px-6 text-xs font-bold uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black">
+                Show all photos
+              </button>
+            </div>
+          )}
+          </>
         )}
 
       </div>
@@ -87,9 +96,11 @@ const dims = rawDims as Record<string, { w: number; h: number }>
         class="fixed inset-0 z-50 bg-black/98 flex items-center justify-center overflow-hidden"
         role="dialog"
         aria-modal="true"
+        aria-label={t(lang, "gallery.heading")}
+        tabindex="-1"
       >
         <div id="modal-blur" class="absolute inset-0 opacity-0 transition-opacity duration-300 bg-cover bg-center bg-no-repeat pointer-events-none" style="filter:blur(20px);transform:scale(1.05)"></div>
-        <button id="modal-close" class="absolute top-4 right-4 text-zinc-400 hover:text-amber-400 transition-colors z-10 text-3xl leading-none" aria-label={t(lang, "gallery.close")}>&times;</button>
+        <button id="modal-close" data-dialog-initial-focus class="absolute top-4 right-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-amber-400 transition-colors z-10 text-3xl leading-none" aria-label={t(lang, "gallery.close")}>&times;</button>
 
         <button id="modal-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.prev")}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
@@ -124,9 +135,13 @@ const dims = rawDims as Record<string, { w: number; h: number }>
 </Layout>
 
 <script>
+  import { createDialogFocus } from "../utils/dialogFocus"
+
   const initGallery = () => {
     const modal = document.getElementById("gallery-modal")
     if (!modal) return
+    if (modal.dataset.initialized === "true") return
+    modal.dataset.initialized = "true"
 
     const modalImg = document.getElementById("modal-img") as HTMLImageElement
     const modalBlur = document.getElementById("modal-blur") as HTMLElement
@@ -138,6 +153,15 @@ const dims = rawDims as Record<string, { w: number; h: number }>
     const nextBtn = document.getElementById("modal-next")
 
     const buttons = Array.from(document.querySelectorAll<HTMLElement>(".photo-btn"))
+    const dialogFocus = createDialogFocus(modal)
+    const showMore = document.getElementById("gallery-show-more")
+    showMore?.addEventListener("click", () => {
+      document.querySelectorAll<HTMLElement>(".gallery-extra").forEach((item) => {
+        item.classList.remove("hidden")
+        item.classList.add("block")
+      })
+      showMore.remove()
+    }, { once: true })
     let current = 0
 
     function openAt(index: number) {
@@ -174,6 +198,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
         doSwap()
         modal!.style.display = "flex"
         document.body.style.overflow = "hidden"
+        dialogFocus.activate(btn)
       }
     }
 
@@ -182,6 +207,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
       if (modalImg) modalImg.style.opacity = "1"
       if (modalBlur) modalBlur.style.opacity = "0"
       document.body.style.overflow = ""
+      dialogFocus.deactivate()
     }
 
     function prev() { openAt((current - 1 + buttons.length) % buttons.length) }
