@@ -60,6 +60,8 @@ const CartDrawer = () => {
   const [isDragging, setIsDragging] = useState(false)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
+  const drawerRef = useRef(null)
+  const returnFocusRef = useRef(null)
   const [invoice, setInvoice] = useState({ name: "", surname: "", email: "", address: "", nip: "", company: "" })
   const [rewardCode, setRewardCode] = useState(() => readSessionValue(REWARD_CODE_KEY))
   const [rewardApplied, setRewardApplied] = useState(false)
@@ -104,6 +106,39 @@ const CartDrawer = () => {
       root.style.removeProperty("--cart-h")
     }
   }, [open])
+
+  useEffect(() => {
+    if (!open || !drawerRef.current) return
+    const drawer = drawerRef.current
+    returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    const close = drawer.querySelector("[data-cart-close]")
+    requestAnimationFrame(() => close?.focus())
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault()
+        setOpen(false)
+        return
+      }
+      if (event.key !== "Tab") return
+      const items = Array.from(drawer.querySelectorAll(focusableSelector)).filter((item) => item.offsetParent !== null)
+      if (!items.length) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    drawer.addEventListener("keydown", onKeyDown)
+    return () => {
+      drawer.removeEventListener("keydown", onKeyDown)
+      if (returnFocusRef.current?.isConnected) returnFocusRef.current.focus()
+    }
+  }, [open, setOpen])
 
   const handleTouchStart = useCallback((e) => {
     touchStartX.current = e.touches[0].clientX
@@ -233,14 +268,18 @@ const CartDrawer = () => {
     <>
       <div class={`fixed inset-0 z-40 bg-black/70 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`} onClick={() => setOpen(false)} aria-hidden="true" />
       <aside
+        ref={drawerRef}
         class={`fixed top-0 right-0 z-40 h-[var(--cart-h,100dvh)] w-full max-w-md bg-zinc-950 border-l border-zinc-800 flex flex-col ${isDragging ? "" : "transition-transform duration-300"} ${open ? "translate-x-0" : "translate-x-full"}`}
         style={dragX > 0 ? { transform: `translateX(${dragX}px)` } : undefined}
         aria-label={t("cart.title")}
+        role="dialog"
+        aria-modal={open ? "true" : undefined}
+        aria-hidden={open ? undefined : "true"}
         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
       >
         <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
           <h2 class="text-sm font-black uppercase tracking-widest text-zinc-100">{t("cart.title")}</h2>
-          <button onClick={() => setOpen(false)} aria-label={t("cart.close")} class="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
+          <button data-cart-close onClick={() => setOpen(false)} aria-label={t("cart.close")} class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
         </div>
 
         <div class="flex-1 overflow-y-auto px-5 py-4">
