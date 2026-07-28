@@ -96,9 +96,12 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     <script is:inline>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch((err) => {
-            console.error('Service worker registration failed:', err)
-          })
+          const register = () => navigator.serviceWorker.register('/sw.js').catch(() => {})
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(register, { timeout: 3000 })
+          } else {
+            setTimeout(register, 1000)
+          }
         })
       }
 

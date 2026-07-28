@@ -11,8 +11,9 @@ const PH_OUT = "src/placeholders.json"
 const SS_OUT = "src/srcsets.json"
 const DIM_OUT = "src/imageDimensions.json"
 const EXTS = new Set([".webp", ".jpg", ".jpeg", ".png", ".avif"])
-const WIDTHS = [400, 800, 1200]
+const WIDTHS = [400, 800, 1200, 1600]
 const MIN_RESPONSIVE = 200
+const CONCURRENCY = Math.max(1, Math.min(4, Number(process.env.IMAGE_JOBS) || 4))
 
 async function* walk(dir) {
   for (const e of await readdir(dir, { withFileTypes: true })) {
@@ -31,10 +32,14 @@ await mkdir(RESP_DIR, { recursive: true })
 const placeholders = {}
 const srcsets = {}
 const dimensions = {}
+const files = []
 
 for await (const file of walk(PUBLIC)) {
   if (!EXTS.has(extname(file).toLowerCase())) continue
+  files.push(file)
+}
 
+async function processImage(file) {
   const key = "/" + relative(PUBLIC, file).split(/[\\/]/).join("/")
 
   try {
@@ -42,12 +47,11 @@ for await (const file of walk(PUBLIC)) {
     const nativeW = meta.width || 0
     dimensions[key] = { w: meta.width || 0, h: meta.height || 0 }
 
-    const buf = await sharp(file)
+    const placeholderTask = sharp(file)
       .resize(24, 24, { fit: "inside" })
       .blur(8)
       .webp({ quality: 40 })
       .toBuffer()
-    placeholders[key] = `data:image/webp;base64,${buf.toString("base64")}`
 
     if (nativeW >= MIN_RESPONSIVE) {
       const rel = relative(PUBLIC, file).split(/[\\/]/).join("/")
@@ -58,13 +62,16 @@ for await (const file of walk(PUBLIC)) {
 
       const urlPrefix = relDir === "." ? `/resp/${base}` : `/resp/${relDir}/${base}`
       const parts = []
+      const variantTasks = []
 
       for (const w of WIDTHS) {
         if (w >= nativeW) continue
-        await sharp(file)
-          .resize(w, null, { withoutEnlargement: true })
-          .webp({ quality: 80 })
-          .toFile(join(outDir, `${base}-${w}w.webp`))
+        variantTasks.push(
+          sharp(file)
+            .resize(w, null, { withoutEnlargement: true })
+            .webp({ quality: 80 })
+            .toFile(join(outDir, `${base}-${w}w.webp`))
+        )
         parts.push(`${urlPrefix}-${w}w.webp ${w}w`)
       }
 
@@ -72,15 +79,33 @@ for await (const file of walk(PUBLIC)) {
         parts.push(`${key} ${nativeW}w`)
         srcsets[key] = parts.join(", ")
       }
+      await Promise.all(variantTasks)
     }
+
+    const buf = await placeholderTask
+    placeholders[key] = `data:image/webp;base64,${buf.toString("base64")}`
   } catch (e) {
     console.warn("[gen] skip", file, e.message)
   }
 }
 
-await writeFile(PH_OUT, JSON.stringify(placeholders))
-await writeFile(SS_OUT, JSON.stringify(srcsets))
-await writeFile(DIM_OUT, JSON.stringify(dimensions))
+let nextFile = 0
+async function worker() {
+  while (nextFile < files.length) {
+    const file = files[nextFile]
+    nextFile += 1
+    await processImage(file)
+  }
+}
+
+await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker))
+
+const stable = (record) =>
+  Object.fromEntries(Object.keys(record).sort().map((key) => [key, record[key]]))
+
+await writeFile(PH_OUT, JSON.stringify(stable(placeholders)))
+await writeFile(SS_OUT, JSON.stringify(stable(srcsets)))
+await writeFile(DIM_OUT, JSON.stringify(stable(dimensions)))
 console.log(`[placeholders] ${Object.keys(placeholders).length} → ${PH_OUT}`)
 console.log(`[srcsets] ${Object.keys(srcsets).length} → ${SS_OUT}`)
 console.log(`[dimensions] ${Object.keys(dimensions).length} → ${DIM_OUT}`)

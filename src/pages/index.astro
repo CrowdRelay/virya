@@ -18,8 +18,10 @@ import Contact from "../components/preact/Contact"
 import Footer from "../components/Footer.astro"
 import ScrollToTop from "../components/ScrollToTop.astro"
 import { getSeoTags } from "../utils/seo"
+import { getHomepageMessages } from "../i18n/homepageMessages"
 
 const lang = "en"
+const messages = getHomepageMessages(lang)
 const { canonicalUrl, hreflangLinks } = getSeoTags("/", lang)
 const title = "Virya — Modern Metalcore from Poland"
 const description = "Official website of Virya, a modern metalcore band from Poland. Listen to new music, see upcoming shows, and shop official merch."
@@ -79,15 +81,15 @@ const description = "Official website of Virya, a modern metalcore band from Pol
         </section>
 
         <section id="shows" class="scroll-mt-20">
-          <Shows client:visible lang={lang} />
+          <Shows client:visible lang={lang} messages={messages.shows} />
         </section>
 
         <section id="newsletter" class="scroll-mt-20">
-          <Newsletter client:idle lang={lang} />
+          <Newsletter client:visible lang={lang} messages={messages.newsletter} />
         </section>
 
         <section id="contact" class="scroll-mt-20">
-          <Contact client:idle lang={lang} />
+          <Contact client:visible lang={lang} messages={messages.contact} />
         </section>
       </div>
     </main>

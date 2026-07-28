@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "preact/hooks"
-import { LanguageProvider, useI18n } from "../../i18n/I18nContext"
+import { useState, useEffect } from "preact/hooks"
+import { IslandI18nProvider, useIslandI18n } from "../../i18n/IslandI18nContext"
 
 const normalizeEvent = (event) => {
   if (!event) return null
@@ -24,7 +24,7 @@ const SkeletonRow = () => (
 )
 
 const ShowItem = ({ item, lang }) => {
-  const { t, lp } = useI18n()
+  const { t, lp } = useIslandI18n()
   const date = new Date(item.date)
   const today = new Date()
   const normalizedDate = new Date(date).setHours(0, 0, 0, 0)
@@ -77,24 +77,11 @@ const ShowItem = ({ item, lang }) => {
 }
 
 const ShowsInner = ({ lang }) => {
-  const { t } = useI18n()
+  const { t } = useIslandI18n()
   const [shows, setShows] = useState([])
   const [loading, setLoading] = useState(true)
-  const [visible, setVisible] = useState(false)
-  const ref = useRef(null)
 
   useEffect(() => {
-    if (!ref.current) return
-    const io = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect() } },
-      { rootMargin: "400px" }
-    )
-    io.observe(ref.current)
-    return () => io.disconnect()
-  }, [])
-
-  useEffect(() => {
-    if (!visible) return
     let cancelled = false
     const controller = new AbortController()
     const tid = setTimeout(() => controller.abort(), 20000)
@@ -104,10 +91,10 @@ const ShowsInner = ({ lang }) => {
       .catch(() => { if (!cancelled) setShows([]) })
       .finally(() => { clearTimeout(tid); if (!cancelled) setLoading(false) })
     return () => { cancelled = true; controller.abort(); clearTimeout(tid) }
-  }, [visible])
+  }, [])
 
   return (
-    <div ref={ref} class="py-16 lg:px-8 border-t border-zinc-800/60">
+    <div class="py-16 lg:px-8 border-t border-zinc-800/60">
       <div class="mx-4">
         <div class="flex items-center gap-4 mb-2">
           <p class="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
@@ -137,10 +124,10 @@ const ShowsInner = ({ lang }) => {
   )
 }
 
-const Shows = ({ lang }) => (
-  <LanguageProvider initialLang={lang}>
+const Shows = ({ lang, messages }) => (
+  <IslandI18nProvider lang={lang} messages={messages}>
     <ShowsInner lang={lang} />
-  </LanguageProvider>
+  </IslandI18nProvider>
 )
 
 export default Shows
