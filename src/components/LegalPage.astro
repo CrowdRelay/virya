@@ -71,7 +71,7 @@ const resolveHref = (href: string): string => {
               {section.heading}
             </h2>
             {section.paras?.map((para: ParaToken[]) => (
-              <p class="text-sm text-zinc-400 leading-relaxed text-justify mb-3">
+              <p class="text-sm text-zinc-400 leading-relaxed text-justify mobile-justify mb-3">
                 {para.map((token: ParaToken) =>
                   token.link ? (
                     <a

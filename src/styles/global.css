@@ -139,6 +139,12 @@
   .text-justify {
     text-align: left;
   }
+
+  .text-justify.mobile-justify {
+    text-align: justify;
+    hyphens: auto;
+    text-wrap: pretty;
+  }
 }
 
 .social-links > a {

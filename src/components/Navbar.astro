@@ -48,6 +48,7 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
             </div>
           </details>
         )}
+        {displayLinks && <a href={lp(lang, "/epk")} aria-current={activePage === "epk" ? "page" : undefined} class={`inline-flex min-h-[44px] cursor-pointer items-center px-4 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "epk" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.epk")}</a>}
         {displayLinks && activePage === "home" && (
           <>
             <a href={lp(lang, "/#music")} data-section="music" class="nav-link cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400">{t(lang, "nav.music")}</a>
