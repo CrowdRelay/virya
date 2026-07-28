@@ -1,8 +1,8 @@
 import { useState } from "preact/hooks"
-import { LanguageProvider, useI18n } from "../../i18n/I18nContext"
+import { IslandI18nProvider, useIslandI18n } from "../../i18n/IslandI18nContext"
 
 const ContactInner = () => {
-  const { t } = useI18n()
+  const { t } = useIslandI18n()
   const [form, setForm] = useState({ name: "", email: "", message: "", website: "" })
   const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -152,10 +152,10 @@ const ContactInner = () => {
   )
 }
 
-const Contact = ({ lang }) => (
-  <LanguageProvider initialLang={lang}>
+const Contact = ({ lang, messages }) => (
+  <IslandI18nProvider lang={lang} messages={messages}>
     <ContactInner />
-  </LanguageProvider>
+  </IslandI18nProvider>
 )
 
 export default Contact

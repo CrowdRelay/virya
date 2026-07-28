@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro"
-import nodemailer from "nodemailer"
+import { getSiteMailer } from "../../server/siteMailer"
 
 const MAX_BODY_BYTES = 32 * 1024
 const MAX_NAME_LENGTH = 100
@@ -69,12 +69,9 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: "Invalid request" }, 400)
     }
 
-    const user = import.meta.env.GMAIL_USER
-    const pass = import.meta.env.GMAIL_APP_PASSWORD
-    const to = import.meta.env.ORDER_EMAIL_TO || user
-
-    if (user && pass) {
-      const transporter = nodemailer.createTransport({ service: "gmail", auth: { user, pass } })
+    const mailer = getSiteMailer()
+    if (mailer) {
+      const { transporter, user, to } = mailer
       await transporter.sendMail({
         from: `"Virya Website" <${user}>`,
         to,

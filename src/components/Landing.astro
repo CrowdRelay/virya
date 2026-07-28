@@ -10,6 +10,7 @@
     playsinline
     poster="/poster.webp"
     preload="none"
+    fetchpriority="low"
     aria-hidden="true"
   >
     <source src="/rise.webm" type="video/webm" />
@@ -24,13 +25,23 @@
     const video = document.getElementById("hero-video") as HTMLVideoElement | null
     if (!video) return
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
-    video.muted = true
-    const tryPlay = () => video.play().catch(() => {})
-    if (video.readyState >= 2) {
-      tryPlay()
-    } else {
-      video.load()
-      video.addEventListener("loadeddata", tryPlay, { once: true })
+
+    const startVideo = () => {
+      if (!video.isConnected) return
+      if (document.visibilityState !== "visible") {
+        document.addEventListener("visibilitychange", startVideo, { once: true })
+        return
+      }
+      video.muted = true
+      const tryPlay = () => video.play().catch(() => {})
+      if (video.readyState >= 2) {
+        tryPlay()
+      } else {
+        video.load()
+        video.addEventListener("loadeddata", tryPlay, { once: true })
+      }
     }
+
+    requestAnimationFrame(() => requestAnimationFrame(startVideo))
   })
 </script>
