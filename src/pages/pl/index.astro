@@ -10,6 +10,7 @@ import Showcase from "../../components/Showcase.astro"
 import AreaTeaser from "../../components/AreaTeaser.astro"
 import Portfolio from "../../components/Portfolio.astro"
 import Spotify from "../../components/Spotify.astro"
+import Endorsements from "../../components/Endorsements.astro"
 import Shows from "../../components/preact/Shows"
 import Newsletter from "../../components/preact/Newsletter"
 import Contact from "../../components/preact/Contact"
@@ -72,6 +73,10 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
 
         <section id="shows" class="scroll-mt-20">
           <Shows client:visible lang={lang} messages={messages.shows} />
+        </section>
+
+        <section id="endorsements" class="scroll-mt-20">
+          <Endorsements lang={lang} />
         </section>
 
         <section id="newsletter" class="scroll-mt-20">
