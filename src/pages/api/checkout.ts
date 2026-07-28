@@ -9,6 +9,7 @@ import {
   vatBreakdown,
   sizeInStock,
   productInStock,
+  isAreaRewardEligible,
 } from "../../data/products"
 import {
   AREA_REWARD_CHECKOUT_SECONDS,
@@ -325,7 +326,10 @@ export const POST: APIRoute = async ({ request }) => {
 
     const freeEntry = rewardCode
       ? cart.reduce((best, entry) =>
-          !best || entry.unitPrice > best.unitPrice ? entry : best,
+          isAreaRewardEligible(entry.product) &&
+          (!best || entry.unitPrice > best.unitPrice)
+            ? entry
+            : best,
         null as CartEntry | null)
       : null
     if (rewardCode && !freeEntry) {
