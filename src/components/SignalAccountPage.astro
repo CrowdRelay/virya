@@ -28,7 +28,7 @@ const copy = SIGNAL_COPY[lang].account
         <header class="mb-10 border-b border-zinc-800/60 pb-8">
           <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.eyebrow}</p>
           <h1 class="mt-4 text-[clamp(2.8rem,9vw,5.5rem)] font-black uppercase leading-[.9] tracking-[-.05em] text-white">{copy.heading}</h1>
-          <p class="mt-5 max-w-2xl text-sm leading-relaxed text-zinc-400">{copy.body}</p>
+          <p class="mt-5 max-w-2xl text-sm leading-relaxed text-zinc-400 text-justify mobile-justify">{copy.body}</p>
         </header>
         <MySignal client:load lang={lang} />
       </div>

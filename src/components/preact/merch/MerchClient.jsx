@@ -65,7 +65,7 @@ const MerchInner = () => {
               <p class="text-[10px] font-black uppercase tracking-[.25em] text-amber-400">
                 {t("merch.areaBanner")}
               </p>
-              <p class="mt-2 max-w-2xl text-xs leading-relaxed text-zinc-300">
+              <p class="mt-2 max-w-2xl text-xs leading-relaxed text-zinc-300 text-justify mobile-justify">
                 {t("merch.areaBannerBody")}
               </p>
             </div>

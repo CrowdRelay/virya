@@ -95,8 +95,17 @@ export interface SignalCopy {
     allUnlocked: string
     copyLink: string
     linkCopied: string
+    draws: string
+    noDraws: string
+    drawEntries: (count: number) => string
+    drawReferrals: (count: number) => string
+    drawCloses: string
+    drawAt: string
     rewards: string
     noRewards: string
+    physicalReward: string
+    rewardExpires: string
+    rewardStatus: Record<"issued" | "fulfilled" | "expired" | "revoked", string>
     useInStore: string
     concerts: string
     noConcerts: string
@@ -287,8 +296,22 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       allUnlocked: "All currently available referral rewards are unlocked.",
       copyLink: "Copy referral link",
       linkCopied: "Referral link copied",
+      draws: "Active draws",
+      noDraws: "There are no active draws right now. Your referrals remain counted for future actions.",
+      drawEntries: count => `${count} ${count === 1 ? "entry" : "entries"}`,
+      drawReferrals: count => `${count} confirmed ${count === 1 ? "referral" : "referrals"}`,
+      drawCloses: "Entries close",
+      drawAt: "Draw",
       rewards: "Rewards",
-      noRewards: "No active referral rewards yet. AREA rewards stay visible inside AREA.",
+      noRewards: "No rewards have been issued yet. AREA rewards stay visible inside AREA.",
+      physicalReward: "Physical prize",
+      rewardExpires: "Claim by",
+      rewardStatus: {
+        issued: "Ready to claim",
+        fulfilled: "Fulfilled",
+        expired: "Expired",
+        revoked: "Cancelled",
+      },
       useInStore: "Use in store",
       concerts: "Followed shows",
       noConcerts: "You are not following any shows yet.",
@@ -362,37 +385,37 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
   },
   pl: {
     meta: {
-      title: "Virya Signal — nagrody, koncerty i AREA",
+      title: "Sygnał Virya — koncerty, nagrody i gra terenowa",
       description:
-        "Dołącz do Virya Signal, wybierz miasto, graj w VIRYA Area, odblokowuj merch i obserwuj koncerty w jednym ekosystemie fana.",
+        "Dołącz do Sygnału Virya, wybierz miasto, obserwuj koncerty, zdobywaj dodatkowe losy za polecenia i graj w terenową Grę Virya.",
     },
     hero: {
-      eyebrow: "VIRYA // SIGNAL",
-      heading: "Dołącz raz. Korzystaj wtedy, kiedy chcesz.",
+      eyebrow: "VIRYA // SYGNAŁ",
+      heading: "Zapisz się raz. Nie przegap tego, co ważne.",
       body:
-        "Signal to prosty zapis do świata Viryi: wybierasz miasto, a my dajemy Ci dostęp do ważnych informacji, gry AREA oraz limitowanych akcji i nagród koncertowych.",
-      primary: "Aktywuj mój sygnał",
-      secondary: "Odkryj AREA",
-      account: "Mój Signal",
+        "Sygnał Virya to prosty zapis: podajesz e-mail i miasto, a my informujemy Cię o koncertach, premierach i limitowanych nagrodach. Za skuteczne polecenia dostajesz dodatkowe losy w automatycznych losowaniach.",
+      primary: "Dołącz do Sygnału",
+      secondary: "Otwórz Grę Virya",
+      account: "Mój Sygnał",
       status: "Działa · prywatność przede wszystkim · zbudowane przez Viryę",
     },
     promise: {
       eyebrow: "Co możesz zrobić dalej",
       heading: "Jedno konto. Kilka niezależnych możliwości.",
       body:
-        "Nie musisz korzystać ze wszystkiego. Signal zapisuje Twoje miasto i dostęp, AREA jest osobną grą terenową, a koncertowe QR-y uruchamiają osobne pule nagród.",
+        "Nie musisz korzystać ze wszystkiego. Sygnał zapisuje Twoje miasto i daje link polecający. Gra terenowa działa osobno, a koncertowe QR-y otwierają dodatkowe, limitowane pule nagród.",
       steps: [
         {
           number: "01",
-          title: "Dołącz do Signal",
-          body: "Podaj e-mail i miasto, żeby otrzymywać tylko ważne informacje o Viryi i lokalnych akcjach.",
+          title: "Dołącz do Sygnału",
+          body: "Podaj e-mail i miasto. Po potwierdzeniu dostaniesz prywatny link polecający i dostęp do koncertowych akcji.",
           href: "#join-signal",
           cta: "Dołącz",
         },
         {
           number: "02",
-          title: "Zagraj w AREA",
-          body: "Znajdź aktywną strefę w mieście i zdobądź kod na darmowy produkt z darmową dostawą.",
+          title: "Zagraj w Grę Virya",
+          body: "Wybierz aktywne miasto, idź za wskazówką i potwierdź lokalizację, aby odebrać nagrodę.",
           href: "/pl/area/",
           cta: "Otwórz mapę",
         },
@@ -414,17 +437,17 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
     },
     form: {
       eyebrow: "Aktywacja",
-      heading: "Dołącz do Virya Signal",
+      heading: "Dołącz do Sygnału Virya",
       body:
-        "To zajmuje chwilę. Po potwierdzeniu e-maila otrzymasz prywatny dostęp do swojego Signal i lokalnych akcji Viryi.",
+        "Podaj e-mail, nick i miasto. Po potwierdzeniu adresu dostaniesz swój Sygnał, link polecający oraz dostęp do koncertowych akcji.",
       email: "E-mail",
       nickname: "Imię lub nick (opcjonalnie)",
       city: "Twoje miasto",
-      cityPlaceholder: "Dołącz do Signal",
+      cityPlaceholder: "Wybierz miasto",
       consent:
         "Chcę otrzymywać informacje o Viryi, koncertach i nagrodach. Mogę wypisać się w każdej chwili.",
       privacy: "Twoje dane zostają u Viryi i nigdy nie są sprzedawane reklamodawcom.",
-      submit: "Dołącz do Signal",
+      submit: "Dołącz do Sygnału",
       saving: "Aktywuję…",
       loadingCities: "Ładuję miasta…",
       loadError: "Lista miast jest chwilowo niedostępna. Spróbuj ponownie za moment.",
@@ -432,13 +455,13 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       saveError: "Nie udało się aktywować sygnału. Sprawdź dane i spróbuj ponownie.",
       pendingTitle: "Sprawdź skrzynkę",
       pendingBody:
-        "Potwierdź adres, aby aktywować prywatną sesję Signal i link polecający.",
+        "Potwierdź adres, aby aktywować prywatny Sygnał i link polecający.",
       savedTitle: "Sygnał aktywny",
       savedBody: "Miasto, koncerty i postęp poleceń masz teraz w jednym miejscu.",
       referralTitle: "Twój link polecający",
       copy: "Kopiuj link",
       copied: "Skopiowano",
-      goAccount: "Otwórz Mój Signal",
+      goAccount: "Otwórz Mój Sygnał",
     },
     cities: {
       eyebrow: "Popyt w miastach",
@@ -452,9 +475,9 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
     },
     events: {
       eyebrow: "Koncerty i pule nagród",
-      heading: "Zobacz, gdzie gramy",
+      heading: "Patrz, gdzie niedługo gramy",
       body:
-        "Sprawdź szczegóły koncertu i zapisz datę. Na wybranych wydarzeniach uruchomimy osobne, limitowane pule wejściówek i fizycznych albumów dostępne przez QR na miejscu.",
+        "Wybierz koncert, sprawdź miejsce i zapisz datę. Przy wybranych wydarzeniach uruchomimy osobne pule wejściówek i albumów; wejście do puli dostaniesz przez QR na miejscu.",
       loading: "Ładuję koncerty…",
       unavailable: "Koncerty są chwilowo niedostępne.",
       empty: "Nowe koncerty pojawią się tutaj.",
@@ -464,31 +487,31 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       listen: "Słuchaj",
     },
     area: {
-      eyebrow: "Osobna gra terenowa",
-      heading: "AREA: znajdź strefę i wygraj merch",
+      eyebrow: "Gra terenowa · działa osobno",
+      heading: "Gra Virya: znajdź strefę i odbierz merch",
       body:
-        "AREA działa niezależnie od koncertów. W aktywnym mieście idziesz za wskazówką, potwierdzasz lokalizację i zdobywasz kolekcjonerski wers oraz kod na darmowy merch z darmową dostawą.",
-      cta: "Wejdź do AREA",
+        "Gra Virya działa niezależnie od koncertów. Wybierasz aktywne miasto, docierasz do strefy według wskazówki, potwierdzasz lokalizację i odbierasz kolekcjonerski wers oraz kod na darmowy merch z dostawą.",
+      cta: "Otwórz Grę Virya",
       merch: "Użyj nagród w sklepie",
     },
     areaBridge: {
-      heading: "Zachowaj sygnał po dropie AREA",
+      heading: "Połącz nagrodę z Sygnałem Virya",
       body:
-        "Nagroda AREA pozostaje w portfelu AREA. Aktywuj Virya Signal, aby połączyć swoje miasto, alerty koncertowe, polecenia i przyszłe limitowane nagrody bez spowalniania gry.",
-      signal: "Połącz z Virya Signal",
+        "Nagroda z gry zostaje w portfelu gracza. Dołącz do Sygnału Virya, aby zachować miasto, dostawać alerty koncertowe i zdobywać dodatkowe losy za skuteczne polecenia.",
+      signal: "Dołącz do Sygnału Virya",
       merch: "Otwórz merch",
     },
     account: {
-      metaTitle: "Mój Virya Signal",
+      metaTitle: "Mój Sygnał Virya",
       eyebrow: "Prywatna przestrzeń fana",
-      heading: "Mój Signal",
+      heading: "Mój Sygnał",
       body:
         "Polecenia, nagrody i obserwowane koncerty — bez hasła i bez ciężkiego dashboardu.",
-      loading: "Ładuję Twój Signal…",
-      unauthorizedTitle: "Signal nie jest aktywny w tej przeglądarce",
+      loading: "Ładuję Twój Sygnał…",
+      unauthorizedTitle: "Sygnał nie jest aktywny w tej przeglądarce",
       unauthorizedBody:
         "Najpierw dołącz lub potwierdź e-mail. Prywatna sesja jest przechowywana w bezpiecznym cookie HttpOnly.",
-      join: "Aktywuj Signal",
+      join: "Dołącz do Sygnału",
       referrals: "Puls poleceń",
       qualified: "Potwierdzone",
       pending: "Oczekujące",
@@ -496,35 +519,49 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       allUnlocked: "Wszystkie dostępne teraz nagrody poleceń są odblokowane.",
       copyLink: "Kopiuj link polecający",
       linkCopied: "Link polecający skopiowany",
+      draws: "Aktywne losowania",
+      noDraws: "Teraz nie trwa żadne losowanie. Twoje potwierdzone polecenia nadal liczą się do kolejnych akcji.",
+      drawEntries: count => `${count} ${count === 1 ? "los" : count < 5 ? "losy" : "losów"}`,
+      drawReferrals: count => `${count} ${count === 1 ? "potwierdzone polecenie" : count < 5 ? "potwierdzone polecenia" : "potwierdzonych poleceń"}`,
+      drawCloses: "Koniec zbierania losów",
+      drawAt: "Losowanie",
       rewards: "Nagrody",
-      noRewards: "Brak aktywnych nagród poleceń. Nagrody AREA są widoczne wewnątrz AREA.",
+      noRewards: "Nie masz jeszcze przyznanych nagród. Nagrody z Gry Virya są widoczne w portfelu gry.",
+      physicalReward: "Nagroda fizyczna",
+      rewardExpires: "Odbierz do",
+      rewardStatus: {
+        issued: "Gotowa do odbioru",
+        fulfilled: "Zrealizowana",
+        expired: "Wygasła",
+        revoked: "Anulowana",
+      },
       useInStore: "Użyj w sklepie",
       concerts: "Obserwowane koncerty",
       noConcerts: "Nie obserwujesz jeszcze żadnego koncertu.",
-      openArea: "Otwórz portfel AREA",
+      openArea: "Otwórz portfel gry",
       openStore: "Otwórz sklep",
     },
     action: {
-      confirmTitle: "Aktywuję Twój Signal",
+      confirmTitle: "Aktywuję Twój Sygnał",
       confirmWorking: "Potwierdzam adres…",
-      confirmSuccess: "Signal aktywny. Prywatna sesja fana jest gotowa.",
+      confirmSuccess: "Sygnał aktywny. Prywatna sesja fana jest gotowa.",
       confirmError: "Ten link potwierdzający jest nieprawidłowy albo wygasł.",
-      unsubscribeTitle: "Ustawienia Signal",
+      unsubscribeTitle: "Ustawienia Sygnału",
       unsubscribeWorking: "Aktualizuję ustawienia…",
       unsubscribeSuccess: "Wypisano Cię z wiadomości Viryi.",
       unsubscribeError: "Ten link wypisania jest nieprawidłowy albo wygasł.",
       missingToken: "W tym linku brakuje bezpiecznego tokena.",
-      account: "Otwórz Mój Signal",
+      account: "Otwórz Mój Sygnał",
       home: "Wróć do Viryi",
     },
     event: {
       loading: "Ładuję koncert…",
       unavailable: "Ten koncert jest niedostępny albo nie został jeszcze opublikowany.",
-      back: "Wszystkie koncerty Signal",
+      back: "Wszystkie koncerty Sygnału",
       interest: "Obserwuj koncert",
       interestWorking: "Zapisuję…",
-      interestSaved: "Zapisano. Ten koncert zostaje w Twoim Signal.",
-      interestLogin: "Najpierw aktywuj lub potwierdź Signal, aby obserwować koncerty.",
+      interestSaved: "Zapisano. Ten koncert jest teraz na liście Sygnału Virya.",
+      interestLogin: "Najpierw dołącz do Sygnału i potwierdź e-mail, aby obserwować koncerty.",
       share: "Udostępnij",
       shared: "Udostępniono",
       tickets: "Bilety",
@@ -533,14 +570,14 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       venue: "Miejsce",
     },
     teaser: {
-      eyebrow: "VIRYA // SIGNAL",
-      heading: "Muzyka ma własny fanowski system operacyjny",
+      eyebrow: "VIRYA // SYGNAŁ",
+      heading: "Koncerty, nagrody i polecenia w jednym miejscu",
       body:
-        "Wybierz miasto, graj w AREA, odblokowuj merch, obserwuj koncerty i buduj postęp poleceń — w jednym szybkim, prywatnym doświadczeniu zbudowanym przez zespół.",
-      primary: "Aktywuj Signal",
-      area: "Zagraj w AREA",
+        "Wybierz miasto, obserwuj koncerty, zdobywaj dodatkowe losy za polecenia i graj w terenową Grę Virya — bez ciężkiej aplikacji i zbędnego śledzenia.",
+      primary: "Dołącz do Sygnału",
+      area: "Otwórz Grę Virya",
       merch: "Otwórz sklep",
-      chips: ["Popyt w miastach", "Nagrody AREA", "Losowania albumów", "Merch loop", "Polecenia"],
+      chips: ["Koncerty w Twoim mieście", "Dodatkowe losy za polecenia", "Nagrody z gry", "Albumy i wejściówki", "Prywatne konto"],
     },
     manager: {
       eyebrow: "Infrastruktura fanowska",
@@ -558,15 +595,15 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         },
         {
           title: "Oryginalny produkt fana",
-          body: "AREA łączy fizyczne lokalizacje, lore muzyczne i realne nagrody w sklepie.",
+          body: "Gra Virya łączy fizyczne lokalizacje, muzyczną historię i realne nagrody w sklepie.",
         },
         {
           title: "Gotowość do automatyzacji",
           body: "Niezawodny backend w Ruście, transakcyjne zdarzenia i workflow gotowe pod n8n.",
         },
       ],
-      signal: "Otwórz Virya Signal",
-      area: "Zobacz VIRYA Area",
+      signal: "Otwórz Sygnał Virya",
+      area: "Zobacz Grę Virya",
     },
   },
 }

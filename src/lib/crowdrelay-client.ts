@@ -88,12 +88,38 @@ export interface MerchCoupon {
   expires_at: string | null
 }
 
+export interface WeightedDrawEntry {
+  draw_id: string
+  slug: string
+  name: string
+  prize_kind: "admission_pass" | "physical_item"
+  closes_at: string
+  draw_at: string
+  qualified_referrals: number
+  base_entries: number
+  referral_entries: number
+  total_entries: number
+  max_entries: number
+}
+
+export interface PhysicalRewardGrant {
+  reward_grant_id: string
+  reward_rule_id: string
+  item_name: string
+  sku: string
+  status: "issued" | "fulfilled" | "expired" | "revoked"
+  granted_at: string
+  expires_at: string | null
+}
+
 export interface ReferralProgress {
   referral_code: string
   qualified_referrals: number
   pending_referrals: number
   next_reward_threshold: number | null
+  draw_entries: WeightedDrawEntry[]
   coupons: MerchCoupon[]
+  physical_rewards: PhysicalRewardGrant[]
 }
 
 export type AdmissionPassStatus =
