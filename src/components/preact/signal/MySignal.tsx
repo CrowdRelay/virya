@@ -97,7 +97,7 @@ export default function MySignal({ lang }: Props) {
             ? copy.unauthorizedTitle
             : copy.heading}
         </h2>
-        <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-300">
+        <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify">
           {state.kind === "unauthorized"
             ? copy.unauthorizedBody
             : SIGNAL_COPY[lang].form.loadError}
@@ -113,6 +113,9 @@ export default function MySignal({ lang }: Props) {
   }
 
   const { progress, events } = state
+  const drawEntries = progress.draw_entries ?? []
+  const coupons = progress.coupons ?? []
+  const physicalRewards = progress.physical_rewards ?? []
 
   return (
     <div class="grid gap-6">
@@ -167,11 +170,74 @@ export default function MySignal({ lang }: Props) {
         </section>
       )}
 
+      <section class="border border-amber-400/30 bg-amber-400/[.025] p-5 sm:p-6">
+        <div>
+          <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
+            {lang === "pl" ? "VIRYA // LOSOWANIA" : "VIRYA // DRAW"}
+          </p>
+          <h2 class="mt-2 text-2xl font-black uppercase text-white">
+            {copy.draws}
+          </h2>
+        </div>
+
+        {drawEntries.length === 0 ? (
+          <p class="mt-5 max-w-2xl text-justify text-xs leading-relaxed text-zinc-400">
+            {copy.noDraws}
+          </p>
+        ) : (
+          <ul class="mt-6 grid gap-3 lg:grid-cols-2">
+            {drawEntries.map(draw => (
+              <li
+                key={draw.draw_id}
+                class="border border-zinc-800 bg-zinc-950 p-5"
+              >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p class="text-[8px] font-black uppercase tracking-[.24em] text-zinc-500">
+                      {draw.prize_kind === "admission_pass"
+                        ? lang === "pl" ? "Wejściówki" : "Guest list"
+                        : lang === "pl" ? "Album / nagroda fizyczna" : "Album / physical prize"}
+                    </p>
+                    <h3 class="mt-2 text-base font-black uppercase text-white">
+                      {draw.name}
+                    </h3>
+                  </div>
+                  <strong class="text-3xl font-black text-amber-400">
+                    {draw.total_entries}
+                  </strong>
+                </div>
+                <p class="mt-3 text-xs font-semibold text-zinc-300">
+                  {copy.drawEntries(draw.total_entries)} · {copy.drawReferrals(draw.qualified_referrals)}
+                </p>
+                <dl class="mt-5 grid gap-3 border-t border-zinc-800 pt-4 sm:grid-cols-2">
+                  <div>
+                    <dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
+                      {copy.drawCloses}
+                    </dt>
+                    <dd class="mt-1 text-[10px] text-zinc-300">
+                      {formatDate(draw.closes_at, locale)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
+                      {copy.drawAt}
+                    </dt>
+                    <dd class="mt-1 text-[10px] text-zinc-300">
+                      {formatDate(draw.draw_at, locale)}
+                    </dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section class="border border-zinc-800 bg-zinc-950 p-5 sm:p-6">
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
-              VIRYA // REWARDS
+              {lang === "pl" ? "VIRYA // NAGRODY" : "VIRYA // REWARDS"}
             </p>
             <h2 class="mt-2 text-2xl font-black uppercase text-white">
               {copy.rewards}
@@ -185,13 +251,41 @@ export default function MySignal({ lang }: Props) {
           </a>
         </div>
 
-        {progress.coupons.length === 0 ? (
+        {coupons.length === 0 && physicalRewards.length === 0 ? (
           <p class="mt-5 text-xs leading-relaxed text-zinc-400">
             {copy.noRewards}
           </p>
         ) : (
           <ul class="mt-6 grid gap-3 sm:grid-cols-2">
-            {progress.coupons.map(coupon => (
+            {physicalRewards.map(reward => (
+              <li
+                class="border border-amber-400/30 bg-amber-400/[.035] p-4"
+                key={reward.reward_grant_id}
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-[8px] font-black uppercase tracking-widest text-amber-400">
+                      {copy.physicalReward}
+                    </p>
+                    <h3 class="mt-2 text-sm font-black uppercase text-white">
+                      {reward.item_name}
+                    </h3>
+                  </div>
+                  <span class="shrink-0 text-right text-[8px] font-black uppercase tracking-widest text-zinc-400">
+                    {copy.rewardStatus[reward.status]}
+                  </span>
+                </div>
+                <p class="mt-3 font-mono text-[9px] uppercase tracking-widest text-zinc-500">
+                  {reward.sku}
+                </p>
+                {reward.expires_at && (
+                  <p class="mt-3 text-[10px] text-zinc-300">
+                    {copy.rewardExpires}: {formatDate(reward.expires_at, locale)}
+                  </p>
+                )}
+              </li>
+            ))}
+            {coupons.map(coupon => (
               <li class="border border-zinc-800 bg-zinc-900/50 p-4" key={coupon.id}>
                 <div class="flex items-start justify-between gap-3">
                   <code class="break-all text-sm font-black text-amber-400">

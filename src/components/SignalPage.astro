@@ -17,22 +17,22 @@ const copy = SIGNAL_COPY[lang]
 const clarityCards = lang === "pl"
   ? [
       {
-        label: "SIGNAL",
+        label: "SYGNAŁ VIRYA",
         title: "Zapisujesz się raz",
-        body: "Wybierasz miasto i dostajesz ważne informacje o koncertach, premierach oraz limitowanych akcjach Viryi.",
-        reward: "Alerty · pule koncertowe · polecenia",
+        body: "Podajesz e-mail i miasto. Dostajesz ważne informacje o koncertach, premierach i limitowanych akcjach Viryi.",
+        reward: "Po co: alerty · koncerty · dodatkowe losy",
       },
       {
-        label: "AREA",
+        label: "GRA TERENOWA",
         title: "Grasz w terenie",
-        body: "Idziesz za wskazówką, docierasz do aktywnej strefy i odblokowujesz kolekcjonerski wers oraz nagrodę.",
-        reward: "1 darmowy merch + darmowa dostawa",
+        body: "Wybierasz aktywne miasto, idziesz za wskazówką i potwierdzasz telefonem, że dotarłeś do strefy.",
+        reward: "Nagroda: 1 merch gratis + dostawa",
       },
       {
         label: "LIVE QR",
         title: "Przychodzisz na koncert",
         body: "Skanujesz koncertowy QR i wchodzisz do osobnych, limitowanych pul nagród przypisanych do wydarzenia.",
-        reward: "Wejściówki lub 2–3 fizyczne albumy",
+        reward: "Nagroda: wejściówki lub albumy",
       },
     ]
   : [
@@ -55,15 +55,15 @@ const clarityCards = lang === "pl"
         reward: "Guest-list spots or 2–3 physical albums",
       },
     ]
-const clarityHeading = lang === "pl" ? "Trzy proste sposoby uczestnictwa" : "Three simple ways to take part"
+const clarityHeading = lang === "pl" ? "Wybierz, co chcesz zrobić" : "Three simple ways to take part"
 const clarityBody = lang === "pl"
-  ? "Nie musisz rozumieć całego systemu. Wybierasz tylko to, co chcesz zrobić teraz — zapisać się, zagrać w mieście albo zeskanować QR na koncercie."
+  ? "Każda opcja działa osobno. Najprościej zacząć od Sygnału Virya, a potem zagrać w mieście albo wejść do puli przez QR na koncercie."
   : "You do not need to understand the whole system. Choose only what you want to do now: join, play in your city or scan a QR at a show."
 const { canonicalUrl, hreflangLinks } = getSeoTags("/signal/", lang)
 const schema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Virya Signal",
+  name: lang === "pl" ? "Sygnał Virya" : "Virya Signal",
   url: canonicalUrl,
   description: copy.meta.description,
   applicationCategory: "EntertainmentApplication",
@@ -133,7 +133,7 @@ const schema = {
           <aside class="relative overflow-hidden border border-amber-400/40 bg-zinc-950/90 p-5 shadow-2xl sm:p-7">
             <div class="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
             <div class="relative flex items-center justify-between">
-              <p class="font-mono text-[9px] font-black uppercase tracking-[.25em] text-amber-400">SIGNAL // ACTIVE</p>
+              <p class="font-mono text-[9px] font-black uppercase tracking-[.25em] text-amber-400">{lang === "pl" ? "SYGNAŁ // AKTYWNY" : "SIGNAL // ACTIVE"}</p>
               <span class="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_18px_rgba(251,191,36,.9)]" aria-hidden="true"></span>
             </div>
             <div class="relative mt-8 grid gap-px border border-zinc-800 bg-zinc-800">
@@ -141,16 +141,16 @@ const schema = {
                 <div class="grid grid-cols-[42px_1fr_auto] items-center gap-3 bg-zinc-950 p-3">
                   <span class="font-mono text-[8px] text-amber-400">{step.number}</span>
                   <span class="text-[9px] font-black uppercase tracking-widest text-zinc-200">{step.title}</span>
-                  <span class="text-[8px] uppercase tracking-widest text-zinc-600">ready</span>
+                  <span class="text-[8px] uppercase tracking-widest text-zinc-600">{lang === "pl" ? "gotowe" : "ready"}</span>
                 </div>
               ))}
             </div>
             <div class="relative mt-8 flex items-end justify-between border-t border-zinc-800 pt-5">
               <div>
-                <p class="text-[8px] font-black uppercase tracking-[.25em] text-zinc-500">CORE</p>
-                <p class="mt-1 text-sm font-black uppercase text-white">Music first</p>
+                <p class="text-[8px] font-black uppercase tracking-[.25em] text-zinc-500">{lang === "pl" ? "RDZEŃ" : "CORE"}</p>
+                <p class="mt-1 text-sm font-black uppercase text-white">{lang === "pl" ? "Najpierw muzyka" : "Music first"}</p>
               </div>
-              <p class="font-mono text-[9px] uppercase tracking-[.18em] text-amber-400">AREA + LIVE + MERCH</p>
+              <p class="font-mono text-[9px] uppercase tracking-[.18em] text-amber-400">{lang === "pl" ? "GRA + LIVE + MERCH" : "AREA + LIVE + MERCH"}</p>
             </div>
           </aside>
         </div>
@@ -161,7 +161,7 @@ const schema = {
           <div class="max-w-3xl">
             <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{lang === "pl" ? "Najprościej" : "In plain terms"}</p>
             <h2 id="signal-simple-heading" class="mt-4 text-[clamp(2rem,7vw,4rem)] font-black uppercase leading-[.94] tracking-[-.04em] text-white">{clarityHeading}</h2>
-            <p class="mt-5 text-sm leading-relaxed text-zinc-300 lg:text-base">{clarityBody}</p>
+            <p class="mt-5 text-sm leading-relaxed text-zinc-300 text-justify mobile-justify lg:text-base">{clarityBody}</p>
           </div>
           <div class="mt-9 grid gap-4 md:grid-cols-3">
             {clarityCards.map((card, index) => (
@@ -171,7 +171,7 @@ const schema = {
                   <span class="text-[8px] font-black uppercase tracking-[.22em] text-zinc-500">{card.label}</span>
                 </div>
                 <h3 class="mt-7 text-xl font-black uppercase leading-tight text-white">{card.title}</h3>
-                <p class="mt-3 flex-1 text-xs leading-relaxed text-zinc-400">{card.body}</p>
+                <p class="mt-3 flex-1 text-xs leading-relaxed text-zinc-400 text-justify mobile-justify">{card.body}</p>
                 <p class="mt-6 border-t border-zinc-800 pt-4 text-[9px] font-black uppercase leading-relaxed tracking-[.16em] text-amber-400">{card.reward}</p>
               </article>
             ))}
@@ -184,14 +184,14 @@ const schema = {
           <div class="max-w-4xl">
             <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.promise.eyebrow}</p>
             <h2 class="mt-4 text-[clamp(2.3rem,7vw,4.8rem)] font-black uppercase leading-[.92] tracking-[-.045em] text-white">{copy.promise.heading}</h2>
-            <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-400 lg:text-base">{copy.promise.body}</p>
+            <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-400 text-justify mobile-justify lg:text-base">{copy.promise.body}</p>
           </div>
           <div class="mt-10 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
             {copy.promise.steps.map((step) => (
               <a href={step.href} class="group min-h-60 bg-zinc-950 p-5 transition-colors hover:bg-zinc-900 sm:p-6">
                 <span class="font-mono text-[9px] font-black text-amber-400">{step.number}</span>
                 <h3 class="mt-10 text-xl font-black uppercase leading-none text-white group-hover:text-amber-400">{step.title}</h3>
-                <p class="mt-4 text-xs leading-relaxed text-zinc-400">{step.body}</p>
+                <p class="mt-4 text-xs leading-relaxed text-zinc-400 text-justify mobile-justify">{step.body}</p>
                 <span class="mt-7 inline-flex text-[9px] font-black uppercase tracking-widest text-zinc-300 group-hover:text-amber-400">{step.cta} →</span>
               </a>
             ))}
@@ -206,7 +206,7 @@ const schema = {
           <div class="max-w-4xl">
             <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.area.eyebrow}</p>
             <h2 class="mt-4 text-[clamp(2.2rem,7vw,4.8rem)] font-black uppercase leading-[.92] tracking-[-.045em] text-white">{copy.area.heading}</h2>
-            <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-300 lg:text-base">{copy.area.body}</p>
+            <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify lg:text-base">{copy.area.body}</p>
           </div>
           <div class="flex flex-col gap-3 sm:flex-row lg:flex-col">
             <a href={lp(lang, "/area/")} class="inline-flex min-h-[48px] items-center justify-center bg-amber-400 px-6 text-[10px] font-black uppercase tracking-widest text-black hover:bg-amber-300">{copy.area.cta}</a>

@@ -220,7 +220,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
   },
   pl: {
     meta: {
-      title: "VIRYA Area — Znajdź sygnał. Odblokuj wers.",
+      title: "Gra Virya — znajdź strefę, odblokuj wers, odbierz nagrodę.",
       description:
         "Gra geolokalizacyjna VIRYA w 12 miastach Polski. Docieraj do aktywnych stref, odblokowuj wersy i wygrywaj darmowy merch z darmową dostawą.",
     },
@@ -233,7 +233,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       howCta: "Jak to działa",
       pilot: "Ważne",
       pilotBody:
-        "AREA działa tylko w ogłoszonych godzinach i strefach. Nie szukasz naklejki ani przedmiotu — telefon potwierdza, że dotarłeś na miejsce.",
+        "Gra działa tylko w ogłoszonych godzinach i strefach. Nie szukasz naklejki ani przedmiotu — telefon potwierdza, że dotarłeś na miejsce.",
       teaserLine: "[ SYGNAŁ ZABLOKOWANY ]",
       teaserTrack: "Nieznana transmisja · 001",
     },
@@ -246,15 +246,15 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       trackingLabel: "śledzenia w tle",
     },
     map: {
-      eyebrow: "Area // Polska",
+      eyebrow: "Gra Virya // Polska",
       heading: "Wybierz miasto i znajdź strefę",
       body:
         "Wybierz aktywne miasto. Mapa pokaże przybliżony obszar, a wskazówka pomoże Ci znaleźć właściwe miejsce.",
-      mapLabel: "Stylizowana mapa Polski z miastami dropów VIRYA",
+      mapLabel: "Stylizowana mapa Polski z miastami stref Gry Virya",
       signal: "Sygnał",
       live: "Aktywny",
       claimed: "Zebrany",
-      selected: "Wybrany drop",
+      selected: "Wybrana strefa",
       coordinates: "Przybliżona strefa",
       encrypted: "Dokładne koordynaty pozostają zaszyfrowane. Idź za wskazówką w ogłoszonej strefie miasta.",
       nearest: "Znajdź najbliższy sygnał",
@@ -265,8 +265,8 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
         "Lokalizacja jest niedostępna. Zezwól na nią w ustawieniach przeglądarki albo wybierz miasto z listy.",
       nearestResult: (city: string, distance: string) =>
         `${city} to Twój najbliższy sygnał — około ${distance}.`,
-      selectAria: (city: string) => `Wybierz drop VIRYA Area w mieście ${city}`,
-      markerAria: (city: string) => `Znacznik VIRYA Area: ${city}`,
+      selectAria: (city: string) => `Wybierz strefę Gry Virya w mieście ${city}`,
+      markerAria: (city: string) => `Znacznik Gry Virya: ${city}`,
     },
     claim: {
       eyebrow: "Wykryto aktywny sygnał",
@@ -274,13 +274,13 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       body:
         "Po dotarciu na miejsce uruchom weryfikację. Telefon przez kilka sekund sprawdzi lokalizację i potwierdzi, czy jesteś w aktywnej strefie.",
       privacy:
-        "Po weryfikacji odrzucamy surowe koordynaty i pojedyncze pomiary. Zapisujemy tylko odblokowany drop, orientacyjny dystans weryfikacji i czas. Nie zapisujemy trasy ani lokalizacji w tle.",
+        "Po weryfikacji odrzucamy surowe koordynaty i pojedyncze pomiary. Zapisujemy tylko odblokowaną strefę, orientacyjny dystans weryfikacji i czas. Nie zapisujemy trasy ani lokalizacji w tle.",
       button: "Sprawdź lokalizację i odbierz nagrodę",
       working: "Uruchamiam bezpieczną blokadę sygnału…",
       collecting: "Pozostań na miejscu pod gołym niebem — pomiar {current}/{total}",
       success:
-        "Sygnał odkodowany. Karta i 1 VIRYA Credit są Twoje.",
-      already: "Ten drop jest już w Twojej kolekcji.",
+        "Sygnał odkodowany. Karta i 1 punkt Virya są Twoje.",
+      already: "Ta strefa jest już w Twojej kolekcji.",
       missing: "Najpierw wybierz aktywny sygnał miasta.",
       genericError:
         "Nie udało się potwierdzić sygnału. Pozostań w strefie i spróbuj ponownie na otwartej przestrzeni.",
@@ -290,8 +290,8 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
         "Lokalizacja jest zbyt niedokładna. Wyjdź na otwartą przestrzeń i spróbuj ponownie.",
       samples:
         "Za mało świeżych pomiarów GPS. Zostaw stronę otwartą i spróbuj ponownie.",
-      outside: "Jesteś poza aktywną strefą dropu.",
-      full: "Limit odbiorów tego dropu został wyczerpany.",
+      outside: "Jesteś poza aktywną strefą gry.",
+      full: "Limit odbiorów tej strefy został wyczerpany.",
       rateLimited: "Za dużo prób. Odczekaj kilka minut i spróbuj ponownie.",
       accountRequired:
         "Zaloguj się do profilu gracza, zanim zablokujesz aktywny sygnał.",
@@ -331,7 +331,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       eyebrow: "Twoja kolekcja",
       heading: "Odzyskane Echoes",
       body:
-        "Każda potwierdzona strefa odsłania jeden wers z naszych numerów. Kolekcja i Credits zostają na zalogowanym profilu VIRYA Area.",
+        "Każda potwierdzona strefa odsłania jeden wers z naszych numerów. Kolekcja i punkty zostają na zalogowanym profilu Gry Virya.",
       progress: "Odzyskane Echoes",
       complete: "Pełny sygnał odzyskany",
       completeBody:
@@ -341,22 +341,22 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       recoveredOn: "Odzyskano",
       editionNumber: "Artefakt",
       riddle: "Zagadka",
-      artworkAlt: "Odblokowana grafika kolekcjonerska VIRYA Area",
+      artworkAlt: "Odblokowana grafika kolekcjonerska Gra Virya",
       artworkPending: "Grafika kolekcjonerska jest synchronizowana",
       wallet: "Saldo VIRYA",
-      walletUnit: "Credits",
+      walletUnit: "punkty",
       walletValue: "dostępne kody nagród",
       loading: "Ładuję portfel…",
       browserNote:
-        "Jeden Credit tworzy jeden jednorazowy kod. Kod zeruje cenę jednego produktu w koszyku i koszt dostawy InPost.",
-      voucherHeading: "Zamień 1 Credit na wygrany kod",
+        "Jeden punkt tworzy jeden jednorazowy kod. Kod zeruje cenę jednego produktu w koszyku i koszt dostawy InPost.",
+      voucherHeading: "Zamień 1 punkt na wygrany kod",
       voucherBody:
-        "Utwórz jednorazowy kod VIRYA Area. Dodaj do koszyka dowolny dostępny merch; najdroższa pojedyncza sztuka będzie gratis, a dostawa InPost również będzie darmowa.",
+        "Utwórz jednorazowy kod nagrody. Dodaj do koszyka dowolny dostępny merch; najdroższa pojedyncza sztuka będzie gratis, a dostawa InPost również będzie darmowa.",
       voucherButton: "Utwórz wygrany kod",
       voucherWorking: "Tworzę jednorazowy kod nagrody…",
-      voucherEmpty: "Znajdź aktywny drop, żeby zdobyć pierwszy Credit.",
+      voucherEmpty: "Znajdź aktywną strefę, żeby zdobyć pierwszy punkt.",
       voucherSuccess: "Wygrany kod jest gotowy. Skopiuj go i użyj w koszyku merchu.",
-      voucherError: "Nie udało się utworzyć kodu nagrody. Twój Credit jest bezpieczny.",
+      voucherError: "Nie udało się utworzyć kodu nagrody. Twój punkt jest bezpieczny.",
       codes: "Twoje wygrane kody",
       codeBenefit: "1 produkt gratis + darmowa dostawa InPost",
       codeIssued: "Gotowy",
@@ -378,7 +378,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     },
     steps: {
       eyebrow: "Pętla gry",
-      heading: "Trzy ruchy. Jeden sygnał.",
+      heading: "Trzy kroki. Prościej się nie da.",
       items: [
         {
           number: "01",
@@ -390,13 +390,13 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
           number: "02",
           title: "Zablokuj sygnał",
           body:
-            "Dotrzyj na miejsce, otwórz VIRYA Area i pozostań chwilę w strefie, gdy telefon zbiera kilka świeżych pomiarów GPS. QR ani naklejka nie są potrzebne.",
+            "Dotrzyj na miejsce, otwórz Grę Virya i naciśnij przycisk weryfikacji. Pozostań chwilę w strefie; QR ani naklejka nie są potrzebne.",
         },
         {
           number: "03",
           title: "Odblokuj i odbierz",
           body:
-            "Potwierdzone znalezisko odsłania wers i daje 1 Credit. Zamień go na kod na jeden darmowy produkt oraz darmową dostawę InPost.",
+            "Potwierdzone znalezisko odsłania wers i daje 1 punkt. Zamień go na kod na jeden darmowy produkt oraz darmową dostawę InPost.",
         },
       ],
     },
@@ -405,23 +405,23 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       heading: "Zostaw trop, nie spoiler.",
       body:
         "Udostępnij miasto i odblokowany wers. Dokładne koordynaty oraz pomiary weryfikacyjne nigdy nie trafiają do posta.",
-      button: "Udostępnij VIRYA Area",
+      button: "Udostępnij Grę Virya",
       copied: "Tekst do udostępnienia skopiowany",
       generic:
-        "VIRYA Area budzi się w całej Polsce. Dotrzyj do sygnału, odblokuj wers i wygraj darmowy merch. Kto łapie następny? #ViryaArea #StayMad",
+        "Gra Virya budzi się w całej Polsce. Dotrzyj do sygnału, odblokuj wers i wygraj darmowy merch. Kto łapie następny? #ViryaArea #StayMad",
       claimed: (city: string, line: string) =>
-        `Zablokowałem sygnał VIRYA Area w ${city} i odblokowałem „${line}” Kto łapie następny? #ViryaArea #StayMad`,
+        `Znalazłem strefę Gry Virya w ${city} i odblokowałem „${line}” Kto łapie następny? #ViryaArea #StayMad`,
     },
     rules: {
       eyebrow: "Zasady pilota",
       heading: "Prawdziwy hunt. Jasne reguły.",
       items: [
-        "Jedna karta i 1 Credit na profil gracza za każdy drop.",
-        "1 Credit tworzy jeden jednorazowy kod na jeden dowolny dostępny produkt gratis i darmową dostawę InPost w tym samym zamówieniu.",
+        "Jedna karta i 1 punkt na profil gracza za każdą strefę.",
+        "1 punkt tworzy jeden jednorazowy kod na jeden dowolny dostępny produkt gratis i darmową dostawę InPost w tym samym zamówieniu.",
         "Przy kilku sztukach w koszyku gratis jest najdroższa pojedyncza sztuka. Pozostałe są płatne. Kod wygasa po 12 miesiącach.",
         "O lokalizację pytamy tylko po uruchomieniu blokady sygnału. Zbieramy kilka krótkotrwałych pomiarów i nie śledzimy w tle.",
         "Szukaj wyłącznie w bezpiecznych, publicznych miejscach. Nigdy nie wchodź na teren prywatny, tory, jezdnię, dach ani budowę.",
-        "Karty i Credits są funkcją lojalnościową, a nie kryptowalutą, inwestycją ani produktem finansowym.",
+        "Karty i punkty są funkcją lojalnościową, a nie kryptowalutą, inwestycją ani produktem finansowym.",
       ],
       chain:
         "Opcjonalny mint on-chain może później objąć grafikę karty. Nagroda merchowa pozostaje off-chain, a dokładna lokalizacja nigdy nie trafi do blockchaina.",
@@ -429,11 +429,11 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       terms: "Przeczytaj regulamin sklepu",
     },
     teaser: {
-      eyebrow: "Nowość // VIRYA Area",
+      eyebrow: "Nowość // Gra Virya",
       heading: "Następny release może być ukryty w Twoim mieście.",
       body:
         "Dotrzyj do aktywnego sygnału, odkoduj wers z naszych tekstów i wygraj jeden produkt gratis z darmową dostawą.",
-      cta: "Wejdź do Area",
+      cta: "Otwórz Grę Virya",
       signal: "Mapa pilota online",
     },
   },

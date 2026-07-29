@@ -214,7 +214,7 @@ export default function EventDetail({ lang, slug }: Props) {
             {event.city && (
               <div>
                 <dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
-                  Signal city
+                  {lang === "pl" ? "Wybrane miasto" : "Signal city"}
                 </dt>
                 <dd class="mt-1 text-sm font-bold text-white">
                   {event.city.name}

@@ -22,13 +22,13 @@ const copy = SIGNAL_COPY[lang]
           <p class="text-[10px] font-black uppercase tracking-[.38em] text-amber-400">{copy.teaser.eyebrow}</p>
           <span class="inline-flex items-center gap-2 border border-amber-400/25 bg-amber-400/[.05] px-3 py-1 text-[8px] font-black uppercase tracking-[.22em] text-zinc-300">
             <span class="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,.9)]" aria-hidden="true"></span>
-            live ecosystem
+            {lang === "pl" ? "aktywny ekosystem" : "live ecosystem"}
           </span>
         </div>
         <h2 class="max-w-4xl text-[clamp(2.15rem,7vw,4.8rem)] font-black uppercase leading-[.9] tracking-[-.045em] text-white">
           {copy.teaser.heading}
         </h2>
-        <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify lg:text-base">
+        <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify lg:text-base">
           {copy.teaser.body}
         </p>
       </div>
@@ -66,9 +66,9 @@ const copy = SIGNAL_COPY[lang]
 
     <div class="mt-8 grid gap-px border border-zinc-800 bg-zinc-800 lg:grid-cols-3" aria-label={lang === "pl" ? "Ekosystem Viryi" : "Virya ecosystem"}>
       <div class="bg-zinc-950 p-5 sm:p-6">
-        <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">01 // AREA</p>
+        <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">{lang === "pl" ? "01 // GRA" : "01 // AREA"}</p>
         <h3 class="mt-3 text-lg font-black uppercase text-white">{lang === "pl" ? "Odkryj sygnał" : "Discover the signal"}</h3>
-        <p class="mt-3 text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Geolokalizacyjne dropy budują kolekcję i odblokowują korzyści, które przechodzą bezpośrednio do sklepu." : "Location drops build a collection and unlock benefits that move directly into the store."}</p>
+        <p class="mt-3 text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Terenowe punkty budują kolekcję i odblokowują korzyści, które przechodzą bezpośrednio do sklepu." : "Location drops build a collection and unlock benefits that move directly into the store."}</p>
       </div>
       <div class="bg-zinc-950 p-5 sm:p-6">
         <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">02 // LIVE QR</p>
@@ -78,11 +78,11 @@ const copy = SIGNAL_COPY[lang]
       <div class="bg-zinc-950 p-5 sm:p-6">
         <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">03 // MERCH</p>
         <h3 class="mt-3 text-lg font-black uppercase text-white">{lang === "pl" ? "Domknij pętlę" : "Close the loop"}</h3>
-        <p class="mt-3 text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Nagrody AREA, polecenia i odbiór albumu prowadzą do jednego portfela korzyści oraz mierzalnej konwersji merchowej." : "AREA rewards, referrals and album pickup lead into one benefit wallet and measurable merch conversion."}</p>
+        <p class="mt-3 text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Nagrody z Gry Virya, polecenia i odbiór albumu prowadzą do jednego portfela korzyści oraz mierzalnej konwersji merchowej." : "AREA rewards, referrals and album pickup lead into one benefit wallet and measurable merch conversion."}</p>
       </div>
     </div>
 
-    <div class="mt-6 flex flex-wrap gap-2" aria-label={lang === "pl" ? "Funkcje Virya Signal" : "Virya Signal features"}>
+    <div class="mt-6 flex flex-wrap gap-2" aria-label={lang === "pl" ? "Funkcje Sygnału Virya" : "Virya Signal features"}>
       {copy.teaser.chips.map((chip) => (
         <span class="border border-zinc-800 bg-black/30 px-3 py-2 text-[8px] font-black uppercase tracking-[.22em] text-zinc-400">{chip}</span>
       ))}

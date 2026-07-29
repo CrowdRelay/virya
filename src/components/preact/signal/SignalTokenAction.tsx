@@ -63,7 +63,7 @@ export default function SignalTokenAction({ lang, action }: Props) {
     >
       <div class="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
       <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
-        VIRYA // SIGNAL
+        {lang === "pl" ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL"}
       </p>
       <h1 class="mt-4 text-3xl font-black uppercase leading-tight text-white">
         {action === "confirm" ? copy.confirmTitle : copy.unsubscribeTitle}

@@ -26,6 +26,113 @@ type CacheEntry<T> = {
 
 const CACHE_TTL_MS = 5 * 60 * 1000
 
+const signalDotSize = (fanCount: number): number =>
+  Math.min(18, 6 + Math.floor(Math.max(0, fanCount) / 10))
+
+type BandsintownEvent = {
+  id?: string | number
+  datetime?: string
+  url?: string
+  lineup?: string[]
+  venue?: {
+    name?: string
+    city?: string
+    region?: string
+    country?: string
+  }
+  offers?: Array<{ type?: string; url?: string }>
+}
+
+const countryCode = (country?: string): string => {
+  const normalized = country?.trim().toLowerCase()
+  if (!normalized) return "--"
+  const known: Record<string, string> = {
+    poland: "PL",
+    polska: "PL",
+    germany: "DE",
+    deutschland: "DE",
+    czechia: "CZ",
+    "czech republic": "CZ",
+    slovakia: "SK",
+    austria: "AT",
+    hungary: "HU",
+    lithuania: "LT",
+    latvia: "LV",
+    estonia: "EE",
+    netherlands: "NL",
+    belgium: "BE",
+    france: "FR",
+    italy: "IT",
+    spain: "ES",
+    portugal: "PT",
+    sweden: "SE",
+    norway: "NO",
+    denmark: "DK",
+    finland: "FI",
+    ireland: "IE",
+    "united kingdom": "GB",
+    uk: "GB",
+    "united states": "US",
+    usa: "US",
+    canada: "CA",
+  }
+  if (known[normalized]) return known[normalized]
+  return /^[a-z]{2}$/.test(normalized) ? normalized.toUpperCase() : "--"
+}
+
+function normalizeBandsintownEvent(event: BandsintownEvent): PublicEvent | null {
+  const startsAt = event.datetime
+  if (!startsAt || Number.isNaN(new Date(startsAt).getTime())) return null
+
+  const externalId = event.id == null ? `${startsAt}-${event.venue?.city ?? "show"}` : String(event.id)
+  const venueName = event.venue?.name?.trim() || null
+  const cityName = event.venue?.city?.trim() || null
+  const lineup = Array.isArray(event.lineup) ? event.lineup.filter(Boolean) : []
+  const title = lineup.length > 0 ? lineup.join(" · ") : venueName || "Virya live"
+  const ticketUrl = event.offers?.find(offer => offer?.type === "Tickets")?.url
+    ?? event.offers?.find(offer => offer?.url)?.url
+    ?? null
+
+  return {
+    id: `bandsintown:${externalId}`,
+    slug: `gig-${externalId}`.toLowerCase().replace(/[^a-z0-9_-]+/g, "-"),
+    title,
+    description: null,
+    city: cityName ? {
+      id: `bandsintown-city:${cityName.toLowerCase()}`,
+      slug: cityName.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      name: cityName,
+      country_code: countryCode(event.venue?.country),
+      region: event.venue?.region ?? null,
+    } : null,
+    venue: venueName,
+    venue_address: null,
+    timezone: "Europe/Warsaw",
+    starts_at: startsAt,
+    doors_at: null,
+    ends_at: null,
+    ticket_url: ticketUrl,
+    listen_url: null,
+    image_url: null,
+    trailer_url: null,
+    external_event_url: event.url ?? ticketUrl,
+    updated_at: new Date().toISOString(),
+  }
+}
+
+async function loadBandsintownEvents(): Promise<PublicEvent[]> {
+  const response = await fetch("/api/bandsintown", {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(6_000),
+  })
+  if (!response.ok) return []
+  const payload = await response.json()
+  if (!Array.isArray(payload)) return []
+  return payload
+    .map(item => normalizeBandsintownEvent(item as BandsintownEvent))
+    .filter((item): item is PublicEvent => item !== null)
+}
+
 export default function SignalHub({ lang }: Props) {
   const copy = SIGNAL_COPY[lang]
   const locale = lang === "pl" ? "pl-PL" : "en-GB"
@@ -66,19 +173,38 @@ export default function SignalHub({ lang }: Props) {
         setCities(current => current ?? [])
       })
 
-    void crowdrelay
-      .listEvents(20)
-      .then(items => {
+    void (async () => {
+      try {
+        const crowdRelayEvents = await crowdrelay.listEvents(20)
         if (cancelled) return
-        setEvents(items)
+        if (crowdRelayEvents.length > 0) {
+          setEvents(crowdRelayEvents)
+          setEventError(false)
+          writeCache("virya-signal-events-v1", crowdRelayEvents)
+          return
+        }
+
+        const fallbackEvents = await loadBandsintownEvents()
+        if (cancelled) return
+        setEvents(fallbackEvents)
         setEventError(false)
-        writeCache("virya-signal-events-v1", items)
-      })
-      .catch(() => {
-        if (cancelled) return
-        setEventError(true)
-        setEvents(current => current ?? [])
-      })
+        writeCache("virya-signal-events-v1", fallbackEvents)
+      } catch {
+        try {
+          const fallbackEvents = await loadBandsintownEvents()
+          if (cancelled) return
+          setEvents(fallbackEvents)
+          setEventError(fallbackEvents.length === 0)
+          if (fallbackEvents.length > 0) {
+            writeCache("virya-signal-events-v1", fallbackEvents)
+          }
+        } catch {
+          if (cancelled) return
+          setEventError(true)
+          setEvents(current => current ?? [])
+        }
+      }
+    })()
 
     return () => {
       cancelled = true
@@ -187,7 +313,7 @@ export default function SignalHub({ lang }: Props) {
             <h2 class="mt-4 text-[clamp(2.2rem,8vw,4.5rem)] font-black uppercase leading-[.92] tracking-[-.04em] text-white">
               {copy.form.heading}
             </h2>
-            <p class="mt-6 max-w-xl text-sm leading-relaxed text-zinc-300 lg:text-base">
+            <p class="mt-6 max-w-xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify lg:text-base">
               {copy.form.body}
             </p>
             <div class="mt-8 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
@@ -353,7 +479,7 @@ export default function SignalHub({ lang }: Props) {
               <h2 class="mt-4 text-3xl font-black uppercase leading-none tracking-tight text-white sm:text-4xl lg:text-5xl">
                 {copy.cities.heading}
               </h2>
-              <p class="mt-5 text-sm leading-relaxed text-zinc-400">
+              <p class="mt-5 text-sm leading-relaxed text-zinc-400 text-justify mobile-justify">
                 {copy.cities.body}
               </p>
             </div>
@@ -394,9 +520,24 @@ export default function SignalHub({ lang }: Props) {
                     </span>
                   </span>
                   <span class="text-right">
-                    <strong class="block text-xl font-black text-amber-400">
-                      {city.fan_count}
-                    </strong>
+                    <span class="flex items-center justify-end gap-3">
+                      {city.fan_count > 0 && (
+                        <span
+                          class="relative inline-flex shrink-0 items-center justify-center"
+                          style={{
+                            width: `${signalDotSize(city.fan_count)}px`,
+                            height: `${signalDotSize(city.fan_count)}px`,
+                          }}
+                          aria-hidden="true"
+                        >
+                          <span class="absolute inset-0 rounded-full bg-amber-400/35 motion-safe:animate-ping"></span>
+                          <span class="relative h-full w-full rounded-full bg-amber-400 shadow-[0_0_14px_rgba(251,191,36,.82)] motion-safe:animate-pulse"></span>
+                        </span>
+                      )}
+                      <strong class="block text-xl font-black text-amber-400">
+                        {city.fan_count}
+                      </strong>
+                    </span>
                     <span class="text-[8px] uppercase tracking-widest text-zinc-500">
                       {copy.cities.people(city.fan_count)}
                     </span>
@@ -420,7 +561,7 @@ export default function SignalHub({ lang }: Props) {
             <h2 class="mt-4 text-3xl font-black uppercase leading-none tracking-tight text-white sm:text-4xl lg:text-5xl">
               {copy.events.heading}
             </h2>
-            <p class="mt-5 text-sm leading-relaxed text-zinc-400">
+            <p class="mt-5 text-sm leading-relaxed text-zinc-400 text-justify mobile-justify">
               {copy.events.body}
             </p>
           </div>
@@ -436,51 +577,89 @@ export default function SignalHub({ lang }: Props) {
                 {eventError ? copy.events.unavailable : copy.events.empty}
               </p>
             )}
-            {upcomingEvents.map(event => (
-              <article
-                key={event.id}
-                class="group relative overflow-hidden border border-zinc-800 bg-zinc-950 p-5 transition-colors hover:border-amber-400/45 sm:p-6"
-              >
-                <div class="absolute right-0 top-0 h-24 w-24 bg-amber-400/[.04] blur-2xl" aria-hidden="true"></div>
-                <p class="font-mono text-[9px] uppercase tracking-[.2em] text-amber-400">
-                  {formatDate(event.starts_at, locale)}
-                </p>
-                <h3 class="mt-3 max-w-xl text-xl font-black uppercase leading-tight text-white group-hover:text-amber-400">
-                  {event.title}
-                </h3>
-                <p class="mt-3 text-xs leading-relaxed text-zinc-400">
-                  {[event.city?.name, event.venue].filter(Boolean).join(" · ")}
-                </p>
-                <div class="mt-6 flex flex-wrap gap-3">
-                  <a
-                    href={pagePath(lang, `/live/${event.slug}/`)}
-                    class="inline-flex min-h-[42px] items-center bg-amber-400 px-4 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300"
-                  >
-                    {copy.events.details}
-                  </a>
-                  {event.ticket_url && (
-                    <a
-                      href={crowdrelay.eventTicketUrl(
-                        event.slug,
-                        campaignIdFromLocation(),
-                      )}
-                      class="inline-flex min-h-[42px] items-center border border-zinc-700 px-4 text-[9px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400"
-                    >
-                      {copy.events.tickets}
-                    </a>
-                  )}
-                  <a
-                    href={crowdrelay.eventCalendarUrl(
-                      event.slug,
-                      campaignIdFromLocation(),
-                    )}
-                    class="inline-flex min-h-[42px] items-center px-2 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-amber-400"
-                  >
-                    {copy.events.calendar}
-                  </a>
-                </div>
-              </article>
-            ))}
+            {upcomingEvents.map((event, index) => {
+              const isBandsintownFallback = event.id.startsWith("bandsintown:")
+              const detailsUrl = isBandsintownFallback
+                ? event.external_event_url
+                : pagePath(lang, `/live/${event.slug}/`)
+              const ticketUrl = isBandsintownFallback
+                ? event.ticket_url
+                : event.ticket_url
+                  ? crowdrelay.eventTicketUrl(event.slug, campaignIdFromLocation())
+                  : null
+              const calendarUrl = isBandsintownFallback
+                ? null
+                : crowdrelay.eventCalendarUrl(event.slug, campaignIdFromLocation())
+              const eventDate = new Date(event.starts_at)
+              const day = new Intl.DateTimeFormat(locale, { day: "2-digit" }).format(eventDate)
+              const month = new Intl.DateTimeFormat(locale, { month: "short" }).format(eventDate).replace(".", "")
+              const weekday = new Intl.DateTimeFormat(locale, { weekday: "short" }).format(eventDate).replace(".", "")
+
+              return (
+                <article
+                  key={event.id}
+                  class="group relative isolate overflow-hidden border border-zinc-800 bg-zinc-950 transition-all duration-300 hover:border-amber-400/55"
+                >
+                  <div class="absolute inset-y-0 left-0 w-1 bg-zinc-700 transition-all duration-300 group-hover:w-2 group-hover:bg-amber-400" aria-hidden="true"></div>
+                  <div class="absolute -right-14 -top-20 h-48 w-48 rounded-full border border-amber-400/10 transition-transform duration-500 group-hover:scale-110" aria-hidden="true"></div>
+                  <div class="relative grid min-h-52 gap-6 p-5 sm:grid-cols-[80px_minmax(0,1fr)] sm:p-6">
+                    <time dateTime={event.starts_at} class="flex h-fit min-w-[72px] flex-col border border-zinc-800 bg-black/50 px-2 py-3 text-center transition-colors group-hover:border-amber-400/40">
+                      <span class="text-[8px] font-black uppercase tracking-[.2em] text-amber-400">{weekday}</span>
+                      <strong class="mt-1 text-3xl font-black leading-none text-white">{day}</strong>
+                      <span class="mt-1 text-[8px] font-bold uppercase tracking-[.16em] text-zinc-400">{month}</span>
+                    </time>
+
+                    <div class="min-w-0">
+                      <div class="flex items-center justify-between gap-3">
+                        <span class="font-mono text-[8px] text-zinc-600">{String(index + 1).padStart(2, "0")}</span>
+                        <span class="text-[8px] font-black uppercase tracking-[.22em] text-zinc-500">VIRYA // LIVE</span>
+                      </div>
+                      <p class="mt-4 font-mono text-[9px] uppercase tracking-[.18em] text-amber-400">
+                        {formatDate(event.starts_at, locale)}
+                      </p>
+                      <h3 class="mt-3 max-w-xl text-xl font-black uppercase leading-tight text-white transition-colors group-hover:text-amber-400">
+                        {event.title}
+                      </h3>
+                      <p class="mt-3 text-xs leading-relaxed text-zinc-400">
+                        {[event.city?.name, event.venue].filter(Boolean).join(" · ")}
+                      </p>
+                      <div class="relative z-10 mt-6 flex flex-wrap gap-2">
+                        {detailsUrl && (
+                          <a
+                            href={detailsUrl}
+                            target={isBandsintownFallback ? "_blank" : undefined}
+                            rel={isBandsintownFallback ? "noopener noreferrer" : undefined}
+                            class="inline-flex min-h-[42px] items-center bg-amber-400 px-4 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300"
+                          >
+                            {copy.events.details}<span class="ml-2" aria-hidden="true">{isBandsintownFallback ? "↗" : "→"}</span>
+                          </a>
+                        )}
+                        {ticketUrl && (
+                          <a
+                            href={ticketUrl}
+                            target={isBandsintownFallback ? "_blank" : undefined}
+                            rel={isBandsintownFallback ? "noopener noreferrer" : undefined}
+                            class="inline-flex min-h-[42px] items-center border border-amber-400/60 px-4 text-[9px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-400 hover:text-black"
+                          >
+                            {copy.events.tickets}<span class="ml-2" aria-hidden="true">↗</span>
+                          </a>
+                        )}
+                        {calendarUrl && (
+                          <a
+                            href={calendarUrl}
+                            target={isBandsintownFallback ? "_blank" : undefined}
+                            rel={isBandsintownFallback ? "noopener noreferrer" : undefined}
+                            class="inline-flex min-h-[42px] items-center px-2 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-amber-400"
+                          >
+                            {copy.events.calendar}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </div>
       </section>
