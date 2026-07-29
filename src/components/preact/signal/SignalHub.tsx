@@ -521,19 +521,23 @@ export default function SignalHub({ lang }: Props) {
                   </span>
                   <span class="text-right">
                     <span class="flex items-center justify-end gap-3">
-                      {city.fan_count > 0 && (
-                        <span
-                          class="relative inline-flex shrink-0 items-center justify-center"
-                          style={{
-                            width: `${signalDotSize(city.fan_count)}px`,
-                            height: `${signalDotSize(city.fan_count)}px`,
-                          }}
-                          aria-hidden="true"
-                        >
-                          <span class="absolute inset-0 rounded-full bg-amber-400/35 motion-safe:animate-ping"></span>
-                          <span class="relative h-full w-full rounded-full bg-amber-400 shadow-[0_0_14px_rgba(251,191,36,.82)] motion-safe:animate-pulse"></span>
-                        </span>
-                      )}
+                      <span
+                        class="relative inline-flex shrink-0 items-center justify-center"
+                        style={{
+                          width: `${signalDotSize(city.fan_count)}px`,
+                          height: `${signalDotSize(city.fan_count)}px`,
+                        }}
+                        aria-hidden="true"
+                      >
+                        {city.fan_count > 0 ? (
+                          <>
+                            <span class="absolute inset-0 rounded-full bg-amber-400/35 motion-safe:animate-ping"></span>
+                            <span class="relative h-full w-full rounded-full bg-amber-400 shadow-[0_0_14px_rgba(251,191,36,.82)] motion-safe:animate-pulse"></span>
+                          </>
+                        ) : (
+                          <span class="relative h-full w-full rounded-full bg-zinc-600 shadow-[0_0_7px_rgba(113,113,122,.35)]"></span>
+                        )}
+                      </span>
                       <strong class="block text-xl font-black text-amber-400">
                         {city.fan_count}
                       </strong>
