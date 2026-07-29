@@ -21,7 +21,7 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       teaserTrack: "Unknown transmission · 001",
     },
     stats: {
-      value: "1 ITEM",
+      value: "1 MERCH",
       valueLabel: "free with each reward code",
       cities: "12",
       citiesLabel: "pilot city signals",
@@ -225,21 +225,21 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
         "Gra geolokalizacyjna VIRYA w 12 miastach Polski. Docieraj do aktywnych stref, odblokowuj wersy i wygrywaj darmowy merch z darmową dostawą.",
     },
     hero: {
-      eyebrow: "Gra terenowa · Polska · Pilot",
-      title: "Polska jest mapą. Nasze słowa są lootem.",
+      eyebrow: "Gra terenowa Viryi · Polska",
+      title: "Znajdź strefę. Odblokuj wers. Wygraj merch.",
       body:
-        "Idź za wskazówkami, dotrzyj do aktywnej strefy VIRYA i zablokuj sygnał telefonem. Potwierdzone znalezisko odblokowuje kolekcjonerski wers oraz 1 VIRYA Credit.",
-      mapCta: "Otwórz mapę pilota",
+        "Wybierz aktywne miasto, idź za wskazówką i potwierdź lokalizację telefonem. Za poprawne znalezienie strefy dostajesz kolekcjonerski wers i kod na jeden darmowy produkt z darmową dostawą.",
+      mapCta: "Sprawdź aktywne miasta",
       howCta: "Jak to działa",
-      pilot: "Sygnał pilota",
+      pilot: "Ważne",
       pilotBody:
-        "Miasto można odebrać tylko wtedy, gdy opublikujemy aktywny sygnał. Nie potrzeba naklejki, QR-u ani ukrytego fizycznego przedmiotu.",
+        "AREA działa tylko w ogłoszonych godzinach i strefach. Nie szukasz naklejki ani przedmiotu — telefon potwierdza, że dotarłeś na miejsce.",
       teaserLine: "[ SYGNAŁ ZABLOKOWANY ]",
       teaserTrack: "Nieznana transmisja · 001",
     },
     stats: {
-      value: "1 ITEM",
-      valueLabel: "gratis za każdy kod",
+      value: "1 MERCH",
+      valueLabel: "gratis + darmowa dostawa",
       cities: "12",
       citiesLabel: "miast w sygnale pilota",
       tracking: "0×",
@@ -247,9 +247,9 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     },
     map: {
       eyebrow: "Area // Polska",
-      heading: "Namierz następny sygnał",
+      heading: "Wybierz miasto i znajdź strefę",
       body:
-        "Mapa ujawnia miasto i przybliżoną strefę. Ostatnie metry należą do ulicy, wskazówki i Twojego instynktu.",
+        "Wybierz aktywne miasto. Mapa pokaże przybliżony obszar, a wskazówka pomoże Ci znaleźć właściwe miejsce.",
       mapLabel: "Stylizowana mapa Polski z miastami dropów VIRYA",
       signal: "Sygnał",
       live: "Aktywny",
@@ -270,12 +270,12 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
     },
     claim: {
       eyebrow: "Wykryto aktywny sygnał",
-      heading: "Zablokuj strefę",
+      heading: "Potwierdź, że jesteś w strefie",
       body:
-        "Gdy uznasz, że dotarłeś do miejsca ze wskazówki, uruchom blokadę sygnału. Telefon przez kilka sekund zbierze kilka świeżych odczytów GPS, a serwer sprawdzi, czy pozostałeś w aktywnej strefie.",
+        "Po dotarciu na miejsce uruchom weryfikację. Telefon przez kilka sekund sprawdzi lokalizację i potwierdzi, czy jesteś w aktywnej strefie.",
       privacy:
         "Po weryfikacji odrzucamy surowe koordynaty i pojedyncze pomiary. Zapisujemy tylko odblokowany drop, orientacyjny dystans weryfikacji i czas. Nie zapisujemy trasy ani lokalizacji w tle.",
-      button: "Zablokuj sygnał i odblokuj",
+      button: "Sprawdź lokalizację i odbierz nagrodę",
       working: "Uruchamiam bezpieczną blokadę sygnału…",
       collecting: "Pozostań na miejscu pod gołym niebem — pomiar {current}/{total}",
       success:
@@ -299,11 +299,11 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       accountChecking: "Sprawdzam profil gracza…",
     },
     profile: {
-      eyebrow: "Tożsamość gracza",
-      heading: "Zabierz Area ze sobą",
+      eyebrow: "Krok 1 · profil gracza",
+      heading: "Zaloguj się, żeby zachować nagrody",
       body:
-        "Użyj magic linku, żeby kolekcja i Credits podążały za Twoim profilem między urządzeniami. Nigdy nie pokazujemy ani nie udostępniamy pełnego adresu e-mail.",
-      loggedOut: "Zaloguj się jednorazowym linkiem",
+        "Podaj e-mail i otwórz jednorazowy link. Dzięki temu kolekcja i zdobyte kody nie znikną po zmianie telefonu lub przeglądarki.",
+      loggedOut: "Wyślij mi link logowania",
       emailLabel: "Adres e-mail",
       emailPlaceholder: "ty@example.com",
       requestButton: "Wyślij magic link",
