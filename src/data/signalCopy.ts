@@ -197,7 +197,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         {
           number: "04",
           title: "Return live",
-          body: "Follow shows, save dates and get access to reminders and selected guest-list drops.",
+          body: "Follow shows, save dates and enter separate limited pools for guest-list spots or physical albums.",
           href: "#signal-shows",
           cta: "See shows",
         },
@@ -245,7 +245,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       eyebrow: "Live layer",
       heading: "Follow the next transmissions",
       body:
-        "Open a show page, save the date and register interest. Selected events can also carry limited guest-list rewards.",
+        "Open a show page, save the date and register interest. Selected events can carry separate, limited pools for guest-list spots and physical Virya albums, redeemed with event QR codes.",
       loading: "Loading shows…",
       unavailable: "Shows are temporarily unavailable.",
       empty: "New shows will appear here.",
@@ -331,7 +331,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       primary: "Activate Signal",
       area: "Play AREA",
       merch: "Open merch",
-      chips: ["City demand", "AREA rewards", "Show alerts", "Referrals"],
+      chips: ["City demand", "AREA rewards", "Album draws", "Merch loop", "Referrals"],
     },
     manager: {
       eyebrow: "Fan infrastructure",
@@ -345,11 +345,11 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         },
         {
           title: "Measurable activation",
-          body: "Tracked campaigns, referrals, show interest and merch reward redemption.",
+          body: "Tracked campaigns, referrals, show interest, limited album draws and merch reward redemption.",
         },
         {
           title: "Original fan product",
-          body: "AREA connects physical locations, music lore and tangible store rewards.",
+          body: "AREA, concert QR pools and merch form one measurable fan journey instead of isolated promotions.",
         },
         {
           title: "Automation-ready",
@@ -406,7 +406,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         {
           number: "04",
           title: "Wracaj na żywo",
-          body: "Obserwuj koncerty, zapisuj daty i korzystaj z przypomnień oraz wybranych pul wejściówek.",
+          body: "Obserwuj koncerty, zapisuj daty i wchodź do osobnych limitowanych pul wejściówek albo fizycznych albumów.",
           href: "#signal-shows",
           cta: "Zobacz koncerty",
         },
@@ -540,7 +540,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       primary: "Aktywuj Signal",
       area: "Graj w AREA",
       merch: "Otwórz sklep",
-      chips: ["Popyt w miastach", "Nagrody AREA", "Alerty koncertowe", "Polecenia"],
+      chips: ["Popyt w miastach", "Nagrody AREA", "Losowania albumów", "Merch loop", "Polecenia"],
     },
     manager: {
       eyebrow: "Infrastruktura fanowska",

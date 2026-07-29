@@ -19,6 +19,8 @@ const headers = read("public/_headers")
 const redirects = read("public/_redirects")
 const envExample = read(".env.example")
 const signalCopy = read("src/data/signalCopy.ts")
+const webhook = read("src/pages/api/crowdrelay-webhook.ts")
+const subscribe = read("src/pages/api/subscribe.ts")
 
 assert(
   !layout.includes("crowdrelay") && !layout.includes("SignalHub"),
@@ -69,6 +71,22 @@ assert(
 assert(
   (signalCopy.match(/\bareaBridge\s*:/g) ?? []).length === 3,
   "Signal copy must define the AREA bridge contract plus EN and PL translations.",
+)
+
+assert(
+  envExample.includes("CROWDRELAY_WEBHOOK_SECRET=") &&
+    webhook.includes("fan.confirmation_requested") &&
+    webhook.includes("timingSafeEqual") &&
+    webhook.includes("getSiteMailer"),
+  "Signed CrowdRelay confirmation delivery ingress is incomplete.",
+)
+assert(
+  subscribe.includes('return json({ error: "Delivery unavailable" }, 503)'),
+  "Newsletter must fail closed when the mailer is unavailable.",
+)
+assert(
+  signalCopy.includes("physical Virya albums") && signalCopy.includes("fizycznych albumów"),
+  "Signal copy must describe separate physical-album concert pools.",
 )
 
 for (const path of [

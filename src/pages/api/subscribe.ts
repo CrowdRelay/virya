@@ -54,17 +54,18 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const mailer = getSiteMailer()
-    if (mailer) {
-      const { transporter, user, to } = mailer
-      await transporter.sendMail({
-        from: `"Virya Website" <${user}>`,
-        to,
-        subject: `📬 Newsletter signup — ${email}`,
-        text: `New newsletter signup:\n\nEmail: ${email}\n\n— virya.music`,
-      })
-    } else {
-      console.warn("[subscribe] GMAIL_USER / GMAIL_APP_PASSWORD not set — skipping email.")
+    if (!mailer) {
+      console.error("[subscribe] Mailer is not configured.")
+      return json({ error: "Delivery unavailable" }, 503)
     }
+
+    const { transporter, user, to } = mailer
+    await transporter.sendMail({
+      from: `"Virya Website" <${user}>`,
+      to,
+      subject: `📬 Newsletter signup — ${email}`,
+      text: `New newsletter signup:\n\nEmail: ${email}\n\n— virya.music`,
+    })
 
     return json({ ok: true })
   } catch (err) {
