@@ -1,5 +1,6 @@
 ---
 import { AREA_COPY } from "../data/areaCopy"
+import { SIGNAL_COPY } from "../data/signalCopy"
 import { lp, type Lang } from "../i18n/t"
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 
 const { lang = "en" } = Astro.props
 const copy = AREA_COPY[lang].teaser
+const signalCopy = SIGNAL_COPY[lang]
 ---
 
 <div class="relative overflow-hidden border-t border-zinc-800/60 py-16 lg:px-8">
@@ -27,12 +29,20 @@ const copy = AREA_COPY[lang].teaser
       <p class="mt-5 max-w-2xl text-sm leading-relaxed text-zinc-300 text-justify">
         {copy.body}
       </p>
-      <a
-        href={lp(lang, "/area/")}
-        class="mt-7 inline-flex min-h-[44px] items-center justify-center border border-amber-400 bg-amber-400 px-6 py-3 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300"
-      >
-        {copy.cta}
-      </a>
+      <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+        <a
+          href={lp(lang, "/area/")}
+          class="inline-flex min-h-[44px] items-center justify-center border border-amber-400 bg-amber-400 px-6 py-3 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300"
+        >
+          {copy.cta}
+        </a>
+        <a
+          href={lp(lang, "/signal/")}
+          class="inline-flex min-h-[44px] items-center justify-center border border-zinc-700 px-6 py-3 text-xs font-black uppercase tracking-widest text-zinc-200 transition-colors hover:border-amber-400 hover:text-amber-400"
+        >
+          {signalCopy.teaser.primary}
+        </a>
+      </div>
     </div>
 
     <a

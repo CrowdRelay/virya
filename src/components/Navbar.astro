@@ -33,9 +33,10 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
       </div>
 
       <div class="hidden lg:flex items-center">
-        {displayLinks && <a href={lp(lang, "/about")} aria-current={activePage === "about" ? "page" : undefined} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "about" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.band")}</a>}
-        {displayLinks && <a href={lp(lang, "/merch")} aria-current={activePage === "merch" ? "page" : undefined} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "merch" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.merch")}</a>}
-        {displayLinks && <a href={lp(lang, "/area/")} aria-current={activePage === "area" ? "page" : undefined} class={`cursor-pointer lg:px-4 px-3 py-3 lg:py-2 text-xs font-black uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "area" ? "text-amber-400" : "text-amber-400/80 hover:text-amber-300"}`}>{t(lang, "nav.area")}</a>}
+        {displayLinks && <a href={lp(lang, "/about")} aria-current={activePage === "about" ? "page" : undefined} class={`cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "about" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.band")}</a>}
+        {displayLinks && <a href={lp(lang, "/signal/")} aria-current={activePage === "signal" ? "page" : undefined} class={`mx-1 inline-flex min-h-[38px] items-center border px-3 text-xs font-black uppercase tracking-widest transition-colors ${activePage === "signal" ? "border-amber-400 bg-amber-400 text-black" : "border-amber-400/55 text-amber-400 hover:bg-amber-400 hover:text-black"}`}>{t(lang, "nav.signal")}</a>}
+        {displayLinks && <a href={lp(lang, "/area/")} aria-current={activePage === "area" ? "page" : undefined} class={`cursor-pointer px-3 py-3 text-xs font-black uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "area" ? "text-amber-400" : "text-amber-400/80 hover:text-amber-300"}`}>{t(lang, "nav.area")}</a>}
+        {displayLinks && <a href={lp(lang, "/merch")} aria-current={activePage === "merch" ? "page" : undefined} class={`cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "merch" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.merch")}</a>}
         {displayLinks && (
           <details class="group/media relative">
             <summary class={`inline-flex min-h-[44px] cursor-pointer list-none items-center gap-1 px-4 text-xs font-semibold uppercase tracking-widest transition-colors marker:content-none ${["videos", "gallery", "lyrics"].includes(activePage) ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>
@@ -69,9 +70,9 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
           <span class="text-zinc-700">/</span>
           <button data-lang-switch="pl" class={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 py-1 transition-colors cursor-pointer ${lang === "pl" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="PL — Przełącz na polski">PL</button>
         </div>
-        {displayLinks && activePage === "home" && (
-          <a href={lp(lang, "/merch")} aria-label={t(lang, "nav.toMerch")} class="inline-flex items-center min-h-[44px] px-3 text-xs font-bold uppercase tracking-widest text-amber-400 border border-amber-400/50 hover:bg-amber-400 hover:text-black transition-colors">
-            {t(lang, "nav.merch")}
+        {displayLinks && activePage !== "signal" && (
+          <a href={lp(lang, "/signal/")} aria-label={t(lang, "nav.toSignal")} class="inline-flex min-h-[44px] items-center border border-amber-400/55 px-3 text-[10px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black">
+            {t(lang, "nav.signal")}
           </a>
         )}
         {displayLinks && (
@@ -95,9 +96,10 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
 
     {displayLinks && (
       <div id="mobile-menu" hidden class="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
-        <a href={lp(lang, "/about")} aria-current={activePage === "about" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "about" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.band")}</a>
-        <a href={lp(lang, "/merch")} aria-current={activePage === "merch" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "merch" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.merch")}</a>
-        <a href={lp(lang, "/area/")} aria-current={activePage === "area" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-black uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-300 ${activePage === "area" ? "text-amber-400" : "text-amber-400/80"}`}>{t(lang, "nav.area")}</a>
+        <a href={lp(lang, "/about")} aria-current={activePage === "about" ? "page" : undefined} class={`mobile-nav-link w-full border-b border-white/5 px-2 py-4 text-left text-sm font-semibold uppercase tracking-widest transition-colors hover:text-amber-400 ${activePage === "about" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.band")}</a>
+        <a href={lp(lang, "/signal/")} aria-current={activePage === "signal" ? "page" : undefined} class={`mobile-nav-link flex w-full items-center justify-between border-b border-white/5 px-2 py-4 text-left text-sm font-black uppercase tracking-widest transition-colors ${activePage === "signal" ? "text-amber-400" : "text-amber-400/90 hover:text-amber-300"}`}>{t(lang, "nav.signal")} <span aria-hidden="true">→</span></a>
+        <a href={lp(lang, "/area/")} aria-current={activePage === "area" ? "page" : undefined} class={`mobile-nav-link w-full border-b border-white/5 px-2 py-4 text-left text-sm font-black uppercase tracking-widest transition-colors hover:text-amber-300 ${activePage === "area" ? "text-amber-400" : "text-amber-400/80"}`}>{t(lang, "nav.area")}</a>
+        <a href={lp(lang, "/merch")} aria-current={activePage === "merch" ? "page" : undefined} class={`mobile-nav-link w-full border-b border-white/5 px-2 py-4 text-left text-sm font-semibold uppercase tracking-widest transition-colors hover:text-amber-400 ${activePage === "merch" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.merch")}</a>
         <a href={lp(lang, "/videos/")} aria-current={activePage === "videos" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "videos" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.videos")}</a>
         <a href={lp(lang, "/gallery/")} aria-current={activePage === "gallery" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "gallery" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.gallery")}</a>
         <a href={lp(lang, "/lyrics/")} aria-current={activePage === "lyrics" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "lyrics" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "lyrics.heading")}</a>

@@ -69,12 +69,20 @@ const MerchInner = () => {
                 {t("merch.areaBannerBody")}
               </p>
             </div>
-            <a
-              href={lp("/area/")}
-              class="inline-flex min-h-[44px] shrink-0 items-center justify-center border border-amber-400/60 px-4 text-[10px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black"
-            >
-              {t("merch.areaBannerCta")} <span class="ml-2" aria-hidden="true">→</span>
-            </a>
+            <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+              <a
+                href={lp("/signal/")}
+                class="inline-flex min-h-[44px] items-center justify-center bg-amber-400 px-4 text-[10px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300"
+              >
+                {t("merch.signalBannerCta")} <span class="ml-2" aria-hidden="true">→</span>
+              </a>
+              <a
+                href={lp("/area/")}
+                class="inline-flex min-h-[44px] items-center justify-center border border-amber-400/60 px-4 text-[10px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black"
+              >
+                {t("merch.areaBannerCta")}
+              </a>
+            </div>
           </aside>
 
           <div class="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">

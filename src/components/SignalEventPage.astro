@@ -1,0 +1,37 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import ScrollToTop from "./ScrollToTop.astro"
+import EventDetail from "./preact/signal/EventDetail"
+import { SIGNAL_COPY } from "../data/signalCopy"
+import type { Lang } from "../i18n/t"
+
+interface Props {
+  lang?: Lang
+  slug: string
+}
+
+const { lang = "en", slug } = Astro.props
+const copy = SIGNAL_COPY[lang]
+---
+
+<Layout
+  title={`${copy.events.heading} | Virya`}
+  description={copy.events.body}
+  lang={lang}
+>
+  <Fragment slot="head">
+    <link rel="dns-prefetch" href="https://signal-api.virya.music" />
+  </Fragment>
+  <div class="flex min-h-screen flex-col bg-zinc-950">
+    <Navbar lang={lang} displayLinks={true} activePage="signal" />
+    <ScrollToTop />
+    <main id="main-content" class="flex-1 px-4 pb-20 pt-32 sm:px-6 lg:px-12">
+      <div class="mx-auto max-w-7xl">
+        <EventDetail client:load lang={lang} slug={slug} />
+      </div>
+    </main>
+    <Footer lang={lang} />
+  </div>
+</Layout>

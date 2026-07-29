@@ -1,0 +1,170 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import ScrollToTop from "./ScrollToTop.astro"
+import SignalHub from "./preact/signal/SignalHub"
+import { SIGNAL_COPY } from "../data/signalCopy"
+import { getSeoTags } from "../utils/seo"
+import { lp, type Lang } from "../i18n/t"
+
+interface Props {
+  lang?: Lang
+}
+
+const { lang = "en" } = Astro.props
+const copy = SIGNAL_COPY[lang]
+const { canonicalUrl, hreflangLinks } = getSeoTags("/signal/", lang)
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Virya Signal",
+  url: canonicalUrl,
+  description: copy.meta.description,
+  applicationCategory: "EntertainmentApplication",
+  operatingSystem: "Any",
+  isAccessibleForFree: true,
+  inLanguage: lang,
+  creator: {
+    "@type": "MusicGroup",
+    name: "Virya",
+    url: "https://www.virya.music/",
+  },
+}
+---
+
+<Layout
+  title={copy.meta.title}
+  description={copy.meta.description}
+  canonical={canonicalUrl}
+  lang={lang}
+  ogImage="https://www.virya.music/poster.webp"
+>
+  <Fragment slot="head">
+    {hreflangLinks.map((link) => (
+      <link rel={link.rel} hreflang={link.hreflang} href={link.href} />
+    ))}
+    <link rel="dns-prefetch" href="https://signal-api.virya.music" />
+    <link rel="preconnect" href="https://signal-api.virya.music" crossorigin="anonymous" />
+    <script type="application/ld+json" set:html={JSON.stringify(schema).replace(/</g, "\\u003c")} />
+  </Fragment>
+
+  <div class="flex min-h-screen flex-col bg-zinc-950">
+    <Navbar lang={lang} displayLinks={true} activePage="signal" />
+    <ScrollToTop />
+
+    <main id="main-content" class="flex-1">
+      <header class="relative flex min-h-[82svh] items-center overflow-hidden border-b border-zinc-800/60 px-4 pb-14 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-6 lg:px-12">
+        <div class="signal-hero-grid absolute inset-0 opacity-80" aria-hidden="true"></div>
+        <div class="absolute left-[8%] top-36 h-64 w-64 rounded-full bg-amber-400/10 blur-[110px]" aria-hidden="true"></div>
+        <div class="relative mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,.72fr)]">
+          <div>
+            <div class="flex flex-wrap items-center gap-3">
+              <p class="text-[10px] font-black uppercase tracking-[.4em] text-amber-400">{copy.hero.eyebrow}</p>
+              <span class="inline-flex items-center gap-2 border border-zinc-800 bg-black/50 px-3 py-1 text-[8px] font-black uppercase tracking-[.2em] text-zinc-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,.9)]" aria-hidden="true"></span>
+                {copy.hero.status}
+              </span>
+            </div>
+            <h1 class="mt-6 max-w-5xl text-[clamp(3rem,10vw,7.2rem)] font-black uppercase leading-[.84] tracking-[-.06em] text-white">
+              {copy.hero.heading}
+            </h1>
+            <p class="mt-7 max-w-2xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify sm:text-base lg:text-lg">
+              {copy.hero.body}
+            </p>
+            <div class="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <a href="#join-signal" class="inline-flex min-h-[50px] items-center justify-center bg-amber-400 px-6 text-[10px] font-black uppercase tracking-widest text-black hover:bg-amber-300">
+                {copy.hero.primary} <span class="ml-3" aria-hidden="true">→</span>
+              </a>
+              <a href={lp(lang, "/area/")} class="inline-flex min-h-[50px] items-center justify-center border border-amber-400/55 px-6 text-[10px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-400 hover:text-black">
+                {copy.hero.secondary}
+              </a>
+              <a href={lp(lang, "/my-signal/")} class="inline-flex min-h-[50px] items-center justify-center border border-zinc-700 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400">
+                {copy.hero.account}
+              </a>
+            </div>
+          </div>
+
+          <aside class="relative overflow-hidden border border-amber-400/40 bg-zinc-950/90 p-5 shadow-2xl sm:p-7">
+            <div class="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
+            <div class="relative flex items-center justify-between">
+              <p class="font-mono text-[9px] font-black uppercase tracking-[.25em] text-amber-400">SIGNAL // ACTIVE</p>
+              <span class="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_18px_rgba(251,191,36,.9)]" aria-hidden="true"></span>
+            </div>
+            <div class="relative mt-8 grid gap-px border border-zinc-800 bg-zinc-800">
+              {copy.promise.steps.map((step) => (
+                <div class="grid grid-cols-[42px_1fr_auto] items-center gap-3 bg-zinc-950 p-3">
+                  <span class="font-mono text-[8px] text-amber-400">{step.number}</span>
+                  <span class="text-[9px] font-black uppercase tracking-widest text-zinc-200">{step.title}</span>
+                  <span class="text-[8px] uppercase tracking-widest text-zinc-600">ready</span>
+                </div>
+              ))}
+            </div>
+            <div class="relative mt-8 flex items-end justify-between border-t border-zinc-800 pt-5">
+              <div>
+                <p class="text-[8px] font-black uppercase tracking-[.25em] text-zinc-500">CORE</p>
+                <p class="mt-1 text-sm font-black uppercase text-white">Music first</p>
+              </div>
+              <p class="font-mono text-[9px] uppercase tracking-[.18em] text-amber-400">AREA + LIVE + MERCH</p>
+            </div>
+          </aside>
+        </div>
+      </header>
+
+      <section class="px-4 py-16 sm:px-6 lg:px-12 lg:py-24">
+        <div class="mx-auto max-w-7xl">
+          <div class="max-w-4xl">
+            <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.promise.eyebrow}</p>
+            <h2 class="mt-4 text-[clamp(2.3rem,7vw,4.8rem)] font-black uppercase leading-[.92] tracking-[-.045em] text-white">{copy.promise.heading}</h2>
+            <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-400 lg:text-base">{copy.promise.body}</p>
+          </div>
+          <div class="mt-10 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
+            {copy.promise.steps.map((step) => (
+              <a href={step.href} class="group min-h-60 bg-zinc-950 p-5 transition-colors hover:bg-zinc-900 sm:p-6">
+                <span class="font-mono text-[9px] font-black text-amber-400">{step.number}</span>
+                <h3 class="mt-10 text-xl font-black uppercase leading-none text-white group-hover:text-amber-400">{step.title}</h3>
+                <p class="mt-4 text-xs leading-relaxed text-zinc-400">{step.body}</p>
+                <span class="mt-7 inline-flex text-[9px] font-black uppercase tracking-widest text-zinc-300 group-hover:text-amber-400">{step.cta} →</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <SignalHub client:visible lang={lang} />
+
+      <section class="signal-deferred border-t border-zinc-800/60 px-4 py-16 sm:px-6 lg:px-12 lg:py-24">
+        <div class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div class="max-w-4xl">
+            <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.area.eyebrow}</p>
+            <h2 class="mt-4 text-[clamp(2.2rem,7vw,4.8rem)] font-black uppercase leading-[.92] tracking-[-.045em] text-white">{copy.area.heading}</h2>
+            <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-300 lg:text-base">{copy.area.body}</p>
+          </div>
+          <div class="flex flex-col gap-3 sm:flex-row lg:flex-col">
+            <a href={lp(lang, "/area/")} class="inline-flex min-h-[48px] items-center justify-center bg-amber-400 px-6 text-[10px] font-black uppercase tracking-widest text-black hover:bg-amber-300">{copy.area.cta}</a>
+            <a href={lp(lang, "/merch/")} class="inline-flex min-h-[48px] items-center justify-center border border-zinc-700 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400">{copy.area.merch}</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>
+
+<style>
+  .signal-hero-grid {
+    background-image:
+      linear-gradient(rgba(251, 191, 36, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(251, 191, 36, 0.06) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: linear-gradient(to right, black, transparent 92%);
+  }
+
+  @supports (content-visibility: auto) {
+    .signal-deferred {
+      content-visibility: auto;
+      contain-intrinsic-size: 760px;
+    }
+  }
+</style>

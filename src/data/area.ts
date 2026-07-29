@@ -7,6 +7,7 @@ export type AreaDrop = {
   number: string
   city: string
   region: string
+  signalCitySlug: string
   mapX: number
   mapY: number
   approximateLat: number
@@ -23,6 +24,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "001",
     city: "Wrocław",
     region: "Dolny Śląsk",
+    signalCitySlug: "wroclaw",
     mapX: 34,
     mapY: 70,
     approximateLat: 51.1,
@@ -37,6 +39,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "002",
     city: "Poznań",
     region: "Wielkopolska",
+    signalCitySlug: "poznan",
     mapX: 29,
     mapY: 45,
     approximateLat: 52.4,
@@ -51,6 +54,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "003",
     city: "Gdańsk",
     region: "Pomorze",
+    signalCitySlug: "gdansk",
     mapX: 49,
     mapY: 17,
     approximateLat: 54.4,
@@ -65,6 +69,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "004",
     city: "Warszawa",
     region: "Mazowsze",
+    signalCitySlug: "warszawa",
     mapX: 68,
     mapY: 48,
     approximateLat: 52.2,
@@ -79,6 +84,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "005",
     city: "Katowice",
     region: "Śląsk",
+    signalCitySlug: "katowice",
     mapX: 53,
     mapY: 79,
     approximateLat: 50.3,
@@ -93,6 +99,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "006",
     city: "Kraków",
     region: "Małopolska",
+    signalCitySlug: "krakow",
     mapX: 65,
     mapY: 86,
     approximateLat: 50.1,
@@ -107,6 +114,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "007",
     city: "Łódź",
     region: "Łódzkie",
+    signalCitySlug: "lodz",
     mapX: 53,
     mapY: 56,
     approximateLat: 51.8,
@@ -121,6 +129,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "008",
     city: "Szczecin",
     region: "Zachodniopomorskie",
+    signalCitySlug: "szczecin",
     mapX: 14,
     mapY: 29,
     approximateLat: 53.4,
@@ -135,6 +144,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "009",
     city: "Lublin",
     region: "Lubelskie",
+    signalCitySlug: "lublin",
     mapX: 82,
     mapY: 63,
     approximateLat: 51.2,
@@ -149,6 +159,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "010",
     city: "Rzeszów",
     region: "Podkarpackie",
+    signalCitySlug: "rzeszow",
     mapX: 82,
     mapY: 87,
     approximateLat: 50.0,
@@ -163,6 +174,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "011",
     city: "Białystok",
     region: "Podlaskie",
+    signalCitySlug: "bialystok",
     mapX: 85,
     mapY: 35,
     approximateLat: 53.1,
@@ -177,6 +189,7 @@ export const AREA_DROPS: AreaDrop[] = [
     number: "012",
     city: "Toruń",
     region: "Kujawsko-Pomorskie",
+    signalCitySlug: "torun",
     mapX: 47,
     mapY: 37,
     approximateLat: 53.0,

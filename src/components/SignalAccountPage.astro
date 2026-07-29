@@ -1,0 +1,38 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import ScrollToTop from "./ScrollToTop.astro"
+import MySignal from "./preact/signal/MySignal"
+import { SIGNAL_COPY } from "../data/signalCopy"
+import type { Lang } from "../i18n/t"
+
+interface Props {
+  lang?: Lang
+}
+
+const { lang = "en" } = Astro.props
+const copy = SIGNAL_COPY[lang].account
+---
+
+<Layout title={`${copy.metaTitle} | Virya`} description={copy.body} lang={lang}>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <link rel="dns-prefetch" href="https://signal-api.virya.music" />
+  </Fragment>
+  <div class="flex min-h-screen flex-col bg-zinc-950">
+    <Navbar lang={lang} displayLinks={true} activePage="signal" />
+    <ScrollToTop />
+    <main id="main-content" class="flex-1 px-4 pb-20 pt-32 sm:px-6 lg:px-12">
+      <div class="mx-auto max-w-5xl">
+        <header class="mb-10 border-b border-zinc-800/60 pb-8">
+          <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.eyebrow}</p>
+          <h1 class="mt-4 text-[clamp(2.8rem,9vw,5.5rem)] font-black uppercase leading-[.9] tracking-[-.05em] text-white">{copy.heading}</h1>
+          <p class="mt-5 max-w-2xl text-sm leading-relaxed text-zinc-400">{copy.body}</p>
+        </header>
+        <MySignal client:load lang={lang} />
+      </div>
+    </main>
+    <Footer lang={lang} />
+  </div>
+</Layout>

@@ -1,0 +1,36 @@
+---
+import { SIGNAL_COPY } from "../data/signalCopy"
+import { lp, type Lang } from "../i18n/t"
+
+interface Props {
+  lang?: Lang
+}
+
+const { lang = "en" } = Astro.props
+const copy = SIGNAL_COPY[lang].manager
+---
+
+<section class="border border-amber-400/25 bg-amber-400/[.035] p-5 sm:p-7">
+  <p class="text-[9px] font-black uppercase tracking-[.32em] text-amber-400">{copy.eyebrow}</p>
+  <h2 class="mt-3 text-2xl font-black uppercase leading-tight tracking-tight text-white sm:text-3xl">{copy.heading}</h2>
+  <p class="mt-4 text-sm leading-relaxed text-zinc-300 text-justify mobile-justify">{copy.body}</p>
+
+  <div class="mt-7 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-2">
+    {copy.points.map((point, index) => (
+      <div class="bg-zinc-950 p-4">
+        <p class="font-mono text-[8px] font-black tracking-[.2em] text-amber-400">0{index + 1}</p>
+        <h3 class="mt-3 text-sm font-black uppercase tracking-widest text-white">{point.title}</h3>
+        <p class="mt-2 text-xs leading-relaxed text-zinc-400">{point.body}</p>
+      </div>
+    ))}
+  </div>
+
+  <div class="mt-6 flex flex-wrap gap-3">
+    <a href={lp(lang, "/signal/")} class="inline-flex min-h-[44px] items-center bg-amber-400 px-4 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300">
+      {copy.signal}
+    </a>
+    <a href={lp(lang, "/area/")} class="inline-flex min-h-[44px] items-center border border-zinc-700 px-4 text-[9px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400">
+      {copy.area}
+    </a>
+  </div>
+</section>
