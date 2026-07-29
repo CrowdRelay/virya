@@ -1,0 +1,4 @@
+# Branded CrowdRelay acquisition routes. The browser reaches the API first so
+# attribution/referral cookies are set by signal-api before the final redirect.
+/go/*  https://signal-api.virya.music/v1/go/:splat  302!
+/r/*   https://signal-api.virya.music/v1/r/:splat   302!

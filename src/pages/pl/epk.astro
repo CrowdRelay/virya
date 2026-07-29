@@ -4,6 +4,7 @@ import Layout from "../../components/Layout.astro"
 import Navbar from "../../components/Navbar.astro"
 import Footer from "../../components/Footer.astro"
 import ScrollToTop from "../../components/ScrollToTop.astro"
+import ManagerEcosystem from "../../components/ManagerEcosystem.astro"
 import { t, lp } from "../../i18n/t"
 import { getSeoTags } from "../../utils/seo"
 import items from "../../components/portfolio/items.json"
@@ -59,6 +60,8 @@ const members = [
                 </div>
               </dl>
             </section>
+            <ManagerEcosystem lang={lang} />
+
             <section>
               <h2 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">{t(lang, "epk.releases")}</h2>
               <ul class="space-y-5">

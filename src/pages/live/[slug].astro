@@ -1,0 +1,6 @@
+---
+export const prerender = false
+import SignalEventPage from "../../components/SignalEventPage.astro"
+const { slug = "" } = Astro.params
+---
+<SignalEventPage lang="en" slug={slug} />

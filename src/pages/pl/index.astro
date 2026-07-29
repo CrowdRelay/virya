@@ -7,12 +7,12 @@ import Landing from "../../components/Landing.astro"
 import MainText from "../../components/MainText.astro"
 import BandTeaser from "../../components/BandTeaser.astro"
 import Showcase from "../../components/Showcase.astro"
+import SignalEcosystem from "../../components/SignalEcosystem.astro"
 import AreaTeaser from "../../components/AreaTeaser.astro"
 import Portfolio from "../../components/Portfolio.astro"
 import Spotify from "../../components/Spotify.astro"
 import Endorsements from "../../components/Endorsements.astro"
 import Shows from "../../components/preact/Shows"
-import Newsletter from "../../components/preact/Newsletter"
 import Contact from "../../components/preact/Contact"
 import Footer from "../../components/Footer.astro"
 import ScrollToTop from "../../components/ScrollToTop.astro"
@@ -62,6 +62,10 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
           <Showcase lang={lang} />
         </section>
 
+        <section id="signal" class="scroll-mt-20">
+          <SignalEcosystem lang={lang} />
+        </section>
+
         <section id="area" class="scroll-mt-20">
           <AreaTeaser lang={lang} />
         </section>
@@ -77,10 +81,6 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
 
         <section id="endorsements" class="scroll-mt-20">
           <Endorsements lang={lang} />
-        </section>
-
-        <section id="newsletter" class="scroll-mt-20">
-          <Newsletter client:visible lang={lang} messages={messages.newsletter} />
         </section>
 
         <section id="contact" class="scroll-mt-20">

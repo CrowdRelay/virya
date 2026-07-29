@@ -16,6 +16,7 @@ jobs:
           cache: npm
       # Reproducible install from the committed lockfile.
       - run: npm ci
+      - run: npm test
       - run: npm run build
         env:
           CI: "true"

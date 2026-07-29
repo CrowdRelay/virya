@@ -1,0 +1,33 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import SignalTokenAction from "./preact/signal/SignalTokenAction"
+import { SIGNAL_COPY } from "../data/signalCopy"
+import type { Lang } from "../i18n/t"
+
+interface Props {
+  lang?: Lang
+  action: "confirm" | "unsubscribe"
+}
+
+const { lang = "en", action } = Astro.props
+const copy = SIGNAL_COPY[lang].action
+const title = action === "confirm" ? copy.confirmTitle : copy.unsubscribeTitle
+---
+
+<Layout title={`${title} | Virya`} description={title} lang={lang}>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="referrer" content="no-referrer" />
+  </Fragment>
+  <div class="flex min-h-screen flex-col bg-zinc-950">
+    <Navbar lang={lang} displayLinks={true} activePage="signal" />
+    <main id="main-content" class="flex flex-1 items-center px-4 pb-20 pt-32 sm:px-6 lg:px-12">
+      <div class="mx-auto w-full max-w-3xl">
+        <SignalTokenAction client:load lang={lang} action={action} />
+      </div>
+    </main>
+    <Footer lang={lang} />
+  </div>
+</Layout>

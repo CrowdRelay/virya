@@ -1,0 +1,96 @@
+---
+import { SIGNAL_COPY } from "../data/signalCopy"
+import { lp, type Lang } from "../i18n/t"
+
+interface Props {
+  lang?: Lang
+  compact?: boolean
+}
+
+const { lang = "en", compact = false } = Astro.props
+const copy = SIGNAL_COPY[lang]
+---
+
+<div class:list={["signal-ecosystem relative overflow-hidden border-t border-zinc-800/60", compact ? "py-14" : "py-16 lg:py-24"]}>
+  <div class="signal-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true"></div>
+  <div class="pointer-events-none absolute -right-24 top-8 h-72 w-72 rounded-full bg-amber-400/[.08] blur-[110px]" aria-hidden="true"></div>
+
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-12">
+    <div class="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
+      <div class="max-w-4xl">
+        <div class="mb-4 flex flex-wrap items-center gap-3">
+          <p class="text-[10px] font-black uppercase tracking-[.38em] text-amber-400">{copy.teaser.eyebrow}</p>
+          <span class="inline-flex items-center gap-2 border border-amber-400/25 bg-amber-400/[.05] px-3 py-1 text-[8px] font-black uppercase tracking-[.22em] text-zinc-300">
+            <span class="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,.9)]" aria-hidden="true"></span>
+            live ecosystem
+          </span>
+        </div>
+        <h2 class="max-w-4xl text-[clamp(2.15rem,7vw,4.8rem)] font-black uppercase leading-[.9] tracking-[-.045em] text-white">
+          {copy.teaser.heading}
+        </h2>
+        <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify lg:text-base">
+          {copy.teaser.body}
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row lg:flex-col">
+        <a
+          href={lp(lang, "/signal/")}
+          class="inline-flex min-h-[48px] items-center justify-center bg-amber-400 px-6 text-[10px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300"
+        >
+          {copy.teaser.primary}
+          <span class="ml-3" aria-hidden="true">→</span>
+        </a>
+        <a
+          href={lp(lang, "/area/")}
+          class="inline-flex min-h-[48px] items-center justify-center border border-zinc-700 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-200 transition-colors hover:border-amber-400 hover:text-amber-400"
+        >
+          {copy.teaser.area}
+        </a>
+      </div>
+    </div>
+
+    <div class="mt-10 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
+      {copy.promise.steps.map((step) => (
+        <a
+          href={step.href.startsWith("/") ? (lang === "pl" && !step.href.startsWith("/pl/") ? `/pl${step.href}` : step.href) : step.href}
+          class="group relative min-h-52 overflow-hidden bg-zinc-950 p-5 transition-colors hover:bg-zinc-900/80 sm:p-6"
+        >
+          <span class="font-mono text-[9px] font-black tracking-[.2em] text-amber-400">{step.number}</span>
+          <h3 class="mt-8 text-xl font-black uppercase leading-none tracking-tight text-white">{step.title}</h3>
+          <p class="mt-4 text-xs leading-relaxed text-zinc-400">{step.body}</p>
+          <span class="absolute bottom-5 right-5 text-xl text-zinc-600 transition-all group-hover:translate-x-1 group-hover:text-amber-400" aria-hidden="true">→</span>
+        </a>
+      ))}
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-2" aria-label={lang === "pl" ? "Funkcje Virya Signal" : "Virya Signal features"}>
+      {copy.teaser.chips.map((chip) => (
+        <span class="border border-zinc-800 bg-black/30 px-3 py-2 text-[8px] font-black uppercase tracking-[.22em] text-zinc-400">{chip}</span>
+      ))}
+      <a
+        href={lp(lang, "/merch/")}
+        class="inline-flex items-center border border-amber-400/30 bg-amber-400/[.04] px-3 py-2 text-[8px] font-black uppercase tracking-[.22em] text-amber-400 transition-colors hover:bg-amber-400 hover:text-black"
+      >
+        {copy.teaser.merch} <span class="ml-2" aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .signal-grid {
+    background-image:
+      linear-gradient(rgba(251, 191, 36, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(251, 191, 36, 0.055) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(to bottom, black, transparent 92%);
+  }
+
+  @supports (content-visibility: auto) {
+    .signal-ecosystem {
+      content-visibility: auto;
+      contain-intrinsic-size: 900px;
+    }
+  }
+</style>
