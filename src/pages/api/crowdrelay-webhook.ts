@@ -6,7 +6,7 @@ import { getSiteMailer } from "../../server/siteMailer"
 const MAX_BODY_BYTES = 16 * 1024
 const MAX_CLOCK_SKEW_SECONDS = 5 * 60
 const STORE_NAME = "virya-crowdrelay-webhooks"
-const EVENT_ID = /^[0-9a-f-]{20,64}$/i
+const EVENT_ID = /^(evt_[0-9a-f]{32}|[0-9a-f-]{20,64})$/i
 const TOKEN = /^[0-9a-f]{64}$/i
 
 const json = (payload: Record<string, unknown>, status = 200) =>
