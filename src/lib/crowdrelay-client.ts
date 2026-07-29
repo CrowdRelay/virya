@@ -292,7 +292,7 @@ export class CrowdRelayClient {
 
   async #request<T>(path: string, options: RequestOptions = {}): Promise<T> {
     const controller = new AbortController()
-    const timeout = window.setTimeout(
+    const timeout = globalThis.setTimeout(
       () => controller.abort(),
       options.timeoutMs ?? this.#timeoutMs,
     )
@@ -328,7 +328,7 @@ export class CrowdRelayClient {
         error instanceof Error ? error.message : "CrowdRelay request failed",
       )
     } finally {
-      window.clearTimeout(timeout)
+      globalThis.clearTimeout(timeout)
     }
   }
 
