@@ -1,6 +1,6 @@
 import type { AreaLang } from "./area"
 
-export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
+export const AREA_COPY = {
   en: {
     meta: {
       title: "VIRYA Area — Find the signal. Unlock the line.",
@@ -437,4 +437,4 @@ export const AREA_COPY: Record<AreaLang, Record<string, any>> = {
       signal: "Mapa pilota online",
     },
   },
-}
+} satisfies Record<AreaLang, Record<string, unknown>>

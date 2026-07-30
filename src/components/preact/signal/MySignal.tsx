@@ -12,6 +12,9 @@ interface Props {
   lang: Lang
 }
 
+const dateTimeFormatters = new Map<string, Intl.DateTimeFormat>()
+const dateOnlyFormatters = new Map<string, Intl.DateTimeFormat>()
+
 type State =
   | { kind: "loading" }
   | { kind: "unauthorized" }
@@ -359,7 +362,7 @@ export default function MySignal({ lang }: Props) {
                     {event.title}
                   </h3>
                   <p class="mt-1 text-[9px] uppercase tracking-widest text-zinc-500">
-                    {event.city?.name ?? event.venue ?? "Virya"} · {new Intl.DateTimeFormat(locale).format(new Date(interested_at))}
+                    {event.city?.name ?? event.venue ?? "Virya"} · {formatDateOnly(interested_at, locale)}
                   </p>
                 </div>
                 <a
@@ -403,11 +406,32 @@ function pagePath(lang: Lang, path: string): string {
 }
 
 function formatDate(value: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
+  return formatWithCache(value, locale, dateTimeFormatters, {
     day: "2-digit",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value))
+  })
+}
+
+function formatDateOnly(value: string, locale: string): string {
+  return formatWithCache(value, locale, dateOnlyFormatters)
+}
+
+function formatWithCache(
+  value: string,
+  locale: string,
+  cache: Map<string, Intl.DateTimeFormat>,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  let formatter = cache.get(locale)
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, options)
+    cache.set(locale, formatter)
+  }
+  return formatter.format(date)
 }

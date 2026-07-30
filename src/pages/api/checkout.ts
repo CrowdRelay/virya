@@ -36,6 +36,11 @@ const json = (payload: Record<string, unknown>, status = 200) =>
     },
   })
 
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+
 const cleanText = (value: unknown, max: number, required = false) => {
   if (typeof value !== "string") return required ? null : ""
   const text = value.trim()
@@ -49,11 +54,13 @@ const cleanText = (value: unknown, max: number, required = false) => {
   return text
 }
 
+type Product = NonNullable<ReturnType<typeof getProduct>>
+
 type CartEntry = {
   id: string
   size: string
   qty: number
-  product: any
+  product: Product
   unitPrice: number
   label: string
   requiresShipping: boolean
@@ -156,17 +163,19 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: "Request too large" }, 413)
     }
 
-    let body: any
+    let parsedBody: unknown
     try {
-      body = JSON.parse(rawBody)
+      parsedBody = JSON.parse(rawBody) as unknown
     } catch {
       return json({ error: "Invalid request" }, 400)
     }
-    if (!body || typeof body !== "object" || Array.isArray(body)) {
-      return json({ error: "Invalid request" }, 400)
-    }
+    const body = asRecord(parsedBody)
+    if (!body) return json({ error: "Invalid request" }, 400)
 
-    const { lang: rawLang, items, point, invoice } = body
+    const rawLang = body.lang
+    const items = body.items
+    const point = asRecord(body.point)
+    const invoice = asRecord(body.invoice)
     const lang = rawLang === "pl" ? "pl" : "en"
     const rewardCode = cleanText(body.rewardCode, 64)
     const checkoutRequestId =
@@ -213,10 +222,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     const cart: CartEntry[] = []
     let totalQuantity = 0
-    for (const item of items) {
-      if (!item || typeof item !== "object" || Array.isArray(item)) {
-        return json({ error: "Invalid cart item" }, 400)
-      }
+    for (const rawItem of items) {
+      const item = asRecord(rawItem)
+      if (!item) return json({ error: "Invalid cart item" }, 400)
       const { id, size, qty: rawQty } = item
       if (typeof id !== "string" || id.length > 64) {
         return json({ error: "Invalid cart item" }, 400)
@@ -239,7 +247,7 @@ export const POST: APIRoute = async ({ request }) => {
         return json({ error: "Order is too large" }, 400)
       }
       if (!productInStock(product)) {
-        return json({ error: `Out of stock: ${(product as any).name}` }, 400)
+        return json({ error: `Out of stock: ${product.name}` }, 400)
       }
       if (Array.isArray(product.sizes) && !sizeInStock(product, itemSize)) {
         return json({ error: "Invalid or out-of-stock size" }, 400)

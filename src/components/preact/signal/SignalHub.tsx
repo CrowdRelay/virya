@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "preact/hooks"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
 import type { CitySignal, PublicEvent } from "../../../lib/crowdrelay-client"
-import { loadLiveEvents } from "../../../lib/liveEvents"
-import LiveEventCard from "../LiveEventCard"
+import { loadLiveEvents, upcomingLiveEvents } from "../../../lib/liveEvents"
+import LiveEventCard, { LiveEventNotice, LiveEventSkeleton } from "../LiveEventCard"
 import {
   campaignIdFromLocation,
   crowdrelay,
@@ -40,6 +40,7 @@ export default function SignalHub({ lang }: Props) {
   const [submitMessage, setSubmitMessage] = useState("")
   const [referralUrl, setReferralUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const campaignId = useMemo(() => campaignIdFromLocation(), [])
 
   useEffect(() => {
     const rememberedCity = signalCityFromLocation()
@@ -99,14 +100,7 @@ export default function SignalHub({ lang }: Props) {
   )
 
   const upcomingEvents = useMemo(
-    () =>
-      [...(events ?? [])]
-        .filter(event => new Date(event.starts_at).getTime() > Date.now() - 86_400_000)
-        .sort(
-          (left, right) =>
-            new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime(),
-        )
-        .slice(0, 6),
+    () => upcomingLiveEvents(events ?? [], { limit: 6 }),
     [events],
   )
 
@@ -446,30 +440,31 @@ export default function SignalHub({ lang }: Props) {
           </div>
 
           <div class="mt-10 grid gap-4 lg:grid-cols-2">
-            {events === null && (
-              <p class="border border-zinc-800 bg-zinc-950 p-6 text-xs text-zinc-400 lg:col-span-2" aria-busy="true">
-                {copy.events.loading}
-              </p>
-            )}
-            {events !== null && upcomingEvents.length === 0 && (
-              <p class="border border-zinc-800 bg-zinc-950 p-6 text-xs text-zinc-400 lg:col-span-2">
-                {eventError ? copy.events.unavailable : copy.events.empty}
-              </p>
-            )}
-            {upcomingEvents.map((event, index) => (
-              <LiveEventCard
-                key={event.id}
-                event={event}
-                lang={lang}
-                index={index}
-                labels={{
-                  details: copy.events.details,
-                  tickets: copy.events.tickets,
-                  calendar: copy.events.calendar,
-                }}
-                campaignId={campaignIdFromLocation()}
+            {events === null ? (
+              <>
+                <LiveEventSkeleton />
+                <LiveEventSkeleton />
+              </>
+            ) : upcomingEvents.length === 0 ? (
+              <LiveEventNotice
+                message={eventError ? copy.events.unavailable : copy.events.empty}
               />
-            ))}
+            ) : (
+              upcomingEvents.map((event, index) => (
+                <LiveEventCard
+                  key={event.id}
+                  event={event}
+                  lang={lang}
+                  index={index}
+                  campaignId={campaignId}
+                  labels={{
+                    details: copy.events.details,
+                    tickets: copy.events.tickets,
+                    calendar: copy.events.calendar,
+                  }}
+                />
+              ))
+            )}
           </div>
         </div>
       </section>

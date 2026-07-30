@@ -45,9 +45,10 @@ const normalize = (input: unknown, date: string): AreaDailyEvents => {
   if (value.byDrop && typeof value.byDrop === "object") {
     for (const [dropId, counts] of Object.entries(value.byDrop)) {
       if (!counts || typeof counts !== "object" || dropId.length > 64) continue
+      const record = counts as Record<string, unknown>
       byDrop[dropId] = {
-        page_view: safeCount((counts as any).page_view),
-        share: safeCount((counts as any).share),
+        page_view: safeCount(record.page_view),
+        share: safeCount(record.share),
       }
     }
   }

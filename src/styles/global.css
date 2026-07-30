@@ -283,6 +283,7 @@
     position: relative;
     isolation: isolate;
     overflow: hidden;
+    contain: layout paint;
     border: 1px solid rgb(39 39 42);
     background:
       linear-gradient(135deg, rgb(9 9 11 / 0.98), rgb(9 9 11 / 0.86)),

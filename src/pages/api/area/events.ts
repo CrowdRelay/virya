@@ -4,7 +4,7 @@ import { recordAreaEvent } from "../../../server/areaEvents"
 import {
   areaJson,
   isSameOriginRequest,
-  readSmallJson,
+  readSmallJsonObject,
 } from "../../../server/areaHttp"
 
 export const prerender = false
@@ -14,17 +14,17 @@ export const POST: APIRoute = async ({ request }) => {
     return areaJson({ error: "Invalid request origin" }, 403)
   }
 
-  let body: any
+  let body: Record<string, unknown>
   try {
-    body = await readSmallJson(request)
+    body = await readSmallJsonObject(request)
   } catch {
     return areaJson({ error: "Invalid event" }, 400)
   }
 
-  const event = body?.event
-  const lang = body?.lang === "pl" ? "pl" : body?.lang === "en" ? "en" : null
-  const path = typeof body?.path === "string" ? body.path : ""
-  const dropId = typeof body?.dropId === "string" ? body.dropId : undefined
+  const event = body.event
+  const lang = body.lang === "pl" ? "pl" : body.lang === "en" ? "en" : null
+  const path = typeof body.path === "string" ? body.path : ""
+  const dropId = typeof body.dropId === "string" ? body.dropId : undefined
   if (
     (event !== "page_view" && event !== "share") ||
     !lang ||

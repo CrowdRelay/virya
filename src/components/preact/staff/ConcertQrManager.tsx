@@ -15,26 +15,62 @@ type Language = "pl" | "en"
 
 type ApiError = Error & { status?: number }
 
-const api = async <T,>(
-  path: string,
-  options: { method?: "GET" | "POST"; body?: unknown } = {},
-): Promise<T> => {
+type ApiOptions = {
+  method?: "GET" | "POST"
+  body?: unknown
+  signal?: AbortSignal
+}
+
+const REQUEST_TIMEOUT_MS = 10_000
+const dateFormatters = new Map<string, Intl.DateTimeFormat>()
+
+const api = async <T,>(path: string, options: ApiOptions = {}): Promise<T> => {
   const headers = new Headers({ Accept: "application/json" })
   if (options.body !== undefined) headers.set("Content-Type", "application/json")
-  const response = await fetch(path, {
-    method: options.method ?? "GET",
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-    credentials: "same-origin",
-    cache: "no-store",
-  })
-  if (!response.ok) {
-    const error = new Error("Request failed") as ApiError
-    error.status = response.status
-    throw error
+
+  const controller = new AbortController()
+  let timedOut = false
+  const timeoutId = window.setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, REQUEST_TIMEOUT_MS)
+  const forwardAbort = () => controller.abort(options.signal?.reason)
+  if (options.signal?.aborted) {
+    forwardAbort()
+  } else {
+    options.signal?.addEventListener("abort", forwardAbort, { once: true })
   }
-  return (await response.json()) as T
+
+  try {
+    const response = await fetch(path, {
+      method: options.method ?? "GET",
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      credentials: "same-origin",
+      cache: "no-store",
+      signal: controller.signal,
+    })
+    if (!response.ok) {
+      const error = new Error("Request failed") as ApiError
+      error.status = response.status
+      throw error
+    }
+    return (await response.json()) as T
+  } catch (error) {
+    if (timedOut) {
+      const timeoutError = new Error("Request timed out") as ApiError
+      timeoutError.status = 408
+      throw timeoutError
+    }
+    throw error
+  } finally {
+    window.clearTimeout(timeoutId)
+    options.signal?.removeEventListener("abort", forwardAbort)
+  }
 }
+
+const isAbortError = (error: unknown) =>
+  error instanceof DOMException && error.name === "AbortError"
 
 export default function ConcertQrManager() {
   const [state, setState] = useState<LoadState>("checking")
@@ -52,11 +88,15 @@ export default function ConcertQrManager() {
   const [message, setMessage] = useState("")
   const [fullscreen, setFullscreen] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
-  const passwordRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement | null>(null)
+  const fullscreenCloseRef = useRef<HTMLButtonElement | null>(null)
+  const dataRequestRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
+    const controller = new AbortController()
     void api<{ authenticated: boolean; configured: boolean }>(
       "/api/staff/qr/status",
+      { signal: controller.signal },
     )
       .then(status => {
         if (!status.configured) {
@@ -71,20 +111,37 @@ export default function ConcertQrManager() {
         setState("ready")
         void loadData()
       })
-      .catch(() => setState("error"))
+      .catch(error => {
+        if (!isAbortError(error)) setState("error")
+      })
+
+    return () => {
+      controller.abort()
+      dataRequestRef.current?.abort()
+    }
   }, [])
 
   useEffect(() => {
     if (!fullscreen) return
     const previousOverflow = document.body.style.overflow
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setFullscreen(false)
+    const previouslyFocused = document.activeElement
+    const handleDialogKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setFullscreen(false)
+        return
+      }
+      if (event.key === "Tab") {
+        event.preventDefault()
+        fullscreenCloseRef.current?.focus()
+      }
     }
     document.body.style.overflow = "hidden"
-    window.addEventListener("keydown", closeOnEscape)
+    window.addEventListener("keydown", handleDialogKey)
+    queueMicrotask(() => fullscreenCloseRef.current?.focus())
     return () => {
       document.body.style.overflow = previousOverflow
-      window.removeEventListener("keydown", closeOnEscape)
+      window.removeEventListener("keydown", handleDialogKey)
+      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus()
     }
   }, [fullscreen])
 
@@ -122,15 +179,20 @@ export default function ConcertQrManager() {
   }
 
   async function loadData() {
+    dataRequestRef.current?.abort()
+    const controller = new AbortController()
+    dataRequestRef.current = controller
     setMessage("")
+
     try {
-      const overview = await api<StaffQrOverview>("/api/staff/qr/overview")
+      const overview = await api<StaffQrOverview>("/api/staff/qr/overview", {
+        signal: controller.signal,
+      })
+      if (controller.signal.aborted) return
+
       const upcoming = [...overview.events]
-        .filter(event => new Date(event.starts_at).getTime() > Date.now() - 36 * 60 * 60 * 1000)
-        .sort(
-          (left, right) =>
-            new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime(),
-        )
+        .filter(event => Date.parse(event.starts_at) > Date.now() - 36 * 60 * 60 * 1000)
+        .sort((left, right) => Date.parse(left.starts_at) - Date.parse(right.starts_at))
       setEvents(upcoming)
       setCampaigns(overview.campaigns)
       setSelectedCampaignId(current =>
@@ -138,8 +200,7 @@ export default function ConcertQrManager() {
           ? current
           : overview.campaigns.find(campaign => campaign.active && campaign.token)?.id ?? null,
       )
-      const nextEvent =
-        upcoming.find(event => event.slug === selectedEvent) ?? upcoming[0]
+      const nextEvent = upcoming.find(event => event.slug === selectedEvent) ?? upcoming[0]
       if (nextEvent && nextEvent.slug !== selectedEvent) selectEvent(nextEvent)
       if (!nextEvent) {
         setSelectedEvent("")
@@ -149,12 +210,15 @@ export default function ConcertQrManager() {
       }
       setDataLoaded(true)
     } catch (error) {
+      if (isAbortError(error)) return
       if ((error as ApiError).status === 401) {
         setState("login")
       } else {
         setMessage("Nie udało się pobrać katalogu wydarzeń i kampanii.")
       }
       setDataLoaded(true)
+    } finally {
+      if (dataRequestRef.current === controller) dataRequestRef.current = null
     }
   }
 
@@ -399,7 +463,7 @@ export default function ConcertQrManager() {
       </header>
 
       {message && (
-        <p class="border-l-2 border-amber-400 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300" role="status">
+        <p class="border-l-2 border-amber-400 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300" role="status" aria-live="polite">
           {message}
         </p>
       )}
@@ -575,7 +639,7 @@ export default function ConcertQrManager() {
         <div class="fixed inset-0 z-[10000] flex flex-col bg-white p-4 text-black sm:p-8" role="dialog" aria-modal="true" aria-label="Kod QR na pełnym ekranie">
           <div class="flex items-center justify-between gap-4">
             <div><p class="text-xs font-black uppercase tracking-[.25em]">VIRYA // LIVE</p><h2 class="mt-1 text-xl font-black uppercase">{activeCampaign.event_title}</h2></div>
-            <button type="button" onClick={() => setFullscreen(false)} class="min-h-[44px] border border-black px-4 text-xs font-black uppercase">Zamknij</button>
+            <button ref={fullscreenCloseRef} type="button" onClick={() => setFullscreen(false)} class="min-h-[44px] border border-black px-4 text-xs font-black uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">Zamknij</button>
           </div>
           <div class="mx-auto flex min-h-0 w-full max-w-[82vh] flex-1 items-center justify-center" dangerouslySetInnerHTML={{ __html: qr.svg }} />
         </div>
@@ -616,12 +680,17 @@ function toLocalInput(value: Date) {
 
 function formatDate(value: string, locale = "pl-PL") {
   const date = new Date(value)
-  return Number.isNaN(date.getTime())
-    ? value
-    : new Intl.DateTimeFormat(locale, {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(date)
+  if (Number.isNaN(date.getTime())) return value
+
+  let formatter = dateFormatters.get(locale)
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    })
+    dateFormatters.set(locale, formatter)
+  }
+  return formatter.format(date)
 }
 
 function fileName(campaign: StaffQrCampaign, extension: "svg" | "png") {

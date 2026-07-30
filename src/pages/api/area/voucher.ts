@@ -10,7 +10,7 @@ import {
 import {
   areaJson,
   isSameOriginRequest,
-  readSmallJson,
+  readSmallJsonObject,
 } from "../../../server/areaHttp"
 
 export const prerender = false
@@ -43,16 +43,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return areaJson({ error: "Invalid request origin" }, 403)
   }
 
-  let body: any
+  let body: Record<string, unknown>
   try {
-    body = await readSmallJson(request)
+    body = await readSmallJsonObject(request)
   } catch {
     return areaJson({ error: "Invalid request" }, 400)
   }
 
-  const tokens = Number(body?.tokens ?? 1)
+  const tokens = Number(body.tokens ?? 1)
   const requestId =
-    typeof body?.requestId === "string" ? body.requestId.toLowerCase() : ""
+    typeof body.requestId === "string" ? body.requestId.toLowerCase() : ""
   if (tokens !== 1 || !REQUEST_ID_PATTERN.test(requestId)) {
     return areaJson({ error: "Invalid reward request" }, 400)
   }

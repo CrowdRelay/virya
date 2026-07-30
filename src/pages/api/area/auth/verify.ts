@@ -11,7 +11,7 @@ import {
 import {
   areaJson,
   isSameOriginRequest,
-  readSmallJson,
+  readSmallJsonObject,
 } from "../../../../server/areaHttp"
 import {
   AreaWalletMigrationConflictError,
@@ -25,9 +25,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return areaJson({ error: "Invalid request origin" }, 403)
   }
 
-  let body: unknown
+  let body: Record<string, unknown>
   try {
-    body = await readSmallJson(request)
+    body = await readSmallJsonObject(request)
   } catch {
     return areaJson(
       {
@@ -38,10 +38,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     )
   }
 
-  const token =
-    body && typeof body === "object" && typeof (body as any).token === "string"
-      ? (body as any).token
-      : ""
+  const token = typeof body.token === "string" ? body.token : ""
   const payload = verifyAreaMagicToken(token)
   if (!payload) {
     return areaJson(

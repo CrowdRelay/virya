@@ -61,17 +61,25 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
     <script is:inline>
       (function() {
+        var hideTimer;
+        var resetTimer;
+        function clearTimers() {
+          clearTimeout(hideTimer);
+          clearTimeout(resetTimer);
+        }
         function getBar() {
-          var b = document.getElementById('nav-progress');
-          if (!b) {
-            b = document.createElement('div');
-            b.id = 'nav-progress';
-            b.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;height:2px;width:0;background:#fbbf24;transition:none;pointer-events:none;opacity:0;';
-            document.documentElement.appendChild(b);
+          var bar = document.getElementById('nav-progress');
+          if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'nav-progress';
+            bar.setAttribute('aria-hidden', 'true');
+            bar.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;height:2px;width:0;background:#fbbf24;transition:none;pointer-events:none;opacity:0;';
+            document.documentElement.appendChild(bar);
           }
-          return b;
+          return bar;
         }
         document.addEventListener('astro:before-preparation', function() {
+          clearTimers();
           var bar = getBar();
           bar.style.transition = 'none';
           bar.style.width = '0';
@@ -81,13 +89,17 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
           bar.style.width = '85%';
         });
         document.addEventListener('astro:page-load', function() {
+          clearTimers();
           var bar = getBar();
           bar.style.transition = 'width 0.1s ease';
           bar.style.width = '100%';
-          setTimeout(function() {
+          hideTimer = setTimeout(function() {
             bar.style.transition = 'opacity 0.3s ease';
             bar.style.opacity = '0';
-            setTimeout(function() { bar.style.transition = 'none'; bar.style.width = '0'; }, 350);
+            resetTimer = setTimeout(function() {
+              bar.style.transition = 'none';
+              bar.style.width = '0';
+            }, 350);
           }, 150);
         });
         getBar();
@@ -95,26 +107,16 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     </script>
     <script is:inline>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          const register = () => navigator.serviceWorker.register('/sw.js').catch(() => {})
+        window.addEventListener('load', function() {
+          var register = function() {
+            navigator.serviceWorker.register('/sw.js').catch(function() {});
+          };
           if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(register, { timeout: 3000 })
+            window.requestIdleCallback(register, { timeout: 3000 });
           } else {
-            setTimeout(register, 1000)
+            setTimeout(register, 1000);
           }
-        })
-      }
-
-      // Expose unregister function for cleanup if needed
-      window.unregisterServiceWorker = async () => {
-        if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.getRegistration()
-          if (registration) {
-            await registration.unregister()
-            console.log('Service worker unregistered')
-            location.reload()
-          }
-        }
+        }, { once: true });
       }
     </script>
   </head>
