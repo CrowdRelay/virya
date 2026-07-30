@@ -11,24 +11,24 @@ const { lang = "en", compact = false } = Astro.props
 const copy = SIGNAL_COPY[lang]
 ---
 
-<div class:list={["signal-ecosystem relative overflow-hidden border-t border-zinc-800/60", compact ? "py-14" : "py-16 lg:py-24"]}>
+<div class:list={["signal-ecosystem relative overflow-hidden border-t border-zinc-800/60", compact ? "py-14 px-4" : "virya-section"]}>
   <div class="signal-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true"></div>
   <div class="pointer-events-none absolute -right-24 top-8 h-72 w-72 rounded-full bg-amber-400/[.08] blur-[110px]" aria-hidden="true"></div>
 
-  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-12">
+  <div class="virya-section__inner relative">
     <div class="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
       <div class="max-w-4xl">
         <div class="mb-4 flex flex-wrap items-center gap-3">
-          <p class="text-[10px] font-black uppercase tracking-[.38em] text-amber-400">{copy.teaser.eyebrow}</p>
+          <p class="virya-eyebrow">{copy.teaser.eyebrow}</p>
           <span class="inline-flex items-center gap-2 border border-amber-400/25 bg-amber-400/[.05] px-3 py-1 text-[8px] font-black uppercase tracking-[.22em] text-zinc-300">
             <span class="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,.9)]" aria-hidden="true"></span>
             {lang === "pl" ? "aktywny ekosystem" : "live ecosystem"}
           </span>
         </div>
-        <h2 class="max-w-4xl text-[clamp(2.15rem,7vw,4.8rem)] font-black uppercase leading-[.9] tracking-[-.045em] text-white">
+        <h2 class="virya-heading max-w-4xl">
           {copy.teaser.heading}
         </h2>
-        <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify lg:text-base">
+        <p class="virya-copy mt-6 max-w-3xl text-zinc-300">
           {copy.teaser.body}
         </p>
       </div>
@@ -36,14 +36,14 @@ const copy = SIGNAL_COPY[lang]
       <div class="flex flex-col gap-3 sm:flex-row lg:flex-col">
         <a
           href={lp(lang, "/signal/")}
-          class="inline-flex min-h-[48px] items-center justify-center bg-amber-400 px-6 text-[10px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300"
+          class="virya-button virya-button--primary min-h-[48px] px-6"
         >
           {copy.teaser.primary}
           <span class="ml-3" aria-hidden="true">→</span>
         </a>
         <a
           href={lp(lang, "/area/")}
-          class="inline-flex min-h-[48px] items-center justify-center border border-zinc-700 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-200 transition-colors hover:border-amber-400 hover:text-amber-400"
+          class="virya-button virya-button--secondary min-h-[48px] px-6"
         >
           {copy.teaser.area}
         </a>

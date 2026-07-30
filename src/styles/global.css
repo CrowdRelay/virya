@@ -154,3 +154,230 @@
   align-items: center;
   justify-content: center;
 }
+
+@layer components {
+  .virya-section {
+    padding: 4rem 1rem;
+  }
+
+  .virya-section__inner {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+  }
+
+  .virya-eyebrow {
+    font-size: 0.625rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgb(251 191 36);
+  }
+
+  .virya-heading {
+    max-width: 56rem;
+    font-size: clamp(2rem, 7vw, 4.8rem);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    color: white;
+  }
+
+  .virya-copy {
+    max-width: 48rem;
+    font-size: 0.875rem;
+    line-height: 1.75;
+    text-wrap: pretty;
+    color: rgb(161 161 170);
+  }
+
+  .virya-panel {
+    border: 1px solid rgb(39 39 42);
+    background: color-mix(in srgb, rgb(9 9 11) 92%, transparent);
+  }
+
+  .virya-input {
+    width: 100%;
+    min-height: 2.875rem;
+    border: 1px solid rgb(63 63 70);
+    background: rgb(0 0 0);
+    padding-inline: 0.875rem;
+    color: white;
+    transition: border-color 160ms ease, background-color 160ms ease;
+  }
+
+  .virya-input:hover {
+    border-color: rgb(82 82 91);
+  }
+
+  .virya-input:focus {
+    border-color: rgb(251 191 36);
+  }
+
+  .virya-button {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 1rem;
+    font-size: 0.5625rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .virya-button:active {
+    transform: translateY(1px);
+  }
+
+  .virya-button--primary {
+    background: rgb(251 191 36);
+    color: black;
+  }
+
+  .virya-button--primary:hover {
+    background: rgb(252 211 77);
+  }
+
+  .virya-button--accent-outline {
+    border: 1px solid rgb(251 191 36 / 0.6);
+    color: rgb(251 191 36);
+  }
+
+  .virya-button--accent-outline:hover {
+    background: rgb(251 191 36);
+    color: black;
+  }
+
+  .virya-button--secondary {
+    border: 1px solid rgb(63 63 70);
+    color: rgb(228 228 231);
+  }
+
+  .virya-button--secondary:hover {
+    border-color: rgb(251 191 36);
+    color: rgb(251 191 36);
+  }
+
+  .virya-button--ghost {
+    padding-inline: 0.5rem;
+    color: rgb(161 161 170);
+  }
+
+  .virya-button--ghost:hover {
+    color: rgb(251 191 36);
+  }
+
+  .virya-button:disabled,
+  .virya-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .virya-live-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid rgb(39 39 42);
+    background:
+      linear-gradient(135deg, rgb(9 9 11 / 0.98), rgb(9 9 11 / 0.86)),
+      rgb(9 9 11);
+    transition: border-color 240ms ease, transform 240ms ease, box-shadow 240ms ease;
+  }
+
+  .virya-live-card:hover {
+    border-color: rgb(251 191 36 / 0.55);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 48px rgb(0 0 0 / 0.24);
+  }
+
+  .virya-live-card__rail {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 0.25rem;
+    background: rgb(63 63 70);
+    transition: width 240ms ease, background-color 240ms ease;
+  }
+
+  .virya-live-card:hover .virya-live-card__rail {
+    width: 0.5rem;
+    background: rgb(251 191 36);
+  }
+
+  .virya-live-card__orbit {
+    position: absolute;
+    border: 1px solid rgb(251 191 36 / 0.12);
+    border-radius: 9999px;
+    pointer-events: none;
+    transition: transform 500ms ease, border-color 300ms ease;
+  }
+
+  .virya-live-card__orbit--outer {
+    width: 13rem;
+    height: 13rem;
+    top: -5.25rem;
+    right: -4.25rem;
+  }
+
+  .virya-live-card__orbit--inner {
+    width: 7.5rem;
+    height: 7.5rem;
+    top: -2.25rem;
+    right: -1.5rem;
+  }
+
+  .virya-live-card__pulse {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 9999px;
+    background: rgb(251 191 36);
+    box-shadow: 0 0 18px rgb(251 191 36 / 0.8);
+    pointer-events: none;
+  }
+
+  .virya-live-card:hover .virya-live-card__orbit {
+    transform: scale(1.08);
+    border-color: rgb(251 191 36 / 0.22);
+  }
+
+  .virya-live-date {
+    display: flex;
+    height: fit-content;
+    min-width: 4.5rem;
+    flex-direction: column;
+    border: 1px solid rgb(39 39 42);
+    background: rgb(0 0 0 / 0.5);
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    transition: border-color 240ms ease;
+  }
+
+  .virya-live-card:hover .virya-live-date {
+    border-color: rgb(251 191 36 / 0.4);
+  }
+}
+
+@media (min-width: 640px) {
+  .virya-section {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .virya-section {
+    padding: 6rem 3rem;
+  }
+
+  .virya-copy {
+    font-size: 1rem;
+  }
+}

@@ -8,15 +8,11 @@ interface Props {
 const { lang = "en" } = Astro.props
 ---
 
-<section class="py-16 lg:px-8 border-t border-zinc-800/60">
-  <div class="mx-4">
-    <div class="flex items-center gap-4 mb-2">
-      <p class="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
-        {t(lang, "press.heading")}
-      </p>
-      <div class="flex-1 h-px bg-zinc-800" />
-    </div>
-    <p class="text-zinc-400 text-xs uppercase tracking-widest mb-10">{t(lang, "press.sub")}</p>
+<section class="virya-section border-t border-zinc-800/60">
+  <div class="virya-section__inner">
+    <p class="virya-eyebrow">VIRYA // PRESS</p>
+    <h2 class="virya-heading mt-4">{t(lang, "press.heading")}</h2>
+    <p class="virya-copy mt-5 mb-10">{t(lang, "press.sub")}</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {press.map((item) => (
@@ -36,7 +32,7 @@ const { lang = "en" } = Astro.props
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex items-center min-h-[44px] mt-3 text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200"
+                class="virya-button virya-button--accent-outline mt-3 min-h-[44px] px-3"
               >
                 {t(lang, "press.readReview")} ↗
               </a>

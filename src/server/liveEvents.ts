@@ -1,0 +1,263 @@
+import { CURATED_LIVE_EVENTS } from "../data/liveEvents"
+import type { PublicEvent } from "../lib/crowdrelay-client"
+
+const DEFAULT_CROWDRELAY_URL = "https://signal-api.virya.music/v1/"
+const DEFAULT_BANDSINTOWN_APP_ID = "virya-website"
+const REQUEST_TIMEOUT_MS = 6_000
+const MAX_RESPONSE_BYTES = 512 * 1024
+
+type BandsintownEvent = {
+  id?: string | number
+  datetime?: string
+  url?: string
+  lineup?: string[]
+  venue?: {
+    name?: string
+    city?: string
+    region?: string
+    country?: string
+  }
+  offers?: Array<{ type?: string; url?: string }>
+}
+
+type EventPayload = { events?: unknown }
+
+const safeBaseUrl = () => {
+  const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL
+  const value =
+    typeof configured === "string" && configured.trim()
+      ? configured.trim()
+      : DEFAULT_CROWDRELAY_URL
+  const url = new URL(value)
+  if (!/^https?:$/.test(url.protocol) || url.username || url.password) {
+    throw new Error("Invalid CrowdRelay URL")
+  }
+  url.search = ""
+  url.hash = ""
+  url.pathname = `${url.pathname.replace(/\/+$/, "")}/`
+  return url
+}
+
+const readJson = async (response: Response): Promise<unknown> => {
+  const declared = Number(response.headers.get("content-length") ?? "0")
+  if (Number.isFinite(declared) && declared > MAX_RESPONSE_BYTES) {
+    throw new Error("Response too large")
+  }
+  const text = await response.text()
+  if (new TextEncoder().encode(text).byteLength > MAX_RESPONSE_BYTES) {
+    throw new Error("Response too large")
+  }
+  return JSON.parse(text)
+}
+
+const fetchJson = async (url: URL): Promise<unknown> => {
+  const response = await fetch(url, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    cache: "no-store",
+  })
+  if (!response.ok) throw new Error(`Upstream returned ${response.status}`)
+  return readJson(response)
+}
+
+const countryCode = (country?: string): string => {
+  const normalized = country?.trim().toLowerCase()
+  if (!normalized) return "--"
+  const known: Record<string, string> = {
+    poland: "PL",
+    polska: "PL",
+    germany: "DE",
+    deutschland: "DE",
+    czechia: "CZ",
+    "czech republic": "CZ",
+    slovakia: "SK",
+    austria: "AT",
+    hungary: "HU",
+    lithuania: "LT",
+    latvia: "LV",
+    estonia: "EE",
+    netherlands: "NL",
+    belgium: "BE",
+    france: "FR",
+    italy: "IT",
+    spain: "ES",
+    portugal: "PT",
+    sweden: "SE",
+    norway: "NO",
+    denmark: "DK",
+    finland: "FI",
+    ireland: "IE",
+    "united kingdom": "GB",
+    uk: "GB",
+    "united states": "US",
+    usa: "US",
+    canada: "CA",
+  }
+  return known[normalized] ?? (/^[a-z]{2}$/.test(normalized) ? normalized.toUpperCase() : "--")
+}
+
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+
+const normalizeBandsintownEvent = (event: BandsintownEvent): PublicEvent | null => {
+  const startsAt = event.datetime
+  if (!startsAt || Number.isNaN(new Date(startsAt).getTime())) return null
+
+  const externalId = event.id == null
+    ? `${startsAt}-${event.venue?.city ?? "show"}`
+    : String(event.id)
+  const venue = event.venue?.name?.trim() || null
+  const cityName = event.venue?.city?.trim() || null
+  const lineup = Array.isArray(event.lineup) ? event.lineup.filter(Boolean) : []
+  const title = lineup.length > 0 ? lineup.join(" · ") : venue || "Virya live"
+  const ticketUrl =
+    event.offers?.find(offer => offer?.type === "Tickets" && offer.url)?.url ??
+    event.offers?.find(offer => offer?.url)?.url ??
+    null
+
+  return {
+    id: `bandsintown:${externalId}`,
+    slug: `gig-${slugify(externalId)}`,
+    title,
+    description: null,
+    city: cityName
+      ? {
+          id: `bandsintown-city:${slugify(cityName)}`,
+          slug: slugify(cityName),
+          name: cityName,
+          country_code: countryCode(event.venue?.country),
+          region: event.venue?.region ?? null,
+        }
+      : null,
+    venue,
+    venue_address: null,
+    timezone: "Europe/Warsaw",
+    starts_at: startsAt,
+    doors_at: null,
+    ends_at: null,
+    ticket_url: ticketUrl,
+    listen_url: null,
+    image_url: null,
+    trailer_url: null,
+    external_event_url: event.url ?? ticketUrl,
+    updated_at: new Date().toISOString(),
+    source: "bandsintown",
+  }
+}
+
+const isPublicEvent = (value: unknown): value is PublicEvent => {
+  if (!value || typeof value !== "object") return false
+  const event = value as Record<string, unknown>
+  return (
+    typeof event.id === "string" &&
+    typeof event.slug === "string" &&
+    typeof event.title === "string" &&
+    typeof event.starts_at === "string" &&
+    !Number.isNaN(new Date(event.starts_at).getTime())
+  )
+}
+
+const eventIdentity = (event: PublicEvent) => {
+  const start = new Date(event.starts_at)
+  const day = Number.isNaN(start.getTime()) ? event.starts_at : start.toISOString().slice(0, 10)
+  return [
+    day,
+    slugify(event.venue ?? ""),
+    slugify(event.city?.name ?? ""),
+  ].join(":")
+}
+
+const enrichEvent = (primary: PublicEvent, fallback: PublicEvent): PublicEvent => ({
+  ...fallback,
+  ...primary,
+  description: primary.description ?? fallback.description,
+  city: primary.city ?? fallback.city,
+  venue: primary.venue ?? fallback.venue,
+  venue_address: primary.venue_address ?? fallback.venue_address,
+  doors_at: primary.doors_at ?? fallback.doors_at,
+  ends_at: primary.ends_at ?? fallback.ends_at,
+  ticket_url: primary.ticket_url ?? fallback.ticket_url,
+  listen_url: primary.listen_url ?? fallback.listen_url,
+  image_url: primary.image_url ?? fallback.image_url,
+  trailer_url: primary.trailer_url ?? fallback.trailer_url,
+  external_event_url: primary.external_event_url ?? fallback.external_event_url,
+  source: primary.source,
+})
+
+const mergeEvents = (...groups: PublicEvent[][]): PublicEvent[] => {
+  const bySlug = new Map<string, PublicEvent>()
+  const byIdentity = new Map<string, string>()
+
+  for (const group of groups) {
+    for (const event of group) {
+      const identity = eventIdentity(event)
+      const existingSlug = bySlug.has(event.slug)
+        ? event.slug
+        : byIdentity.get(identity)
+      if (existingSlug) {
+        const existing = bySlug.get(existingSlug)
+        if (existing) bySlug.set(existingSlug, enrichEvent(existing, event))
+        continue
+      }
+      bySlug.set(event.slug, event)
+      byIdentity.set(identity, event.slug)
+    }
+  }
+
+  return [...bySlug.values()]
+    .filter(event => new Date(event.starts_at).getTime() >= Date.now() - 12 * 60 * 60 * 1000)
+    .sort(
+      (left, right) =>
+        new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime(),
+    )
+}
+
+const loadCrowdRelayEvents = async (): Promise<PublicEvent[]> => {
+  const url = new URL("public/events?limit=100", safeBaseUrl())
+  const payload = (await fetchJson(url)) as EventPayload
+  if (!Array.isArray(payload.events)) return []
+  return payload.events
+    .filter(isPublicEvent)
+    .map(event => ({ ...event, source: "crowdrelay" as const }))
+}
+
+const loadBandsintownEvents = async (): Promise<PublicEvent[]> => {
+  const configured = import.meta.env.BANDSINTOWN_APP_ID
+  const appId =
+    typeof configured === "string" && configured.trim()
+      ? configured.trim()
+      : DEFAULT_BANDSINTOWN_APP_ID
+
+  const url = new URL("https://rest.bandsintown.com/artists/virya/events")
+  url.searchParams.set("app_id", appId)
+  url.searchParams.set("date", "upcoming")
+  const payload = await fetchJson(url)
+  if (!Array.isArray(payload)) return []
+  return payload
+    .map(item => normalizeBandsintownEvent(item as BandsintownEvent))
+    .filter((event): event is PublicEvent => event !== null)
+}
+
+export type LiveEventLoadResult = {
+  events: PublicEvent[]
+  degraded: boolean
+}
+
+export const loadLiveEvents = async (): Promise<LiveEventLoadResult> => {
+  const [crowdRelay, bandsintown] = await Promise.allSettled([
+    loadCrowdRelayEvents(),
+    loadBandsintownEvents(),
+  ])
+  const crowdRelayEvents = crowdRelay.status === "fulfilled" ? crowdRelay.value : []
+  const bandsintownEvents = bandsintown.status === "fulfilled" ? bandsintown.value : []
+  const events = mergeEvents(crowdRelayEvents, bandsintownEvents, CURATED_LIVE_EVENTS)
+  return {
+    events,
+    degraded: crowdRelay.status === "rejected" || bandsintown.status === "rejected",
+  }
+}

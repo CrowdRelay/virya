@@ -23,11 +23,11 @@ export const GET: APIRoute = async ({ cookies }) => {
     const overview = await staffQrRequest<StaffQrOverview>(
       "admin/event-qr/overview",
     )
-    return areaJson({ events: overview.events })
+    return areaJson(overview)
   } catch (error) {
-    console.error("[staff-qr-events]", error)
+    console.error("[staff-qr-overview]", error)
     return areaJson(
-      { error: "Events temporarily unavailable" },
+      { error: "QR overview temporarily unavailable" },
       upstreamStatus(error),
     )
   }

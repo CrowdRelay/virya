@@ -119,14 +119,14 @@ export default function SignalTokenAction({ lang, action }: Props) {
         {state === "success" && action === "confirm" && (
           <a
             href={pagePath(lang, "/my-signal/")}
-            class="inline-flex min-h-[46px] items-center bg-amber-400 px-5 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300"
+            class="virya-button virya-button--primary min-h-[46px] px-5"
           >
             {copy.account}
           </a>
         )}
         <a
           href={pagePath(lang, "/")}
-          class="inline-flex min-h-[46px] items-center border border-zinc-700 px-5 text-[9px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400"
+          class="virya-button virya-button--secondary min-h-[46px] px-5"
         >
           {copy.home}
         </a>

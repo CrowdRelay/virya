@@ -158,7 +158,7 @@ export default function EventDetail({ lang, slug }: Props) {
 
   if (!event && !unavailable) {
     return (
-      <div class="border border-zinc-800 bg-zinc-950 p-6" aria-busy="true">
+      <div class="virya-panel p-6" aria-busy="true">
         <p class="text-xs text-zinc-400">{copy.loading}</p>
       </div>
     )
@@ -166,7 +166,7 @@ export default function EventDetail({ lang, slug }: Props) {
 
   if (!event || unavailable) {
     return (
-      <div class="border border-zinc-800 bg-zinc-950 p-6">
+      <div class="virya-panel p-6">
         <p class="text-sm text-zinc-300">{copy.unavailable}</p>
         <a
           href={pagePath(lang, "/signal/#signal-shows")}
@@ -216,7 +216,7 @@ export default function EventDetail({ lang, slug }: Props) {
               type="button"
               onClick={registerInterest}
               disabled={interestState === "saving" || interestState === "saved"}
-              class="inline-flex min-h-[48px] items-center bg-amber-400 px-5 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300 disabled:opacity-60"
+              class="virya-button virya-button--primary min-h-[48px] px-5"
             >
               {interestState === "saving"
                 ? copy.interestWorking
@@ -227,7 +227,7 @@ export default function EventDetail({ lang, slug }: Props) {
             {event.ticket_url && (
               <a
                 href={crowdrelay.eventTicketUrl(slug, campaignId)}
-                class="inline-flex min-h-[48px] items-center border border-amber-400/55 px-5 text-[9px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-400 hover:text-black"
+                class="virya-button virya-button--accent-outline min-h-[48px] px-5"
               >
                 {copy.tickets}
               </a>
@@ -235,21 +235,21 @@ export default function EventDetail({ lang, slug }: Props) {
             {event.listen_url && (
               <a
                 href={crowdrelay.eventListenUrl(slug, campaignId)}
-                class="inline-flex min-h-[48px] items-center border border-zinc-700 px-5 text-[9px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400"
+                class="virya-button virya-button--secondary min-h-[48px] px-5"
               >
                 {copy.listen}
               </a>
             )}
             <a
               href={crowdrelay.eventCalendarUrl(slug, campaignId)}
-              class="inline-flex min-h-[48px] items-center px-3 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-amber-400"
+              class="virya-button virya-button--ghost min-h-[48px] px-3"
             >
               {copy.calendar}
             </a>
             <button
               type="button"
               onClick={shareEvent}
-              class="inline-flex min-h-[48px] items-center px-3 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-amber-400"
+              class="virya-button virya-button--ghost min-h-[48px] px-3"
             >
               {shareLabel}
             </button>
@@ -275,7 +275,7 @@ export default function EventDetail({ lang, slug }: Props) {
           )}
         </div>
 
-        <aside class="border border-zinc-800 bg-zinc-950 p-5 sm:p-6">
+        <aside class="virya-panel p-5 sm:p-6">
           <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
             VIRYA // LIVE
           </p>
@@ -375,7 +375,7 @@ function CheckinPanel({
           {state === "login" && (
             <a
               href={pagePath(lang, "/signal/#join-signal")}
-              class="mt-4 inline-flex min-h-[44px] items-center bg-amber-400 px-4 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300"
+              class="virya-button virya-button--primary mt-4"
             >
               {copy.checkinJoin}
             </a>
@@ -384,7 +384,7 @@ function CheckinPanel({
             <button
               type="button"
               onClick={onRetry}
-              class="mt-4 inline-flex min-h-[44px] items-center border border-amber-400/50 px-4 text-[9px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-400 hover:text-black"
+              class="virya-button virya-button--accent-outline mt-4"
             >
               {lang === "pl" ? "Spróbuj ponownie" : "Try again"}
             </button>
