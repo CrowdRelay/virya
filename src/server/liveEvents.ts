@@ -162,14 +162,45 @@ const isPublicEvent = (value: unknown): value is PublicEvent => {
   )
 }
 
-const eventIdentity = (event: PublicEvent) => {
-  const start = new Date(event.starts_at)
-  const day = Number.isNaN(start.getTime()) ? event.starts_at : start.toISOString().slice(0, 10)
-  return [
-    day,
-    slugify(event.venue ?? ""),
-    slugify(event.city?.name ?? ""),
-  ].join(":")
+const eventDay = (event: PublicEvent) => event.starts_at.slice(0, 10)
+
+const normalizedEventUrl = (value: string | null): string | null => {
+  if (!value) return null
+  try {
+    const url = new URL(value)
+    url.hash = ""
+    url.search = ""
+    return `${url.hostname.toLowerCase()}${url.pathname.replace(/\/+$/, "")}`
+  } catch {
+    return null
+  }
+}
+
+const sameEvent = (left: PublicEvent, right: PublicEvent): boolean => {
+  if (left.slug === right.slug) return true
+
+  const leftUrl = normalizedEventUrl(left.external_event_url)
+  const rightUrl = normalizedEventUrl(right.external_event_url)
+  if (leftUrl && rightUrl && leftUrl === rightUrl) return true
+
+  if (eventDay(left) !== eventDay(right)) return false
+
+  const leftCity = slugify(left.city?.name ?? "")
+  const rightCity = slugify(right.city?.name ?? "")
+  if (leftCity && rightCity && leftCity === rightCity) return true
+
+  const leftVenue = slugify(left.venue ?? "")
+  const rightVenue = slugify(right.venue ?? "")
+  if (leftVenue && rightVenue && leftVenue === rightVenue) return true
+
+  const leftAddress = slugify(left.venue_address ?? "")
+  const rightAddress = slugify(right.venue_address ?? "")
+  return Boolean(
+    (leftCity && rightAddress.includes(leftCity)) ||
+      (rightCity && leftAddress.includes(rightCity)) ||
+      (leftVenue && rightAddress.includes(leftVenue)) ||
+      (rightVenue && leftAddress.includes(rightVenue)),
+  )
 }
 
 const enrichEvent = (primary: PublicEvent, fallback: PublicEvent): PublicEvent => ({
@@ -190,26 +221,21 @@ const enrichEvent = (primary: PublicEvent, fallback: PublicEvent): PublicEvent =
 })
 
 const mergeEvents = (...groups: PublicEvent[][]): PublicEvent[] => {
-  const bySlug = new Map<string, PublicEvent>()
-  const byIdentity = new Map<string, string>()
+  const merged: PublicEvent[] = []
 
   for (const group of groups) {
     for (const event of group) {
-      const identity = eventIdentity(event)
-      const existingSlug = bySlug.has(event.slug)
-        ? event.slug
-        : byIdentity.get(identity)
-      if (existingSlug) {
-        const existing = bySlug.get(existingSlug)
-        if (existing) bySlug.set(existingSlug, enrichEvent(existing, event))
+      const existingIndex = merged.findIndex(existing => sameEvent(existing, event))
+      if (existingIndex >= 0) {
+        const existing = merged[existingIndex]
+        if (existing) merged[existingIndex] = enrichEvent(existing, event)
         continue
       }
-      bySlug.set(event.slug, event)
-      byIdentity.set(identity, event.slug)
+      merged.push(event)
     }
   }
 
-  return [...bySlug.values()]
+  return merged
     .filter(event => new Date(event.starts_at).getTime() >= Date.now() - 12 * 60 * 60 * 1000)
     .sort(
       (left, right) =>
@@ -249,15 +275,20 @@ export type LiveEventLoadResult = {
 }
 
 export const loadLiveEvents = async (): Promise<LiveEventLoadResult> => {
-  const [crowdRelay, bandsintown] = await Promise.allSettled([
-    loadCrowdRelayEvents(),
-    loadBandsintownEvents(),
-  ])
-  const crowdRelayEvents = crowdRelay.status === "fulfilled" ? crowdRelay.value : []
-  const bandsintownEvents = bandsintown.status === "fulfilled" ? bandsintown.value : []
-  const events = mergeEvents(crowdRelayEvents, bandsintownEvents, CURATED_LIVE_EVENTS)
-  return {
-    events,
-    degraded: crowdRelay.status === "rejected" || bandsintown.status === "rejected",
+  try {
+    const crowdRelayEvents = await loadCrowdRelayEvents()
+    if (crowdRelayEvents.length > 0) {
+      return { events: mergeEvents(crowdRelayEvents), degraded: false }
+    }
+  } catch {}
+
+  try {
+    const bandsintownEvents = await loadBandsintownEvents()
+    return {
+      events: mergeEvents(bandsintownEvents, CURATED_LIVE_EVENTS),
+      degraded: true,
+    }
+  } catch {
+    return { events: mergeEvents(CURATED_LIVE_EVENTS), degraded: true }
   }
 }
