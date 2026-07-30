@@ -5,18 +5,28 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      # Reproducible install from the committed lockfile.
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run source audits and type checks
+        run: npm test
+      - name: Build production output
+        run: npm run build
         env:
           CI: "true"
