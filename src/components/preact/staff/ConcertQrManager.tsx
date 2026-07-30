@@ -439,9 +439,9 @@ export default function ConcertQrManager() {
   }
 
   return (
-    <div class="grid gap-6">
+    <div class="grid w-full min-w-0 max-w-full gap-6">
       <header class="flex flex-col gap-4 border-b border-zinc-800 pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+        <div class="min-w-0">
           <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
             VIRYA // STAFF
           </p>
@@ -452,7 +452,7 @@ export default function ConcertQrManager() {
             Twórz krótkotrwałe, odwoływalne kody przypisane do konkretnego koncertu. Token trafia wyłącznie do fragmentu URL i nie jest wysyłany w referrerze.
           </p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-none">
           <button type="button" onClick={() => void refreshData()} disabled={busy} class={secondaryButton}>
             Odśwież
           </button>
@@ -474,7 +474,7 @@ export default function ConcertQrManager() {
         <Metric label="Łączne check-iny" value={String(campaigns.reduce((sum, campaign) => sum + campaign.checkin_count, 0))} />
       </section>
 
-      <div class="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      <div class="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <form onSubmit={createCampaign} class={panelClass}>
           <p class={eyebrowClass}>Nowa kampania</p>
           <h2 class="mt-2 text-xl font-black uppercase text-white">Wybierz koncert i czas</h2>
@@ -509,11 +509,11 @@ export default function ConcertQrManager() {
           </label>
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
-            <label class="text-[9px] font-black uppercase tracking-widest text-zinc-400">
+            <label class="min-w-0 text-[9px] font-black uppercase tracking-widest text-zinc-400">
               Aktywny od
               <input type="datetime-local" value={validFrom} onInput={event => setValidFrom(event.currentTarget.value)} required class={inputClass} />
             </label>
-            <label class="text-[9px] font-black uppercase tracking-widest text-zinc-400">
+            <label class="min-w-0 text-[9px] font-black uppercase tracking-widest text-zinc-400">
               Aktywny do
               <input type="datetime-local" value={validUntil} onInput={event => setValidUntil(event.currentTarget.value)} required class={inputClass} />
             </label>
@@ -536,8 +536,8 @@ export default function ConcertQrManager() {
         </form>
 
         <section class={panelClass}>
-          <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
+          <div class="flex min-w-0 flex-wrap items-start justify-between gap-4">
+            <div class="min-w-0">
               <p class={eyebrowClass}>Podgląd / druk</p>
               <h2 class="mt-2 text-xl font-black uppercase text-white">
                 {activeCampaign?.event_title ?? "Wybierz kampanię"}
@@ -546,7 +546,7 @@ export default function ConcertQrManager() {
             <select
               value={selectedCampaignId ?? ""}
               onChange={event => setSelectedCampaignId(event.currentTarget.value || null)}
-              class="virya-input min-h-[44px] max-w-full text-xs"
+              class="virya-input min-h-[44px] w-full min-w-0 max-w-full text-xs sm:w-auto sm:max-w-[22rem]"
             >
               <option value="">
                 {dataLoaded && campaigns.length === 0
@@ -562,11 +562,11 @@ export default function ConcertQrManager() {
           </div>
 
           {activeCampaign && qr && checkinUrl ? (
-            <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] lg:items-start">
+            <div class="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] lg:items-start">
               <button
                 type="button"
                 onClick={() => setFullscreen(true)}
-                class="block w-full border border-zinc-700 bg-white p-4 hover:border-amber-400"
+                class="block w-full min-w-0 max-w-full overflow-hidden border border-zinc-700 bg-white p-4 hover:border-amber-400 [&>svg]:block [&>svg]:h-auto [&>svg]:w-full [&>svg]:max-w-full"
                 aria-label="Otwórz QR na pełnym ekranie"
                 dangerouslySetInnerHTML={{ __html: qr.svg }}
               />
@@ -612,7 +612,7 @@ export default function ConcertQrManager() {
         {campaigns.length === 0 ? (
           <p class="mt-5 text-xs text-zinc-500">Brak kampanii.</p>
         ) : (
-          <div class="mt-5 overflow-x-auto">
+          <div class="mt-5 w-full max-w-full overflow-x-auto overscroll-x-contain">
             <table class="w-full min-w-[760px] border-collapse text-left text-xs">
               <thead class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
                 <tr class="border-b border-zinc-800">
@@ -637,9 +637,9 @@ export default function ConcertQrManager() {
 
       {fullscreen && qr && activeCampaign && (
         <div class="fixed inset-0 z-[10000] flex flex-col bg-white p-4 text-black sm:p-8" role="dialog" aria-modal="true" aria-label="Kod QR na pełnym ekranie">
-          <div class="flex items-center justify-between gap-4">
-            <div><p class="text-xs font-black uppercase tracking-[.25em]">VIRYA // LIVE</p><h2 class="mt-1 text-xl font-black uppercase">{activeCampaign.event_title}</h2></div>
-            <button ref={fullscreenCloseRef} type="button" onClick={() => setFullscreen(false)} class="min-h-[44px] border border-black px-4 text-xs font-black uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">Zamknij</button>
+          <div class="flex min-w-0 items-center justify-between gap-4">
+            <div class="min-w-0"><p class="text-xs font-black uppercase tracking-[.25em]">VIRYA // LIVE</p><h2 class="mt-1 break-words text-xl font-black uppercase">{activeCampaign.event_title}</h2></div>
+            <button ref={fullscreenCloseRef} type="button" onClick={() => setFullscreen(false)} class="min-h-[44px] flex-none border border-black px-4 text-xs font-black uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">Zamknij</button>
           </div>
           <div class="mx-auto flex min-h-0 w-full max-w-[82vh] flex-1 items-center justify-center" dangerouslySetInnerHTML={{ __html: qr.svg }} />
         </div>
@@ -666,12 +666,12 @@ function StatusPanel({ title, body }: { title: string; body?: string }) {
   return <div class="virya-panel p-6 sm:p-8"><p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">VIRYA // STAFF</p><h1 class="mt-4 text-2xl font-black uppercase text-white">{title}</h1>{body && <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400">{body}</p>}</div>
 }
 
-const panelClass = "virya-panel p-5 sm:p-6"
+const panelClass = "virya-panel min-w-0 max-w-full p-5 sm:p-6"
 const eyebrowClass = "text-[9px] font-black uppercase tracking-[.28em] text-amber-400"
-const labelClass = "mt-5 block text-[9px] font-black uppercase tracking-widest text-zinc-400"
-const inputClass = "virya-input mt-2 px-3 text-sm"
-const primaryButton = "virya-button virya-button--primary min-h-[44px] px-4"
-const secondaryButton = "virya-button virya-button--secondary min-h-[44px] px-4"
+const labelClass = "mt-5 block min-w-0 text-[9px] font-black uppercase tracking-widest text-zinc-400"
+const inputClass = "virya-input mt-2 w-full min-w-0 max-w-full px-3 text-sm"
+const primaryButton = "virya-button virya-button--primary min-h-[44px] min-w-0 px-4"
+const secondaryButton = "virya-button virya-button--secondary min-h-[44px] min-w-0 px-4"
 
 function toLocalInput(value: Date) {
   const adjusted = new Date(value.getTime() - value.getTimezoneOffset() * 60_000)
