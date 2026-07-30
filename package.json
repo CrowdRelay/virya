@@ -1,7 +1,7 @@
 {
     "name": "virya-website",
     "private": true,
-    "description": "A band's landing page",
+    "description": "Static-first Astro site for Virya: music, merch, fan Signal, AREA field game and concert operations.",
     "version": "0.3.0",
     "author": "Virya <virya.crew@gmail.com>",
     "type": "module",
@@ -30,10 +30,14 @@
     },
     "homepage": "https://www.virya.music",
     "keywords": [
-        "music",
-        "composing",
-        "it",
-        "guitar"
+        "virya",
+        "modern metal",
+        "astro",
+        "preact",
+        "stripe",
+        "crowdrelay",
+        "geolocation",
+        "pwa"
     ],
     "license": "0BSD",
     "repository": {

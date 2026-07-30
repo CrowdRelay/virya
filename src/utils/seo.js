@@ -8,10 +8,8 @@ const SITE_URL = "https://www.virya.music"
  * @param {string} currentLang - The current language (e.g., "en", "pl")
  * @returns {Object} Object containing canonicalUrl and hreflangLinks
  */
-// Gatsby's default trailingSlash is "always", so every served URL ends in "/".
-// Canonical and hreflang hrefs must match that exactly, otherwise crawlers see
-// them as pointing to a different page (and the self-referential alternate as
-// missing).
+// Canonical and hreflang URLs use one trailing-slash policy. A mismatch here
+// makes crawlers treat the alternate URL as a separate page.
 const withTrailingSlash = p => (p === "" || p.endsWith("/") ? p : `${p}/`)
 
 export const getSeoTags = (path, currentLang = DEFAULT_LANG) => {

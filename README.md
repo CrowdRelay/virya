@@ -1,28 +1,87 @@
-# Virya website
+# virya.music
 
-Astro/Preact website for [virya.music](https://virya.music), including the public band site, Virya Signal, Virya Game, merch and server-rendered Netlify functions.
+[![Build](https://github.com/wojciechbator/virya/actions/workflows/build.yml/badge.svg)](https://github.com/wojciechbator/virya/actions/workflows/build.yml)
 
-## Development
+This repository contains the production website and operational frontend for [Virya](https://www.virya.music).
+
+It started as a fast multilingual band site. It now includes:
+
+- music, lyrics, video, gallery, press and live-event pages;
+- Stripe merch checkout with InPost delivery;
+- VIRYA AREA, a browser-based geolocation field game;
+- Virya Signal fan registration, consent, referrals and event interest;
+- admission-pass and concert check-in flows backed by CrowdRelay;
+- a private staff panel for rotating concert QR campaigns;
+- server-rendered Netlify routes for trusted integrations.
+
+The public site remains static-first. Interactive code loads only for the surfaces that need it.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Browser[Browser] --> Astro[Astro pages + Preact islands]
+    Astro --> Routes[Server-side Astro / Netlify routes]
+    Routes --> Stripe[Stripe]
+    Routes --> CR[CrowdRelay Rust API]
+    Routes --> Mail[Transactional email]
+    Routes --> BIT[Bandsintown public feed]
+    CR --> PG[(PostgreSQL)]
+    CR --> Worker[Async worker / signed webhooks]
+```
+
+The browser never receives Stripe secrets, CrowdRelay admin keys or staff credentials.
+
+Public content does not wait for email or automation delivery. AREA and Signal have separate state boundaries so a CrowdRelay outage cannot invalidate an already committed AREA reward.
+
+More detail: [architecture](docs/ARCHITECTURE.md), [Signal integration](docs/VIRYA_SIGNAL_INTEGRATION.md), [staff QR panel](docs/STAFF_QR.md).
+
+## Local development
 
 ```sh
 npm ci
+cp .env.example .env.development
 npm run dev
+```
+
+Run the complete source checks before a pull request:
+
+```sh
 npm test
 npm run build
 ```
 
-`npm test` runs TypeScript checks and the source-level Virya Game and Signal audits. Keep those audits green when changing layouts or interaction flows.
+`npm test` runs TypeScript validation and source-level audits for AREA and Signal. The build generates responsive image placeholders before Astro compiles the site.
 
-Copy `.env.example` to a local environment file and provide only the secrets needed for the feature under test. Variables without the `PUBLIC_` prefix remain server-side.
+## Runtime boundaries
 
-## Concert QR panel
+| Surface | Owner |
+|---|---|
+| Static pages, SEO and presentation | Astro |
+| Interactive merch, Signal and AREA UI | Preact islands |
+| Checkout creation and webhooks | server-side routes + Stripe |
+| AREA challenges, claims and vouchers | AREA server modules and durable ledger |
+| Fan consent, referrals, events, draws and admission | [CrowdRelay](https://github.com/wojciechbator/crowdrelay) |
+| Operational notifications and delivery | asynchronous workflows |
 
-The staff-only generator lives at `/staff/qr`. It uses a signed HttpOnly session and server-side CrowdRelay proxy, generates dependency-free SVG/PNG QR images, prints an A4 poster and can revoke a campaign immediately.
+## Performance rules
 
-Configuration and operating instructions: [`docs/STAFF_QR.md`](docs/STAFF_QR.md).
+- no global application hydration;
+- explicit image dimensions and generated placeholders;
+- third-party embeds stay outside the initial render;
+- CrowdRelay code is not imported by the global layout;
+- public API calls use bounded timeouts and cached fallbacks;
+- privileged state remains server-side;
+- prefetch happens on intent rather than across every page.
 
-## CrowdRelay integration
+The deployed site is kept at 100 across the Lighthouse audits tracked for performance, accessibility, best practices and SEO.
 
-The public frontend reads concerts and fan state from CrowdRelay. Bandsintown remains the direct source for the homepage shows section, while CrowdRelay synchronizes provider events asynchronously for Signal, reminders, interests, draws and concert QR check-ins.
+## Security
 
-See [`docs/VIRYA_SIGNAL_INTEGRATION.md`](docs/VIRYA_SIGNAL_INTEGRATION.md) for the broader integration contract.
+The repository contains examples only. Production environment files, generated Netlify output and local deployment state are ignored.
+
+Report security issues privately as described in [SECURITY.md](SECURITY.md).
+
+## Author
+
+Website and systems: [Wojciech Bator](https://www.wojciechbator.me) · [GitHub](https://github.com/wojciechbator)

@@ -19,7 +19,6 @@ export default defineConfig({
   output: "server",
   adapter: netlify(),
   prefetch: {
-    prefetchAll: true,
     defaultStrategy: "hover",
   },
   build: {
