@@ -5,6 +5,10 @@ const DEFAULT_CROWDRELAY_URL = "https://signal-api.virya.music/v1/"
 const DEFAULT_BANDSINTOWN_APP_ID = "virya-website"
 const REQUEST_TIMEOUT_MS = 6_000
 const MAX_RESPONSE_BYTES = 512 * 1024
+const HEALTHY_CACHE_TTL_MS = 2 * 60 * 1000
+const DEGRADED_CACHE_TTL_MS = 30 * 1000
+const EVENT_MATCH_WINDOW_MS = 8 * 60 * 60 * 1000
+const encoder = new TextEncoder()
 
 type BandsintownEvent = {
   id?: string | number
@@ -44,7 +48,7 @@ const readJson = async (response: Response): Promise<unknown> => {
     throw new Error("Response too large")
   }
   const text = await response.text()
-  if (new TextEncoder().encode(text).byteLength > MAX_RESPONSE_BYTES) {
+  if (encoder.encode(text).byteLength > MAX_RESPONSE_BYTES) {
     throw new Error("Response too large")
   }
   return JSON.parse(text)
@@ -185,22 +189,30 @@ const sameEvent = (left: PublicEvent, right: PublicEvent): boolean => {
 
   if (eventDay(left) !== eventDay(right)) return false
 
+  const timeDistance = Math.abs(
+    new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime(),
+  )
+  if (!Number.isFinite(timeDistance) || timeDistance > EVENT_MATCH_WINDOW_MS) {
+    return false
+  }
+
   const leftCity = slugify(left.city?.name ?? "")
   const rightCity = slugify(right.city?.name ?? "")
-  if (leftCity && rightCity && leftCity === rightCity) return true
+  const sameCity = Boolean(leftCity && rightCity && leftCity === rightCity)
 
   const leftVenue = slugify(left.venue ?? "")
   const rightVenue = slugify(right.venue ?? "")
-  if (leftVenue && rightVenue && leftVenue === rightVenue) return true
+  const sameVenue = Boolean(leftVenue && rightVenue && leftVenue === rightVenue)
+  if (sameVenue && (sameCity || !leftCity || !rightCity)) return true
 
   const leftAddress = slugify(left.venue_address ?? "")
   const rightAddress = slugify(right.venue_address ?? "")
-  return Boolean(
-    (leftCity && rightAddress.includes(leftCity)) ||
-      (rightCity && leftAddress.includes(rightCity)) ||
-      (leftVenue && rightAddress.includes(leftVenue)) ||
+  const addressMatches = Boolean(
+    (leftVenue && rightAddress.includes(leftVenue)) ||
       (rightVenue && leftAddress.includes(rightVenue)),
   )
+
+  return sameCity && (sameVenue || addressMatches || timeDistance <= 4 * 60 * 60 * 1000)
 }
 
 const enrichEvent = (primary: PublicEvent, fallback: PublicEvent): PublicEvent => ({
@@ -274,21 +286,54 @@ export type LiveEventLoadResult = {
   degraded: boolean
 }
 
-export const loadLiveEvents = async (): Promise<LiveEventLoadResult> => {
-  try {
-    const crowdRelayEvents = await loadCrowdRelayEvents()
-    if (crowdRelayEvents.length > 0) {
-      return { events: mergeEvents(crowdRelayEvents), degraded: false }
-    }
-  } catch {}
+type CachedLiveEvents = {
+  expiresAt: number
+  result: LiveEventLoadResult
+}
 
-  try {
-    const bandsintownEvents = await loadBandsintownEvents()
+let cachedLiveEvents: CachedLiveEvents | null = null
+let pendingLiveEvents: Promise<LiveEventLoadResult> | null = null
+
+const resolveLiveEvents = async (): Promise<LiveEventLoadResult> => {
+  const [crowdRelayResult, bandsintownResult] = await Promise.allSettled([
+    loadCrowdRelayEvents(),
+    loadBandsintownEvents(),
+  ])
+
+  if (crowdRelayResult.status === "fulfilled" && crowdRelayResult.value.length > 0) {
     return {
-      events: mergeEvents(bandsintownEvents, CURATED_LIVE_EVENTS),
-      degraded: true,
+      events: mergeEvents(crowdRelayResult.value),
+      degraded: false,
     }
-  } catch {
-    return { events: mergeEvents(CURATED_LIVE_EVENTS), degraded: true }
   }
+
+  const bandsintownEvents =
+    bandsintownResult.status === "fulfilled" ? bandsintownResult.value : []
+  return {
+    events: mergeEvents(bandsintownEvents, CURATED_LIVE_EVENTS),
+    degraded: true,
+  }
+}
+
+export const loadLiveEvents = async (): Promise<LiveEventLoadResult> => {
+  const now = Date.now()
+  if (cachedLiveEvents && cachedLiveEvents.expiresAt > now) {
+    return cachedLiveEvents.result
+  }
+  if (pendingLiveEvents) return pendingLiveEvents
+
+  pendingLiveEvents = resolveLiveEvents()
+    .then(result => {
+      cachedLiveEvents = {
+        result,
+        expiresAt:
+          Date.now() + (result.degraded ? DEGRADED_CACHE_TTL_MS : HEALTHY_CACHE_TTL_MS),
+      }
+      return result
+    })
+    .finally(() => {
+      pendingLiveEvents = null
+    })
+
+  return pendingLiveEvents
 }

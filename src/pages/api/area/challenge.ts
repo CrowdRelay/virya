@@ -11,7 +11,7 @@ import { getCollectible, getLiveDrop } from "../../../server/areaCatalog"
 import {
   areaJson,
   isSameOriginRequest,
-  readSmallJson,
+  readSmallJsonObject,
 } from "../../../server/areaHttp"
 
 export const prerender = false
@@ -21,14 +21,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return areaJson({ error: "Invalid request origin" }, 403)
   }
 
-  let body: any
+  let body: Record<string, unknown>
   try {
-    body = await readSmallJson(request)
+    body = await readSmallJsonObject(request)
   } catch {
     return areaJson({ error: "Invalid request", code: "INVALID_REQUEST" }, 400)
   }
 
-  const dropId = typeof body?.dropId === "string" ? body.dropId : ""
+  const dropId = typeof body.dropId === "string" ? body.dropId : ""
   if (!getAreaDrop(dropId)) {
     return areaJson({ error: "Invalid drop", code: "INVALID_REQUEST" }, 400)
   }

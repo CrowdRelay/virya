@@ -1,5 +1,5 @@
-const CACHE_NAME = 'virya-v10'
-const STATIC_CACHE = 'virya-static-v10'
+const CACHE_NAME = 'virya-v11'
+const STATIC_CACHE = 'virya-static-v11'
 const STATIC_ASSET_PATTERN = /\.(webp|png|jpg|jpeg|svg|css|js|woff2?|ttf|otf)$/
 const PRIVATE_HTML_PATTERN = /^\/(?:pl\/)?(?:merch\/(?:success|cancel)|area\/claim|staff)(?:\/|$)/
 
@@ -18,15 +18,18 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE) {
-            return caches.delete(cacheName)
-          }
-        })
-      )
-    })
+    Promise.all([
+      caches.keys().then((cacheNames) =>
+        Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE) {
+              return caches.delete(cacheName)
+            }
+          })
+        )
+      ),
+      self.clients.claim(),
+    ])
   )
 })
 

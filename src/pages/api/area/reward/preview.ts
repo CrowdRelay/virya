@@ -6,7 +6,7 @@ import {
 import {
   areaJson,
   isSameOriginRequest,
-  readSmallJson,
+  readSmallJsonObject,
 } from "../../../../server/areaHttp"
 
 export const prerender = false
@@ -15,21 +15,21 @@ export const POST: APIRoute = async ({ request }) => {
   if (!isSameOriginRequest(request)) {
     return areaJson({ error: "Invalid request origin" }, 403)
   }
-  let body: any
+  let body: Record<string, unknown>
   try {
-    body = await readSmallJson(request)
+    body = await readSmallJsonObject(request)
   } catch {
     return areaJson({ error: "Invalid request", code: "INVALID_REQUEST" }, 400)
   }
 
   try {
     const checkoutRequestId =
-      typeof body?.checkoutRequestId === "string" &&
+      typeof body.checkoutRequestId === "string" &&
       body.checkoutRequestId.length <= 64
         ? body.checkoutRequestId.toLowerCase()
         : undefined
     const result = await previewAreaRewardCode(
-      body?.code,
+      body.code,
       checkoutRequestId,
     )
     if (!result.valid) {

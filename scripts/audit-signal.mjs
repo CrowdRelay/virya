@@ -138,6 +138,27 @@ assert(
     liveEventCard.includes("virya-live-card__orbit--inner"),
   "Homepage and Signal must share the same live-event card and orbit treatment.",
 )
+assert(
+  liveEventsBrowser.includes("pendingEvents") &&
+    liveEventsBrowser.includes("MEMORY_CACHE_TTL_MS") &&
+    !liveEventsBrowser.includes('cache: "no-store"'),
+  "Browser event loading must coalesce requests and retain HTTP caching.",
+)
+assert(
+  homepageShows.includes("upcomingLiveEvents") &&
+    signalHub.includes("upcomingLiveEvents"),
+  "Homepage and Signal must share the same upcoming-event policy.",
+)
+assert(
+  staffManager.includes("dataRequestRef") &&
+    staffManager.includes("AbortController") &&
+    staffManager.includes("REQUEST_TIMEOUT_MS"),
+  "Staff QR data requests must be cancellable and time-bounded.",
+)
+assert(
+  (signalHub.match(/id="join-signal"/g) ?? []).length === 1,
+  "Signal signup section must expose one unique join-signal anchor.",
+)
 
 for (const path of [
   "src/pages/signal.astro",

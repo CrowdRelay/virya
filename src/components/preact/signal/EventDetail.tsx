@@ -18,6 +18,9 @@ interface Props {
 }
 
 type InterestState = "idle" | "saving" | "saved" | "login" | "error"
+
+const dateFormatters = new Map<string, Intl.DateTimeFormat>()
+
 type CheckinState =
   | "none"
   | "working"
@@ -401,14 +404,19 @@ function pagePath(lang: Lang, path: string): string {
 
 function formatDate(value: string, locale: string): string {
   const date = new Date(value)
-  return Number.isNaN(date.getTime())
-    ? value
-    : new Intl.DateTimeFormat(locale, {
-        weekday: "long",
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(date)
+  if (Number.isNaN(date.getTime())) return value
+
+  let formatter = dateFormatters.get(locale)
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+    dateFormatters.set(locale, formatter)
+  }
+  return formatter.format(date)
 }
