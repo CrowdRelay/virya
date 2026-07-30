@@ -21,6 +21,10 @@ const envExample = read(".env.example")
 const signalCopy = read("src/data/signalCopy.ts")
 const webhook = read("src/pages/api/crowdrelay-webhook.ts")
 const subscribe = read("src/pages/api/subscribe.ts")
+const staffAuth = read("src/server/staffQrAuth.ts")
+const staffApi = read("src/server/staffQrApi.ts")
+const staffPage = read("src/pages/staff/qr.astro")
+const staffManager = read("src/components/preact/staff/ConcertQrManager.tsx")
 
 assert(
   !layout.includes("crowdrelay") && !layout.includes("SignalHub"),
@@ -85,8 +89,29 @@ assert(
   "Newsletter must fail closed when the mailer is unavailable.",
 )
 assert(
-  signalCopy.includes("physical Virya albums") && signalCopy.includes("fizycznych albumów"),
-  "Signal copy must describe separate physical-album concert pools.",
+  signalCopy.includes("one global draw for three physical albums") &&
+    signalCopy.includes("jednej globalnej puli trzech płyt"),
+  "Signal copy must describe one global pool of three physical albums.",
+)
+assert(
+  signalCopy.includes("Event-specific guest-list draws stay separate") &&
+    signalCopy.includes("Wejściówki mają osobne pule wydarzeń"),
+  "Signal copy must keep event ticket draws separate from the global album draw.",
+)
+assert(
+  staffAuth.includes("httpOnly: true") &&
+    staffAuth.includes('sameSite: "strict"') &&
+    staffAuth.includes("timingSafeEqual") &&
+    staffApi.includes("CROWDRELAY_ADMIN_API_KEY") &&
+    !staffManager.includes("import.meta.env.CROWDRELAY_ADMIN_API_KEY") &&
+    !staffManager.includes("Authorization: `Bearer"),
+  "Staff QR authentication or server-only CrowdRelay proxy is incomplete.",
+)
+assert(
+  staffPage.includes('name="robots" content="noindex, nofollow, noarchive"') &&
+    staffManager.includes("#checkin=") &&
+    staffManager.includes("Wyłącz ten QR"),
+  "Staff QR page must remain private-indexed, fragment-based and revocable.",
 )
 
 for (const path of [
@@ -102,6 +127,14 @@ for (const path of [
   "src/pages/pl/signal/confirm.astro",
   "src/pages/signal/unsubscribe.astro",
   "src/pages/pl/signal/unsubscribe.astro",
+  "src/pages/staff/index.astro",
+  "src/pages/staff/qr.astro",
+  "src/pages/api/staff/qr/status.ts",
+  "src/pages/api/staff/qr/login.ts",
+  "src/pages/api/staff/qr/logout.ts",
+  "src/pages/api/staff/qr/events.ts",
+  "src/pages/api/staff/qr/campaigns.ts",
+  "src/pages/api/staff/qr/campaigns/[id].ts",
 ]) {
   assert(existsSync(resolve(root, path)), `Missing Signal route: ${path}`)
 }

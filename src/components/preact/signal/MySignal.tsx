@@ -208,6 +208,9 @@ export default function MySignal({ lang }: Props) {
                 </div>
                 <p class="mt-3 text-xs font-semibold text-zinc-300">
                   {copy.drawEntries(draw.total_entries)} · {copy.drawReferrals(draw.qualified_referrals)}
+                  {draw.concert_checkins > 0 && (
+                    <> · {copy.drawCheckins(draw.concert_checkins)}</>
+                  )}
                 </p>
                 <dl class="mt-5 grid gap-3 border-t border-zinc-800 pt-4 sm:grid-cols-2">
                   <div>

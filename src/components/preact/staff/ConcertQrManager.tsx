@@ -1,0 +1,609 @@
+import { useEffect, useMemo, useRef, useState } from "preact/hooks"
+import type { PublicEvent } from "../../../lib/crowdrelay-client"
+import {
+  generateQr,
+  renderQrToCanvas,
+  type GeneratedQr,
+} from "../../../lib/qrCode"
+import type { StaffQrCampaign } from "../../../server/staffQrApi"
+
+type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
+type Language = "pl" | "en"
+
+type ApiError = Error & { status?: number }
+
+const api = async <T,>(
+  path: string,
+  options: { method?: "GET" | "POST"; body?: unknown } = {},
+): Promise<T> => {
+  const headers = new Headers({ Accept: "application/json" })
+  if (options.body !== undefined) headers.set("Content-Type", "application/json")
+  const response = await fetch(path, {
+    method: options.method ?? "GET",
+    headers,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    credentials: "same-origin",
+    cache: "no-store",
+  })
+  if (!response.ok) {
+    const error = new Error("Request failed") as ApiError
+    error.status = response.status
+    throw error
+  }
+  return (await response.json()) as T
+}
+
+export default function ConcertQrManager() {
+  const [state, setState] = useState<LoadState>("checking")
+  const [password, setPassword] = useState("")
+  const [events, setEvents] = useState<PublicEvent[]>([])
+  const [campaigns, setCampaigns] = useState<StaffQrCampaign[]>([])
+  const [selectedEvent, setSelectedEvent] = useState("")
+  const [label, setLabel] = useState("")
+  const [validFrom, setValidFrom] = useState("")
+  const [validUntil, setValidUntil] = useState("")
+  const [maxCheckins, setMaxCheckins] = useState("")
+  const [language, setLanguage] = useState<Language>("pl")
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState("")
+  const [fullscreen, setFullscreen] = useState(false)
+  const passwordRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    void api<{ authenticated: boolean; configured: boolean }>(
+      "/api/staff/qr/status",
+    )
+      .then(status => {
+        if (!status.configured) {
+          setState("unconfigured")
+          return
+        }
+        if (!status.authenticated) {
+          setState("login")
+          queueMicrotask(() => passwordRef.current?.focus())
+          return
+        }
+        setState("ready")
+        void loadData()
+      })
+      .catch(() => setState("error"))
+  }, [])
+
+
+  useEffect(() => {
+    if (!fullscreen) return
+    const previousOverflow = document.body.style.overflow
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFullscreen(false)
+    }
+    document.body.style.overflow = "hidden"
+    window.addEventListener("keydown", closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener("keydown", closeOnEscape)
+    }
+  }, [fullscreen])
+
+  const activeCampaign = useMemo(
+    () =>
+      campaigns.find(campaign => campaign.id === selectedCampaignId) ??
+      campaigns.find(campaign => campaign.active && !!campaign.token) ??
+      null,
+    [campaigns, selectedCampaignId],
+  )
+
+  const checkinUrl = useMemo(() => {
+    if (!activeCampaign?.token) return null
+    const prefix = language === "pl" ? "/pl" : ""
+    return `https://virya.music${prefix}/live/${encodeURIComponent(activeCampaign.event_slug)}/#checkin=${activeCampaign.token}`
+  }, [activeCampaign, language])
+
+  const qr = useMemo<GeneratedQr | null>(() => {
+    if (!checkinUrl) return null
+    try {
+      return generateQr(checkinUrl)
+    } catch {
+      return null
+    }
+  }, [checkinUrl])
+
+  async function refreshData() {
+    if (busy) return
+    setBusy(true)
+    try {
+      await loadData()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function loadData() {
+    setMessage("")
+    try {
+      const [eventResult, campaignResult] = await Promise.all([
+        api<{ events: PublicEvent[] }>("/api/staff/qr/events"),
+        api<{ campaigns: StaffQrCampaign[] }>("/api/staff/qr/campaigns"),
+      ])
+      const upcoming = [...eventResult.events]
+        .filter(event => new Date(event.starts_at).getTime() > Date.now() - 36 * 60 * 60 * 1000)
+        .sort(
+          (left, right) =>
+            new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime(),
+        )
+      setEvents(upcoming)
+      setCampaigns(campaignResult.campaigns)
+      setSelectedCampaignId(current =>
+        campaignResult.campaigns.some(campaign => campaign.id === current)
+          ? current
+          : campaignResult.campaigns.find(campaign => campaign.active && campaign.token)?.id ?? null,
+      )
+      const nextEvent =
+        upcoming.find(event => event.slug === selectedEvent) ?? upcoming[0]
+      if (nextEvent && nextEvent.slug !== selectedEvent) selectEvent(nextEvent)
+    } catch (error) {
+      if ((error as ApiError).status === 401) {
+        setState("login")
+      } else {
+        setMessage("Nie udało się pobrać wydarzeń lub kampanii.")
+      }
+    }
+  }
+
+  function selectEvent(event: PublicEvent) {
+    setSelectedEvent(event.slug)
+    setLabel(`Koncert — ${event.title}`)
+    const starts = new Date(event.starts_at)
+    setValidFrom(toLocalInput(new Date(starts.getTime() - 60 * 60 * 1000)))
+    setValidUntil(toLocalInput(new Date(starts.getTime() + 5 * 60 * 60 * 1000)))
+  }
+
+  async function login(event: Event) {
+    event.preventDefault()
+    if (busy) return
+    setBusy(true)
+    setMessage("")
+    try {
+      await api("/api/staff/qr/login", {
+        method: "POST",
+        body: { password },
+      })
+      setPassword("")
+      setState("ready")
+      await loadData()
+    } catch (error) {
+      setMessage(
+        (error as ApiError).status === 429
+          ? "Za dużo prób. Spróbuj ponownie za kilkanaście minut."
+          : "Nieprawidłowe hasło.",
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function logout() {
+    if (busy) return
+    setBusy(true)
+    try {
+      await api("/api/staff/qr/logout", { method: "POST" })
+    } finally {
+      setCampaigns([])
+      setEvents([])
+      setSelectedCampaignId(null)
+      setState("login")
+      setBusy(false)
+    }
+  }
+
+  async function createCampaign(event: Event) {
+    event.preventDefault()
+    if (busy || !selectedEvent || !label || !validFrom || !validUntil) return
+    setBusy(true)
+    setMessage("")
+    try {
+      const campaign = await api<StaffQrCampaign>("/api/staff/qr/campaigns", {
+        method: "POST",
+        body: {
+          event_slug: selectedEvent,
+          label: label.trim(),
+          valid_from: new Date(validFrom).toISOString(),
+          valid_until: new Date(validUntil).toISOString(),
+          max_checkins: maxCheckins ? Number(maxCheckins) : null,
+        },
+      })
+      setCampaigns(current => [campaign, ...current])
+      setSelectedCampaignId(campaign.id)
+      setMessage("Kampania QR została utworzona.")
+    } catch (error) {
+      const status = (error as ApiError).status
+      setMessage(
+        status === 422
+          ? "Sprawdź termin. QR może działać od 24 h przed do 36 h po rozpoczęciu koncertu."
+          : "Nie udało się utworzyć kampanii QR.",
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function revoke(campaign: StaffQrCampaign) {
+    if (busy || !campaign.active) return
+    if (!confirm(`Wyłączyć QR „${campaign.label}”? Wydruk przestanie działać natychmiast.`)) return
+    setBusy(true)
+    setMessage("")
+    try {
+      await api(`/api/staff/qr/campaigns/${encodeURIComponent(campaign.id)}`, {
+        method: "POST",
+      })
+      await loadData()
+      setMessage("Kampania została wyłączona.")
+    } catch {
+      setMessage("Nie udało się wyłączyć kampanii.")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function downloadSvg() {
+    if (!qr || !activeCampaign) return
+    downloadBlob(
+      new Blob([qr.svg], { type: "image/svg+xml;charset=utf-8" }),
+      fileName(activeCampaign, "svg"),
+    )
+  }
+
+  function downloadPng() {
+    if (!qr || !activeCampaign) return
+    const canvas = document.createElement("canvas")
+    renderQrToCanvas(canvas, qr.matrix)
+    canvas.toBlob(blob => {
+      if (blob) downloadBlob(blob, fileName(activeCampaign, "png"))
+    }, "image/png")
+  }
+
+  async function copyLink() {
+    if (!checkinUrl) return
+    try {
+      await navigator.clipboard.writeText(checkinUrl)
+      setMessage("Link QR skopiowany.")
+    } catch {
+      setMessage("Nie udało się skopiować linku.")
+    }
+  }
+
+  function printCampaign() {
+    if (!qr || !activeCampaign) return
+    const popup = window.open("", "_blank")
+    if (!popup) {
+      setMessage("Przeglądarka zablokowała okno wydruku.")
+      return
+    }
+    popup.opener = null
+
+    const venue = activeCampaign.venue ??
+      (language === "pl" ? "Miejsce koncertu" : "Concert venue")
+    const printCopy =
+      language === "pl"
+        ? {
+            brand: "VIRYA // SYGNAŁ LIVE",
+            instruction: "Zeskanuj. Potwierdź obecność. Zwiększ szansę na album.",
+            note: "Jedno potwierdzenie na osobę i koncert. Kod działa wyłącznie w określonym czasie. Do udziału potrzebny jest aktywny Sygnał Virya.",
+            valid: "Aktywny",
+          }
+        : {
+            brand: "VIRYA // SIGNAL LIVE",
+            instruction: "Scan. Confirm attendance. Increase your album chance.",
+            note: "One confirmation per person and show. The code works only during the stated window. An active Virya Signal is required.",
+            valid: "Active",
+          }
+    const printLocale = language === "pl" ? "pl-PL" : "en-GB"
+
+    popup.document.open()
+    popup.document.write(`<!doctype html><html lang="${language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>QR — ${escapeHtml(activeCampaign.event_title)}</title><style>@page{size:A4;margin:14mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#09090b}.sheet{min-height:260mm;border:3px solid #09090b;padding:18mm;display:flex;flex-direction:column;align-items:center;text-align:center}.brand{font-size:12px;font-weight:900;letter-spacing:.28em}.title{margin:14mm 0 2mm;font-size:34px;line-height:.95;text-transform:uppercase}.venue{font-size:17px;font-weight:700}.qr{width:145mm;max-width:100%;margin:12mm auto 8mm}.qr svg{display:block;width:100%;height:auto}.instruction{font-size:22px;font-weight:900;text-transform:uppercase}.note{max-width:140mm;margin-top:4mm;font-size:13px;line-height:1.5}.valid{margin-top:auto;font-size:11px}</style></head><body><main class="sheet"><div class="brand">${escapeHtml(printCopy.brand)}</div><h1 class="title">${escapeHtml(activeCampaign.event_title)}</h1><div class="venue">${escapeHtml(venue)}</div><div class="qr">${qr.svg}</div><div class="instruction">${escapeHtml(printCopy.instruction)}</div><p class="note">${escapeHtml(printCopy.note)}</p><div class="valid">${escapeHtml(printCopy.valid)}: ${escapeHtml(formatDate(activeCampaign.valid_from, printLocale))} — ${escapeHtml(formatDate(activeCampaign.valid_until, printLocale))}</div></main></body></html>`)
+    popup.document.close()
+    window.setTimeout(() => {
+      popup.focus()
+      popup.print()
+    }, 250)
+  }
+
+  if (state === "checking") {
+    return <StatusPanel title="Sprawdzam dostęp…" />
+  }
+
+  if (state === "unconfigured") {
+    return (
+      <StatusPanel
+        title="Panel nie jest skonfigurowany"
+        body="Ustaw STAFF_QR_PASSWORD_SHA256, STAFF_QR_SESSION_SECRET i CROWDRELAY_ADMIN_API_KEY w Netlify."
+      />
+    )
+  }
+
+  if (state === "error") {
+    return <StatusPanel title="Panel chwilowo niedostępny" body="Odśwież stronę lub sprawdź logi funkcji Netlify." />
+  }
+
+  if (state === "login") {
+    return (
+      <form
+        onSubmit={login}
+        class="mx-auto max-w-md border border-zinc-800 bg-zinc-950 p-6 sm:p-8"
+      >
+        <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
+          VIRYA // STAFF
+        </p>
+        <h1 class="mt-4 text-3xl font-black uppercase leading-none text-white">
+          Generator QR
+        </h1>
+        <p class="mt-4 text-sm leading-relaxed text-zinc-400">
+          Dostęp tylko dla zespołu. Hasło nie jest zapisywane w przeglądarce.
+        </p>
+        <label class="mt-7 block text-[9px] font-black uppercase tracking-widest text-zinc-400">
+          Hasło
+          <input
+            ref={passwordRef}
+            type="password"
+            value={password}
+            onInput={event => setPassword(event.currentTarget.value)}
+            autocomplete="current-password"
+            required
+            maxlength={256}
+            class="mt-2 min-h-[48px] w-full border border-zinc-700 bg-black px-4 text-sm text-white outline-none focus:border-amber-400"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={busy || !password}
+          class="mt-5 inline-flex min-h-[48px] w-full items-center justify-center bg-amber-400 px-5 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300 disabled:opacity-50"
+        >
+          {busy ? "Logowanie…" : "Otwórz panel"}
+        </button>
+        {message && <p class="mt-4 text-xs text-red-300" role="alert">{message}</p>}
+      </form>
+    )
+  }
+
+  return (
+    <div class="grid gap-6">
+      <header class="flex flex-col gap-4 border-b border-zinc-800 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
+            VIRYA // STAFF
+          </p>
+          <h1 class="mt-3 text-3xl font-black uppercase leading-none text-white sm:text-4xl">
+            Koncertowe QR
+          </h1>
+          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
+            Twórz krótkotrwałe, odwoływalne kody przypisane do konkretnego koncertu. Token trafia wyłącznie do fragmentu URL i nie jest wysyłany w referrerze.
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" onClick={() => void refreshData()} disabled={busy} class={secondaryButton}>
+            Odśwież
+          </button>
+          <button type="button" onClick={() => void logout()} disabled={busy} class={secondaryButton}>
+            Wyloguj
+          </button>
+        </div>
+      </header>
+
+      {message && (
+        <p class="border-l-2 border-amber-400 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300" role="status">
+          {message}
+        </p>
+      )}
+
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+        <form onSubmit={createCampaign} class={panelClass}>
+          <p class={eyebrowClass}>Nowa kampania</p>
+          <h2 class="mt-2 text-xl font-black uppercase text-white">Wybierz koncert i czas</h2>
+
+          <label class={labelClass}>
+            Koncert
+            <select
+              value={selectedEvent}
+              onChange={event => {
+                const selected = events.find(item => item.slug === event.currentTarget.value)
+                if (selected) selectEvent(selected)
+              }}
+              required
+              class={inputClass}
+            >
+              <option value="">Wybierz wydarzenie</option>
+              {events.map(event => (
+                <option value={event.slug} key={event.id}>
+                  {formatDate(event.starts_at)} — {event.title}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label class={labelClass}>
+            Etykieta wewnętrzna
+            <input value={label} onInput={event => setLabel(event.currentTarget.value)} maxlength={160} required class={inputClass} />
+          </label>
+
+          <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <label class="text-[9px] font-black uppercase tracking-widest text-zinc-400">
+              Aktywny od
+              <input type="datetime-local" value={validFrom} onInput={event => setValidFrom(event.currentTarget.value)} required class={inputClass} />
+            </label>
+            <label class="text-[9px] font-black uppercase tracking-widest text-zinc-400">
+              Aktywny do
+              <input type="datetime-local" value={validUntil} onInput={event => setValidUntil(event.currentTarget.value)} required class={inputClass} />
+            </label>
+          </div>
+
+          <label class={labelClass}>
+            Limit check-inów (opcjonalnie)
+            <input type="number" min="1" max="1000000" inputmode="numeric" value={maxCheckins} onInput={event => setMaxCheckins(event.currentTarget.value)} placeholder="Bez limitu" class={inputClass} />
+          </label>
+
+          <button type="submit" disabled={busy || !selectedEvent} class="mt-6 inline-flex min-h-[48px] w-full items-center justify-center bg-amber-400 px-5 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300 disabled:opacity-50">
+            {busy ? "Zapisywanie…" : "Utwórz bezpieczny QR"}
+          </button>
+        </form>
+
+        <section class={panelClass}>
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class={eyebrowClass}>Podgląd / druk</p>
+              <h2 class="mt-2 text-xl font-black uppercase text-white">
+                {activeCampaign?.event_title ?? "Wybierz kampanię"}
+              </h2>
+            </div>
+            <select
+              value={selectedCampaignId ?? ""}
+              onChange={event => setSelectedCampaignId(event.currentTarget.value || null)}
+              class="min-h-[44px] max-w-full border border-zinc-700 bg-black px-3 text-xs text-white"
+            >
+              <option value="">Wybierz kampanię</option>
+              {campaigns.map(campaign => (
+                <option value={campaign.id} key={campaign.id}>
+                  {campaign.active ? "●" : "○"} {campaign.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {activeCampaign && qr && checkinUrl ? (
+            <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] lg:items-start">
+              <button
+                type="button"
+                onClick={() => setFullscreen(true)}
+                class="block w-full border border-zinc-700 bg-white p-4 hover:border-amber-400"
+                aria-label="Otwórz QR na pełnym ekranie"
+                dangerouslySetInnerHTML={{ __html: qr.svg }}
+              />
+              <div class="min-w-0">
+                <dl class="grid gap-4 text-xs sm:grid-cols-2 lg:grid-cols-1">
+                  <Info label="Stan" value={activeCampaign.active ? "Aktywny" : "Wyłączony"} />
+                  <Info label="Check-iny" value={`${activeCampaign.checkin_count}${activeCampaign.max_checkins ? ` / ${activeCampaign.max_checkins}` : ""}`} />
+                  <Info label="Od" value={formatDate(activeCampaign.valid_from)} />
+                  <Info label="Do" value={formatDate(activeCampaign.valid_until)} />
+                  <Info label="QR" value={`wersja ${qr.version}-M · ${qr.byteLength} B`} />
+                </dl>
+                <label class="mt-5 block text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                  Język strony po skanie
+                  <select value={language} onChange={event => setLanguage(event.currentTarget.value as Language)} class={inputClass}>
+                    <option value="pl">Polski</option>
+                    <option value="en">English</option>
+                  </select>
+                </label>
+                <div class="mt-5 grid gap-2 sm:grid-cols-2">
+                  <button type="button" onClick={printCampaign} class={primaryButton}>Drukuj A4</button>
+                  <button type="button" onClick={downloadSvg} class={secondaryButton}>Pobierz SVG</button>
+                  <button type="button" onClick={downloadPng} class={secondaryButton}>Pobierz PNG</button>
+                  <button type="button" onClick={() => void copyLink()} class={secondaryButton}>Kopiuj link</button>
+                  {activeCampaign.active && (
+                    <button type="button" onClick={() => void revoke(activeCampaign)} disabled={busy} class="inline-flex min-h-[44px] items-center justify-center border border-red-400/40 px-4 text-[8px] font-black uppercase tracking-widest text-red-300 hover:bg-red-400/10 sm:col-span-2">
+                      Wyłącz ten QR
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p class="mt-6 border border-dashed border-zinc-700 p-8 text-center text-xs leading-relaxed text-zinc-500">
+              Utwórz kampanię albo wybierz aktywną pozycję z listy.
+            </p>
+          )}
+        </section>
+      </div>
+
+      <section class={panelClass}>
+        <p class={eyebrowClass}>Historia</p>
+        <h2 class="mt-2 text-xl font-black uppercase text-white">Kampanie koncertowe</h2>
+        {campaigns.length === 0 ? (
+          <p class="mt-5 text-xs text-zinc-500">Brak kampanii.</p>
+        ) : (
+          <div class="mt-5 overflow-x-auto">
+            <table class="w-full min-w-[760px] border-collapse text-left text-xs">
+              <thead class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
+                <tr class="border-b border-zinc-800">
+                  <th class="p-3">Kampania</th><th class="p-3">Koncert</th><th class="p-3">Aktywność</th><th class="p-3">Check-iny</th><th class="p-3">Stan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {campaigns.map(campaign => (
+                  <tr key={campaign.id} class="border-b border-zinc-900 hover:bg-zinc-900/40">
+                    <td class="p-3 font-bold text-white"><button type="button" onClick={() => setSelectedCampaignId(campaign.id)} class="text-left hover:text-amber-400">{campaign.label}</button></td>
+                    <td class="p-3 text-zinc-300">{campaign.event_title}</td>
+                    <td class="p-3 text-zinc-400">{formatDate(campaign.valid_from)}<br />{formatDate(campaign.valid_until)}</td>
+                    <td class="p-3 font-mono text-amber-400">{campaign.checkin_count}{campaign.max_checkins ? ` / ${campaign.max_checkins}` : ""}</td>
+                    <td class="p-3"><span class={campaign.active ? "text-emerald-300" : "text-zinc-500"}>{campaign.active ? "Aktywny" : "Wyłączony"}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {fullscreen && qr && activeCampaign && (
+        <div class="fixed inset-0 z-[10000] flex flex-col bg-white p-4 text-black sm:p-8" role="dialog" aria-modal="true" aria-label="Kod QR na pełnym ekranie">
+          <div class="flex items-center justify-between gap-4">
+            <div><p class="text-xs font-black uppercase tracking-[.25em]">VIRYA // LIVE</p><h2 class="mt-1 text-xl font-black uppercase">{activeCampaign.event_title}</h2></div>
+            <button type="button" onClick={() => setFullscreen(false)} class="min-h-[44px] border border-black px-4 text-xs font-black uppercase">Zamknij</button>
+          </div>
+          <div class="mx-auto flex min-h-0 w-full max-w-[82vh] flex-1 items-center justify-center" dangerouslySetInnerHTML={{ __html: qr.svg }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return <div><dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">{label}</dt><dd class="mt-1 font-semibold text-zinc-200">{value}</dd></div>
+}
+
+function StatusPanel({ title, body }: { title: string; body?: string }) {
+  return <div class="border border-zinc-800 bg-zinc-950 p-6 sm:p-8"><p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">VIRYA // STAFF</p><h1 class="mt-4 text-2xl font-black uppercase text-white">{title}</h1>{body && <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400">{body}</p>}</div>
+}
+
+const panelClass = "border border-zinc-800 bg-zinc-950 p-5 sm:p-6"
+const eyebrowClass = "text-[9px] font-black uppercase tracking-[.28em] text-amber-400"
+const labelClass = "mt-5 block text-[9px] font-black uppercase tracking-widest text-zinc-400"
+const inputClass = "mt-2 min-h-[46px] w-full border border-zinc-700 bg-black px-3 text-sm text-white outline-none focus:border-amber-400"
+const primaryButton = "inline-flex min-h-[44px] items-center justify-center bg-amber-400 px-4 text-[8px] font-black uppercase tracking-widest text-black hover:bg-amber-300"
+const secondaryButton = "inline-flex min-h-[44px] items-center justify-center border border-zinc-700 px-4 text-[8px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400 disabled:opacity-50"
+
+function toLocalInput(value: Date) {
+  const adjusted = new Date(value.getTime() - value.getTimezoneOffset() * 60_000)
+  return adjusted.toISOString().slice(0, 16)
+}
+
+function formatDate(value: string, locale = "pl-PL") {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat(locale, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(date)
+}
+
+function fileName(campaign: StaffQrCampaign, extension: "svg" | "png") {
+  const slug = campaign.event_slug.replace(/[^a-z0-9_-]+/gi, "-").slice(0, 80)
+  return `virya-qr-${slug}.${extension}`
+}
+
+function downloadBlob(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement("a")
+  anchor.href = url
+  anchor.download = name
+  anchor.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character] ?? character)
+}

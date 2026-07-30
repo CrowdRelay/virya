@@ -71,6 +71,14 @@ export interface EventInterestResult {
   reminder_count: number
 }
 
+export interface ConcertCheckinResult {
+  event_id: string
+  event_slug: string
+  campaign_id: string
+  created: boolean
+  checked_in_at: string
+}
+
 export interface FanEventInterest {
   event: PublicEvent
   interested_at: string
@@ -98,6 +106,8 @@ export interface WeightedDrawEntry {
   qualified_referrals: number
   base_entries: number
   referral_entries: number
+  concert_checkins: number
+  checkin_entries: number
   total_entries: number
   max_entries: number
 }
@@ -253,6 +263,19 @@ export class CrowdRelayClient {
       method: "POST",
       body: input,
       idempotencyKey,
+    })
+  }
+
+  checkInToEvent(
+    slug: string,
+    token: string,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<ConcertCheckinResult> {
+    return this.#request(`events/${encodeURIComponent(slug)}/check-in`, {
+      method: "POST",
+      body: { token },
+      idempotencyKey,
+      timeoutMs: 5_000,
     })
   }
 

@@ -1,7 +1,13 @@
 import { useEffect, useState } from "preact/hooks"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
-import { crowdrelay, readFragmentToken } from "../../../lib/crowdrelay"
+import { CrowdRelayError } from "../../../lib/crowdrelay-client"
+import {
+  clearPendingConcertCheckin,
+  crowdrelay,
+  getPendingConcertCheckin,
+  readFragmentToken,
+} from "../../../lib/crowdrelay"
 
 interface Props {
   lang: Lang
@@ -32,12 +38,50 @@ export default function SignalTokenAction({ lang, action }: Props) {
         : crowdrelay.unsubscribeFan(token)
 
     void request
-      .then(() => {
+      .then(async () => {
         if (cancelled) return
         setState("success")
         setMessage(
           action === "confirm" ? copy.confirmSuccess : copy.unsubscribeSuccess,
         )
+
+        if (action !== "confirm") return
+        const pending = getPendingConcertCheckin()
+        if (!pending) return
+        try {
+          const result = await crowdrelay.checkInToEvent(
+            pending.slug,
+            pending.token,
+          )
+          if (cancelled) return
+          clearPendingConcertCheckin()
+          setMessage(
+            `${copy.confirmSuccess} ${
+              result.created
+                ? SIGNAL_COPY[lang].event.checkinSuccess
+                : SIGNAL_COPY[lang].event.checkinAlready
+            }`,
+          )
+        } catch (error) {
+          if (cancelled) return
+          if (error instanceof CrowdRelayError && error.status === 404) {
+            clearPendingConcertCheckin()
+            setMessage(
+              `${copy.confirmSuccess} ${SIGNAL_COPY[lang].event.checkinExpired}`,
+            )
+            return
+          }
+          if (error instanceof CrowdRelayError && error.status === 409) {
+            clearPendingConcertCheckin()
+            setMessage(
+              `${copy.confirmSuccess} ${SIGNAL_COPY[lang].event.checkinFull}`,
+            )
+            return
+          }
+          setMessage(
+            `${copy.confirmSuccess} ${SIGNAL_COPY[lang].event.checkinError}`,
+          )
+        }
       })
       .catch(() => {
         if (cancelled) return
