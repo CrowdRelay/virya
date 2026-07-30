@@ -99,6 +99,7 @@ export interface SignalCopy {
     noDraws: string
     drawEntries: (count: number) => string
     drawReferrals: (count: number) => string
+    drawCheckins: (count: number) => string
     drawCloses: string
     drawAt: string
     rewards: string
@@ -133,6 +134,15 @@ export interface SignalCopy {
     interestWorking: string
     interestSaved: string
     interestLogin: string
+    checkinWorking: string
+    checkinSuccess: string
+    checkinAlready: string
+    checkinLogin: string
+    checkinExpired: string
+    checkinFull: string
+    checkinError: string
+    checkinBonus: string
+    checkinJoin: string
     share: string
     shared: string
     tickets: string
@@ -206,7 +216,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         {
           number: "04",
           title: "Return live",
-          body: "Follow shows, save dates and enter separate limited pools for guest-list spots or physical albums.",
+          body: "Follow shows, save dates and scan a venue QR. Event-specific guest-list draws stay separate, while each concert check-in strengthens one global draw for three physical albums.",
           href: "#signal-shows",
           cta: "See shows",
         },
@@ -254,7 +264,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       eyebrow: "Live layer",
       heading: "Follow the next transmissions",
       body:
-        "Open a show page, save the date and register interest. Selected events can carry separate, limited pools for guest-list spots and physical Virya albums, redeemed with event QR codes.",
+        "Open a show page, save the date and register interest. Selected events can have separate guest-list draws; a valid venue QR confirms attendance and adds an entry to one global draw for three physical Virya albums.",
       loading: "Loading shows…",
       unavailable: "Shows are temporarily unavailable.",
       empty: "New shows will appear here.",
@@ -300,6 +310,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       noDraws: "There are no active draws right now. Your referrals remain counted for future actions.",
       drawEntries: count => `${count} ${count === 1 ? "entry" : "entries"}`,
       drawReferrals: count => `${count} confirmed ${count === 1 ? "referral" : "referrals"}`,
+      drawCheckins: count => `${count} concert ${count === 1 ? "check-in" : "check-ins"}`,
       drawCloses: "Entries close",
       drawAt: "Draw",
       rewards: "Rewards",
@@ -339,6 +350,15 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       interestWorking: "Saving…",
       interestSaved: "Saved. We will keep this show in your Signal.",
       interestLogin: "Activate or confirm Signal first to follow shows.",
+      checkinWorking: "Confirming your concert check-in…",
+      checkinSuccess: "Presence confirmed. This concert now counts towards the global three-album draw.",
+      checkinAlready: "Your presence at this concert was already confirmed.",
+      checkinLogin: "Activate or confirm Virya Signal to finish this concert check-in.",
+      checkinExpired: "This concert QR is inactive, expired or has been revoked.",
+      checkinFull: "This limited QR campaign has reached its check-in limit.",
+      checkinError: "We could not confirm the check-in. Keep this page open and try again.",
+      checkinBonus: "Concert check-in",
+      checkinJoin: "Activate Signal",
       share: "Share",
       shared: "Shared",
       tickets: "Tickets",
@@ -429,7 +449,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         {
           number: "04",
           title: "Skanuj QR na koncertach",
-          body: "Na wybranych koncertach zeskanuj QR i wejdź do osobnej puli wejściówek albo 2–3 fizycznych albumów.",
+          body: "Na koncercie zeskanuj QR i potwierdź obecność. Wejściówki mają osobne pule wydarzeń, a każdy check-in zwiększa szansę w jednej globalnej puli trzech płyt.",
           href: "#signal-shows",
           cta: "Zobacz koncerty",
         },
@@ -477,7 +497,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       eyebrow: "Koncerty i pule nagród",
       heading: "Patrz, gdzie niedługo gramy",
       body:
-        "Wybierz koncert, sprawdź miejsce i zapisz datę. Przy wybranych wydarzeniach uruchomimy osobne pule wejściówek i albumów; wejście do puli dostaniesz przez QR na miejscu.",
+        "Wybierz koncert, sprawdź miejsce i zapisz datę. Wybrane wydarzenia mogą mieć osobne pule wejściówek, a koncertowy QR potwierdza obecność i dodaje los do jednej globalnej puli trzech płyt.",
       loading: "Ładuję koncerty…",
       unavailable: "Koncerty są chwilowo niedostępne.",
       empty: "Nowe koncerty pojawią się tutaj.",
@@ -523,6 +543,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       noDraws: "Teraz nie trwa żadne losowanie. Twoje potwierdzone polecenia nadal liczą się do kolejnych akcji.",
       drawEntries: count => `${count} ${count === 1 ? "los" : count < 5 ? "losy" : "losów"}`,
       drawReferrals: count => `${count} ${count === 1 ? "potwierdzone polecenie" : count < 5 ? "potwierdzone polecenia" : "potwierdzonych poleceń"}`,
+      drawCheckins: count => `${count} ${count === 1 ? "check-in koncertowy" : count < 5 ? "check-iny koncertowe" : "check-inów koncertowych"}`,
       drawCloses: "Koniec zbierania losów",
       drawAt: "Losowanie",
       rewards: "Nagrody",
@@ -562,6 +583,15 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       interestWorking: "Zapisuję…",
       interestSaved: "Zapisano. Ten koncert jest teraz na liście Sygnału Virya.",
       interestLogin: "Najpierw dołącz do Sygnału i potwierdź e-mail, aby obserwować koncerty.",
+      checkinWorking: "Potwierdzam obecność na koncercie…",
+      checkinSuccess: "Obecność potwierdzona. Ten koncert zwiększa teraz Twoją szansę w jednej globalnej puli trzech płyt.",
+      checkinAlready: "Twoja obecność na tym koncercie była już potwierdzona.",
+      checkinLogin: "Dołącz do Sygnału Virya albo potwierdź e-mail, aby dokończyć check-in.",
+      checkinExpired: "Ten koncertowy QR jest nieaktywny, wygasł albo został wyłączony.",
+      checkinFull: "Ta limitowana kampania QR osiągnęła maksymalną liczbę check-inów.",
+      checkinError: "Nie udało się potwierdzić obecności. Zostaw tę stronę otwartą i spróbuj ponownie.",
+      checkinBonus: "Check-in koncertowy",
+      checkinJoin: "Dołącz do Sygnału",
       share: "Udostępnij",
       shared: "Udostępniono",
       tickets: "Bilety",

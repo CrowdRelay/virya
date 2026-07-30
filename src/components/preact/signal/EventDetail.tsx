@@ -6,7 +6,10 @@ import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import {
   bestEffort,
   campaignIdFromLocation,
+  captureConcertCheckinFromLocation,
+  clearPendingConcertCheckin,
   crowdrelay,
+  getPendingConcertCheckin,
 } from "../../../lib/crowdrelay"
 
 interface Props {
@@ -15,6 +18,15 @@ interface Props {
 }
 
 type InterestState = "idle" | "saving" | "saved" | "login" | "error"
+type CheckinState =
+  | "none"
+  | "working"
+  | "success"
+  | "duplicate"
+  | "login"
+  | "expired"
+  | "full"
+  | "error"
 
 export default function EventDetail({ lang, slug }: Props) {
   const copy = SIGNAL_COPY[lang].event
@@ -22,6 +34,7 @@ export default function EventDetail({ lang, slug }: Props) {
   const [event, setEvent] = useState<PublicEvent | null>(null)
   const [unavailable, setUnavailable] = useState(false)
   const [interestState, setInterestState] = useState<InterestState>("idle")
+  const [checkinState, setCheckinState] = useState<CheckinState>("none")
   const [shareLabel, setShareLabel] = useState(copy.share)
 
   useEffect(() => {
@@ -49,6 +62,64 @@ export default function EventDetail({ lang, slug }: Props) {
     }
   }, [slug])
 
+  useEffect(() => {
+    const pending = captureConcertCheckinFromLocation(slug)
+    if (!pending) return
+    let cancelled = false
+    setCheckinState("working")
+
+    void crowdrelay
+      .checkInToEvent(slug, pending.token)
+      .then(result => {
+        if (cancelled) return
+        clearPendingConcertCheckin()
+        setCheckinState(result.created ? "success" : "duplicate")
+        setInterestState("saved")
+      })
+      .catch(error => {
+        if (cancelled) return
+        if (error instanceof CrowdRelayError && error.status === 401) {
+          setCheckinState("login")
+        } else if (error instanceof CrowdRelayError && error.status === 404) {
+          clearPendingConcertCheckin()
+          setCheckinState("expired")
+        } else if (error instanceof CrowdRelayError && error.status === 409) {
+          clearPendingConcertCheckin()
+          setCheckinState("full")
+        } else {
+          setCheckinState("error")
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [slug])
+
+  async function retryCheckin() {
+    const pending = getPendingConcertCheckin(slug)
+    if (!pending || checkinState === "working") return
+    setCheckinState("working")
+    try {
+      const result = await crowdrelay.checkInToEvent(slug, pending.token)
+      clearPendingConcertCheckin()
+      setCheckinState(result.created ? "success" : "duplicate")
+      setInterestState("saved")
+    } catch (error) {
+      if (error instanceof CrowdRelayError && error.status === 401) {
+        setCheckinState("login")
+      } else if (error instanceof CrowdRelayError && error.status === 404) {
+        clearPendingConcertCheckin()
+        setCheckinState("expired")
+      } else if (error instanceof CrowdRelayError && error.status === 409) {
+        clearPendingConcertCheckin()
+        setCheckinState("full")
+      } else {
+        setCheckinState("error")
+      }
+    }
+  }
+
   async function registerInterest() {
     if (interestState === "saving" || interestState === "saved") return
     setInterestState("saving")
@@ -71,7 +142,7 @@ export default function EventDetail({ lang, slug }: Props) {
 
   async function shareEvent() {
     if (!event) return
-    const url = location.href
+    const url = `${location.origin}${location.pathname}${location.search}`
     try {
       if (navigator.share) {
         await navigator.share({ title: event.title, url })
@@ -127,9 +198,17 @@ export default function EventDetail({ lang, slug }: Props) {
             {event.title}
           </h1>
           {event.description && (
-            <p class="mt-7 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify lg:text-base">
+            <p class="mt-7 max-w-3xl text-justify text-sm leading-relaxed text-zinc-300 mobile-justify lg:text-base">
               {event.description}
             </p>
+          )}
+
+          {checkinState !== "none" && (
+            <CheckinPanel
+              lang={lang}
+              state={checkinState}
+              onRetry={() => void retryCheckin()}
+            />
           )}
 
           <div class="mt-8 flex flex-wrap gap-3">
@@ -177,7 +256,10 @@ export default function EventDetail({ lang, slug }: Props) {
           </div>
 
           {(interestState === "login" || interestState === "error") && (
-            <div class="mt-5 border-l-2 border-amber-400 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300" role="status">
+            <div
+              class="mt-5 border-l-2 border-amber-400 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300"
+              role="status"
+            >
               {interestState === "login"
                 ? copy.interestLogin
                 : SIGNAL_COPY[lang].form.saveError}
@@ -236,17 +318,97 @@ export default function EventDetail({ lang, slug }: Props) {
   )
 }
 
+function CheckinPanel({
+  lang,
+  state,
+  onRetry,
+}: {
+  lang: Lang
+  state: Exclude<CheckinState, "none">
+  onRetry: () => void
+}) {
+  const copy = SIGNAL_COPY[lang].event
+  const success = state === "success" || state === "duplicate"
+  const body =
+    state === "working"
+      ? copy.checkinWorking
+      : state === "success"
+        ? copy.checkinSuccess
+        : state === "duplicate"
+          ? copy.checkinAlready
+          : state === "login"
+            ? copy.checkinLogin
+            : state === "expired"
+              ? copy.checkinExpired
+              : state === "full"
+                ? copy.checkinFull
+                : copy.checkinError
+
+  return (
+    <section
+      class={`mt-7 border p-4 sm:p-5 ${
+        success
+          ? "border-emerald-400/35 bg-emerald-400/[.035]"
+          : "border-amber-400/35 bg-amber-400/[.035]"
+      }`}
+      aria-live="polite"
+      aria-busy={state === "working"}
+    >
+      <div class="flex items-start gap-3">
+        <span
+          class={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
+            state === "working"
+              ? "animate-pulse bg-amber-400"
+              : success
+                ? "bg-emerald-400"
+                : "bg-zinc-500"
+          }`}
+          aria-hidden="true"
+        />
+        <div>
+          <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">
+            {copy.checkinBonus}
+          </p>
+          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-200">
+            {body}
+          </p>
+          {state === "login" && (
+            <a
+              href={pagePath(lang, "/signal/#join-signal")}
+              class="mt-4 inline-flex min-h-[44px] items-center bg-amber-400 px-4 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300"
+            >
+              {copy.checkinJoin}
+            </a>
+          )}
+          {state === "error" && (
+            <button
+              type="button"
+              onClick={onRetry}
+              class="mt-4 inline-flex min-h-[44px] items-center border border-amber-400/50 px-4 text-[9px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-400 hover:text-black"
+            >
+              {lang === "pl" ? "Spróbuj ponownie" : "Try again"}
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function pagePath(lang: Lang, path: string): string {
   return lang === "pl" ? `/pl${path}` : path
 }
 
 function formatDate(value: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value))
+  const date = new Date(value)
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat(locale, {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date)
 }

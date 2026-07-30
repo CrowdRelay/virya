@@ -9,7 +9,7 @@ const SECURITY_HEADERS = {
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
   "Cross-Origin-Opener-Policy": "same-origin",
   "Content-Security-Policy":
-    "default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: https:; media-src 'self'; font-src 'self' data: https:; script-src 'self' 'unsafe-inline' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://rest.bandsintown.com; frame-src https://open.spotify.com https://js.stripe.com https://www.youtube-nocookie.com; form-action 'self'; frame-ancestors 'self'",
+    "default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: https:; media-src 'self'; font-src 'self' data: https:; script-src 'self' 'unsafe-inline' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://rest.bandsintown.com https://signal-api.virya.music; frame-src https://open.spotify.com https://js.stripe.com https://www.youtube-nocookie.com; form-action 'self'; frame-ancestors 'self'",
 } as const
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -26,10 +26,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // explicit public caching (the Bandsintown proxy) and avoid disabling CDN
   // caching on public SSR show pages.
   if (
-    context.url.pathname.startsWith("/api/") &&
+    (context.url.pathname.startsWith("/api/") ||
+      context.url.pathname.startsWith("/staff")) &&
     !headers.has("Cache-Control")
   ) {
     headers.set("Cache-Control", "no-store")
+  }
+
+  if (context.url.pathname.startsWith("/staff")) {
+    headers.set("X-Robots-Tag", "noindex, nofollow, noarchive")
   }
 
   // Cloning also covers redirects, whose native Response headers are immutable.

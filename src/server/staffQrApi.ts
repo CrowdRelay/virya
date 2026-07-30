@@ -1,0 +1,156 @@
+const DEFAULT_BASE_URL = "https://signal-api.virya.music/v1/"
+const MAX_UPSTREAM_BYTES = 256 * 1024
+
+export type StaffQrCampaign = {
+  id: string
+  event_id: string
+  event_slug: string
+  event_title: string
+  venue: string | null
+  starts_at: string
+  label: string
+  valid_from: string
+  valid_until: string
+  max_checkins: number | null
+  checkin_count: number
+  active: boolean
+  revoked_at: string | null
+  created_at: string
+  token: string | null
+}
+
+const baseUrl = () => {
+  const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL
+  const value =
+    typeof configured === "string" && configured.trim()
+      ? configured.trim()
+      : DEFAULT_BASE_URL
+  const url = new URL(value)
+  if (!/^https?:$/.test(url.protocol) || url.username || url.password) {
+    throw new Error("Invalid CrowdRelay base URL")
+  }
+  url.hash = ""
+  url.search = ""
+  url.pathname = `${url.pathname.replace(/\/+$/, "")}/`
+  return url
+}
+
+const adminKey = () => {
+  const value = import.meta.env.CROWDRELAY_ADMIN_API_KEY
+  return typeof value === "string" && value.length >= 24 && value.length <= 512
+    ? value
+    : null
+}
+
+export const isStaffQrApiConfigured = () => adminKey() !== null
+
+export class StaffQrUpstreamError extends Error {
+  readonly status: number
+
+  constructor(status: number) {
+    super(`CrowdRelay returned ${status}`)
+    this.name = "StaffQrUpstreamError"
+    this.status = status
+  }
+}
+
+const readLimitedJson = async <T>(response: Response): Promise<T> => {
+  const declaredLength = Number(response.headers.get("content-length") ?? "0")
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_UPSTREAM_BYTES) {
+    throw new StaffQrUpstreamError(502)
+  }
+
+  if (!response.body) {
+    throw new StaffQrUpstreamError(502)
+  }
+
+  const reader = response.body.getReader()
+  const chunks: Uint8Array[] = []
+  let totalBytes = 0
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      totalBytes += value.byteLength
+      if (totalBytes > MAX_UPSTREAM_BYTES) {
+        await reader.cancel("CrowdRelay response too large")
+        throw new StaffQrUpstreamError(502)
+      }
+      chunks.push(value)
+    }
+  } finally {
+    reader.releaseLock()
+  }
+
+  const merged = new Uint8Array(totalBytes)
+  let offset = 0
+  for (const chunk of chunks) {
+    merged.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+
+  try {
+    return JSON.parse(new TextDecoder().decode(merged)) as T
+  } catch {
+    throw new StaffQrUpstreamError(502)
+  }
+}
+
+export const staffQrRequest = async <T>(
+  path: string,
+  options: { method?: "GET" | "POST"; body?: unknown; timeoutMs?: number } = {},
+): Promise<T> => {
+  const key = adminKey()
+  if (!key) throw new StaffQrUpstreamError(503)
+
+  const controller = new AbortController()
+  const timeout = setTimeout(
+    () => controller.abort(),
+    options.timeoutMs ?? 7_000,
+  )
+
+  try {
+    const headers = new Headers({
+      Accept: "application/json",
+      Authorization: `Bearer ${key}`,
+    })
+    if (options.body !== undefined) headers.set("Content-Type", "application/json")
+
+    const response = await fetch(new URL(path.replace(/^\/+/, ""), baseUrl()), {
+      method: options.method ?? "GET",
+      headers,
+      body:
+        options.body === undefined ? undefined : JSON.stringify(options.body),
+      cache: "no-store",
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new StaffQrUpstreamError(response.status)
+    if (response.status === 204) return undefined as T
+
+    return await readLimitedJson<T>(response)
+  } catch (error) {
+    if (error instanceof StaffQrUpstreamError) throw error
+    throw new StaffQrUpstreamError(502)
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export const publicCrowdRelayRequest = async <T>(path: string): Promise<T> => {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 5_000)
+  try {
+    const response = await fetch(new URL(path.replace(/^\/+/, ""), baseUrl()), {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new StaffQrUpstreamError(response.status)
+    return await readLimitedJson<T>(response)
+  } catch (error) {
+    if (error instanceof StaffQrUpstreamError) throw error
+    throw new StaffQrUpstreamError(502)
+  } finally {
+    clearTimeout(timeout)
+  }
+}
