@@ -12,33 +12,33 @@ const copy = AREA_COPY[lang].teaser
 const signalCopy = SIGNAL_COPY[lang]
 ---
 
-<div class="relative overflow-hidden border-t border-zinc-800/60 py-16 lg:px-8">
+<div class="virya-section relative overflow-hidden border-t border-zinc-800/60">
   <div
     class="pointer-events-none absolute inset-0 opacity-40"
     style="background-image:linear-gradient(rgba(251,191,36,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(251,191,36,.08) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to right,black,transparent 80%);"
     aria-hidden="true"
   ></div>
-  <div class="relative mx-4 grid items-center gap-8 lg:grid-cols-[1fr_320px]">
+  <div class="virya-section__inner relative grid items-center gap-8 lg:grid-cols-[1fr_320px]">
     <div>
-      <p class="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-amber-400">
+      <p class="virya-eyebrow mb-3">
         {copy.eyebrow}
       </p>
-      <h2 class="max-w-3xl text-3xl font-black uppercase leading-tight tracking-tight text-white lg:text-5xl">
+      <h2 class="virya-heading max-w-3xl">
         {copy.heading}
       </h2>
-      <p class="mt-5 max-w-2xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify">
+      <p class="virya-copy mt-5 max-w-2xl text-zinc-300">
         {copy.body}
       </p>
       <div class="mt-7 flex flex-col gap-3 sm:flex-row">
         <a
           href={lp(lang, "/area/")}
-          class="inline-flex min-h-[44px] items-center justify-center border border-amber-400 bg-amber-400 px-6 py-3 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300"
+          class="virya-button virya-button--primary min-h-[44px] px-6"
         >
           {copy.cta}
         </a>
         <a
           href={lp(lang, "/signal/")}
-          class="inline-flex min-h-[44px] items-center justify-center border border-zinc-700 px-6 py-3 text-xs font-black uppercase tracking-widest text-zinc-200 transition-colors hover:border-amber-400 hover:text-amber-400"
+          class="virya-button virya-button--secondary min-h-[44px] px-6"
         >
           {signalCopy.teaser.primary}
         </a>

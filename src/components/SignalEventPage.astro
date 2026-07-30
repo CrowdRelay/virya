@@ -27,8 +27,8 @@ const copy = SIGNAL_COPY[lang]
   <div class="flex min-h-screen flex-col bg-zinc-950">
     <Navbar lang={lang} displayLinks={true} activePage="signal" />
     <ScrollToTop />
-    <main id="main-content" class="flex-1 px-4 pb-20 pt-32 sm:px-6 lg:px-12">
-      <div class="mx-auto max-w-7xl">
+    <main id="main-content" class="virya-section flex-1 pb-20 pt-32">
+      <div class="virya-section__inner">
         <EventDetail client:load lang={lang} slug={slug} />
       </div>
     </main>

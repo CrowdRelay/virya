@@ -118,19 +118,19 @@ const schema = {
               {copy.hero.body}
             </p>
             <div class="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <a href="#join-signal" class="inline-flex min-h-[50px] items-center justify-center bg-amber-400 px-6 text-[10px] font-black uppercase tracking-widest text-black hover:bg-amber-300">
+              <a href="#join-signal" class="virya-button virya-button--primary min-h-[50px] px-6">
                 {copy.hero.primary} <span class="ml-3" aria-hidden="true">→</span>
               </a>
-              <a href={lp(lang, "/area/")} class="inline-flex min-h-[50px] items-center justify-center border border-amber-400/55 px-6 text-[10px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-400 hover:text-black">
+              <a href={lp(lang, "/area/")} class="virya-button virya-button--accent-outline min-h-[50px] px-6">
                 {copy.hero.secondary}
               </a>
-              <a href={lp(lang, "/my-signal/")} class="inline-flex min-h-[50px] items-center justify-center border border-zinc-700 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400">
+              <a href={lp(lang, "/my-signal/")} class="virya-button virya-button--secondary min-h-[50px] px-6">
                 {copy.hero.account}
               </a>
             </div>
           </div>
 
-          <aside class="relative overflow-hidden border border-amber-400/40 bg-zinc-950/90 p-5 shadow-2xl sm:p-7">
+          <aside class="virya-panel relative overflow-hidden border-amber-400/40 p-5 shadow-2xl sm:p-7">
             <div class="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
             <div class="relative flex items-center justify-between">
               <p class="font-mono text-[9px] font-black uppercase tracking-[.25em] text-amber-400">{lang === "pl" ? "SYGNAŁ // AKTYWNY" : "SIGNAL // ACTIVE"}</p>
@@ -156,16 +156,16 @@ const schema = {
         </div>
       </header>
 
-      <section aria-labelledby="signal-simple-heading" class="border-b border-zinc-800/60 bg-black/30 px-4 py-14 sm:px-6 lg:px-12 lg:py-20">
-        <div class="mx-auto max-w-7xl">
+      <section aria-labelledby="signal-simple-heading" class="virya-section border-b border-zinc-800/60 bg-black/30">
+        <div class="virya-section__inner">
           <div class="max-w-3xl">
-            <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{lang === "pl" ? "Najprościej" : "In plain terms"}</p>
-            <h2 id="signal-simple-heading" class="mt-4 text-[clamp(2rem,7vw,4rem)] font-black uppercase leading-[.94] tracking-[-.04em] text-white">{clarityHeading}</h2>
-            <p class="mt-5 text-sm leading-relaxed text-zinc-300 text-justify mobile-justify lg:text-base">{clarityBody}</p>
+            <p class="virya-eyebrow">{lang === "pl" ? "Najprościej" : "In plain terms"}</p>
+            <h2 id="signal-simple-heading" class="virya-heading mt-4 !text-[clamp(2rem,7vw,4rem)]">{clarityHeading}</h2>
+            <p class="virya-copy mt-5 text-zinc-300">{clarityBody}</p>
           </div>
           <div class="mt-9 grid gap-4 md:grid-cols-3">
             {clarityCards.map((card, index) => (
-              <article class="flex min-h-full flex-col border border-zinc-800 bg-zinc-950 p-5 sm:p-6">
+              <article class="virya-panel flex min-h-full flex-col p-5 sm:p-6">
                 <div class="flex items-center justify-between gap-4">
                   <span class="font-mono text-[9px] font-black text-amber-400">0{index + 1}</span>
                   <span class="text-[8px] font-black uppercase tracking-[.22em] text-zinc-500">{card.label}</span>
@@ -179,12 +179,12 @@ const schema = {
         </div>
       </section>
 
-      <section class="px-4 py-16 sm:px-6 lg:px-12 lg:py-24">
-        <div class="mx-auto max-w-7xl">
+      <section class="virya-section">
+        <div class="virya-section__inner">
           <div class="max-w-4xl">
-            <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.promise.eyebrow}</p>
-            <h2 class="mt-4 text-[clamp(2.3rem,7vw,4.8rem)] font-black uppercase leading-[.92] tracking-[-.045em] text-white">{copy.promise.heading}</h2>
-            <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-400 text-justify mobile-justify lg:text-base">{copy.promise.body}</p>
+            <p class="virya-eyebrow">{copy.promise.eyebrow}</p>
+            <h2 class="virya-heading mt-4">{copy.promise.heading}</h2>
+            <p class="virya-copy mt-6 max-w-3xl">{copy.promise.body}</p>
           </div>
           <div class="mt-10 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
             {copy.promise.steps.map((step) => (
@@ -201,16 +201,16 @@ const schema = {
 
       <SignalHub client:visible lang={lang} />
 
-      <section class="signal-deferred border-t border-zinc-800/60 px-4 py-16 sm:px-6 lg:px-12 lg:py-24">
-        <div class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+      <section class="virya-section signal-deferred border-t border-zinc-800/60">
+        <div class="virya-section__inner grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <div class="max-w-4xl">
-            <p class="text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.area.eyebrow}</p>
-            <h2 class="mt-4 text-[clamp(2.2rem,7vw,4.8rem)] font-black uppercase leading-[.92] tracking-[-.045em] text-white">{copy.area.heading}</h2>
-            <p class="mt-6 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify lg:text-base">{copy.area.body}</p>
+            <p class="virya-eyebrow">{copy.area.eyebrow}</p>
+            <h2 class="virya-heading mt-4">{copy.area.heading}</h2>
+            <p class="virya-copy mt-6 max-w-3xl text-zinc-300">{copy.area.body}</p>
           </div>
           <div class="flex flex-col gap-3 sm:flex-row lg:flex-col">
-            <a href={lp(lang, "/area/")} class="inline-flex min-h-[48px] items-center justify-center bg-amber-400 px-6 text-[10px] font-black uppercase tracking-widest text-black hover:bg-amber-300">{copy.area.cta}</a>
-            <a href={lp(lang, "/merch/")} class="inline-flex min-h-[48px] items-center justify-center border border-zinc-700 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400">{copy.area.merch}</a>
+            <a href={lp(lang, "/area/")} class="virya-button virya-button--primary min-h-[48px] px-6">{copy.area.cta}</a>
+            <a href={lp(lang, "/merch/")} class="virya-button virya-button--secondary min-h-[48px] px-6">{copy.area.merch}</a>
           </div>
         </div>
       </section>

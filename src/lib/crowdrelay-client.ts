@@ -24,6 +24,7 @@ export interface PublicEvent {
   trailer_url: string | null
   external_event_url: string | null
   updated_at: string
+  source?: "crowdrelay" | "bandsintown" | "curated"
 }
 
 export interface CitySignal {

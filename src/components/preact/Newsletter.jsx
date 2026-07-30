@@ -7,32 +7,31 @@ const NewsletterInner = () => {
   const [honeypot, setHoneypot] = useState("")
   const [status, setStatus] = useState("idle")
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!email) return
+    if (!email || status === "sending") return
     setStatus("sending")
 
-    fetch("/api/subscribe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, website: honeypot }),
-    })
-      .then(() => setStatus("done"))
-      .catch(() => setStatus("done"))
-
-    setEmail("")
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, website: honeypot }),
+      })
+      if (!response.ok) throw new Error("Subscription failed")
+      setEmail("")
+      setStatus("done")
+    } catch {
+      setStatus("error")
+    }
   }
 
   return (
-    <div id="join" class="py-16 lg:px-8 border-t border-zinc-800/60 scroll-mt-20">
-      <div class="mx-4">
-        <div class="flex items-center gap-4 mb-2">
-          <h2 class="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
-            {t("newsletter.heading")}
-          </h2>
-          <div class="flex-1 h-px bg-zinc-800" />
-        </div>
-        <p class="text-zinc-400 text-xs uppercase tracking-widest mb-8">{t("newsletter.sub")}</p>
+    <div id="join" class="virya-section scroll-mt-20 border-t border-zinc-800/60">
+      <div class="virya-section__inner">
+        <p class="virya-eyebrow">VIRYA // SIGNAL</p>
+        <h2 class="virya-heading mt-4">{t("newsletter.heading")}</h2>
+        <p class="virya-copy mt-5 mb-8">{t("newsletter.sub")}</p>
 
         {status === "done" ? (
           <p class="border-l-4 border-amber-400 pl-6 py-4 text-sm text-zinc-200">
@@ -65,12 +64,12 @@ const NewsletterInner = () => {
                 onInput={(e) => setEmail(e.target.value)}
                 placeholder={t("newsletter.placeholder")}
                 autocomplete="email"
-                class="flex-1 bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 p-3 outline-none transition-colors placeholder:text-zinc-400"
+                class="virya-input flex-1 p-3 placeholder:text-zinc-400"
               />
               <button
                 type="submit"
                 disabled={status === "sending" || email.length === 0}
-                class="disabled:opacity-30 disabled:cursor-not-allowed bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-sm py-3 px-8 transition-colors"
+                class="virya-button virya-button--primary py-3 px-8"
               >
                 {status === "sending" ? t("newsletter.joining") : t("newsletter.join")}
               </button>
@@ -78,6 +77,11 @@ const NewsletterInner = () => {
             <p class="text-[10px] text-zinc-400 uppercase tracking-widest mt-3">
               {t("newsletter.noSpam")}
             </p>
+            {status === "error" && (
+              <p class="mt-3 text-xs uppercase tracking-widest text-red-400" role="alert">
+                {t("contact.error")}
+              </p>
+            )}
           </form>
         )}
       </div>

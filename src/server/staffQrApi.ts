@@ -1,6 +1,19 @@
 const DEFAULT_BASE_URL = "https://signal-api.virya.music/v1/"
 const MAX_UPSTREAM_BYTES = 256 * 1024
 
+export type StaffQrEvent = {
+  id: string
+  slug: string
+  title: string
+  venue: string | null
+  starts_at: string
+}
+
+export type StaffQrOverview = {
+  events: StaffQrEvent[]
+  campaigns: StaffQrCampaign[]
+}
+
 export type StaffQrCampaign = {
   id: string
   event_id: string
@@ -127,25 +140,6 @@ export const staffQrRequest = async <T>(
     if (!response.ok) throw new StaffQrUpstreamError(response.status)
     if (response.status === 204) return undefined as T
 
-    return await readLimitedJson<T>(response)
-  } catch (error) {
-    if (error instanceof StaffQrUpstreamError) throw error
-    throw new StaffQrUpstreamError(502)
-  } finally {
-    clearTimeout(timeout)
-  }
-}
-
-export const publicCrowdRelayRequest = async <T>(path: string): Promise<T> => {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 5_000)
-  try {
-    const response = await fetch(new URL(path.replace(/^\/+/, ""), baseUrl()), {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      signal: controller.signal,
-    })
-    if (!response.ok) throw new StaffQrUpstreamError(response.status)
     return await readLimitedJson<T>(response)
   } catch (error) {
     if (error instanceof StaffQrUpstreamError) throw error

@@ -33,8 +33,8 @@ const ContactInner = () => {
   }
 
   return (
-    <div class="py-16 lg:px-8 border-t border-zinc-800/60">
-      <form name="contact" method="POST" onSubmit={handleSubmit}>
+    <div class="virya-section border-t border-zinc-800/60">
+      <form name="contact" method="POST" onSubmit={handleSubmit} class="virya-section__inner">
         <div class="hidden" aria-hidden="true">
           <label for="contact-website">
             Website
@@ -50,17 +50,13 @@ const ContactInner = () => {
             maxLength={200}
           />
         </div>
-        <div class="mx-4 mb-6">
-          <div class="flex items-center gap-4 mb-2">
-            <h2 class="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
-              {t("contact.heading")}
-            </h2>
-            <div class="flex-1 h-px bg-zinc-800" />
-          </div>
-          <p class="text-zinc-400 text-xs uppercase tracking-widest">{t("contact.sub")}</p>
+        <div class="mb-8">
+          <p class="virya-eyebrow">VIRYA // CONTACT</p>
+          <h2 class="virya-heading mt-4">{t("contact.heading")}</h2>
+          <p class="virya-copy mt-5">{t("contact.sub")}</p>
         </div>
 
-        <div class="flex flex-wrap gap-x-6 gap-y-1 mb-2 px-4">
+        <div class="mb-2 flex flex-wrap gap-x-4 gap-y-2">
           <a
             href="mailto:virya.crew@gmail.com"
             class="inline-flex items-center min-h-[44px] text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
@@ -79,7 +75,7 @@ const ContactInner = () => {
 
         <div class="grid grid-cols-1 gap-8">
           <div>
-            <div class="mt-8 px-4">
+            <div class="mt-6">
               <label for="contact-name" class="uppercase text-xs font-semibold tracking-widest text-zinc-400">
                 {t("contact.name")}
               </label>
@@ -91,10 +87,10 @@ const ContactInner = () => {
                 maxLength={100}
                 value={form.name}
                 onInput={set("name")}
-                class="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors"
+                class="virya-input mt-2 p-3"
               />
             </div>
-            <div class="mt-8 px-4">
+            <div class="mt-6">
               <label for="contact-email" class="uppercase text-xs font-semibold tracking-widest text-zinc-400">
                 {t("contact.email")}
               </label>
@@ -107,10 +103,10 @@ const ContactInner = () => {
                 value={form.email}
                 onInput={set("email")}
                 autocomplete="email"
-                class="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors"
+                class="virya-input mt-2 p-3"
               />
             </div>
-            <div class="mt-8 px-4">
+            <div class="mt-6">
               <label for="contact-message" class="uppercase text-xs font-semibold tracking-widest text-zinc-400">
                 {t("contact.message")}
               </label>
@@ -121,14 +117,14 @@ const ContactInner = () => {
                 maxLength={5000}
                 value={form.message}
                 onInput={set("message")}
-                class="w-full h-32 bg-zinc-800 text-zinc-100 border border-zinc-700 focus:border-amber-400 mt-2 p-3 outline-none transition-colors resize-none"
+                class="virya-input mt-2 h-36 resize-y p-3"
               />
             </div>
-            <div class="mt-8 px-4 mb-8">
+            <div class="mt-6 mb-8">
               <button
                 type="submit"
                 disabled={loading || !form.message || !form.name || !form.email}
-                class="disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer w-full bg-amber-400 text-black hover:bg-amber-300 uppercase tracking-widest font-bold text-sm py-3 px-4 transition-all duration-200 outline-none"
+                class="virya-button virya-button--primary w-full py-3 px-4"
               >
                 {t("contact.send")}
               </button>

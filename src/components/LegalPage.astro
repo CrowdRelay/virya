@@ -45,17 +45,17 @@ const resolveHref = (href: string): string => {
     <Navbar lang={lang} displayLinks={false} />
     <ScrollToTop />
 
-    <main id="main-content" class="flex-1 pt-20">
-      <div class="px-6 lg:px-12 py-8 max-w-4xl mx-auto">
+    <main id="main-content" class="virya-section flex-1 pt-28">
+      <div class="mx-auto max-w-4xl">
       <a
         href={lp(lang, "/merch")}
-        class="group inline-flex items-center gap-3 rounded-lg border border-zinc-800 hover:border-amber-400/60 bg-zinc-900/40 hover:bg-zinc-900 px-4 py-3 transition-colors mb-10"
+        class="virya-button virya-button--secondary group mb-10 gap-3"
       >
         <ChevronLeft class="shrink-0 w-4 h-4 text-amber-400 transition-transform group-hover:-translate-x-0.5" />
         <span class="text-sm font-semibold uppercase tracking-widest text-zinc-200 group-hover:text-amber-400 transition-colors">{t(lang, "legal.back")}</span>
       </a>
       <div class="mb-8 border-b border-zinc-800/60 pb-6">
-        <h1 class="text-2xl lg:text-3xl font-black uppercase tracking-widest text-white">
+        <h1 class="virya-heading !text-[clamp(2rem,7vw,3.5rem)]">
           {page.title}
         </h1>
       </div>

@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
-import type { PublicEvent } from "../../../lib/crowdrelay-client"
 import {
   generateQr,
   renderQrToCanvas,
   type GeneratedQr,
 } from "../../../lib/qrCode"
-import type { StaffQrCampaign } from "../../../server/staffQrApi"
+import type {
+  StaffQrCampaign,
+  StaffQrEvent,
+  StaffQrOverview,
+} from "../../../server/staffQrApi"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type Language = "pl" | "en"
@@ -36,7 +39,7 @@ const api = async <T,>(
 export default function ConcertQrManager() {
   const [state, setState] = useState<LoadState>("checking")
   const [password, setPassword] = useState("")
-  const [events, setEvents] = useState<PublicEvent[]>([])
+  const [events, setEvents] = useState<StaffQrEvent[]>([])
   const [campaigns, setCampaigns] = useState<StaffQrCampaign[]>([])
   const [selectedEvent, setSelectedEvent] = useState("")
   const [label, setLabel] = useState("")
@@ -48,7 +51,9 @@ export default function ConcertQrManager() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
   const [fullscreen, setFullscreen] = useState(false)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const passwordRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     void api<{ authenticated: boolean; configured: boolean }>(
       "/api/staff/qr/status",
@@ -68,7 +73,6 @@ export default function ConcertQrManager() {
       })
       .catch(() => setState("error"))
   }, [])
-
 
   useEffect(() => {
     if (!fullscreen) return
@@ -120,36 +124,41 @@ export default function ConcertQrManager() {
   async function loadData() {
     setMessage("")
     try {
-      const [eventResult, campaignResult] = await Promise.all([
-        api<{ events: PublicEvent[] }>("/api/staff/qr/events"),
-        api<{ campaigns: StaffQrCampaign[] }>("/api/staff/qr/campaigns"),
-      ])
-      const upcoming = [...eventResult.events]
+      const overview = await api<StaffQrOverview>("/api/staff/qr/overview")
+      const upcoming = [...overview.events]
         .filter(event => new Date(event.starts_at).getTime() > Date.now() - 36 * 60 * 60 * 1000)
         .sort(
           (left, right) =>
             new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime(),
         )
       setEvents(upcoming)
-      setCampaigns(campaignResult.campaigns)
+      setCampaigns(overview.campaigns)
       setSelectedCampaignId(current =>
-        campaignResult.campaigns.some(campaign => campaign.id === current)
+        overview.campaigns.some(campaign => campaign.id === current)
           ? current
-          : campaignResult.campaigns.find(campaign => campaign.active && campaign.token)?.id ?? null,
+          : overview.campaigns.find(campaign => campaign.active && campaign.token)?.id ?? null,
       )
       const nextEvent =
         upcoming.find(event => event.slug === selectedEvent) ?? upcoming[0]
       if (nextEvent && nextEvent.slug !== selectedEvent) selectEvent(nextEvent)
+      if (!nextEvent) {
+        setSelectedEvent("")
+        setLabel("")
+        setValidFrom("")
+        setValidUntil("")
+      }
+      setDataLoaded(true)
     } catch (error) {
       if ((error as ApiError).status === 401) {
         setState("login")
       } else {
-        setMessage("Nie udało się pobrać wydarzeń lub kampanii.")
+        setMessage("Nie udało się pobrać katalogu wydarzeń i kampanii.")
       }
+      setDataLoaded(true)
     }
   }
 
-  function selectEvent(event: PublicEvent) {
+  function selectEvent(event: StaffQrEvent) {
     setSelectedEvent(event.slug)
     setLabel(`Koncert — ${event.title}`)
     const starts = new Date(event.starts_at)
@@ -190,6 +199,7 @@ export default function ConcertQrManager() {
       setCampaigns([])
       setEvents([])
       setSelectedCampaignId(null)
+      setDataLoaded(false)
       setState("login")
       setBusy(false)
     }
@@ -328,7 +338,7 @@ export default function ConcertQrManager() {
     return (
       <form
         onSubmit={login}
-        class="mx-auto max-w-md border border-zinc-800 bg-zinc-950 p-6 sm:p-8"
+        class="virya-panel mx-auto max-w-md p-6 sm:p-8"
       >
         <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
           VIRYA // STAFF
@@ -349,13 +359,13 @@ export default function ConcertQrManager() {
             autocomplete="current-password"
             required
             maxlength={256}
-            class="mt-2 min-h-[48px] w-full border border-zinc-700 bg-black px-4 text-sm text-white outline-none focus:border-amber-400"
+            class="virya-input mt-2 min-h-[48px] px-4 text-sm"
           />
         </label>
         <button
           type="submit"
           disabled={busy || !password}
-          class="mt-5 inline-flex min-h-[48px] w-full items-center justify-center bg-amber-400 px-5 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300 disabled:opacity-50"
+          class="virya-button virya-button--primary mt-5 min-h-[48px] w-full px-5"
         >
           {busy ? "Logowanie…" : "Otwórz panel"}
         </button>
@@ -394,6 +404,12 @@ export default function ConcertQrManager() {
         </p>
       )}
 
+      <section class="grid gap-3 sm:grid-cols-3" aria-label="Stan panelu QR">
+        <Metric label="Nadchodzące koncerty" value={String(events.length)} />
+        <Metric label="Aktywne kampanie" value={String(campaigns.filter(campaign => campaign.active).length)} />
+        <Metric label="Łączne check-iny" value={String(campaigns.reduce((sum, campaign) => sum + campaign.checkin_count, 0))} />
+      </section>
+
       <div class="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <form onSubmit={createCampaign} class={panelClass}>
           <p class={eyebrowClass}>Nowa kampania</p>
@@ -410,7 +426,11 @@ export default function ConcertQrManager() {
               required
               class={inputClass}
             >
-              <option value="">Wybierz wydarzenie</option>
+              <option value="">
+                {dataLoaded && events.length === 0
+                  ? "Brak opublikowanych wydarzeń"
+                  : "Wybierz wydarzenie"}
+              </option>
               {events.map(event => (
                 <option value={event.slug} key={event.id}>
                   {formatDate(event.starts_at)} — {event.title}
@@ -440,7 +460,13 @@ export default function ConcertQrManager() {
             <input type="number" min="1" max="1000000" inputmode="numeric" value={maxCheckins} onInput={event => setMaxCheckins(event.currentTarget.value)} placeholder="Bez limitu" class={inputClass} />
           </label>
 
-          <button type="submit" disabled={busy || !selectedEvent} class="mt-6 inline-flex min-h-[48px] w-full items-center justify-center bg-amber-400 px-5 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300 disabled:opacity-50">
+          {dataLoaded && events.length === 0 && (
+            <div class="mt-5 border border-amber-400/25 bg-amber-400/[.045] p-4 text-xs leading-relaxed text-zinc-300">
+              CrowdRelay nie zwrócił żadnego opublikowanego koncertu. Uruchom ponownie produkcyjny setup po wdrożeniu aktualnego bootstrapu.
+            </div>
+          )}
+
+          <button type="submit" disabled={busy || !selectedEvent} class="virya-button virya-button--primary mt-6 min-h-[48px] w-full px-5">
             {busy ? "Zapisywanie…" : "Utwórz bezpieczny QR"}
           </button>
         </form>
@@ -456,9 +482,13 @@ export default function ConcertQrManager() {
             <select
               value={selectedCampaignId ?? ""}
               onChange={event => setSelectedCampaignId(event.currentTarget.value || null)}
-              class="min-h-[44px] max-w-full border border-zinc-700 bg-black px-3 text-xs text-white"
+              class="virya-input min-h-[44px] max-w-full text-xs"
             >
-              <option value="">Wybierz kampanię</option>
+              <option value="">
+                {dataLoaded && campaigns.length === 0
+                  ? "Brak kampanii"
+                  : "Wybierz kampanię"}
+              </option>
               {campaigns.map(campaign => (
                 <option value={campaign.id} key={campaign.id}>
                   {campaign.active ? "●" : "○"} {campaign.label}
@@ -558,16 +588,26 @@ function Info({ label, value }: { label: string; value: string }) {
   return <div><dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">{label}</dt><dd class="mt-1 font-semibold text-zinc-200">{value}</dd></div>
 }
 
-function StatusPanel({ title, body }: { title: string; body?: string }) {
-  return <div class="border border-zinc-800 bg-zinc-950 p-6 sm:p-8"><p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">VIRYA // STAFF</p><h1 class="mt-4 text-2xl font-black uppercase text-white">{title}</h1>{body && <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400">{body}</p>}</div>
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div class="virya-panel relative overflow-hidden p-4">
+      <div class="virya-live-card__rail" aria-hidden="true" />
+      <p class="text-[8px] font-black uppercase tracking-[.2em] text-zinc-500">{label}</p>
+      <p class="mt-2 font-mono text-2xl font-black text-white">{value}</p>
+    </div>
+  )
 }
 
-const panelClass = "border border-zinc-800 bg-zinc-950 p-5 sm:p-6"
+function StatusPanel({ title, body }: { title: string; body?: string }) {
+  return <div class="virya-panel p-6 sm:p-8"><p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">VIRYA // STAFF</p><h1 class="mt-4 text-2xl font-black uppercase text-white">{title}</h1>{body && <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400">{body}</p>}</div>
+}
+
+const panelClass = "virya-panel p-5 sm:p-6"
 const eyebrowClass = "text-[9px] font-black uppercase tracking-[.28em] text-amber-400"
 const labelClass = "mt-5 block text-[9px] font-black uppercase tracking-widest text-zinc-400"
-const inputClass = "mt-2 min-h-[46px] w-full border border-zinc-700 bg-black px-3 text-sm text-white outline-none focus:border-amber-400"
-const primaryButton = "inline-flex min-h-[44px] items-center justify-center bg-amber-400 px-4 text-[8px] font-black uppercase tracking-widest text-black hover:bg-amber-300"
-const secondaryButton = "inline-flex min-h-[44px] items-center justify-center border border-zinc-700 px-4 text-[8px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400 disabled:opacity-50"
+const inputClass = "virya-input mt-2 px-3 text-sm"
+const primaryButton = "virya-button virya-button--primary min-h-[44px] px-4"
+const secondaryButton = "virya-button virya-button--secondary min-h-[44px] px-4"
 
 function toLocalInput(value: Date) {
   const adjusted = new Date(value.getTime() - value.getTimezoneOffset() * 60_000)

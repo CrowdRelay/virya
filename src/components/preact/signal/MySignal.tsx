@@ -79,7 +79,7 @@ export default function MySignal({ lang }: Props) {
 
   if (state.kind === "loading") {
     return (
-      <div class="border border-zinc-800 bg-zinc-950 p-6" aria-busy="true">
+      <div class="virya-panel p-6" aria-busy="true">
         <p class="text-xs font-semibold text-zinc-400">{copy.loading}</p>
       </div>
     )
@@ -87,7 +87,7 @@ export default function MySignal({ lang }: Props) {
 
   if (state.kind === "unauthorized" || state.kind === "error") {
     return (
-      <div class="relative overflow-hidden border border-amber-400/30 bg-amber-400/[.035] p-6 sm:p-8">
+      <div class="virya-panel relative overflow-hidden border-amber-400/30 bg-amber-400/[.035] p-6 sm:p-8">
         <div class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
         <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
           {copy.eyebrow}
@@ -104,7 +104,7 @@ export default function MySignal({ lang }: Props) {
         </p>
         <a
           href={pagePath(lang, "/signal/#join-signal")}
-          class="mt-6 inline-flex min-h-[46px] items-center bg-amber-400 px-5 text-[10px] font-black uppercase tracking-widest text-black hover:bg-amber-300"
+          class="virya-button virya-button--primary mt-6 min-h-[46px] px-5"
         >
           {copy.join}
         </a>
@@ -149,7 +149,7 @@ export default function MySignal({ lang }: Props) {
       </section>
 
       {referralUrl && (
-        <section class="border border-amber-400/30 bg-amber-400/[.035] p-5 sm:p-6">
+        <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-5 sm:p-6">
           <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div class="min-w-0">
               <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
@@ -162,7 +162,7 @@ export default function MySignal({ lang }: Props) {
             <button
               type="button"
               onClick={copyReferral}
-              class="inline-flex min-h-[44px] shrink-0 items-center justify-center border border-amber-400/50 px-4 text-[9px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-400 hover:text-black"
+              class="virya-button virya-button--accent-outline shrink-0"
             >
               {copied ? copy.linkCopied : copy.copyLink}
             </button>
@@ -170,7 +170,7 @@ export default function MySignal({ lang }: Props) {
         </section>
       )}
 
-      <section class="border border-amber-400/30 bg-amber-400/[.025] p-5 sm:p-6">
+      <section class="virya-panel border-amber-400/30 bg-amber-400/[.025] p-5 sm:p-6">
         <div>
           <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
             {lang === "pl" ? "VIRYA // LOSOWANIA" : "VIRYA // DRAW"}
@@ -189,7 +189,7 @@ export default function MySignal({ lang }: Props) {
             {drawEntries.map(draw => (
               <li
                 key={draw.draw_id}
-                class="border border-zinc-800 bg-zinc-950 p-5"
+                class="virya-panel p-5"
               >
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -236,7 +236,7 @@ export default function MySignal({ lang }: Props) {
         )}
       </section>
 
-      <section class="border border-zinc-800 bg-zinc-950 p-5 sm:p-6">
+      <section class="virya-panel p-5 sm:p-6">
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
@@ -305,7 +305,7 @@ export default function MySignal({ lang }: Props) {
                   <button
                     type="button"
                     onClick={() => copyCoupon(coupon.code)}
-                    class="inline-flex min-h-[40px] items-center border border-zinc-700 px-3 text-[8px] font-black uppercase tracking-widest text-zinc-300 hover:border-amber-400 hover:text-amber-400"
+                    class="virya-button virya-button--secondary min-h-[40px] px-3"
                   >
                     {copiedCoupon === coupon.code
                       ? SIGNAL_COPY[lang].form.copied
@@ -313,7 +313,7 @@ export default function MySignal({ lang }: Props) {
                   </button>
                   <a
                     href={pagePath(lang, "/merch/")}
-                    class="inline-flex min-h-[40px] items-center bg-amber-400 px-3 text-[8px] font-black uppercase tracking-widest text-black hover:bg-amber-300"
+                    class="virya-button virya-button--primary min-h-[40px] px-3"
                   >
                     {copy.useInStore}
                   </a>
@@ -324,7 +324,7 @@ export default function MySignal({ lang }: Props) {
         )}
       </section>
 
-      <section class="border border-zinc-800 bg-zinc-950 p-5 sm:p-6">
+      <section class="virya-panel p-5 sm:p-6">
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
@@ -364,7 +364,7 @@ export default function MySignal({ lang }: Props) {
                 </div>
                 <a
                   href={pagePath(lang, `/live/${event.slug}/`)}
-                  class="inline-flex min-h-[42px] items-center justify-center border border-zinc-700 px-4 text-[9px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400"
+                  class="virya-button virya-button--secondary min-h-[42px] px-4"
                 >
                   {SIGNAL_COPY[lang].events.details}
                 </a>
@@ -377,7 +377,7 @@ export default function MySignal({ lang }: Props) {
       <div class="grid gap-3 sm:grid-cols-2">
         <a
           href={pagePath(lang, "/area/")}
-          class="group flex min-h-[96px] items-center justify-between border border-zinc-800 bg-zinc-950 p-5 hover:border-amber-400/50"
+          class="virya-panel group flex min-h-[96px] items-center justify-between p-5 hover:border-amber-400/50"
         >
           <span class="text-sm font-black uppercase tracking-widest text-white group-hover:text-amber-400">
             {copy.openArea}

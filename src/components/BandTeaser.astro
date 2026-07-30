@@ -9,17 +9,11 @@ interface Props {
 const { lang = "en" } = Astro.props
 ---
 
-<div class="py-16 lg:px-8 border-t border-zinc-800/60">
-  <div class="mx-4">
-    <div class="flex items-center gap-4 mb-2">
-      <p class="text-3xl font-black uppercase tracking-widest whitespace-nowrap text-white">
-        {t(lang, "band.heading")}
-      </p>
-      <div class="flex-1 h-px bg-zinc-800" />
-    </div>
-    <p class="text-zinc-400 text-xs uppercase tracking-widest mb-8">
-      {t(lang, "band.sub")}
-    </p>
+<div class="virya-section border-t border-zinc-800/60">
+  <div class="virya-section__inner">
+    <p class="virya-eyebrow">VIRYA // BAND</p>
+    <h2 class="virya-heading mt-4">{t(lang, "band.heading")}</h2>
+    <p class="virya-copy mt-5 mb-10">{t(lang, "band.sub")}</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
       <div class="overflow-hidden border border-zinc-800/60">
@@ -44,7 +38,7 @@ const { lang = "en" } = Astro.props
         </p>
         <a
           href={lp(lang, "/about")}
-          class="group inline-flex items-center gap-2 mt-6 text-xs font-bold uppercase tracking-widest text-amber-400 hover:text-amber-200 transition-colors"
+          class="virya-button virya-button--accent-outline group mt-6 gap-2"
         >
           {t(lang, "band.readStory")}
           <ChevronRight class="w-3.5 h-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />

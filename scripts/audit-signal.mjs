@@ -25,6 +25,12 @@ const staffAuth = read("src/server/staffQrAuth.ts")
 const staffApi = read("src/server/staffQrApi.ts")
 const staffPage = read("src/pages/staff/qr.astro")
 const staffManager = read("src/components/preact/staff/ConcertQrManager.tsx")
+const staffOverview = read("src/pages/api/staff/qr/overview.ts")
+const liveEventsServer = read("src/server/liveEvents.ts")
+const liveEventsBrowser = read("src/lib/liveEvents.ts")
+const liveEventCard = read("src/components/preact/LiveEventCard.tsx")
+const homepageShows = read("src/components/preact/Shows.tsx")
+const signalHub = read("src/components/preact/signal/SignalHub.tsx")
 
 assert(
   !layout.includes("crowdrelay") && !layout.includes("SignalHub"),
@@ -113,6 +119,25 @@ assert(
     staffManager.includes("Wyłącz ten QR"),
   "Staff QR page must remain private-indexed, fragment-based and revocable.",
 )
+assert(
+  staffManager.includes('/api/staff/qr/overview') &&
+    !staffManager.includes('Promise.all(') &&
+    staffOverview.includes('admin/event-qr/overview'),
+  "Staff QR must load events and campaigns through one authenticated overview request.",
+)
+assert(
+  liveEventsBrowser.includes('fetch("/api/events"') &&
+    liveEventsServer.includes("CURATED_LIVE_EVENTS") &&
+    liveEventsServer.includes("Promise.allSettled"),
+  "The unified live-events endpoint must retain a curated fallback and fail open.",
+)
+assert(
+  homepageShows.includes("LiveEventCard") &&
+    signalHub.includes("LiveEventCard") &&
+    liveEventCard.includes("virya-live-card__orbit--outer") &&
+    liveEventCard.includes("virya-live-card__orbit--inner"),
+  "Homepage and Signal must share the same live-event card and orbit treatment.",
+)
 
 for (const path of [
   "src/pages/signal.astro",
@@ -132,7 +157,9 @@ for (const path of [
   "src/pages/api/staff/qr/status.ts",
   "src/pages/api/staff/qr/login.ts",
   "src/pages/api/staff/qr/logout.ts",
+  "src/pages/api/events.ts",
   "src/pages/api/staff/qr/events.ts",
+  "src/pages/api/staff/qr/overview.ts",
   "src/pages/api/staff/qr/campaigns.ts",
   "src/pages/api/staff/qr/campaigns/[id].ts",
 ]) {

@@ -9,8 +9,8 @@ interface Props {
 const { lang = "en" } = Astro.props
 ---
 
-<div class="pb-16 lg:px-8">
-  <div class="mx-4">
+<div class="pb-16 px-4">
+  <div class="virya-section__inner">
     <div class="flex items-center gap-4 mb-6">
       <p class="text-zinc-400 text-xs uppercase tracking-widest whitespace-nowrap">
         {t(lang, "music.streamSpotify")}
@@ -28,7 +28,7 @@ const { lang = "en" } = Astro.props
         </svg>
       </a>
     </div>
-    <div class="relative overflow-hidden" id="spotify-root">
+    <div class="virya-panel relative overflow-hidden" id="spotify-root">
       <div id="spotify-skeleton" class="w-full h-[450px] bg-zinc-900/30 p-4 flex flex-col gap-3">
         <div class="flex items-center gap-3 pb-3 border-b border-zinc-800/40">
           <div class="w-12 h-12 bg-zinc-700/50 animate-pulse flex-shrink-0" />
@@ -79,7 +79,7 @@ const { lang = "en" } = Astro.props
       iframe.height = "450"
       iframe.setAttribute("frameborder", "0")
       iframe.setAttribute("allow", "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture")
-      iframe.className = "opacity-0 absolute inset-0 rounded-2xl outline-none border-0"
+      iframe.className = "opacity-0 absolute inset-0 outline-none border-0"
       iframe.addEventListener("load", () => {
         skeleton.remove()
         iframe.classList.remove("opacity-0", "absolute", "inset-0")
