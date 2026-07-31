@@ -34,6 +34,13 @@ const upstreamStatus = (error: unknown) =>
     ? error.status
     : 502
 
+const upstreamMessage = (error: unknown, fallback: string) =>
+  error instanceof StaffQrUpstreamError &&
+  [400, 409, 422].includes(error.status) &&
+  error.detail
+    ? error.detail
+    : fallback
+
 export const GET: APIRoute = async ({ cookies, params }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
   const slug = params.slug ?? ""
@@ -73,8 +80,8 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
   const currency = text(body.currency, 3)?.toUpperCase() ?? null
   const vat = integer(body.vat_rate_basis_points, 0, 10_000)
   const capacity = integer(body.capacity, 1, 1_000_000)
-  const maxPerOrder = integer(body.max_per_order, 1, 1_000)
-  const holdSeconds = integer(body.hold_seconds, 60, 86_400)
+  const maxPerOrder = integer(body.max_per_order, 1, 100)
+  const holdSeconds = integer(body.hold_seconds, 2_100, 86_400)
   const salesOpenAt = iso(body.sales_open_at)
   const salesCloseAt = iso(body.sales_close_at)
   const active = body.active === true
@@ -89,7 +96,6 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
 
   const ticketTypes: Array<Record<string, unknown>> = []
   const slugs = new Set<string>()
-  let totalCapacity = 0
   for (const [index, rawType] of body.ticket_types.entries()) {
     if (!rawType || typeof rawType !== "object" || Array.isArray(rawType)) {
       return areaJson({ error: "Invalid ticket type" }, 400)
@@ -100,20 +106,20 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
     const description = type.description == null || type.description === ""
       ? null
       : text(type.description, 1_000)
-    const price = integer(type.price_gross_minor, 0, 100_000_000)
+    const price = integer(type.price_gross_minor, 1, 1_000_000_000)
     const typeCapacity = type.capacity == null || type.capacity === ""
       ? null
       : integer(type.capacity, 1, 1_000_000)
-    const sortOrder = integer(type.sort_order ?? index, -10_000, 10_000)
+    const sortOrder = integer(type.sort_order ?? index, -100_000, 100_000)
     if (
       !typeSlug || !TYPE_SLUG.test(typeSlug) || slugs.has(typeSlug) || !name ||
       description === null && type.description != null && type.description !== "" ||
-      price == null || sortOrder == null
+      price == null || sortOrder == null ||
+      typeCapacity != null && typeCapacity > capacity
     ) {
       return areaJson({ error: "Invalid ticket type" }, 400)
     }
     slugs.add(typeSlug)
-    if (typeCapacity != null) totalCapacity += typeCapacity
     ticketTypes.push({
       slug: typeSlug,
       name,
@@ -124,34 +130,51 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
       active: type.active === true,
     })
   }
-  if (totalCapacity > 0 && totalCapacity > capacity) {
-    return areaJson({ error: "Ticket type capacity exceeds sale capacity" }, 400)
+  let savedSale: unknown
+  try {
+    savedSale = await staffApiRequest(
+      `admin/events/${encodeURIComponent(slug)}/ticketing`,
+      {
+        method: "POST",
+        body: {
+          currency,
+          vat_rate_basis_points: vat,
+          capacity,
+          max_per_order: maxPerOrder,
+          hold_seconds: holdSeconds,
+          sales_open_at: salesOpenAt,
+          sales_close_at: salesCloseAt,
+          active,
+          ticket_types: ticketTypes,
+        },
+        idempotencyKey: `staff-ticketing-${randomUUID()}`,
+        timeoutMs: 15_000,
+      },
+    )
+  } catch (error) {
+    console.error("[staff-admin-ticketing-post]", error)
+    return areaJson(
+      {
+        error: upstreamMessage(
+          error,
+          "Ticketing configuration could not be saved",
+        ),
+      },
+      upstreamStatus(error),
+    )
   }
 
   try {
-    await staffApiRequest(`admin/events/${encodeURIComponent(slug)}/ticketing`, {
-      method: "POST",
-      body: {
-        currency,
-        vat_rate_basis_points: vat,
-        capacity,
-        max_per_order: maxPerOrder,
-        hold_seconds: holdSeconds,
-        sales_open_at: salesOpenAt,
-        sales_close_at: salesCloseAt,
-        active,
-        ticket_types: ticketTypes,
-      },
-      idempotencyKey: `staff-ticketing-${randomUUID()}`,
-      timeoutMs: 15_000,
-    })
     return areaJson(
       await staffApiRequest(`admin/events/${encodeURIComponent(slug)}/ticketing`, {
         timeoutMs: 12_000,
       }),
     )
   } catch (error) {
-    console.error("[staff-admin-ticketing-post]", error)
-    return areaJson({ error: "Ticketing configuration could not be saved" }, upstreamStatus(error))
+    console.warn("[staff-admin-ticketing-refresh]", error)
+    return areaJson(
+      { saved: true, sale: savedSale, refreshPending: true },
+      200,
+    )
   }
 }

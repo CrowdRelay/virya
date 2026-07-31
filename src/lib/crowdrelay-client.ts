@@ -9,6 +9,8 @@ export interface EventCity {
 export interface TicketSaleSummary {
   currency: string
   capacity: number
+  sold: number
+  reserved: number
   available: number
   sales_open_at: string
   sales_close_at: string
@@ -53,6 +55,8 @@ export interface TicketTypeOffer {
   description: string | null
   price_gross_minor: number
   capacity: number | null
+  sold: number
+  reserved: number
   available: number
   sort_order: number
   active: boolean
@@ -69,6 +73,8 @@ export interface TicketSaleOffer {
   currency: string
   vat_rate_basis_points: number
   capacity: number
+  sold: number
+  reserved: number
   available: number
   max_per_order: number
   sales_open_at: string

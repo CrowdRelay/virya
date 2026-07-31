@@ -9,6 +9,8 @@ const assertions = [
   ["src/pages/api/staff/admin/status.ts", "hasStaffQrSession"],
   ["src/pages/api/staff/admin/overview.ts", "hasStaffQrSession"],
   ["src/pages/api/staff/admin/ticketing/[slug].ts", "isSameOriginRequest"],
+  ["src/pages/api/staff/admin/ticketing/[slug].ts", "2_100"],
+  ["src/pages/api/staff/admin/ticketing/[slug].ts", "refreshPending"],
   ["src/pages/api/staff/admin/admission/issue.ts", "isSameOriginRequest"],
   ["src/pages/api/staff/admin/admission/revoke.ts", "isSameOriginRequest"],
   ["src/pages/api/staff/admin/mailer/test.ts", "isSameOriginRequest"],
@@ -20,6 +22,17 @@ for (const [path, needle] of assertions) {
 }
 
 const client = read("src/components/preact/staff/AdminConsole.tsx")
+for (const needle of [
+  "checkout_created_orders",
+  "reserved_tickets",
+  "W trakcie płatności",
+  "TicketInventoryBar",
+  "validateTicketForm",
+]) {
+  if (!client.includes(needle)) {
+    throw new Error(`Admin ticketing UI is missing ${needle}`)
+  }
+}
 for (const secret of [
   "CROWDRELAY_ADMIN_API_KEY",
   "CROWDRELAY_COMMERCE_API_KEY",

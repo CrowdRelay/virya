@@ -2,6 +2,8 @@ import type { JSX } from "preact"
 import type { Lang } from "../../i18n/t"
 import type { PublicEvent } from "../../lib/crowdrelay-client"
 import { campaignIdFromLocation, crowdrelay } from "../../lib/crowdrelay"
+import { normalizeTicketInventory } from "../../lib/ticketInventory"
+import TicketInventoryBar from "./tickets/TicketInventoryBar"
 
 type Labels = {
   details: string
@@ -149,19 +151,17 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
   const opensNewTab =
     labels.opensNewTab ??
     (lang === "pl" ? "Otwiera się w nowej karcie" : "Opens in a new tab")
-  const stockPercent = sale?.capacity
-    ? Math.max(0, Math.min(100, (sale.available / sale.capacity) * 100))
-    : 0
+  const inventory = sale ? normalizeTicketInventory(sale) : null
 
   const ticketStatus = sale
     ? sale.sales_state === "open"
       ? sale.from_price_gross_minor == null
         ? lang === "pl"
-          ? `${sale.available} dostępnych`
-          : `${sale.available} available`
+          ? `${inventory?.available ?? sale.available} dostępnych`
+          : `${inventory?.available ?? sale.available} available`
         : lang === "pl"
-          ? `Od ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${sale.available} dostępnych`
-          : `From ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${sale.available} available`
+          ? `Od ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${inventory?.available ?? sale.available} dostępnych${inventory?.reserved ? ` · ${inventory.reserved} w płatności` : ""}`
+          : `From ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${inventory?.available ?? sale.available} available${inventory?.reserved ? ` · ${inventory.reserved} in payment` : ""}`
       : sale.sales_state === "upcoming"
         ? lang === "pl"
           ? "Sprzedaż wkrótce"
@@ -222,12 +222,13 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
                 <span class="text-[10px] font-bold text-zinc-200">{ticketStatus}</span>
               </div>
               {sale && sale.sales_state === "open" && (
-                <div class="mt-2 h-1 overflow-hidden bg-zinc-800" aria-hidden="true">
-                  <span
-                    class="block h-full bg-amber-400 transition-[width] duration-300"
-                    style={{ width: `${stockPercent}%` }}
-                  />
-                </div>
+                <TicketInventoryBar
+                  inventory={sale}
+                  lang={lang}
+                  compact
+                  showLegend={false}
+                  class="mt-2"
+                />
               )}
             </div>
           )}

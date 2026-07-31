@@ -4,6 +4,8 @@ import type { TicketSaleOffer } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import { crowdrelay } from "../../../lib/crowdrelay"
 import { storeTicketOrder } from "../../../lib/ticketWallet"
+import { normalizeTicketInventory } from "../../../lib/ticketInventory"
+import TicketInventoryBar from "./TicketInventoryBar"
 
 interface Props {
   lang: Lang
@@ -38,6 +40,8 @@ const copy = {
     closed: "Sprzedaż online została zakończona.",
     soldOut: "Ta pula biletów jest wyprzedana.",
     remaining: "Dostępne",
+    reserved: "W trakcie płatności",
+    sold: "Sprzedane",
     name: "Imię i nazwisko",
     email: "E-mail do biletu",
     invoice: "Potrzebuję faktury",
@@ -74,6 +78,8 @@ const copy = {
     closed: "Online ticket sales have closed.",
     soldOut: "This ticket allocation is sold out.",
     remaining: "Available",
+    reserved: "Payment in progress",
+    sold: "Sold",
     name: "Full name",
     email: "Ticket e-mail",
     invoice: "I need an invoice",
@@ -232,7 +238,7 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
     const type = state.sale.ticket_types.find(item => item.slug === ticketSlug)
     if (!type) return
 
-    setQuantities(current => {
+    setQuantities((current: Record<string, number>) => {
       const otherCount = Object.entries(current).reduce(
         (sum, [key, quantity]) => sum + (key === ticketSlug ? 0 : quantity),
         0,
@@ -251,7 +257,12 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
 
   const submit = async (event: Event) => {
     event.preventDefault()
-    if (state.kind !== "ready" || state.sale.sales_state !== "open" || selection.count < 1) {
+    if (
+      submitting ||
+      state.kind !== "ready" ||
+      state.sale.sales_state !== "open" ||
+      selection.count < 1
+    ) {
       return
     }
     setSubmitting(true)
@@ -343,10 +354,7 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
         : sale.sales_state !== "open"
           ? text.closed
           : null
-  const stockPercent = Math.max(
-    0,
-    Math.min(100, (sale.available / Math.max(1, sale.capacity)) * 100),
-  )
+  const inventory = normalizeTicketInventory(sale)
 
   return (
     <section id="tickets" class="virya-ticket-checkout mt-10 scroll-mt-28">
@@ -356,15 +364,13 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
           <h2 class="mt-3 text-2xl font-black uppercase tracking-tight text-white sm:text-4xl">
             {text.heading}
           </h2>
-          <p class="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300">{text.body}</p>
+          <p class="virya-prose mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300">{text.body}</p>
         </div>
         <div class="virya-ticket-allocation">
           <span>{text.allocation}</span>
-          <strong>{sale.available}</strong>
-          <small>/ {sale.capacity}</small>
-          <div class="mt-3 h-1.5 overflow-hidden bg-zinc-800" aria-hidden="true">
-            <span class="block h-full bg-amber-400" style={{ width: `${stockPercent}%` }} />
-          </div>
+          <strong>{inventory.available}</strong>
+          <small>/ {inventory.capacity}</small>
+          <TicketInventoryBar inventory={sale} lang={lang} class="mt-4" />
         </div>
       </div>
 
@@ -388,9 +394,18 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                     0,
                     Math.min(type.available, sale.max_per_order - otherCount),
                   )
-                  const typeStock = type.capacity
-                    ? Math.max(0, Math.min(100, (type.available / type.capacity) * 100))
-                    : null
+                  const typeSold = Number.isFinite(type.sold) ? type.sold : 0
+                  const typeReserved = Number.isFinite(type.reserved)
+                    ? type.reserved
+                    : 0
+                  const typeInventory = normalizeTicketInventory({
+                    capacity:
+                      type.capacity ??
+                      Math.max(0, typeSold + typeReserved + type.available),
+                    sold: typeSold,
+                    reserved: typeReserved,
+                    available: type.available,
+                  })
 
                   return (
                     <div key={type.id} class="virya-ticket-type">
@@ -402,23 +417,28 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                           </strong>
                         </div>
                         {type.description && (
-                          <p class="mt-2 text-xs leading-relaxed text-zinc-400">
+                          <p class="virya-prose mt-2 text-xs leading-relaxed text-zinc-400">
                             {type.description}
                           </p>
                         )}
-                        <div class="mt-3 flex items-center justify-between gap-3">
-                          <p class="text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                            {text.remaining}: {type.available}
-                          </p>
-                          {typeStock != null && (
-                            <div class="h-1 w-24 overflow-hidden bg-zinc-800" aria-hidden="true">
-                              <span
-                                class="block h-full bg-amber-400/80"
-                                style={{ width: `${typeStock}%` }}
-                              />
+                        <dl class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-black uppercase tracking-widest text-zinc-500">
+                          <div class="flex gap-1">
+                            <dt>{text.remaining}:</dt>
+                            <dd class="text-zinc-300">{typeInventory.available}</dd>
+                          </div>
+                          {typeInventory.reserved > 0 && (
+                            <div class="flex gap-1 text-amber-300/80">
+                              <dt>{text.reserved}:</dt>
+                              <dd>{typeInventory.reserved}</dd>
                             </div>
                           )}
-                        </div>
+                          {typeInventory.sold > 0 && (
+                            <div class="flex gap-1">
+                              <dt>{text.sold}:</dt>
+                              <dd>{typeInventory.sold}</dd>
+                            </div>
+                          )}
+                        </dl>
                       </div>
 
                       <div class="virya-ticket-stepper" role="group" aria-label={type.name}>

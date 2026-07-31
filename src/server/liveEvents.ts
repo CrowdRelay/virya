@@ -4,6 +4,7 @@ import type {
   TicketSaleOffer,
   TicketSaleSummary,
 } from "../lib/crowdrelay-client"
+import { normalizeTicketInventory } from "../lib/ticketInventory"
 
 const DEFAULT_CROWDRELAY_URL = "https://signal-api.virya.music/v1/"
 const DEFAULT_BANDSINTOWN_APP_ID = "virya-website"
@@ -348,14 +349,17 @@ const pruneTicketSaleCache = () => {
 
 const ticketSaleSummary = (sale: TicketSaleOffer): TicketSaleSummary => {
   const activeTypes = sale.ticket_types.filter(type => type.active)
+  const inventory = normalizeTicketInventory(sale)
   const availablePrices = activeTypes
     .filter(type => type.available > 0)
     .map(type => type.price_gross_minor)
 
   return {
     currency: sale.currency,
-    capacity: sale.capacity,
-    available: sale.available,
+    capacity: inventory.capacity,
+    sold: inventory.sold,
+    reserved: inventory.reserved,
+    available: inventory.available,
     sales_open_at: sale.sales_open_at,
     sales_close_at: sale.sales_close_at,
     sales_state: sale.sales_state,
@@ -442,6 +446,39 @@ export const loadLiveEvent = async (slug: string): Promise<PublicEvent | null> =
   return events.find(event => event.slug === slug) ?? null
 }
 
+const isNonNegativeNumber = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value) && value >= 0
+
+const isOptionalNonNegativeNumber = (value: unknown): boolean =>
+  value === undefined || isNonNegativeNumber(value)
+
+const isTicketTypeOffer = (value: unknown): boolean => {
+  if (!value || typeof value !== "object") return false
+  const ticketType = value as Record<string, unknown>
+  return (
+    typeof ticketType.id === "string" &&
+    typeof ticketType.slug === "string" &&
+    typeof ticketType.name === "string" &&
+    (ticketType.description === null || typeof ticketType.description === "string") &&
+    isNonNegativeNumber(ticketType.price_gross_minor) &&
+    (ticketType.capacity === null || isNonNegativeNumber(ticketType.capacity)) &&
+    isOptionalNonNegativeNumber(ticketType.sold) &&
+    isOptionalNonNegativeNumber(ticketType.reserved) &&
+    isNonNegativeNumber(ticketType.available) &&
+    typeof ticketType.sort_order === "number" &&
+    typeof ticketType.active === "boolean"
+  )
+}
+
+const TICKET_SALE_STATES = new Set([
+  "upcoming",
+  "open",
+  "closed",
+  "sold_out",
+  "inactive",
+  "event_unavailable",
+])
+
 const isTicketSaleOffer = (value: unknown): value is TicketSaleOffer => {
   if (!value || typeof value !== "object") return false
   const sale = value as Record<string, unknown>
@@ -449,8 +486,14 @@ const isTicketSaleOffer = (value: unknown): value is TicketSaleOffer => {
     typeof sale.event_slug === "string" &&
     typeof sale.currency === "string" &&
     typeof sale.vat_rate_basis_points === "number" &&
+    isNonNegativeNumber(sale.capacity) &&
+    isOptionalNonNegativeNumber(sale.sold) &&
+    isOptionalNonNegativeNumber(sale.reserved) &&
+    isNonNegativeNumber(sale.available) &&
     typeof sale.sales_state === "string" &&
-    Array.isArray(sale.ticket_types)
+    TICKET_SALE_STATES.has(sale.sales_state) &&
+    Array.isArray(sale.ticket_types) &&
+    sale.ticket_types.every(isTicketTypeOffer)
   )
 }
 

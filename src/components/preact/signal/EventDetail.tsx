@@ -4,6 +4,8 @@ import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
 import type { PublicEvent, TicketSaleOffer } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
+import { normalizeTicketInventory } from "../../../lib/ticketInventory"
+import TicketInventoryBar from "../tickets/TicketInventoryBar"
 import {
   bestEffort,
   campaignIdFromLocation,
@@ -228,6 +230,9 @@ export default function EventDetail({
   const lowestPrice = initialTicketSale
     ? lowestAvailablePrice(initialTicketSale)
     : null
+  const ticketInventory = initialTicketSale
+    ? normalizeTicketInventory(initialTicketSale)
+    : null
   const saleOpen = initialTicketSale?.sales_state === "open"
   const saleStateLabel = initialTicketSale
     ? ticketStateLabel(initialTicketSale, lang)
@@ -271,9 +276,14 @@ export default function EventDetail({
             </p>
 
             {event.description && (
-              <p class="mt-7 max-w-3xl text-sm leading-relaxed text-zinc-300 lg:text-base">
-                {event.description}
-              </p>
+              <section class="virya-event-description mt-7 max-w-3xl" aria-labelledby="event-description-heading">
+                <p id="event-description-heading" class="text-[9px] font-black uppercase tracking-[.22em] text-amber-400">
+                  {lang === "pl" ? "O koncercie" : "About the show"}
+                </p>
+                <p class="virya-prose mt-3 text-sm leading-relaxed text-zinc-300 lg:text-base">
+                  {event.description}
+                </p>
+              </section>
             )}
 
             {checkinState !== "none" && (
@@ -408,16 +418,16 @@ export default function EventDetail({
               </Fact>
             </dl>
 
-            {initialTicketSale && (
-              <div class="mt-6 border-t border-zinc-800 pt-6">
+            {initialTicketSale && ticketInventory && (
+              <div class="mt-6 hidden border-t border-zinc-800 pt-6 sm:block">
                 <div class="flex items-end justify-between gap-4">
                   <div>
                     <p class="text-[8px] font-black uppercase tracking-[.2em] text-zinc-500">
                       {lang === "pl" ? "Pula Virya" : "Virya allocation"}
                     </p>
                     <p class="mt-2 text-3xl font-black text-white">
-                      {initialTicketSale.available}
-                      <span class="ml-1 text-sm text-zinc-500">/ {initialTicketSale.capacity}</span>
+                      {ticketInventory.available}
+                      <span class="ml-1 text-sm text-zinc-500">/ {ticketInventory.capacity}</span>
                     </p>
                   </div>
                   {lowestPrice != null && (
@@ -429,14 +439,12 @@ export default function EventDetail({
                     </p>
                   )}
                 </div>
-                <div class="mt-4 h-1.5 overflow-hidden bg-zinc-800" aria-hidden="true">
-                  <span
-                    class="block h-full bg-amber-400"
-                    style={{
-                      width: `${Math.max(0, Math.min(100, (initialTicketSale.available / Math.max(1, initialTicketSale.capacity)) * 100))}%`,
-                    }}
-                  />
-                </div>
+                <TicketInventoryBar
+                  inventory={initialTicketSale}
+                  lang={lang}
+                  compact
+                  class="mt-4"
+                />
               </div>
             )}
           </aside>
@@ -605,9 +613,15 @@ function lowestAvailablePrice(sale: TicketSaleOffer): number | null {
 
 function ticketStateLabel(sale: TicketSaleOffer, lang: Lang): string {
   if (sale.sales_state === "open") {
+    const inventory = normalizeTicketInventory(sale)
+    const reserved = inventory.reserved > 0
+      ? lang === "pl"
+        ? ` · ${inventory.reserved} w płatności`
+        : ` · ${inventory.reserved} in payment`
+      : ""
     return lang === "pl"
-      ? `${sale.available} biletów dostępnych`
-      : `${sale.available} tickets available`
+      ? `${inventory.available} biletów dostępnych${reserved}`
+      : `${inventory.available} tickets available${reserved}`
   }
   if (sale.sales_state === "upcoming") {
     return lang === "pl" ? "Sprzedaż wkrótce" : "Tickets on sale soon"

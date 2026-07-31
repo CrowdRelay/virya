@@ -24,12 +24,20 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isNullableString = (value: unknown): value is string | null =>
   value === null || typeof value === "string"
 
+const isNonNegativeNumber = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value) && value >= 0
+
+const isOptionalNonNegativeNumber = (value: unknown): boolean =>
+  value === undefined || isNonNegativeNumber(value)
+
 const isTicketSaleSummary = (value: unknown): boolean => {
   if (!isRecord(value)) return false
   return (
     typeof value.currency === "string" &&
-    typeof value.capacity === "number" &&
-    typeof value.available === "number" &&
+    isNonNegativeNumber(value.capacity) &&
+    isOptionalNonNegativeNumber(value.sold) &&
+    isOptionalNonNegativeNumber(value.reserved) &&
+    isNonNegativeNumber(value.available) &&
     typeof value.sales_open_at === "string" &&
     typeof value.sales_close_at === "string" &&
     typeof value.sales_state === "string" &&
