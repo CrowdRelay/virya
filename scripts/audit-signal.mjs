@@ -20,6 +20,7 @@ const redirects = read("public/_redirects")
 const envExample = read(".env.example")
 const signalCopy = read("src/data/signalCopy.ts")
 const webhook = read("src/pages/api/crowdrelay-webhook.ts")
+const crowdrelayMailer = read("src/pages/api/crowdrelay-mail.ts")
 const subscribe = read("src/pages/api/subscribe.ts")
 const staffAuth = read("src/server/staffQrAuth.ts")
 const staffApi = read("src/server/staffQrApi.ts")
@@ -81,6 +82,16 @@ assert(
 assert(
   (signalCopy.match(/\bareaBridge\s*:/g) ?? []).length === 3,
   "Signal copy must define the AREA bridge contract plus EN and PL translations.",
+)
+
+assert(
+  envExample.includes("CROWDRELAY_MAILER_API_KEY=") &&
+    crowdrelayMailer.includes("CROWDRELAY_MAILER_API_KEY") &&
+    crowdrelayMailer.includes("timingSafeEqual") &&
+    crowdrelayMailer.includes("acquireCrowdRelayMailLease") &&
+    crowdrelayMailer.includes("crowdrelay-new-gig") &&
+    crowdrelayMailer.includes("crowdrelay-event-change"),
+  "Protected CrowdRelay template mailer is incomplete.",
 )
 
 assert(
