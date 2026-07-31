@@ -284,6 +284,8 @@
     isolation: isolate;
     overflow: hidden;
     contain: layout paint;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 14rem;
     border: 1px solid rgb(39 39 42);
     background:
       linear-gradient(135deg, rgb(9 9 11 / 0.98), rgb(9 9 11 / 0.86)),
@@ -365,15 +367,243 @@
   .virya-live-card:hover .virya-live-date {
     border-color: rgb(251 191 36 / 0.4);
   }
+
+  .virya-event-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid rgb(39 39 42);
+    background:
+      radial-gradient(circle at 92% 5%, rgb(251 191 36 / 0.11), transparent 28rem),
+      linear-gradient(135deg, rgb(9 9 11), rgb(12 12 15));
+  }
+
+  .virya-event-hero::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 0.3rem;
+    background: rgb(251 191 36);
+  }
+
+  .virya-event-hero__grid {
+    position: relative;
+    display: grid;
+    gap: 2rem;
+    padding: clamp(1.25rem, 4vw, 3rem);
+  }
+
+  .virya-event-status,
+  .virya-event-ticket-state {
+    display: inline-flex;
+    min-height: 1.875rem;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgb(63 63 70);
+    padding-inline: 0.625rem;
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(212 212 216);
+  }
+
+  .virya-event-status__dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 9999px;
+    background: rgb(251 191 36);
+    box-shadow: 0 0 14px rgb(251 191 36 / 0.8);
+  }
+
+  .virya-event-ticket-state--open {
+    border-color: rgb(52 211 153 / 0.4);
+    background: rgb(52 211 153 / 0.045);
+    color: rgb(110 231 183);
+  }
+
+  .virya-event-ticket-state--sold_out,
+  .virya-event-ticket-state--closed,
+  .virya-event-ticket-state--inactive,
+  .virya-event-ticket-state--event_unavailable {
+    color: rgb(161 161 170);
+  }
+
+  .virya-event-ticket-state--upcoming {
+    border-color: rgb(251 191 36 / 0.4);
+    color: rgb(251 191 36);
+  }
+
+  .virya-event-facts {
+    align-self: start;
+    border: 1px solid rgb(39 39 42);
+    background: rgb(0 0 0 / 0.4);
+    padding: 1.25rem;
+  }
+
+  .virya-event-text-link {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-size: 0.5625rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(161 161 170);
+    transition: color 160ms ease;
+  }
+
+  .virya-event-text-link:hover {
+    color: rgb(251 191 36);
+  }
+
+  .virya-ticket-checkout {
+    overflow: hidden;
+  }
+
+  .virya-ticket-checkout__header {
+    display: grid;
+    gap: 1.5rem;
+    border: 1px solid rgb(251 191 36 / 0.3);
+    background:
+      radial-gradient(circle at 100% 0%, rgb(251 191 36 / 0.1), transparent 20rem),
+      rgb(9 9 11);
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .virya-ticket-allocation {
+    min-width: 9rem;
+    border-left: 2px solid rgb(251 191 36);
+    padding-left: 1rem;
+  }
+
+  .virya-ticket-allocation > span {
+    display: block;
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(161 161 170);
+  }
+
+  .virya-ticket-allocation > strong {
+    display: inline-block;
+    margin-top: 0.4rem;
+    font-size: 2rem;
+    line-height: 1;
+    color: white;
+  }
+
+  .virya-ticket-allocation > small {
+    margin-left: 0.25rem;
+    font-weight: 700;
+    color: rgb(113 113 122);
+  }
+
+  .virya-ticket-type {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid rgb(39 39 42);
+    background: rgb(9 9 11);
+    padding: 1rem;
+    transition: border-color 160ms ease, background-color 160ms ease;
+  }
+
+  .virya-ticket-type:focus-within {
+    border-color: rgb(251 191 36 / 0.55);
+    background: rgb(12 12 15);
+  }
+
+  .virya-ticket-stepper {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(3.5rem, 4rem) 2.75rem;
+    align-items: stretch;
+    justify-content: start;
+  }
+
+  .virya-ticket-stepper__button,
+  .virya-ticket-stepper__input {
+    min-height: 2.75rem;
+    border: 1px solid rgb(63 63 70);
+    background: rgb(0 0 0);
+    color: white;
+  }
+
+  .virya-ticket-stepper__button {
+    font-size: 1rem;
+    font-weight: 900;
+    transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+  }
+
+  .virya-ticket-stepper__button:hover:not(:disabled) {
+    border-color: rgb(251 191 36);
+    background: rgb(251 191 36);
+    color: black;
+  }
+
+  .virya-ticket-stepper__button:disabled {
+    cursor: not-allowed;
+    color: rgb(82 82 91);
+  }
+
+  .virya-ticket-stepper__input {
+    border-inline: 0;
+    text-align: center;
+    font-weight: 900;
+    appearance: textfield;
+  }
+
+  .virya-ticket-stepper__input::-webkit-inner-spin-button,
+  .virya-ticket-stepper__input::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  .virya-ticket-summary {
+    height: fit-content;
+    border: 1px solid rgb(39 39 42);
+    background: rgb(24 24 27 / 0.65);
+    padding: 1.25rem;
+  }
 }
 
 @media (min-width: 640px) {
+  .virya-event-hero__grid {
+    padding: 2rem;
+  }
+
+  .virya-ticket-checkout__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  .virya-ticket-type {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
   .virya-section {
     padding-inline: 1.5rem;
   }
 }
 
 @media (min-width: 1024px) {
+  .virya-event-hero__grid {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    gap: 3rem;
+    padding: 3rem;
+  }
+
+  .virya-event-facts,
+  .virya-ticket-summary {
+    position: sticky;
+    top: 7rem;
+  }
+
   .virya-section {
     padding: 6rem 3rem;
   }

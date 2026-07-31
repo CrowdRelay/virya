@@ -6,6 +6,23 @@ export interface EventCity {
   region: string | null
 }
 
+export interface TicketSaleSummary {
+  currency: string
+  capacity: number
+  available: number
+  sales_open_at: string
+  sales_close_at: string
+  sales_state:
+    | "upcoming"
+    | "open"
+    | "closed"
+    | "sold_out"
+    | "inactive"
+    | "event_unavailable"
+  from_price_gross_minor: number | null
+  active_ticket_type_count: number
+}
+
 export interface PublicEvent {
   id: string
   slug: string
@@ -25,6 +42,7 @@ export interface PublicEvent {
   external_event_url: string | null
   updated_at: string
   source?: "crowdrelay" | "bandsintown" | "curated"
+  ticket_sale?: TicketSaleSummary | null
 }
 
 

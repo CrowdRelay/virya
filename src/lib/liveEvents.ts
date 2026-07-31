@@ -24,6 +24,21 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isNullableString = (value: unknown): value is string | null =>
   value === null || typeof value === "string"
 
+const isTicketSaleSummary = (value: unknown): boolean => {
+  if (!isRecord(value)) return false
+  return (
+    typeof value.currency === "string" &&
+    typeof value.capacity === "number" &&
+    typeof value.available === "number" &&
+    typeof value.sales_open_at === "string" &&
+    typeof value.sales_close_at === "string" &&
+    typeof value.sales_state === "string" &&
+    (value.from_price_gross_minor === null ||
+      typeof value.from_price_gross_minor === "number") &&
+    typeof value.active_ticket_type_count === "number"
+  )
+}
+
 const isPublicEvent = (value: unknown): value is PublicEvent => {
   if (!isRecord(value)) return false
   if (
@@ -32,6 +47,14 @@ const isPublicEvent = (value: unknown): value is PublicEvent => {
     typeof value.title !== "string" ||
     typeof value.starts_at !== "string" ||
     Number.isNaN(Date.parse(value.starts_at))
+  ) {
+    return false
+  }
+
+  if (
+    value.ticket_sale !== undefined &&
+    value.ticket_sale !== null &&
+    !isTicketSaleSummary(value.ticket_sale)
   ) {
     return false
   }

@@ -1,12 +1,21 @@
 import { CURATED_LIVE_EVENTS } from "../data/liveEvents"
-import type { PublicEvent, TicketSaleOffer } from "../lib/crowdrelay-client"
+import type {
+  PublicEvent,
+  TicketSaleOffer,
+  TicketSaleSummary,
+} from "../lib/crowdrelay-client"
 
 const DEFAULT_CROWDRELAY_URL = "https://signal-api.virya.music/v1/"
 const DEFAULT_BANDSINTOWN_APP_ID = "virya-website"
 const REQUEST_TIMEOUT_MS = 6_000
 const MAX_RESPONSE_BYTES = 512 * 1024
-const HEALTHY_CACHE_TTL_MS = 2 * 60 * 1000
+const HEALTHY_CACHE_TTL_MS = 60 * 1000
 const DEGRADED_CACHE_TTL_MS = 30 * 1000
+const TICKET_SALE_CACHE_TTL_MS = 45 * 1000
+const TICKET_SALE_NEGATIVE_CACHE_TTL_MS = 15 * 1000
+const MAX_TICKET_SALE_CACHE_ENTRIES = 128
+const MAX_TICKET_SALE_ENRICHMENT_EVENTS = 24
+const TICKET_SALE_ENRICHMENT_CONCURRENCY = 4
 const EVENT_MATCH_WINDOW_MS = 8 * 60 * 60 * 1000
 const encoder = new TextEncoder()
 
@@ -281,6 +290,45 @@ const loadBandsintownEvents = async (): Promise<PublicEvent[]> => {
     .filter((event): event is PublicEvent => event !== null)
 }
 
+type CachedTicketSale = {
+  expiresAt: number
+  sale: TicketSaleOffer | null
+}
+
+const ticketSaleCache = new Map<string, CachedTicketSale>()
+const pendingTicketSales = new Map<string, Promise<TicketSaleOffer | null>>()
+
+const pruneTicketSaleCache = () => {
+  const now = Date.now()
+  for (const [slug, cached] of ticketSaleCache) {
+    if (cached.expiresAt <= now) ticketSaleCache.delete(slug)
+  }
+  while (ticketSaleCache.size > MAX_TICKET_SALE_CACHE_ENTRIES) {
+    const oldest = ticketSaleCache.keys().next().value
+    if (typeof oldest !== "string") break
+    ticketSaleCache.delete(oldest)
+  }
+}
+
+const ticketSaleSummary = (sale: TicketSaleOffer): TicketSaleSummary => {
+  const activeTypes = sale.ticket_types.filter(type => type.active)
+  const availablePrices = activeTypes
+    .filter(type => type.available > 0)
+    .map(type => type.price_gross_minor)
+
+  return {
+    currency: sale.currency,
+    capacity: sale.capacity,
+    available: sale.available,
+    sales_open_at: sale.sales_open_at,
+    sales_close_at: sale.sales_close_at,
+    sales_state: sale.sales_state,
+    from_price_gross_minor:
+      availablePrices.length > 0 ? Math.min(...availablePrices) : null,
+    active_ticket_type_count: activeTypes.length,
+  }
+}
+
 export type LiveEventLoadResult = {
   events: PublicEvent[]
   degraded: boolean
@@ -298,7 +346,11 @@ const resolveLiveEvents = async (): Promise<LiveEventLoadResult> => {
   try {
     const crowdRelayEvents = await loadCrowdRelayEvents()
     if (crowdRelayEvents.length > 0) {
-      return { events: mergeEvents(crowdRelayEvents), degraded: false }
+      const merged = mergeEvents(crowdRelayEvents)
+      return {
+        events: await enrichEventsWithTicketSales(merged),
+        degraded: false,
+      }
     }
   } catch {
     // CrowdRelay is the source of truth. Bandsintown is queried only as a
@@ -358,10 +410,7 @@ const isTicketSaleOffer = (value: unknown): value is TicketSaleOffer => {
   )
 }
 
-export const loadLiveTicketSale = async (
-  slug: string,
-): Promise<TicketSaleOffer | null> => {
-  if (!/^[a-z0-9][a-z0-9_-]{0,127}$/.test(slug)) return null
+const fetchLiveTicketSale = async (slug: string): Promise<TicketSaleOffer | null> => {
   try {
     const url = new URL(
       `public/events/${encodeURIComponent(slug)}/tickets`,
@@ -372,4 +421,79 @@ export const loadLiveTicketSale = async (
   } catch {
     return null
   }
+}
+
+export const loadLiveTicketSale = async (
+  slug: string,
+): Promise<TicketSaleOffer | null> => {
+  if (!/^[a-z0-9][a-z0-9_-]{0,127}$/.test(slug)) return null
+
+  const now = Date.now()
+  const cached = ticketSaleCache.get(slug)
+  if (cached && cached.expiresAt > now) return cached.sale
+
+  const pending = pendingTicketSales.get(slug)
+  if (pending) return pending
+
+  const request = fetchLiveTicketSale(slug)
+    .then(sale => {
+      ticketSaleCache.delete(slug)
+      ticketSaleCache.set(slug, {
+        sale,
+        expiresAt:
+          Date.now() +
+          (sale ? TICKET_SALE_CACHE_TTL_MS : TICKET_SALE_NEGATIVE_CACHE_TTL_MS),
+      })
+      pruneTicketSaleCache()
+      return sale
+    })
+    .finally(() => {
+      pendingTicketSales.delete(slug)
+    })
+
+  pendingTicketSales.set(slug, request)
+  return request
+}
+
+const enrichEventsWithTicketSales = async (
+  events: PublicEvent[],
+): Promise<PublicEvent[]> => {
+  const candidates = events
+    .filter(event => event.source === "crowdrelay")
+    .slice(0, MAX_TICKET_SALE_ENRICHMENT_EVENTS)
+
+  if (candidates.length === 0) return events
+
+  const sales = new Map<string, TicketSaleOffer | null>()
+  let cursor = 0
+  const worker = async () => {
+    while (cursor < candidates.length) {
+      const index = cursor
+      cursor += 1
+      const event = candidates[index]
+      if (!event) continue
+      sales.set(event.slug, await loadLiveTicketSale(event.slug))
+    }
+  }
+
+  await Promise.all(
+    Array.from(
+      {
+        length: Math.min(
+          TICKET_SALE_ENRICHMENT_CONCURRENCY,
+          candidates.length,
+        ),
+      },
+      worker,
+    ),
+  )
+
+  return events.map(event => {
+    if (event.source !== "crowdrelay") return event
+    const sale = sales.get(event.slug)
+    return {
+      ...event,
+      ticket_sale: sale ? ticketSaleSummary(sale) : null,
+    }
+  })
 }

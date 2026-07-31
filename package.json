@@ -56,8 +56,9 @@
         "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,json,md}\"",
         "check": "tsc --noEmit",
         "audit:area": "node scripts/audit-area.mjs",
-        "test": "npm run check && npm run audit:area && npm run audit:signal && npm run audit:admin",
+        "test": "npm run check && npm run audit:area && npm run audit:signal && npm run audit:admin && npm run audit:live",
         "audit:signal": "node scripts/audit-signal.mjs",
-        "audit:admin": "node scripts/audit-admin.mjs"
+        "audit:admin": "node scripts/audit-admin.mjs",
+        "audit:live": "node scripts/audit-live.mjs"
     }
 }

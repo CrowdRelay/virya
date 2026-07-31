@@ -10,8 +10,8 @@ export const GET: APIRoute = async () => {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": degraded
-        ? "public, max-age=30, s-maxage=120, stale-while-revalidate=1800"
-        : "public, max-age=120, s-maxage=600, stale-while-revalidate=86400",
+        ? "public, max-age=20, s-maxage=60, stale-while-revalidate=120"
+        : "public, max-age=30, s-maxage=60, stale-while-revalidate=120",
     },
   })
 }
