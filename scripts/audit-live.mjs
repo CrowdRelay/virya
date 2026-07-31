@@ -15,12 +15,16 @@ const card = read("src/components/preact/LiveEventCard.tsx")
 const detailPage = read("src/components/SignalEventPage.astro")
 const detail = read("src/components/preact/signal/EventDetail.tsx")
 const checkout = read("src/components/preact/tickets/TicketCheckout.tsx")
+const inventory = read("src/lib/ticketInventory.ts")
+const inventoryBar = read("src/components/preact/tickets/TicketInventoryBar.tsx")
 const navbar = read("src/components/Navbar.astro")
 const legacyEn = read("src/pages/shows/[slug].astro")
 const legacyPl = read("src/pages/pl/shows/[slug].astro")
 
 assert(
   types.includes("export interface TicketSaleSummary") &&
+    types.includes("sold: number") &&
+    types.includes("reserved: number") &&
     types.includes("ticket_sale?: TicketSaleSummary | null"),
   "Public event DTO must expose the first-party ticket summary.",
 )
@@ -36,6 +40,12 @@ assert(
   "Browser event validation must retain ticket-sale summaries.",
 )
 assert(
+  inventory.includes("normalizeTicketInventory") &&
+    inventory.includes("sold + reserved + available = capacity") &&
+    inventoryBar.includes("Payment in progress"),
+  "Ticket inventory must normalize staggered deployments and distinguish active payment holds.",
+)
+assert(
   card.includes("firstPartyTicketHref") &&
     card.includes('`${details}#tickets`') &&
     card.includes("from_price_gross_minor"),
@@ -49,12 +59,16 @@ assert(
 assert(
   detail.includes('href="#tickets"') &&
     detail.includes("ticketStateLabel") &&
-    detail.includes("virya-event-facts"),
+    detail.includes("virya-event-facts") &&
+    detail.includes("hidden border-t border-zinc-800 pt-6 sm:block") &&
+    detail.includes("virya-prose"),
   "Gig detail must expose the ticket CTA and coherent live facts.",
 )
 assert(
   checkout.includes("initialSale?: TicketSaleOffer | null") &&
     checkout.includes("virya-ticket-stepper") &&
+    checkout.includes("TicketInventoryBar") &&
+    checkout.includes("Payment in progress") &&
     checkout.includes("Secure Stripe payment"),
   "Ticket checkout must SSR the known sale and keep an accessible quantity control.",
 )

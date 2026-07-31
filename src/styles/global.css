@@ -136,7 +136,8 @@
 
 /* Justified copy creates distracting rivers of whitespace on narrow screens. */
 @media (max-width: 639px) {
-  .text-justify {
+  .text-justify,
+  .virya-prose {
     text-align: left;
   }
 
@@ -192,6 +193,11 @@
     line-height: 1.75;
     text-wrap: pretty;
     color: rgb(161 161 170);
+  }
+
+  .virya-prose {
+    hyphens: auto;
+    text-wrap: pretty;
   }
 
   .virya-panel {
@@ -435,6 +441,11 @@
     color: rgb(251 191 36);
   }
 
+  .virya-event-description {
+    border-left: 1px solid rgb(251 191 36 / 0.45);
+    padding-left: 1rem;
+  }
+
   .virya-event-facts {
     align-self: start;
     border: 1px solid rgb(39 39 42);
@@ -463,6 +474,7 @@
 
   .virya-ticket-checkout {
     overflow: hidden;
+    contain: layout paint;
   }
 
   .virya-ticket-checkout__header {
@@ -476,9 +488,113 @@
   }
 
   .virya-ticket-allocation {
-    min-width: 9rem;
+    width: 100%;
+    min-width: 0;
     border-left: 2px solid rgb(251 191 36);
     padding-left: 1rem;
+  }
+
+
+  .virya-ticket-inventory {
+    display: flex;
+    width: 100%;
+    height: 0.5rem;
+    overflow: hidden;
+    border: 1px solid rgb(63 63 70 / 0.75);
+    background: rgb(39 39 42);
+  }
+
+  .virya-ticket-inventory--compact {
+    height: 0.3rem;
+    border: 0;
+  }
+
+  .virya-ticket-inventory > span {
+    display: block;
+    min-width: 1px;
+    flex: none;
+  }
+
+  .virya-ticket-inventory__sold {
+    background: rgb(251 191 36);
+  }
+
+  .virya-ticket-inventory__reserved {
+    background:
+      repeating-linear-gradient(
+        135deg,
+        rgb(253 230 138 / 0.7) 0,
+        rgb(253 230 138 / 0.7) 0.3rem,
+        rgb(180 83 9 / 0.45) 0.3rem,
+        rgb(180 83 9 / 0.45) 0.6rem
+      );
+  }
+
+  .virya-ticket-inventory__available {
+    background: rgb(39 39 42);
+  }
+
+  .virya-ticket-inventory__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-top: 0.75rem;
+  }
+
+  .virya-ticket-inventory__legend > div {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .virya-ticket-inventory__legend dt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgb(161 161 170);
+  }
+
+  .virya-ticket-inventory__legend dd {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.625rem;
+    font-weight: 900;
+    color: rgb(228 228 231);
+  }
+
+  .virya-ticket-inventory__legend--compact {
+    gap: 0.35rem 0.75rem;
+    margin-top: 0.55rem;
+  }
+
+  .virya-ticket-inventory__key {
+    width: 0.45rem;
+    height: 0.45rem;
+    flex: none;
+  }
+
+  .virya-ticket-inventory__key--sold {
+    background: rgb(251 191 36);
+  }
+
+  .virya-ticket-inventory__key--reserved {
+    background:
+      repeating-linear-gradient(
+        135deg,
+        rgb(253 230 138 / 0.7) 0,
+        rgb(253 230 138 / 0.7) 0.18rem,
+        rgb(180 83 9 / 0.45) 0.18rem,
+        rgb(180 83 9 / 0.45) 0.36rem
+      );
+  }
+
+  .virya-ticket-inventory__key--available {
+    border: 1px solid rgb(82 82 91);
+    background: rgb(39 39 42);
   }
 
   .virya-ticket-allocation > span {
@@ -572,12 +688,17 @@
 }
 
 @media (min-width: 640px) {
+  .virya-prose {
+    text-align: justify;
+    text-align-last: left;
+  }
+
   .virya-event-hero__grid {
     padding: 2rem;
   }
 
   .virya-ticket-checkout__header {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
     align-items: end;
   }
 
@@ -610,5 +731,16 @@
 
   .virya-copy {
     font-size: 1rem;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .virya-live-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .virya-live-card:hover .virya-live-card__orbit {
+    transform: none;
   }
 }

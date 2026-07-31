@@ -59,12 +59,22 @@ export const isStaffQrApiConfigured = () => adminKey() !== null
 
 export class StaffQrUpstreamError extends Error {
   readonly status: number
+  readonly detail: string | null
 
-  constructor(status: number) {
-    super(`CrowdRelay returned ${status}`)
+  constructor(status: number, detail: string | null = null) {
+    super(detail ?? `CrowdRelay returned ${status}`)
     this.name = "StaffQrUpstreamError"
     this.status = status
+    this.detail = detail
   }
+}
+
+const safeProblemDetail = (value: unknown): string | null => {
+  if (typeof value !== "string") return null
+  const detail = value.trim()
+  return detail && detail.length <= 300 && !/[\u0000-\u001f\u007f]/.test(detail)
+    ? detail
+    : null
 }
 
 const readLimitedJson = async <T>(response: Response): Promise<T> => {
@@ -138,7 +148,16 @@ export const staffQrRequest = async <T>(
       cache: "no-store",
       signal: controller.signal,
     })
-    if (!response.ok) throw new StaffQrUpstreamError(response.status)
+    if (!response.ok) {
+      let detail: string | null = null
+      try {
+        const problem = await readLimitedJson<Record<string, unknown>>(response)
+        detail = safeProblemDetail(problem.detail) ?? safeProblemDetail(problem.title)
+      } catch {
+        // Preserve the upstream status even when its error body is absent or malformed.
+      }
+      throw new StaffQrUpstreamError(response.status, detail)
+    }
     if (response.status === 204) return undefined as T
 
     return await readLimitedJson<T>(response)
