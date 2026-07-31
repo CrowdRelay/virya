@@ -8,6 +8,7 @@ It started as a fast multilingual band site. It now includes:
 
 - music, lyrics, video, gallery, press and live-event pages;
 - Stripe merch checkout with InPost delivery;
+- first-party Stripe ticket reservations and webhook reconciliation backed by CrowdRelay;
 - VIRYA AREA, a browser-based geolocation field game;
 - Virya Signal fan registration, consent, referrals and event interest;
 - admission-pass and concert check-in flows backed by CrowdRelay;
@@ -34,7 +35,7 @@ The browser never receives Stripe secrets, CrowdRelay admin keys or staff creden
 
 Public content does not wait for email or automation delivery. AREA and Signal have separate state boundaries so a CrowdRelay outage cannot invalidate an already committed AREA reward.
 
-More detail: [architecture](docs/ARCHITECTURE.md), [Signal integration](docs/VIRYA_SIGNAL_INTEGRATION.md), [staff QR panel](docs/STAFF_QR.md).
+More detail: [architecture](docs/ARCHITECTURE.md), [Signal integration](docs/VIRYA_SIGNAL_INTEGRATION.md), [staff QR panel](docs/STAFF_QR.md), [ticket checkout backend](docs/TICKETING_BACKEND.md), and [the unified ticketing ecosystem](docs/ECOSYSTEM_TICKETING.md).
 
 ## Local development
 

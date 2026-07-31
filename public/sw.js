@@ -1,7 +1,7 @@
-const CACHE_NAME = 'virya-v11'
-const STATIC_CACHE = 'virya-static-v11'
+const CACHE_NAME = 'virya-v12'
+const STATIC_CACHE = 'virya-static-v12'
 const STATIC_ASSET_PATTERN = /\.(webp|png|jpg|jpeg|svg|css|js|woff2?|ttf|otf)$/
-const PRIVATE_HTML_PATTERN = /^\/(?:pl\/)?(?:merch\/(?:success|cancel)|area\/claim|staff)(?:\/|$)/
+const PRIVATE_HTML_PATTERN = /^\/(?:pl\/)?(?:merch\/(?:success|cancel)|area\/claim|staff|tickets(?:\/|$)|win(?:\/|$))/
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

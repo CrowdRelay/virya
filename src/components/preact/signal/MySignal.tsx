@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "preact/hooks"
+import AdmissionPassCard from "./AdmissionPassCard"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
 import type {
+  AdmissionPass,
   FanEventInterest,
   ReferralProgress,
 } from "../../../lib/crowdrelay-client"
@@ -23,6 +25,7 @@ type State =
       kind: "ready"
       progress: ReferralProgress
       events: FanEventInterest[]
+      admissionPass: AdmissionPass | null
     }
 
 export default function MySignal({ lang }: Props) {
@@ -37,9 +40,13 @@ export default function MySignal({ lang }: Props) {
     void Promise.all([
       crowdrelay.getReferralProgress(),
       crowdrelay.listMyEvents(),
+      crowdrelay.getMyAdmissionPass().catch(error => {
+        if (error instanceof CrowdRelayError && (error.status === 401 || error.status === 404)) return null
+        throw error
+      }),
     ])
-      .then(([progress, events]) => {
-        if (!cancelled) setState({ kind: "ready", progress, events })
+      .then(([progress, events, admissionPass]) => {
+        if (!cancelled) setState({ kind: "ready", progress, events, admissionPass })
       })
       .catch(error => {
         if (cancelled) return
@@ -115,7 +122,7 @@ export default function MySignal({ lang }: Props) {
     )
   }
 
-  const { progress, events } = state
+  const { progress, events, admissionPass } = state
   const drawEntries = progress.draw_entries ?? []
   const coupons = progress.coupons ?? []
   const physicalRewards = progress.physical_rewards ?? []
@@ -172,6 +179,8 @@ export default function MySignal({ lang }: Props) {
           </div>
         </section>
       )}
+
+      {admissionPass && <AdmissionPassCard lang={lang} pass={admissionPass} />}
 
       <section class="virya-panel border-amber-400/30 bg-amber-400/[.025] p-5 sm:p-6">
         <div>

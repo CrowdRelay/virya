@@ -13,6 +13,7 @@ import {
   redeemAreaRewardCode,
   releaseAreaRewardCode,
 } from "../../server/areaReward"
+import { reconcileTicketStripeEvent } from "../../server/ticketStripeWebhook"
 
 export const POST: APIRoute = async ({ request }) => {
   const stripeKey = import.meta.env.STRIPE_SECRET_KEY?.trim()
@@ -40,6 +41,21 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (err) {
     console.error("[stripe-webhook] signature verification failed:", err)
     return new Response("Webhook signature invalid", { status: 400 })
+  }
+
+  try {
+    if (await reconcileTicketStripeEvent(stripe, event)) {
+      return new Response(JSON.stringify({ received: true, ticketing: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      })
+    }
+  } catch (error) {
+    console.error("[stripe-webhook] ticket reconciliation failed:", error)
+    // Stripe retries signed events until CrowdRelay commits the transition.
+    return new Response("Ticket reconciliation temporarily failed", {
+      status: 500,
+    })
   }
 
   if (

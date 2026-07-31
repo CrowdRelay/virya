@@ -1,0 +1,30 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import ScrollToTop from "./ScrollToTop.astro"
+import TicketWallet from "./preact/tickets/TicketWallet"
+import type { Lang } from "../i18n/t"
+
+interface Props { lang?: Lang; orderId: string }
+const { lang = "en", orderId } = Astro.props
+const title = lang === "pl" ? "Twoje bilety | Virya" : "Your tickets | Virya"
+const description = lang === "pl" ? "Prywatny portfel biletów Viryi." : "Your private Virya ticket wallet."
+---
+<Layout title={title} description={description} lang={lang}>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="dns-prefetch" href="https://signal-api.virya.music" />
+  </Fragment>
+  <div class="flex min-h-screen flex-col bg-zinc-950">
+    <Navbar lang={lang} displayLinks={true} activePage="signal" />
+    <ScrollToTop />
+    <main id="main-content" class="virya-section flex-1 pb-20 pt-32">
+      <div class="virya-section__inner">
+        <TicketWallet client:load lang={lang} orderId={orderId} />
+      </div>
+    </main>
+    <Footer lang={lang} />
+  </div>
+</Layout>

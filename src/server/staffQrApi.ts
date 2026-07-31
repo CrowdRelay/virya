@@ -148,3 +148,47 @@ export const staffQrRequest = async <T>(
     clearTimeout(timeout)
   }
 }
+
+const MAX_STAFF_DOWNLOAD_BYTES = 5 * 1024 * 1024
+
+/** Generic alias used by the accounting panel; kept alongside the legacy QR name. */
+export const staffApiRequest = staffQrRequest
+export const isStaffApiConfigured = isStaffQrApiConfigured
+
+export const staffApiDownload = async (path: string) => {
+  const key = adminKey()
+  if (!key) throw new StaffQrUpstreamError(503)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15_000)
+  try {
+    const response = await fetch(new URL(path.replace(/^\/+/, ""), baseUrl()), {
+      headers: {
+        Accept: "text/csv, application/octet-stream;q=0.9",
+        Authorization: `Bearer ${key}`,
+      },
+      cache: "no-store",
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new StaffQrUpstreamError(response.status)
+    const declared = Number(response.headers.get("content-length") ?? "0")
+    if (Number.isFinite(declared) && declared > MAX_STAFF_DOWNLOAD_BYTES) {
+      throw new StaffQrUpstreamError(502)
+    }
+    const body = new Uint8Array(await response.arrayBuffer())
+    if (body.byteLength > MAX_STAFF_DOWNLOAD_BYTES) {
+      throw new StaffQrUpstreamError(502)
+    }
+    return {
+      body,
+      contentType: response.headers.get("content-type") ?? "text/csv; charset=utf-8",
+      contentDisposition:
+        response.headers.get("content-disposition") ??
+        'attachment; filename="ticket-sales.csv"',
+    }
+  } catch (error) {
+    if (error instanceof StaffQrUpstreamError) throw error
+    throw new StaffQrUpstreamError(502)
+  } finally {
+    clearTimeout(timeout)
+  }
+}

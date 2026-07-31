@@ -6,6 +6,7 @@ import Navbar from "../../components/Navbar.astro"
 import Footer from "../../components/Footer.astro"
 import ScrollToTop from "../../components/ScrollToTop.astro"
 import MerchClient from "../../components/preact/merch/MerchClient"
+import EcosystemRail from "../../components/EcosystemRail.astro"
 import { getSeoTags } from "../../utils/seo"
 import { t, lp } from "../../i18n/t"
 import responsiveSrcsets from "../../srcsets.json"
@@ -31,6 +32,7 @@ const firstProductSrcset = (responsiveSrcsets as Record<string, string>)[firstPr
     <ScrollToTop />
 
     <MerchClient client:idle lang={lang} />
+    <EcosystemRail lang={lang} active="merch" />
 
     <Footer lang={lang} />
   </div>

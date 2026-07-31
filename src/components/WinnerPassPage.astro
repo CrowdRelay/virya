@@ -1,0 +1,14 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import ScrollToTop from "./ScrollToTop.astro"
+import WinnerPassClaim from "./preact/signal/WinnerPassClaim"
+import type { Lang } from "../i18n/t"
+interface Props { lang?: Lang }
+const { lang = "en" } = Astro.props
+---
+<Layout title={lang === "pl" ? "Twoja wejściówka | Virya" : "Your guest pass | Virya"} description={lang === "pl" ? "Aktywuj wygraną wejściówkę Viryi." : "Activate your Virya guest pass."} lang={lang}>
+  <Fragment slot="head"><meta name="robots" content="noindex,nofollow,noarchive" /><meta name="referrer" content="no-referrer" /></Fragment>
+  <div class="flex min-h-screen flex-col bg-zinc-950"><Navbar lang={lang} displayLinks={true} activePage="signal" /><ScrollToTop /><main id="main-content" class="virya-section flex-1 pb-20 pt-32"><div class="mx-auto max-w-5xl"><WinnerPassClaim client:load lang={lang} /></div></main><Footer lang={lang} /></div>
+</Layout>

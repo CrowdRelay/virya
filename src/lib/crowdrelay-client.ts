@@ -27,6 +27,115 @@ export interface PublicEvent {
   source?: "crowdrelay" | "bandsintown" | "curated"
 }
 
+
+export interface TicketTypeOffer {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  price_gross_minor: number
+  capacity: number | null
+  available: number
+  sort_order: number
+  active: boolean
+}
+
+export interface TicketSaleOffer {
+  event_id: string
+  event_slug: string
+  event_title: string
+  event_status: string
+  venue: string | null
+  timezone: string
+  starts_at: string
+  currency: string
+  vat_rate_basis_points: number
+  capacity: number
+  available: number
+  max_per_order: number
+  sales_open_at: string
+  sales_close_at: string
+  active: boolean
+  sales_state: "upcoming" | "open" | "closed" | "sold_out" | "inactive" | "event_unavailable"
+  ticket_types: TicketTypeOffer[]
+}
+
+export interface TicketOrderItem {
+  id: string
+  ticket_type_slug: string
+  ticket_type_name: string
+  quantity: number
+  unit_gross_minor: number
+  unit_net_minor: number
+  unit_vat_minor: number
+  total_gross_minor: number
+  total_net_minor: number
+  total_vat_minor: number
+}
+
+export interface IssuedTicket {
+  pass_id: string
+  order_item_id: string
+  sequence: number
+  public_reference: string
+  status: string
+  holder_name: string | null
+  holder_email_masked: string
+  redeemed_at: string | null
+}
+
+export interface TicketOrder {
+  order_id: string
+  public_reference: string
+  event_slug: string
+  event_title: string
+  venue: string | null
+  timezone: string
+  starts_at: string
+  status: string
+  buyer_email_masked: string
+  buyer_name: string | null
+  currency: string
+  amount_gross_minor: number
+  amount_net_minor: number
+  amount_vat_minor: number
+  amount_refunded_minor: number
+  vat_rate_basis_points: number
+  invoice_requested: boolean
+  expires_at: string
+  paid_at: string | null
+  refunded_at: string | null
+  items: TicketOrderItem[]
+  tickets: IssuedTicket[]
+}
+
+export interface TicketWalletPass {
+  pass_id: string
+  order_item_id: string
+  ticket_type_slug: string
+  ticket_type_name: string
+  sequence: number
+  public_reference: string
+  status: string
+  holder_name: string | null
+  holder_email_masked: string
+  redeemed_at: string | null
+  qr_token: string | null
+  qr_not_before: string
+  qr_expires_at: string
+}
+
+export interface TicketWallet {
+  order: TicketOrder
+  tickets: TicketWalletPass[]
+}
+
+export interface TicketDeliveryRequestResult {
+  accepted: boolean
+  duplicate: boolean
+  requested_at: string
+}
+
 export interface CitySignal {
   slug: string
   name: string
@@ -169,6 +278,41 @@ export interface ProblemDetails {
   request_id?: string
 }
 
+const MAX_API_RESPONSE_BYTES = 1024 * 1024
+
+async function readBoundedJson<T>(response: Response): Promise<T> {
+  const declared = Number(response.headers.get("content-length") ?? "0")
+  if (Number.isFinite(declared) && declared > MAX_API_RESPONSE_BYTES) {
+    throw new CrowdRelayError(0, "CrowdRelay response exceeded the safety limit")
+  }
+  if (!response.body) throw new CrowdRelayError(0, "CrowdRelay returned an empty response")
+  const reader = response.body.getReader()
+  const chunks: Uint8Array[] = []
+  let total = 0
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      total += value.byteLength
+      if (total > MAX_API_RESPONSE_BYTES) {
+        await reader.cancel("response too large")
+        throw new CrowdRelayError(0, "CrowdRelay response exceeded the safety limit")
+      }
+      chunks.push(value)
+    }
+  } finally {
+    reader.releaseLock()
+  }
+  const bytes = new Uint8Array(total)
+  let offset = 0
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength }
+  try {
+    return JSON.parse(new TextDecoder().decode(bytes)) as T
+  } catch {
+    throw new CrowdRelayError(0, "CrowdRelay returned invalid JSON")
+  }
+}
+
 export class CrowdRelayError extends Error {
   readonly status: number
   readonly problem?: ProblemDetails
@@ -187,6 +331,7 @@ interface RequestOptions {
   idempotencyKey?: string
   expectEmpty?: boolean
   timeoutMs?: number
+  bearerToken?: string
 }
 
 export class CrowdRelayClient {
@@ -224,6 +369,37 @@ export class CrowdRelayClient {
     return this.#request(
       `public/events/${encodeURIComponent(slug)}${campaignQuery(campaignId)}`,
       { timeoutMs: 1_800 },
+    )
+  }
+
+  getTicketSale(slug: string): Promise<TicketSaleOffer> {
+    return this.#request(`public/events/${encodeURIComponent(slug)}/tickets`, {
+      timeoutMs: 2_500,
+    })
+  }
+
+  getTicketOrder(orderId: string, token: string): Promise<TicketOrder> {
+    return this.#request(`public/ticket-orders/${encodeURIComponent(orderId)}`, {
+      bearerToken: token,
+      timeoutMs: 4_000,
+    })
+  }
+
+  getTicketWallet(orderId: string, token: string): Promise<TicketWallet> {
+    return this.#request(
+      `public/ticket-orders/${encodeURIComponent(orderId)}/wallet`,
+      { bearerToken: token, timeoutMs: 5_000 },
+    )
+  }
+
+  requestTicketDelivery(
+    orderId: string,
+    token: string,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<TicketDeliveryRequestResult> {
+    return this.#request(
+      `public/ticket-orders/${encodeURIComponent(orderId)}/delivery-requests`,
+      { method: "POST", bearerToken: token, idempotencyKey, timeoutMs: 7_000 },
     )
   }
 
@@ -355,6 +531,9 @@ export class CrowdRelayClient {
       if (options.idempotencyKey) {
         headers.set("Idempotency-Key", options.idempotencyKey)
       }
+      if (options.bearerToken) {
+        headers.set("Authorization", `Bearer ${options.bearerToken}`)
+      }
 
       const response = await this.#fetch(this.#url(path), {
         method: options.method ?? "GET",
@@ -367,7 +546,7 @@ export class CrowdRelayClient {
 
       if (!response.ok) throw await toError(response)
       if (options.expectEmpty || response.status === 204) return undefined as T
-      return (await response.json()) as T
+      return await readBoundedJson<T>(response)
     } catch (error) {
       if (error instanceof CrowdRelayError) throw error
       if (error instanceof DOMException && error.name === "AbortError") {
@@ -390,7 +569,7 @@ export class CrowdRelayClient {
 async function toError(response: Response): Promise<CrowdRelayError> {
   const contentType = response.headers.get("content-type") ?? ""
   if (contentType.includes("application/problem+json")) {
-    const problem = (await response.json()) as ProblemDetails
+    const problem = await readBoundedJson<ProblemDetails>(response)
     return new CrowdRelayError(
       response.status,
       problem.detail ?? problem.title,
