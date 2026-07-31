@@ -228,6 +228,23 @@ const sameEvent = (left: PublicEvent, right: PublicEvent): boolean => {
   return sameCity && (sameVenue || addressMatches || timeDistance <= 4 * 60 * 60 * 1000)
 }
 
+const hasFirstPartyTicketSale = (event: PublicEvent): boolean =>
+  event.ticket_sale !== null && event.ticket_sale !== undefined
+
+const preferredDuplicate = (
+  existing: PublicEvent,
+  candidate: PublicEvent,
+): [primary: PublicEvent, fallback: PublicEvent] => {
+  // A ticket sale belongs to one concrete CrowdRelay event slug. When provider
+  // syncs leave duplicate rows for the same gig, retaining the first row can
+  // silently disconnect the public card from the configured sale. Keep the
+  // sale-bearing event identity and only use the duplicate as content fallback.
+  if (!hasFirstPartyTicketSale(existing) && hasFirstPartyTicketSale(candidate)) {
+    return [candidate, existing]
+  }
+  return [existing, candidate]
+}
+
 const enrichEvent = (primary: PublicEvent, fallback: PublicEvent): PublicEvent => ({
   ...fallback,
   ...primary,
@@ -242,6 +259,7 @@ const enrichEvent = (primary: PublicEvent, fallback: PublicEvent): PublicEvent =
   image_url: primary.image_url ?? fallback.image_url,
   trailer_url: primary.trailer_url ?? fallback.trailer_url,
   external_event_url: primary.external_event_url ?? fallback.external_event_url,
+  ticket_sale: primary.ticket_sale ?? fallback.ticket_sale ?? null,
   source: primary.source,
 })
 
@@ -253,7 +271,10 @@ const mergeEvents = (...groups: PublicEvent[][]): PublicEvent[] => {
       const existingIndex = merged.findIndex(existing => sameEvent(existing, event))
       if (existingIndex >= 0) {
         const existing = merged[existingIndex]
-        if (existing) merged[existingIndex] = enrichEvent(existing, event)
+        if (existing) {
+          const [primary, fallback] = preferredDuplicate(existing, event)
+          merged[existingIndex] = enrichEvent(primary, fallback)
+        }
         continue
       }
       merged.push(event)
@@ -361,9 +382,17 @@ const resolveLiveEvents = async (): Promise<LiveEventLoadResult> => {
   try {
     const crowdRelayEvents = await loadCrowdRelayEvents()
     if (crowdRelayEvents.length > 0) {
-      const merged = mergeEvents(crowdRelayEvents)
+      // Resolve sales before deduplication. Otherwise a duplicate event without
+      // a sale can win the merge and its slug is later used to query tickets,
+      // making a valid allocation appear missing on Virya.
+      const ticketedCrowdRelayEvents = await enrichEventsWithTicketSales(
+        crowdRelayEvents,
+      )
       return {
-        events: await enrichEventsWithTicketSales(merged),
+        // Curated records are content-only fallbacks for address/description.
+        // CrowdRelay keeps identity and ticket state whenever the same gig exists
+        // in both sources.
+        events: mergeEvents(ticketedCrowdRelayEvents, CURATED_LIVE_EVENTS),
         degraded: false,
       }
     }
@@ -433,7 +462,12 @@ const fetchLiveTicketSale = async (slug: string): Promise<TicketSaleOffer | null
     )
     const value = await fetchJson(url)
     return isTicketSaleOffer(value) ? value : null
-  } catch {
+  } catch (error) {
+    console.warn(
+      "[live-ticket-sale]",
+      slug,
+      error instanceof Error ? error.message : "unknown upstream error",
+    )
     return null
   }
 }
