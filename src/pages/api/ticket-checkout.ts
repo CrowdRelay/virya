@@ -335,11 +335,15 @@ export const POST: APIRoute = async ({ request }) => {
     )
   } catch (error) {
     console.error("[ticket-checkout] Stripe session creation failed", error)
+    await cancelReservation(
+      reservation.order.order_id,
+      reservation.checkout_token,
+      "stripe_session_creation_failed",
+    )
     return json(
       {
         error: "Ticket checkout temporarily unavailable",
-        retrySameRequest: true,
-        checkoutRequestId,
+        retryNewRequest: true,
       },
       503,
     )

@@ -34,17 +34,15 @@ type EventFormatters = {
 }
 
 const formatters = new Map<string, EventFormatters>()
+const moneyFormatters = new Map<string, Intl.NumberFormat>()
 
 const localizedPath = (lang: Lang, path: string) =>
   lang === "pl" ? `/pl${path}` : path
 
 const isCrowdRelayEvent = (event: PublicEvent) => event.source === "crowdrelay"
 
-const detailsUrl = (event: PublicEvent, lang: Lang) => {
-  if (isCrowdRelayEvent(event)) return localizedPath(lang, `/live/${event.slug}/`)
-  if (event.source === "bandsintown") return localizedPath(lang, `/shows/${event.slug}/`)
-  return event.external_event_url
-}
+const detailsUrl = (event: PublicEvent, lang: Lang) =>
+  localizedPath(lang, `/live/${encodeURIComponent(event.slug)}/`)
 
 const eventFormatters = (locale: string): EventFormatters => {
   const cached = formatters.get(locale)
@@ -67,17 +65,32 @@ const eventFormatters = (locale: string): EventFormatters => {
   return created
 }
 
+const money = (minor: number, currency: string, locale: string) => {
+  const key = `${locale}:${currency}`
+  let formatter = moneyFormatters.get(key)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    })
+    moneyFormatters.set(key, formatter)
+  }
+  return formatter.format(minor / 100)
+}
+
 const trimPeriod = (value: string) => value.replace(/\.$/, "")
 
 export const LiveEventSkeleton = () => (
-  <div class="virya-live-card min-h-52 p-5 sm:p-6" aria-hidden="true">
+  <div class="virya-live-card min-h-56 p-5 sm:p-6" aria-hidden="true">
     <div class="grid animate-pulse gap-6 sm:grid-cols-[80px_minmax(0,1fr)]">
       <div class="h-20 w-20 bg-zinc-800" />
       <div>
         <div class="h-3 w-24 bg-zinc-800" />
         <div class="mt-5 h-6 w-3/4 bg-zinc-800" />
         <div class="mt-4 h-3 w-1/2 bg-zinc-900" />
-        <div class="mt-7 h-9 w-36 bg-zinc-900" />
+        <div class="mt-7 h-10 w-44 bg-zinc-900" />
       </div>
     </div>
   </div>
@@ -113,10 +126,16 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
 
   const resolvedCampaignId = campaignId ?? campaignIdFromLocation()
   const details = detailsUrl(event, lang)
-  const tickets =
-    isCrowdRelayEvent(event) && event.ticket_url
+  const sale = event.ticket_sale ?? null
+  const firstPartyTicketHref = sale ? `${details}#tickets` : null
+  const externalTicketHref = event.ticket_url
+    ? isCrowdRelayEvent(event)
       ? crowdrelay.eventTicketUrl(event.slug, resolvedCampaignId ?? undefined)
       : event.ticket_url
+    : null
+  const tickets = firstPartyTicketHref ?? externalTicketHref
+  const firstPartyTickets = Boolean(firstPartyTicketHref)
+  const ticketSaleOpen = sale?.sales_state === "open"
   const calendar = isCrowdRelayEvent(event)
     ? crowdrelay.eventCalendarUrl(event.slug, resolvedCampaignId ?? undefined)
     : null
@@ -125,12 +144,36 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
   const month = trimPeriod(formatter.month.format(date))
   const weekday = trimPeriod(formatter.weekday.format(date))
   const dateLine = formatter.dateLine.format(date)
-  const externalDetails = !isCrowdRelayEvent(event)
   const location = [event.city?.name, event.venue].filter(Boolean).join(" · ")
   const headingId = `live-event-${event.id.replace(/[^a-z0-9_-]+/gi, "-")}-${index}`
   const opensNewTab =
     labels.opensNewTab ??
     (lang === "pl" ? "Otwiera się w nowej karcie" : "Opens in a new tab")
+  const stockPercent = sale?.capacity
+    ? Math.max(0, Math.min(100, (sale.available / sale.capacity) * 100))
+    : 0
+
+  const ticketStatus = sale
+    ? sale.sales_state === "open"
+      ? sale.from_price_gross_minor == null
+        ? lang === "pl"
+          ? `${sale.available} dostępnych`
+          : `${sale.available} available`
+        : lang === "pl"
+          ? `Od ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${sale.available} dostępnych`
+          : `From ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${sale.available} available`
+      : sale.sales_state === "upcoming"
+        ? lang === "pl"
+          ? "Sprzedaż wkrótce"
+          : "Tickets on sale soon"
+        : sale.sales_state === "sold_out"
+          ? lang === "pl"
+            ? "Pula wyprzedana"
+            : "Sold out"
+          : lang === "pl"
+            ? "Sprzedaż online zakończona"
+            : "Online sales closed"
+    : null
 
   return (
     <article class="virya-live-card group" aria-labelledby={headingId}>
@@ -139,7 +182,7 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
       <div class="virya-live-card__orbit virya-live-card__orbit--inner" aria-hidden="true" />
       <span class="virya-live-card__pulse" aria-hidden="true" />
 
-      <div class="relative grid min-h-52 gap-6 p-5 sm:grid-cols-[80px_minmax(0,1fr)] sm:p-6">
+      <div class="relative grid min-h-56 gap-6 p-5 sm:grid-cols-[80px_minmax(0,1fr)] sm:p-6">
         <time dateTime={event.starts_at} class="virya-live-date">
           <span class="text-[8px] font-black uppercase tracking-[.2em] text-amber-400">
             {weekday}
@@ -169,30 +212,46 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
             {event.title}
           </h3>
           {location && <p class="mt-3 text-xs leading-relaxed text-zinc-400">{location}</p>}
+
+          {ticketStatus && (
+            <div class="mt-5 max-w-xl border border-zinc-800 bg-black/35 px-3 py-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-[9px] font-black uppercase tracking-[.18em] text-amber-400">
+                  {lang === "pl" ? "Bilety Virya" : "Virya tickets"}
+                </span>
+                <span class="text-[10px] font-bold text-zinc-200">{ticketStatus}</span>
+              </div>
+              {sale && sale.sales_state === "open" && (
+                <div class="mt-2 h-1 overflow-hidden bg-zinc-800" aria-hidden="true">
+                  <span
+                    class="block h-full bg-amber-400 transition-[width] duration-300"
+                    style={{ width: `${stockPercent}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           <div class="relative z-10 mt-6 flex flex-wrap gap-2">
-            {details && (
-              <a
-                href={details}
-                target={externalDetails ? "_blank" : undefined}
-                rel={externalDetails ? "noopener noreferrer" : undefined}
-                class="virya-button virya-button--primary"
-              >
-                {labels.details}
-                <span class="ml-2" aria-hidden="true">{externalDetails ? "↗" : "→"}</span>
-                {externalDetails && <span class="sr-only">. {opensNewTab}</span>}
-              </a>
-            )}
-            {tickets && (
+            {tickets && (ticketSaleOpen || !firstPartyTickets) && (
               <a
                 href={tickets}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="virya-button virya-button--accent-outline"
+                target={firstPartyTickets ? undefined : "_blank"}
+                rel={firstPartyTickets ? undefined : "noopener noreferrer"}
+                class="virya-button virya-button--primary"
               >
-                {labels.tickets}<span class="ml-2" aria-hidden="true">↗</span>
-                <span class="sr-only">. {opensNewTab}</span>
+                {labels.tickets}
+                <span class="ml-2" aria-hidden="true">{firstPartyTickets ? "→" : "↗"}</span>
+                {!firstPartyTickets && <span class="sr-only">. {opensNewTab}</span>}
               </a>
             )}
+            <a
+              href={details}
+              class={`virya-button ${ticketSaleOpen ? "virya-button--secondary" : "virya-button--primary"}`}
+            >
+              {labels.details}
+              <span class="ml-2" aria-hidden="true">→</span>
+            </a>
             {calendar && (
               <a href={calendar} class="virya-button virya-button--ghost">
                 {labels.calendar}

@@ -118,55 +118,59 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
 
 <script>
   function initNav() {
+    window.__viryaNavController?.abort()
+    const controller = new AbortController()
+    window.__viryaNavController = controller
+    const { signal } = controller
+
     const nav = document.getElementById("main-nav")
     if (!nav) return
 
-    // Scroll hide/show
+    document.addEventListener(
+      "astro:before-preparation",
+      () => controller.abort(),
+      { once: true, signal },
+    )
+
     let lastY = window.scrollY
     let ticking = false
-    window.addEventListener("scroll", () => {
+    const onScroll = () => {
       if (ticking) return
       ticking = true
       requestAnimationFrame(() => {
-        if (document.body.style.position === "fixed") { ticking = false; return }
+        if (signal.aborted) return
+        if (document.body.style.position === "fixed") {
+          ticking = false
+          return
+        }
         const y = window.scrollY
         if (y < 10 || y < lastY) {
           nav.style.transform = "translateY(0)"
         } else {
           nav.style.transform = "translateY(-100%)"
-          const menu = document.getElementById("mobile-menu")
-          if (menu && !menu.hidden) {
-            menu.hidden = true
-            document.getElementById("mobile-menu-btn")?.setAttribute("aria-expanded", "false")
-            document.getElementById("icon-hamburger")?.classList.remove("hidden")
-            document.getElementById("icon-close")?.classList.add("hidden")
-          }
+          closeMenu()
         }
         lastY = y
         ticking = false
       })
-    }, { passive: true })
+    }
+    window.addEventListener("scroll", onScroll, { passive: true, signal })
 
-    // Active section via IntersectionObserver
     const navLinks = nav.querySelectorAll<HTMLElement>("[data-section]")
     const logoRing = nav.querySelector<HTMLElement>(".logo-ring")
-    if (navLinks.length > 0) {
-      const idByEl = new Map()
-      const visible = new Set()
+    if (navLinks.length > 0 && "IntersectionObserver" in window) {
+      const idByEl = new Map<Element, string>()
+      const visible = new Set<string>()
+      const observer = new IntersectionObserver(
+        entries => {
+          for (const entry of entries) {
+            const id = idByEl.get(entry.target)
+            if (!id) continue
+            if (entry.isIntersecting) visible.add(id)
+            else visible.delete(id)
+          }
 
-      const io = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((e) => {
-            const id = idByEl.get(e.target)
-            if (!id) return
-            if (e.isIntersecting) {
-              visible.add(id)
-            } else {
-              visible.delete(id)
-            }
-          })
-          // Find the topmost visible section
-          let activeId = null
+          let activeId: string | null = null
           for (const link of navLinks) {
             const id = link.dataset.section
             if (id && visible.has(id)) {
@@ -174,44 +178,34 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
               break
             }
           }
-          // Update all links
-          navLinks.forEach((l) => {
-            // mobile menu links sit at zinc-300 (same as band/shop/epk); desktop at zinc-400
-            const idle = l.classList.contains("mobile-nav-link") ? "text-zinc-300" : "text-zinc-400"
-            if (l.dataset.section === activeId) {
-              l.classList.add("text-amber-400")
-              l.classList.remove(idle)
-            } else {
-              l.classList.remove("text-amber-400")
-              l.classList.add(idle)
-            }
+
+          navLinks.forEach(link => {
+            const idle = link.classList.contains("mobile-nav-link")
+              ? "text-zinc-300"
+              : "text-zinc-400"
+            const active = link.dataset.section === activeId
+            link.classList.toggle("text-amber-400", active)
+            link.classList.toggle(idle, !active)
           })
-          // Update logo: highlight when no section is active
+
           if (logoRing) {
-            if (activeId) {
-              logoRing.classList.remove("ring-amber-400")
-              logoRing.classList.add("ring-amber-400/40")
-            } else {
-              logoRing.classList.add("ring-amber-400")
-              logoRing.classList.remove("ring-amber-400/40")
-            }
+            logoRing.classList.toggle("ring-amber-400", !activeId)
+            logoRing.classList.toggle("ring-amber-400/40", Boolean(activeId))
           }
         },
-        { rootMargin: "-150px 0px -50% 0px", threshold: 0 }
+        { rootMargin: "-150px 0px -50% 0px", threshold: 0 },
       )
-      navLinks.forEach((link) => {
+
+      navLinks.forEach(link => {
         const id = link.dataset.section
-        if (id) {
-          const el = document.getElementById(id)
-          if (el) {
-            idByEl.set(el, id)
-            io.observe(el)
-          }
-        }
+        const section = id ? document.getElementById(id) : null
+        if (!id || !section) return
+        idByEl.set(section, id)
+        observer.observe(section)
       })
+      signal.addEventListener("abort", () => observer.disconnect(), { once: true })
     }
 
-    // Mobile menu toggle — fully self-contained, no closure variable deps
     function closeMenu() {
       const menu = document.getElementById("mobile-menu")
       if (!menu || menu.hidden) return
@@ -222,89 +216,115 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
     }
 
     const btn = document.getElementById("mobile-menu-btn")
-    btn?.addEventListener("click", () => {
-      const menu = document.getElementById("mobile-menu")
-      if (!menu) return
-      const opening = menu.hidden
-      menu.hidden = !opening
-      btn.setAttribute("aria-expanded", String(opening))
-      document.getElementById("icon-hamburger")?.classList.toggle("hidden", opening)
-      document.getElementById("icon-close")?.classList.toggle("hidden", !opening)
-    })
-
-    // Bind outside-click once on document; query nav fresh each time so SPA
-    // swaps don't leave a stale (detached) nav ref that closes menu instantly.
-    if (!(window as any).__viryaOutsideClickBound) {
-      (window as any).__viryaOutsideClickBound = true
-      document.addEventListener("click", (e) => {
-        const currentNav = document.getElementById("main-nav")
+    btn?.addEventListener(
+      "click",
+      () => {
         const menu = document.getElementById("mobile-menu")
-        const currentBtn = document.getElementById("mobile-menu-btn")
-        if (!menu || menu.hidden) return
-        const target = e.target as Node
-        if (currentBtn?.contains(target)) return
-        if (currentNav && !currentNav.contains(target)) {
-          menu.hidden = true
-          currentBtn?.setAttribute("aria-expanded", "false")
-          document.getElementById("icon-hamburger")?.classList.remove("hidden")
-          document.getElementById("icon-close")?.classList.add("hidden")
-        }
-      })
-    }
-
-    nav.querySelectorAll(".mobile-nav-link").forEach((link) =>
-      link.addEventListener("click", closeMenu)
+        if (!menu) return
+        const opening = menu.hidden
+        menu.hidden = !opening
+        btn.setAttribute("aria-expanded", String(opening))
+        document.getElementById("icon-hamburger")?.classList.toggle("hidden", opening)
+        document.getElementById("icon-close")?.classList.toggle("hidden", !opening)
+      },
+      { signal },
     )
 
-    const mediaMenu = nav.querySelector<HTMLDetailsElement>("details.group\\/media")
-    const mediaMenuController = new AbortController()
-    document.addEventListener("astro:before-preparation", () => mediaMenuController.abort(), { once: true })
-    document.addEventListener("click", (event) => {
-      if (mediaMenu?.open && !mediaMenu.contains(event.target as Node)) mediaMenu.open = false
-    }, { signal: mediaMenuController.signal })
-    mediaMenu?.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
+    document.addEventListener(
+      "click",
+      event => {
+        const menu = document.getElementById("mobile-menu")
+        if (!menu || menu.hidden) return
+        const target = event.target
+        if (!(target instanceof Node)) return
+        if (btn?.contains(target) || nav.contains(target)) return
+        closeMenu()
+      },
+      { signal },
+    )
+
+    nav.querySelectorAll<HTMLElement>(".mobile-nav-link").forEach(link => {
+      link.addEventListener("click", closeMenu, { signal })
+    })
+
+    const mediaMenu = nav.querySelector<HTMLDetailsElement>("details")
+    document.addEventListener(
+      "click",
+      event => {
+        const target = event.target
+        if (
+          mediaMenu?.open &&
+          target instanceof Node &&
+          !mediaMenu.contains(target)
+        ) {
+          mediaMenu.open = false
+        }
+      },
+      { signal },
+    )
+    mediaMenu?.addEventListener(
+      "keydown",
+      event => {
+        if (event.key !== "Escape") return
         mediaMenu.open = false
         mediaMenu.querySelector<HTMLElement>("summary")?.focus()
-      }
-    })
+      },
+      { signal },
+    )
 
-    // Smooth scroll for all hash anchor links (Music / Shows / Contact — desktop + mobile)
-    nav.querySelectorAll<HTMLAnchorElement>("a[href*='#']").forEach((link) => {
-      link.addEventListener("click", (e) => {
-        const hash = link.hash
-        if (!hash) return
-        const target = document.querySelector(hash)
-        if (target) {
-          e.preventDefault()
+    nav.querySelectorAll<HTMLAnchorElement>("a[href*='#']").forEach(link => {
+      link.addEventListener(
+        "click",
+        event => {
+          if (!link.hash) return
+          const target = document.querySelector(link.hash)
+          if (!target) return
+          event.preventDefault()
           target.scrollIntoView({ behavior: "smooth" })
           closeMenu()
-        }
-      })
+        },
+        { signal },
+      )
     })
 
-    // Logo click → smooth scroll to top when already on home page
-    const logo = nav.querySelector<HTMLAnchorElement>("a.group")
-    logo?.addEventListener("click", (e) => {
-      const p = window.location.pathname
-      const isHome = p === "/" || p === "/pl/" || p === "/pl"
-      if (isHome) {
-        e.preventDefault()
+    const logo = nav.querySelector<HTMLAnchorElement>("a.logo-link")
+    logo?.addEventListener(
+      "click",
+      event => {
+        const path = window.location.pathname
+        const isHome = path === "/" || path === "/pl/" || path === "/pl"
+        if (!isHome) return
+        event.preventDefault()
         window.scrollTo({ top: 0, behavior: "smooth" })
-      }
-    })
+      },
+      { signal },
+    )
 
-    // Lang switch
-    document.querySelectorAll<HTMLElement>("[data-lang-switch]").forEach((el) => {
-      el.addEventListener("click", () => {
-        const target = el.dataset.langSwitch ?? "en"
-        try { localStorage.setItem("virya-lang", target) } catch {}
-        const p = location.pathname
-        const base = p.replace(/^(\/pl)+(?=\/|$)/, "") || "/"
-        location.href = (target === "pl" ? (base === "/" ? "/pl/" : `/pl${base}`) : base) + location.search + location.hash
-      })
+    document.querySelectorAll<HTMLElement>("[data-lang-switch]").forEach(element => {
+      element.addEventListener(
+        "click",
+        () => {
+          const target = element.dataset.langSwitch ?? "en"
+          try {
+            localStorage.setItem("virya-lang", target)
+          } catch {
+            // Language switching still works without persistent storage.
+          }
+          const path = location.pathname
+          const base = path.replace(/^(\/pl)+(?=\/|$)/, "") || "/"
+          location.href =
+            (target === "pl" ? (base === "/" ? "/pl/" : `/pl${base}`) : base) +
+            location.search +
+            location.hash
+        },
+        { signal },
+      )
     })
   }
 
-  document.addEventListener("astro:page-load", initNav)
+  if (!window.__viryaNavLifecycleInstalled) {
+    window.__viryaNavLifecycleInstalled = true
+    document.addEventListener("astro:page-load", initNav)
+  }
+  initNav()
 </script>
