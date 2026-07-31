@@ -33,7 +33,11 @@ type BandsintownEvent = {
   offers?: Array<{ type?: string; url?: string }>
 }
 
-type EventPayload = { events?: unknown }
+type EventPayload = {
+  events?: unknown
+  items?: unknown
+  data?: unknown
+}
 
 const safeBaseUrl = () => {
   const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL
@@ -264,11 +268,22 @@ const mergeEvents = (...groups: PublicEvent[][]): PublicEvent[] => {
     )
 }
 
+const eventList = (payload: unknown): unknown[] => {
+  if (Array.isArray(payload)) return payload
+  if (!payload || typeof payload !== "object") return []
+
+  const wrapped = payload as EventPayload
+  for (const candidate of [wrapped.events, wrapped.items, wrapped.data]) {
+    if (Array.isArray(candidate)) return candidate
+  }
+
+  return []
+}
+
 const loadCrowdRelayEvents = async (): Promise<PublicEvent[]> => {
   const url = new URL("public/events?limit=100", safeBaseUrl())
-  const payload = (await fetchJson(url)) as EventPayload
-  if (!Array.isArray(payload.events)) return []
-  return payload.events
+  const payload = await fetchJson(url)
+  return eventList(payload)
     .filter(isPublicEvent)
     .map(event => ({ ...event, source: "crowdrelay" as const }))
 }
