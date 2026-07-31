@@ -236,7 +236,7 @@ export const POST: APIRoute = async ({ request }) => {
         buyer_name: buyerName || undefined,
         buyer_locale: lang,
         invoice_requested: invoiceRequested,
-        invoice_details: invoiceDetails,
+        invoice_details: invoiceDetails ?? undefined,
         items: [...quantities].map(([ticket_type_slug, quantity]) => ({
           ticket_type_slug,
           quantity,
