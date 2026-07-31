@@ -3,6 +3,8 @@ import { AREA_DROPS } from "../data/area"
 import { AREA_COPY } from "../data/areaCopy"
 import { SIGNAL_COPY } from "../data/signalCopy"
 import { lp, type Lang } from "../i18n/t"
+import AreaTicketRewards from "./preact/area/AreaTicketRewards"
+import EcosystemRail from "./EcosystemRail.astro"
 
 interface Props {
   lang?: Lang
@@ -569,6 +571,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           </section>
         </div>
 
+        <AreaTicketRewards client:load lang={lang} />
+
         <section data-signal-bridge hidden class="mt-6 overflow-hidden border border-amber-400/35 bg-amber-400/[.045]">
           <div class="grid gap-px bg-zinc-800 lg:grid-cols-[minmax(0,1fr)_auto]">
             <div class="bg-zinc-950 p-5 sm:p-7">
@@ -613,6 +617,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </div>
     </section>
   </div>
+  <EcosystemRail lang={lang} active="area" />
 </main>
 
 <style>

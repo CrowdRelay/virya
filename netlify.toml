@@ -142,3 +142,32 @@
   for = "/api/*"
   [headers.values]
     Cache-Control = "no-store"
+
+# Private ticket wallets and winner claims contain bearer capabilities in the URL fragment/local storage.
+[[headers]]
+  for = "/tickets/*"
+  [headers.values]
+    Cache-Control = "no-store, private"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/pl/tickets/*"
+  [headers.values]
+    Cache-Control = "no-store, private"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/win"
+  [headers.values]
+    Cache-Control = "no-store, private"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/pl/win"
+  [headers.values]
+    Cache-Control = "no-store, private"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow, noarchive"

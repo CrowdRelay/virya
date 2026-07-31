@@ -32,6 +32,20 @@ export type AreaVoucher = {
   migrationCompensated?: boolean
 }
 
+export type AreaTicketReward = {
+  requestId: string
+  eventSlug: string
+  credits: number
+  fanEmail: string
+  status: "pending" | "issued" | "failed"
+  createdAt: string
+  processingId?: string
+  processingExpiresAt?: number
+  publicReference?: string
+  issuedAt?: string
+  failureCode?: string
+}
+
 type AreaWalletMigrationState = {
   targetWalletId: string
   status: "processing" | "completed"
@@ -47,6 +61,7 @@ export type AreaWallet = {
   tokenBalance: number
   claims: AreaClaim[]
   vouchers: AreaVoucher[]
+  ticketRewards: AreaTicketReward[]
   attempts: number[]
   migrations: string[]
   migration?: AreaWalletMigrationState
@@ -91,6 +106,7 @@ const emptyWallet = (id: string): AreaWallet => ({
   tokenBalance: 0,
   claims: [],
   vouchers: [],
+  ticketRewards: [],
   attempts: [],
   migrations: [],
   updatedAt: new Date().toISOString(),
@@ -176,6 +192,27 @@ const normalizeWallet = (input: unknown, id: string): AreaWallet => {
           .slice(-100)
       : []
 
+  const ticketRewards = completedMigration
+    ? []
+    : Array.isArray(value.ticketRewards)
+      ? value.ticketRewards
+          .filter(
+            (reward): reward is AreaTicketReward =>
+              !!reward &&
+              typeof reward.requestId === "string" &&
+              /^[0-9a-f-]{36}$/i.test(reward.requestId) &&
+              typeof reward.eventSlug === "string" &&
+              /^[a-z0-9][a-z0-9_-]{0,127}$/.test(reward.eventSlug) &&
+              Number.isInteger(reward.credits) &&
+              reward.credits > 0 &&
+              reward.credits <= 20 &&
+              typeof reward.fanEmail === "string" &&
+              reward.fanEmail.length <= 320 &&
+              ["pending", "issued", "failed"].includes(reward.status),
+          )
+          .slice(-50)
+      : []
+
   const attempts = completedMigration
     ? []
     : Array.isArray(value.attempts)
@@ -199,6 +236,7 @@ const normalizeWallet = (input: unknown, id: string): AreaWallet => {
       : Math.max(0, Math.min(100, asInteger(value.tokenBalance))),
     claims,
     vouchers,
+    ticketRewards,
     attempts,
     migrations,
     migration,
@@ -714,6 +752,12 @@ export const migrateAreaWallet = async (
     const uniqueVouchers = source.vouchers.filter(
       voucher => !existingVoucherIds.has(voucher.requestId),
     )
+    const existingTicketRewardIds = new Set(
+      target.ticketRewards.map(reward => `${reward.eventSlug}:${reward.requestId}`),
+    )
+    const uniqueTicketRewards = source.ticketRewards.filter(
+      reward => !existingTicketRewardIds.has(`${reward.eventSlug}:${reward.requestId}`),
+    )
     const transferableCredits = Math.min(
       source.tokenBalance,
       uniqueClaims.length,
@@ -725,6 +769,7 @@ export const migrateAreaWallet = async (
         tokenBalance: target.tokenBalance + transferableCredits,
         claims: [...target.claims, ...uniqueClaims],
         vouchers: [...target.vouchers, ...uniqueVouchers],
+        ticketRewards: [...target.ticketRewards, ...uniqueTicketRewards],
         migrations: [...target.migrations, migrationId],
       },
       result: {
@@ -803,6 +848,7 @@ export const migrateAreaWallet = async (
         tokenBalance: 0,
         claims: [],
         vouchers: [],
+        ticketRewards: [],
         attempts: [],
         migratedTo: targetWalletId,
         migratedAt: completedAt,

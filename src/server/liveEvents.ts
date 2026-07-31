@@ -1,5 +1,5 @@
 import { CURATED_LIVE_EVENTS } from "../data/liveEvents"
-import type { PublicEvent } from "../lib/crowdrelay-client"
+import type { PublicEvent, TicketSaleOffer } from "../lib/crowdrelay-client"
 
 const DEFAULT_CROWDRELAY_URL = "https://signal-api.virya.music/v1/"
 const DEFAULT_BANDSINTOWN_APP_ID = "virya-website"
@@ -295,23 +295,24 @@ let cachedLiveEvents: CachedLiveEvents | null = null
 let pendingLiveEvents: Promise<LiveEventLoadResult> | null = null
 
 const resolveLiveEvents = async (): Promise<LiveEventLoadResult> => {
-  const [crowdRelayResult, bandsintownResult] = await Promise.allSettled([
-    loadCrowdRelayEvents(),
-    loadBandsintownEvents(),
-  ])
-
-  if (crowdRelayResult.status === "fulfilled" && crowdRelayResult.value.length > 0) {
-    return {
-      events: mergeEvents(crowdRelayResult.value),
-      degraded: false,
+  try {
+    const crowdRelayEvents = await loadCrowdRelayEvents()
+    if (crowdRelayEvents.length > 0) {
+      return { events: mergeEvents(crowdRelayEvents), degraded: false }
     }
+  } catch {
+    // CrowdRelay is the source of truth. Bandsintown is queried only as a
+    // degraded fallback so healthy page renders do not duplicate provider I/O.
   }
 
-  const bandsintownEvents =
-    bandsintownResult.status === "fulfilled" ? bandsintownResult.value : []
-  return {
-    events: mergeEvents(bandsintownEvents, CURATED_LIVE_EVENTS),
-    degraded: true,
+  try {
+    const bandsintownEvents = await loadBandsintownEvents()
+    return {
+      events: mergeEvents(bandsintownEvents, CURATED_LIVE_EVENTS),
+      degraded: true,
+    }
+  } catch {
+    return { events: mergeEvents(CURATED_LIVE_EVENTS), degraded: true }
   }
 }
 
@@ -336,4 +337,39 @@ export const loadLiveEvents = async (): Promise<LiveEventLoadResult> => {
     })
 
   return pendingLiveEvents
+}
+
+
+export const loadLiveEvent = async (slug: string): Promise<PublicEvent | null> => {
+  if (!/^[a-z0-9][a-z0-9_-]{0,127}$/.test(slug)) return null
+  const { events } = await loadLiveEvents()
+  return events.find(event => event.slug === slug) ?? null
+}
+
+const isTicketSaleOffer = (value: unknown): value is TicketSaleOffer => {
+  if (!value || typeof value !== "object") return false
+  const sale = value as Record<string, unknown>
+  return (
+    typeof sale.event_slug === "string" &&
+    typeof sale.currency === "string" &&
+    typeof sale.vat_rate_basis_points === "number" &&
+    typeof sale.sales_state === "string" &&
+    Array.isArray(sale.ticket_types)
+  )
+}
+
+export const loadLiveTicketSale = async (
+  slug: string,
+): Promise<TicketSaleOffer | null> => {
+  if (!/^[a-z0-9][a-z0-9_-]{0,127}$/.test(slug)) return null
+  try {
+    const url = new URL(
+      `public/events/${encodeURIComponent(slug)}/tickets`,
+      safeBaseUrl(),
+    )
+    const value = await fetchJson(url)
+    return isTicketSaleOffer(value) ? value : null
+  } catch {
+    return null
+  }
 }

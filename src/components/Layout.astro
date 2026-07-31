@@ -61,12 +61,11 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
     <script is:inline>
       (function() {
+        if (window.__viryaNavProgressInstalled) return;
+        window.__viryaNavProgressInstalled = true;
         var hideTimer;
         var resetTimer;
-        function clearTimers() {
-          clearTimeout(hideTimer);
-          clearTimeout(resetTimer);
-        }
+        function clearTimers() { clearTimeout(hideTimer); clearTimeout(resetTimer); }
         function getBar() {
           var bar = document.getElementById('nav-progress');
           if (!bar) {
@@ -81,41 +80,29 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
         document.addEventListener('astro:before-preparation', function() {
           clearTimers();
           var bar = getBar();
-          bar.style.transition = 'none';
-          bar.style.width = '0';
-          bar.style.opacity = '1';
+          bar.style.transition = 'none'; bar.style.width = '0'; bar.style.opacity = '1';
           bar.getBoundingClientRect();
-          bar.style.transition = 'width 0.8s ease';
-          bar.style.width = '85%';
+          bar.style.transition = 'width 0.8s ease'; bar.style.width = '85%';
         });
         document.addEventListener('astro:page-load', function() {
           clearTimers();
           var bar = getBar();
-          bar.style.transition = 'width 0.1s ease';
-          bar.style.width = '100%';
+          bar.style.transition = 'width 0.1s ease'; bar.style.width = '100%';
           hideTimer = setTimeout(function() {
-            bar.style.transition = 'opacity 0.3s ease';
-            bar.style.opacity = '0';
-            resetTimer = setTimeout(function() {
-              bar.style.transition = 'none';
-              bar.style.width = '0';
-            }, 350);
+            bar.style.transition = 'opacity 0.3s ease'; bar.style.opacity = '0';
+            resetTimer = setTimeout(function() { bar.style.transition = 'none'; bar.style.width = '0'; }, 350);
           }, 150);
         });
         getBar();
       })();
     </script>
     <script is:inline>
-      if ('serviceWorker' in navigator) {
+      if ('serviceWorker' in navigator && !window.__viryaServiceWorkerScheduled) {
+        window.__viryaServiceWorkerScheduled = true;
         window.addEventListener('load', function() {
-          var register = function() {
-            navigator.serviceWorker.register('/sw.js').catch(function() {});
-          };
-          if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(register, { timeout: 3000 });
-          } else {
-            setTimeout(register, 1000);
-          }
+          var register = function() { navigator.serviceWorker.register('/sw.js').catch(function() {}); };
+          if ('requestIdleCallback' in window) window.requestIdleCallback(register, { timeout: 3000 });
+          else setTimeout(register, 1000);
         }, { once: true });
       }
     </script>

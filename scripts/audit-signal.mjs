@@ -128,8 +128,10 @@ assert(
 assert(
   liveEventsBrowser.includes('fetch("/api/events"') &&
     liveEventsServer.includes("CURATED_LIVE_EVENTS") &&
-    liveEventsServer.includes("Promise.allSettled"),
-  "The unified live-events endpoint must retain a curated fallback and fail open.",
+    liveEventsServer.includes("loadCrowdRelayEvents") &&
+    liveEventsServer.includes("loadBandsintownEvents") &&
+    liveEventsServer.includes("degraded fallback"),
+  "The unified live-events endpoint must remain CrowdRelay-first, retain provider and curated fallbacks, and fail open.",
 )
 assert(
   homepageShows.includes("LiveEventCard") &&

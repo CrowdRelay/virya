@@ -15,6 +15,7 @@ import {
 interface Props {
   lang: Lang
   slug: string
+  initialEvent?: PublicEvent | null
 }
 
 type InterestState = "idle" | "saving" | "saved" | "login" | "error"
@@ -31,10 +32,10 @@ type CheckinState =
   | "full"
   | "error"
 
-export default function EventDetail({ lang, slug }: Props) {
+export default function EventDetail({ lang, slug, initialEvent = null }: Props) {
   const copy = SIGNAL_COPY[lang].event
   const locale = lang === "pl" ? "pl-PL" : "en-GB"
-  const [event, setEvent] = useState<PublicEvent | null>(null)
+  const [event, setEvent] = useState<PublicEvent | null>(initialEvent)
   const [unavailable, setUnavailable] = useState(false)
   const [interestState, setInterestState] = useState<InterestState>("idle")
   const [checkinState, setCheckinState] = useState<CheckinState>("none")
@@ -42,28 +43,34 @@ export default function EventDetail({ lang, slug }: Props) {
 
   useEffect(() => {
     let cancelled = false
+    const trackViewOnce = () => {
+      const key = `virya-signal-event-view:${slug}`
+      try {
+        if (sessionStorage.getItem(key) === "1") return
+        sessionStorage.setItem(key, "1")
+      } catch {
+        // Storage can be unavailable in hardened browsers; analytics remains best effort.
+      }
+      bestEffort(crowdrelay.trackView(slug, campaignIdFromLocation()))
+    }
+
+    if (initialEvent) {
+      trackViewOnce()
+      return () => { cancelled = true }
+    }
+
     void crowdrelay
       .getEvent(slug, campaignIdFromLocation())
       .then(value => {
         if (cancelled) return
         setEvent(value)
-        const key = `virya-signal-event-view:${slug}`
-        try {
-          if (sessionStorage.getItem(key) !== "1") {
-            sessionStorage.setItem(key, "1")
-            bestEffort(crowdrelay.trackView(slug, campaignIdFromLocation()))
-          }
-        } catch {
-          bestEffort(crowdrelay.trackView(slug, campaignIdFromLocation()))
-        }
+        trackViewOnce()
       })
       .catch(() => {
         if (!cancelled) setUnavailable(true)
       })
-    return () => {
-      cancelled = true
-    }
-  }, [slug])
+    return () => { cancelled = true }
+  }, [slug, initialEvent])
 
   useEffect(() => {
     const pending = captureConcertCheckinFromLocation(slug)
@@ -182,6 +189,11 @@ export default function EventDetail({ lang, slug }: Props) {
   }
 
   const campaignId = campaignIdFromLocation()
+  const bandsintownRsvp = withTrigger(event.external_event_url, "rsvp_going")
+  const bandsintownFollow = "https://www.bandsintown.com/a/15587796-virya?trigger=track"
+  const mapUrl = event.venue_address || event.venue || event.city?.name
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([event.venue, event.venue_address, event.city?.name].filter(Boolean).join(", "))}`
+    : null
 
   return (
     <article>
@@ -195,7 +207,7 @@ export default function EventDetail({ lang, slug }: Props) {
       <div class="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div>
           <p class="font-mono text-[10px] uppercase tracking-[.25em] text-amber-400">
-            {formatDate(event.starts_at, locale)}
+            {formatDate(event.starts_at, locale, event.timezone)}
           </p>
           <h1 class="mt-4 max-w-4xl text-[clamp(2.5rem,8vw,5.5rem)] font-black uppercase leading-[.9] tracking-[-.05em] text-white">
             {event.title}
@@ -232,9 +244,27 @@ export default function EventDetail({ lang, slug }: Props) {
                 href={crowdrelay.eventTicketUrl(slug, campaignId)}
                 class="virya-button virya-button--accent-outline min-h-[48px] px-5"
               >
-                {copy.tickets}
+                {lang === "pl" ? "Bilety zewnętrzne" : "External tickets"}
               </a>
             )}
+            {bandsintownRsvp && (
+              <a
+                href={bandsintownRsvp}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="virya-button virya-button--secondary min-h-[48px] px-5"
+              >
+                {lang === "pl" ? "RSVP na Bandsintown" : "RSVP on Bandsintown"}
+              </a>
+            )}
+            <a
+              href={bandsintownFollow}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="virya-button virya-button--ghost min-h-[48px] px-3"
+            >
+              {lang === "pl" ? "Obserwuj Viryę" : "Follow Virya"}
+            </a>
             {event.listen_url && (
               <a
                 href={crowdrelay.eventListenUrl(slug, campaignId)}
@@ -293,6 +323,13 @@ export default function EventDetail({ lang, slug }: Props) {
               {event.venue_address && (
                 <dd class="mt-1 text-xs leading-relaxed text-zinc-400">
                   {event.venue_address}
+                </dd>
+              )}
+              {mapUrl && (
+                <dd class="mt-3">
+                  <a href={mapUrl} target="_blank" rel="noopener noreferrer" class="text-[9px] font-black uppercase tracking-widest text-amber-400 hover:text-amber-300">
+                    {lang === "pl" ? "Otwórz mapę" : "Open map"} →
+                  </a>
                 </dd>
               )}
             </div>
@@ -398,15 +435,27 @@ function CheckinPanel({
   )
 }
 
+function withTrigger(value: string | null, trigger: string): string | null {
+  if (!value) return null
+  try {
+    const url = new URL(value)
+    url.searchParams.set("trigger", trigger)
+    return url.toString()
+  } catch {
+    return null
+  }
+}
+
 function pagePath(lang: Lang, path: string): string {
   return lang === "pl" ? `/pl${path}` : path
 }
 
-function formatDate(value: string, locale: string): string {
+function formatDate(value: string, locale: string, timezone: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
 
-  let formatter = dateFormatters.get(locale)
+  const formatterKey = `${locale}:${timezone}`
+  let formatter = dateFormatters.get(formatterKey)
   if (!formatter) {
     formatter = new Intl.DateTimeFormat(locale, {
       weekday: "long",
@@ -415,8 +464,9 @@ function formatDate(value: string, locale: string): string {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: timezone,
     })
-    dateFormatters.set(locale, formatter)
+    dateFormatters.set(formatterKey, formatter)
   }
   return formatter.format(date)
 }

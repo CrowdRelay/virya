@@ -4,8 +4,11 @@ import Navbar from "./Navbar.astro"
 import Footer from "./Footer.astro"
 import ScrollToTop from "./ScrollToTop.astro"
 import EventDetail from "./preact/signal/EventDetail"
+import TicketCheckout from "./preact/tickets/TicketCheckout"
+import EcosystemRail from "./EcosystemRail.astro"
 import { SIGNAL_COPY } from "../data/signalCopy"
 import type { Lang } from "../i18n/t"
+import { loadLiveEvent, loadLiveTicketSale } from "../server/liveEvents"
 
 interface Props {
   lang?: Lang
@@ -14,24 +17,82 @@ interface Props {
 
 const { lang = "en", slug } = Astro.props
 const copy = SIGNAL_COPY[lang]
+const [event, ticketSale] = await Promise.all([
+  loadLiveEvent(slug).catch(() => null),
+  loadLiveTicketSale(slug),
+])
+const fallbackTitle = `${copy.events.heading} | Virya`
+const title = event ? `${event.title} | Virya live` : fallbackTitle
+const description = event?.description ?? copy.events.body
+const canonical = `https://www.virya.music${lang === "pl" ? "/pl" : ""}/live/${encodeURIComponent(slug)}/`
+const activePrices = ticketSale?.ticket_types
+  .filter(ticket => ticket.active && ticket.available > 0)
+  .map(ticket => ticket.price_gross_minor / 100) ?? []
+const structuredOffers = ticketSale
+  ? {
+      "@type": "AggregateOffer",
+      url: `${canonical}#tickets`,
+      priceCurrency: ticketSale.currency,
+      lowPrice: activePrices.length > 0 ? Math.min(...activePrices) : undefined,
+      highPrice: activePrices.length > 0 ? Math.max(...activePrices) : undefined,
+      offerCount: ticketSale.available,
+      availability: ticketSale.sales_state === "sold_out"
+        ? "https://schema.org/SoldOut"
+        : ticketSale.sales_state === "open"
+          ? "https://schema.org/InStock"
+          : "https://schema.org/PreOrder",
+    }
+  : event?.ticket_url
+    ? {
+        "@type": "Offer",
+        url: event.ticket_url,
+        availability: "https://schema.org/InStock",
+      }
+    : undefined
 ---
 
 <Layout
-  title={`${copy.events.heading} | Virya`}
-  description={copy.events.body}
+  title={title}
+  description={description}
+  canonical={canonical}
+  ogImage={event?.image_url ?? undefined}
+  ogImageAlt={event?.title ?? title}
+  ogType="event"
   lang={lang}
 >
   <Fragment slot="head">
     <link rel="dns-prefetch" href="https://signal-api.virya.music" />
+    {event && (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "MusicEvent",
+        name: event.title,
+        description: event.description ?? undefined,
+        startDate: event.starts_at,
+        endDate: event.ends_at ?? undefined,
+        eventStatus: "https://schema.org/EventScheduled",
+        location: {
+          "@type": "Place",
+          name: event.venue ?? event.city?.name ?? "Virya live",
+          address: event.venue_address ?? event.city?.name ?? undefined,
+        },
+        image: event.image_url ? [event.image_url] : undefined,
+        url: canonical,
+        offers: structuredOffers,
+        performer: { "@type": "MusicGroup", name: "Virya" },
+      })} />
+    )}
   </Fragment>
   <div class="flex min-h-screen flex-col bg-zinc-950">
     <Navbar lang={lang} displayLinks={true} activePage="signal" />
     <ScrollToTop />
     <main id="main-content" class="virya-section flex-1 pb-20 pt-32">
       <div class="virya-section__inner">
-        <EventDetail client:load lang={lang} slug={slug} />
+        <EventDetail client:load lang={lang} slug={slug} initialEvent={event} />
+        <TicketCheckout client:visible lang={lang} slug={slug} />
       </div>
     </main>
+    <EcosystemRail lang={lang} active="live" />
     <Footer lang={lang} />
   </div>
 </Layout>

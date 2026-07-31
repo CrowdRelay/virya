@@ -3,6 +3,7 @@ export const prerender = false
 
 import Layout from "../../components/Layout.astro"
 import ConcertQrManager from "../../components/preact/staff/ConcertQrManager"
+import StaffNavigation from "../../components/StaffNavigation.astro"
 ---
 
 <Layout
@@ -15,6 +16,7 @@ import ConcertQrManager from "../../components/preact/staff/ConcertQrManager"
   </Fragment>
   <main id="main-content" class="min-h-screen w-full max-w-full overflow-x-hidden bg-zinc-950 px-4 py-8 sm:px-6 lg:px-8">
     <div class="mx-auto w-full min-w-0 max-w-7xl">
+      <StaffNavigation active="qr" />
       <ConcertQrManager client:load />
     </div>
   </main>

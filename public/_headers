@@ -32,3 +32,24 @@
 #   'unsafe-inline' script/style      → Astro inlines its runtime + critical CSS
 # If a third party breaks, check the browser console for the blocked URL and add
 # its origin to the matching directive.
+
+# Private ticket capability pages: never cache or leak their URL as a referrer.
+/tickets/*
+  Cache-Control: no-store, private
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/pl/tickets/*
+  Cache-Control: no-store, private
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/win
+  Cache-Control: no-store, private
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/pl/win
+  Cache-Control: no-store, private
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow, noarchive
