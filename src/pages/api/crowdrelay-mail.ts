@@ -436,6 +436,9 @@ export const POST: APIRoute = async ({ request }) => {
   if (lease.status === "done") return json({ ok: true, duplicate: true })
   if (lease.status === "busy") return json({ error: "delivery_in_progress" }, 409)
 
+  if (lease.status !== "acquired") return json({ error: "delivery_busy" }, 503)
+  const { leaseId } = lease
+
   try {
     await mailer.transporter.sendMail({
       from: `"Virya Signal" <${mailer.user}>`,
@@ -445,11 +448,11 @@ export const POST: APIRoute = async ({ request }) => {
       text: rendered.text,
       html: rendered.html,
     })
-    await completeCrowdRelayMailLease(payload.idempotencyKey, lease.leaseId)
+    await completeCrowdRelayMailLease(payload.idempotencyKey, leaseId)
     return json({ ok: true })
   } catch (error) {
     try {
-      await releaseCrowdRelayMailLease(payload.idempotencyKey, lease.leaseId)
+      await releaseCrowdRelayMailLease(payload.idempotencyKey, leaseId)
     } catch (releaseError) {
       console.error("[crowdrelay-mail-release]", payload.template, releaseError)
     }

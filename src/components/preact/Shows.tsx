@@ -12,7 +12,7 @@ type Props = {
 }
 
 const ShowsInner = ({ lang }: { lang: Lang }) => {
-  const { t } = useIslandI18n()
+  const { t } = useIslandI18n() as unknown as { t: (key: string) => string; lang: string; lp: (path: string) => string }
   const [events, setEvents] = useState<PublicEvent[] | null>(null)
   const [unavailable, setUnavailable] = useState(false)
   const campaignId = useMemo(() => campaignIdFromLocation(), [])
