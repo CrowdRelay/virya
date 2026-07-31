@@ -1,7 +1,8 @@
 ---
-const { active } = Astro.props as { active: "home" | "qr" | "accounting" }
+const { active } = Astro.props as { active: "home" | "control" | "qr" | "accounting" }
 const items = [
   { key: "home", href: "/staff/", label: "Panel" },
+  { key: "control", href: "/staff/control/", label: "Control center" },
   { key: "qr", href: "/staff/qr/", label: "QR i bramka" },
   { key: "accounting", href: "/staff/accounting/", label: "Bilety i księgowość" },
 ]
