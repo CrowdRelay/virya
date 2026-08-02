@@ -65,17 +65,28 @@ export default function TicketInventoryBar({
       </div>
 
       {showLegend && (
-        <dl class={`virya-ticket-inventory__legend ${compact ? "virya-ticket-inventory__legend--compact" : ""}`}>
+        <dl
+          class={`virya-ticket-inventory__legend ${compact ? "virya-ticket-inventory__legend--compact" : ""}`}
+        >
           <div>
-            <dt><span class="virya-ticket-inventory__key virya-ticket-inventory__key--available" />{text.available}</dt>
+            <dt>
+              <span class="virya-ticket-inventory__key virya-ticket-inventory__key--available" />
+              {text.available}
+            </dt>
             <dd>{inventory.available}</dd>
           </div>
           <div>
-            <dt><span class="virya-ticket-inventory__key virya-ticket-inventory__key--reserved" />{text.reserved}</dt>
+            <dt>
+              <span class="virya-ticket-inventory__key virya-ticket-inventory__key--reserved" />
+              {text.reserved}
+            </dt>
             <dd>{inventory.reserved}</dd>
           </div>
           <div>
-            <dt><span class="virya-ticket-inventory__key virya-ticket-inventory__key--sold" />{text.sold}</dt>
+            <dt>
+              <span class="virya-ticket-inventory__key virya-ticket-inventory__key--sold" />
+              {text.sold}
+            </dt>
             <dd>{inventory.sold}</dd>
           </div>
         </dl>

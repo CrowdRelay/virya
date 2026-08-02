@@ -80,3 +80,5 @@ dist/
 # Generated responsive image variants
 public/resp/
 src/srcsets.json
+
+.test-dist/

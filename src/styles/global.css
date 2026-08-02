@@ -91,7 +91,8 @@
 }
 
 @keyframes arrowFade {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.2;
   }
   50% {
@@ -212,7 +213,9 @@
     background: rgb(0 0 0);
     padding-inline: 0.875rem;
     color: white;
-    transition: border-color 160ms ease, background-color 160ms ease;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease;
   }
 
   .virya-input:hover {
@@ -234,7 +237,11 @@
     line-height: 1;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
   }
 
   .virya-button:active {
@@ -296,7 +303,10 @@
     background:
       linear-gradient(135deg, rgb(9 9 11 / 0.98), rgb(9 9 11 / 0.86)),
       rgb(9 9 11);
-    transition: border-color 240ms ease, transform 240ms ease, box-shadow 240ms ease;
+    transition:
+      border-color 240ms ease,
+      transform 240ms ease,
+      box-shadow 240ms ease;
   }
 
   .virya-live-card:hover {
@@ -311,7 +321,9 @@
     left: 0;
     width: 0.25rem;
     background: rgb(63 63 70);
-    transition: width 240ms ease, background-color 240ms ease;
+    transition:
+      width 240ms ease,
+      background-color 240ms ease;
   }
 
   .virya-live-card:hover .virya-live-card__rail {
@@ -324,7 +336,9 @@
     border: 1px solid rgb(251 191 36 / 0.12);
     border-radius: 9999px;
     pointer-events: none;
-    transition: transform 500ms ease, border-color 300ms ease;
+    transition:
+      transform 500ms ease,
+      border-color 300ms ease;
   }
 
   .virya-live-card__orbit--outer {
@@ -380,7 +394,11 @@
     overflow: hidden;
     border: 1px solid rgb(39 39 42);
     background:
-      radial-gradient(circle at 92% 5%, rgb(251 191 36 / 0.11), transparent 28rem),
+      radial-gradient(
+        circle at 92% 5%,
+        rgb(251 191 36 / 0.11),
+        transparent 28rem
+      ),
       linear-gradient(135deg, rgb(9 9 11), rgb(12 12 15));
   }
 
@@ -482,7 +500,11 @@
     gap: 1.5rem;
     border: 1px solid rgb(251 191 36 / 0.3);
     background:
-      radial-gradient(circle at 100% 0%, rgb(251 191 36 / 0.1), transparent 20rem),
+      radial-gradient(
+        circle at 100% 0%,
+        rgb(251 191 36 / 0.1),
+        transparent 20rem
+      ),
       rgb(9 9 11);
     padding: clamp(1.25rem, 3vw, 2rem);
   }
@@ -493,7 +515,6 @@
     border-left: 2px solid rgb(251 191 36);
     padding-left: 1rem;
   }
-
 
   .virya-ticket-inventory {
     display: flex;
@@ -521,14 +542,13 @@
   }
 
   .virya-ticket-inventory__reserved {
-    background:
-      repeating-linear-gradient(
-        135deg,
-        rgb(253 230 138 / 0.7) 0,
-        rgb(253 230 138 / 0.7) 0.3rem,
-        rgb(180 83 9 / 0.45) 0.3rem,
-        rgb(180 83 9 / 0.45) 0.6rem
-      );
+    background: repeating-linear-gradient(
+      135deg,
+      rgb(253 230 138 / 0.7) 0,
+      rgb(253 230 138 / 0.7) 0.3rem,
+      rgb(180 83 9 / 0.45) 0.3rem,
+      rgb(180 83 9 / 0.45) 0.6rem
+    );
   }
 
   .virya-ticket-inventory__available {
@@ -583,14 +603,13 @@
   }
 
   .virya-ticket-inventory__key--reserved {
-    background:
-      repeating-linear-gradient(
-        135deg,
-        rgb(253 230 138 / 0.7) 0,
-        rgb(253 230 138 / 0.7) 0.18rem,
-        rgb(180 83 9 / 0.45) 0.18rem,
-        rgb(180 83 9 / 0.45) 0.36rem
-      );
+    background: repeating-linear-gradient(
+      135deg,
+      rgb(253 230 138 / 0.7) 0,
+      rgb(253 230 138 / 0.7) 0.18rem,
+      rgb(180 83 9 / 0.45) 0.18rem,
+      rgb(180 83 9 / 0.45) 0.36rem
+    );
   }
 
   .virya-ticket-inventory__key--available {
@@ -626,7 +645,9 @@
     border: 1px solid rgb(39 39 42);
     background: rgb(9 9 11);
     padding: 1rem;
-    transition: border-color 160ms ease, background-color 160ms ease;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease;
   }
 
   .virya-ticket-type:focus-within {
@@ -652,7 +673,10 @@
   .virya-ticket-stepper__button {
     font-size: 1rem;
     font-weight: 900;
-    transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+    transition:
+      border-color 160ms ease,
+      color 160ms ease,
+      background-color 160ms ease;
   }
 
   .virya-ticket-stepper__button:hover:not(:disabled) {

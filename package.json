@@ -1,64 +1,67 @@
 {
-    "name": "virya-website",
-    "private": true,
-    "description": "Static-first Astro site for Virya: music, merch, fan Signal, AREA field game and concert operations.",
-    "version": "0.3.0",
-    "author": "Virya <virya.crew@gmail.com>",
-    "type": "module",
-    "bugs": {
-        "url": "https://github.com/wojciechbator/virya"
-    },
-    "dependencies": {
-        "@astrojs/netlify": "^8.0.0",
-        "@astrojs/preact": "^6.0.0",
-        "@astrojs/sitemap": "^3.7.3",
-        "@netlify/blobs": "^10.7.9",
-        "@tailwindcss/vite": "^4.3.1",
-        "astro": "^7.0.0",
-        "disposable-email-domains-js": "1.25.0",
-        "nodemailer": "^9.0.1",
-        "preact": "^10.29.2",
-        "stripe": "^22.2.1",
-        "tailwindcss": "^4.3.1",
-        "qrcode-generator": "1.5.2"
-    },
-    "devDependencies": {
-        "@types/node": "^26.0.0",
-        "@types/nodemailer": "^8.0.1",
-        "prettier": "^3.3.3",
-        "sharp": "^0.34.5",
-        "typescript": "^6.0.3"
-    },
-    "homepage": "https://www.virya.music",
-    "keywords": [
-        "virya",
-        "modern metal",
-        "astro",
-        "preact",
-        "stripe",
-        "crowdrelay",
-        "geolocation",
-        "pwa"
-    ],
-    "license": "0BSD",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/wojciechbator/virya.git"
-    },
-    "scripts": {
-        "gen:placeholders": "node scripts/gen-placeholders.mjs",
-        "predev": "node scripts/gen-placeholders.mjs",
-        "dev": "astro dev",
-        "prebuild": "node scripts/gen-placeholders.mjs",
-        "build": "astro build",
-        "preview": "astro preview",
-        "start": "astro dev",
-        "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,json,md}\"",
-        "check": "tsc --noEmit",
-        "audit:area": "node scripts/audit-area.mjs",
-        "test": "npm run check && npm run audit:area && npm run audit:signal && npm run audit:admin && npm run audit:live",
-        "audit:signal": "node scripts/audit-signal.mjs",
-        "audit:admin": "node scripts/audit-admin.mjs",
-        "audit:live": "node scripts/audit-live.mjs"
-    }
+  "name": "virya-website",
+  "private": true,
+  "description": "Static-first Astro site for Virya: music, merch, fan Signal, AREA field game and concert operations.",
+  "version": "0.3.4",
+  "author": "Virya <virya.crew@gmail.com>",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/wojciechbator/virya"
+  },
+  "dependencies": {
+    "@astrojs/netlify": "^8.0.0",
+    "@astrojs/preact": "^6.0.0",
+    "@astrojs/sitemap": "^3.7.3",
+    "@netlify/blobs": "^10.7.9",
+    "@tailwindcss/vite": "^4.3.1",
+    "astro": "^7.0.0",
+    "disposable-email-domains-js": "1.25.0",
+    "nodemailer": "^9.0.1",
+    "preact": "^10.29.2",
+    "stripe": "^22.2.1",
+    "tailwindcss": "^4.3.1",
+    "qrcode-generator": "1.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "@types/nodemailer": "^8.0.1",
+    "prettier": "^3.3.3",
+    "sharp": "^0.34.5",
+    "typescript": "^6.0.3"
+  },
+  "homepage": "https://www.virya.music",
+  "keywords": [
+    "virya",
+    "modern metal",
+    "astro",
+    "preact",
+    "stripe",
+    "crowdrelay",
+    "geolocation",
+    "pwa"
+  ],
+  "license": "0BSD",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wojciechbator/virya.git"
+  },
+  "scripts": {
+    "gen:placeholders": "node scripts/gen-placeholders.mjs",
+    "predev": "node scripts/gen-placeholders.mjs",
+    "dev": "astro dev",
+    "prebuild": "node scripts/gen-placeholders.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "astro dev",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,json,md}\"",
+    "check": "tsc --noEmit",
+    "audit:area": "node scripts/audit-area.mjs",
+    "test": "npm run check && npm run test:unit && npm run audit:assets && npm run audit:area && npm run audit:signal && npm run audit:admin && npm run audit:live",
+    "audit:signal": "node scripts/audit-signal.mjs",
+    "audit:admin": "node scripts/audit-admin.mjs",
+    "audit:live": "node scripts/audit-live.mjs",
+    "test:unit": "node --no-warnings=ExperimentalWarning --experimental-strip-types --test tests/*.test.ts",
+    "audit:assets": "node scripts/audit-assets.mjs",
+    "budget:build": "node scripts/check-build-budget.mjs dist"
+  }
 }

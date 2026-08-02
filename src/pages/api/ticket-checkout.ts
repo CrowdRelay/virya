@@ -6,6 +6,7 @@ import {
   CrowdRelayTicketingError,
   reserveTicketOrder,
 } from "../../server/crowdrelayTicketing"
+import { staffApiRequest } from "../../server/staffQrApi"
 
 export const prerender = false
 
@@ -21,6 +22,24 @@ const CONTROL_CHAR_PATTERN = /[\u0000-\u001f\u007f]/
 const COUNTRY_CODE_PATTERN = /^[A-Z]{2}$/
 const STRIPE_MINIMUM_EXPIRY_SECONDS = 30 * 60
 const STRIPE_TARGET_EXPIRY_SECONDS = 31 * 60
+const FEATURE_FLAG_CACHE_MS = 10_000
+
+type FeatureFlag = { key: string; enabled: boolean }
+let ticketSalesFlagCache: { enabled: boolean; expiresAt: number } | null = null
+
+const ticketSalesEnabled = async () => {
+  const now = Date.now()
+  if (ticketSalesFlagCache && ticketSalesFlagCache.expiresAt > now) {
+    return ticketSalesFlagCache.enabled
+  }
+  const flags = await staffApiRequest<FeatureFlag[]>("admin/ecosystem/flags", {
+    timeoutMs: 3_000,
+    correlationId: `checkout-flag:${crypto.randomUUID()}`,
+  })
+  const enabled = flags.find(flag => flag.key === "ticket_sales_enabled")?.enabled === true
+  ticketSalesFlagCache = { enabled, expiresAt: now + FEATURE_FLAG_CACHE_MS }
+  return enabled
+}
 
 const json = (payload: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(payload), {
@@ -219,6 +238,15 @@ export const POST: APIRoute = async ({ request }) => {
     if (totalQuantity > MAX_QTY) {
       return json({ error: "Ticket order is too large" }, 400)
     }
+  }
+
+  try {
+    if (!(await ticketSalesEnabled())) {
+      return json({ error: "Ticket sales are temporarily paused" }, 503)
+    }
+  } catch (error) {
+    console.error("[ticket-checkout] feature flag unavailable")
+    return json({ error: "Ticket checkout temporarily unavailable" }, 503)
   }
 
   const stripeKey = import.meta.env.STRIPE_SECRET_KEY?.trim()
