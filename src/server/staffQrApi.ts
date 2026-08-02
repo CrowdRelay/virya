@@ -121,7 +121,7 @@ const readLimitedJson = async <T>(response: Response): Promise<T> => {
 
 export const staffQrRequest = async <T>(
   path: string,
-  options: { method?: "GET" | "POST"; body?: unknown; timeoutMs?: number; idempotencyKey?: string } = {},
+  options: { method?: "GET" | "POST"; body?: unknown; timeoutMs?: number; idempotencyKey?: string; correlationId?: string } = {},
 ): Promise<T> => {
   const key = adminKey()
   if (!key) throw new StaffQrUpstreamError(503)
@@ -139,6 +139,10 @@ export const staffQrRequest = async <T>(
     })
     if (options.body !== undefined) headers.set("Content-Type", "application/json")
     if (options.idempotencyKey) headers.set("Idempotency-Key", options.idempotencyKey)
+    headers.set(
+      "X-CrowdRelay-Correlation-Id",
+      options.correlationId ?? crypto.randomUUID(),
+    )
 
     const response = await fetch(new URL(path.replace(/^\/+/, ""), baseUrl()), {
       method: options.method ?? "GET",

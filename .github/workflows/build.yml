@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -22,11 +22,21 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .cache/virya-images
+            public/resp
+          key: images-${{ runner.os }}-${{ hashFiles('scripts/gen-placeholders.mjs', 'public/**/*') }}
+          restore-keys: |
+            images-${{ runner.os }}-
       - name: Install locked dependencies
-        run: npm ci
-      - name: Run source audits and type checks
+        run: npm ci --prefer-offline --no-audit --fund=false
+      - name: Unit, contract, asset and type gates
         run: npm test
       - name: Build production output
         run: npm run build
         env:
           CI: "true"
+      - name: Enforce production code budget
+        run: npm run budget:build

@@ -160,6 +160,7 @@ type TicketingRequestOptions = {
   idempotencyKey?: string
   authenticated?: boolean
   timeoutMs?: number
+  correlationId?: string
 }
 
 const ticketingRequest = async <T>(
@@ -171,6 +172,10 @@ const ticketingRequest = async <T>(
   if (options.idempotencyKey) {
     headers.set("Idempotency-Key", options.idempotencyKey)
   }
+  headers.set(
+    "X-CrowdRelay-Correlation-Id",
+    options.correlationId ?? options.idempotencyKey ?? crypto.randomUUID(),
+  )
   if (options.authenticated) {
     const key = commerceKey()
     if (!key) throw new CrowdRelayTicketingError(503)
@@ -231,6 +236,7 @@ export const reserveTicketOrder = (
       method: "POST",
       body,
       idempotencyKey,
+      correlationId: idempotencyKey,
       timeoutMs: 10_000,
     },
   )
@@ -254,6 +260,7 @@ export const bindTicketCheckout = (
     method: "POST",
     body,
     authenticated: true,
+    correlationId: `stripe-checkout:${orderId}`,
     timeoutMs: 10_000,
   })
 
@@ -267,6 +274,7 @@ export const cancelTicketOrder = (
       method: "POST",
       body,
       authenticated: true,
+      correlationId: `ticket-cancel:${orderId}`,
       timeoutMs: 10_000,
     },
   )
@@ -278,6 +286,7 @@ export const applyStripeTicketEvent = (body: TicketStripeEvent) =>
       method: "POST",
       body,
       authenticated: true,
+      correlationId: `stripe-event:${body.stripe_event_id}`,
       timeoutMs: 15_000,
     },
   )

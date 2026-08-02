@@ -1,0 +1,87 @@
+---
+export const prerender = false
+
+import Layout from "../../../../components/Layout.astro"
+import Navbar from "../../../../components/Navbar.astro"
+import Footer from "../../../../components/Footer.astro"
+import ScrollToTop from "../../../../components/ScrollToTop.astro"
+
+const slug = Astro.params.slug ?? ""
+const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL?.trim() || "https://signal-api.virya.music/v1/"
+const base = configured.endsWith("/") ? configured : `${configured}/`
+let proof: any = null
+let unavailable = false
+try {
+  const response = await fetch(`${base}public/proofs/draws/${encodeURIComponent(slug)}`, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(8_000),
+  })
+  if (response.ok) proof = await response.json()
+  else unavailable = true
+} catch {
+  unavailable = true
+}
+const title = proof ? `Dowód losowania: ${proof.draw_name} · Virya` : "Dowód losowania · Virya"
+const description = "Publiczny, niezależnie weryfikowalny SHA-256 receipt losowania CrowdRelay."
+const short = (value: unknown) => typeof value === "string" && value.length > 24
+  ? `${value.slice(0, 12)}…${value.slice(-10)}`
+  : String(value ?? "—")
+const txUrl = proof?.anchor?.chain_id === 84532 && proof?.anchor?.transaction_hash
+  ? `https://sepolia.basescan.org/tx/${proof.anchor.transaction_hash}`
+  : null
+---
+
+<Layout title={title} description={description} lang="pl" canonical={Astro.url.href}>
+  <Fragment slot="head"><meta name="robots" content="index,follow" /></Fragment>
+  <div class="flex min-h-screen flex-col bg-zinc-950 text-white">
+    <Navbar lang="pl" displayLinks={true} />
+    <ScrollToTop />
+    <main class="mx-auto w-full max-w-5xl flex-1 px-5 py-24 sm:px-8">
+      <p class="text-xs font-black uppercase tracking-[.28em] text-cyan-300">CrowdRelay external proof</p>
+      <h1 class="mt-4 text-3xl font-black sm:text-5xl">{proof?.draw_name ?? "Dowód losowania"}</h1>
+      <p class="mt-5 max-w-3xl text-base leading-7 text-zinc-400">Receipt wiąże algorytm, seed i snapshoty kandydatów oraz zwycięzców. Nie zawiera nazwisk, e-maili ani danych biletowych. PostgreSQL pozostaje źródłem prawdy, a blockchain jest wyłącznie opcjonalnym, zewnętrznym stemplem czasu.</p>
+
+      {unavailable || !proof ? (
+        <section class="mt-10 rounded-3xl border border-amber-300/20 bg-amber-300/5 p-6"><h2 class="font-black text-amber-200">Dowód nie jest jeszcze dostępny</h2><p class="mt-2 text-sm text-zinc-400">Losowanie mogło nie zostać zakończone albo warstwa proofów nie była jeszcze aktywna.</p></section>
+      ) : (
+        <>
+          <section class={`mt-10 rounded-3xl border p-6 ${proof.locally_verified ? "border-emerald-400/25 bg-emerald-400/5" : "border-rose-400/25 bg-rose-400/5"}`}>
+            <p class="text-xs font-black uppercase tracking-wider text-zinc-400">Weryfikacja lokalna</p>
+            <strong class={`mt-3 block text-2xl ${proof.locally_verified ? "text-emerald-300" : "text-rose-300"}`}>{proof.locally_verified ? "Receipt zgodny" : "Niezgodność receipt"}</strong>
+            <p class="mt-3 font-mono text-xs text-zinc-500">SHA-256 {proof.receipt_sha256}</p>
+          </section>
+
+          <div class="mt-6 grid gap-4 md:grid-cols-2">
+            <section class="rounded-3xl border border-white/10 bg-white/[.03] p-6">
+              <h2 class="font-black">Parametry losowania</h2>
+              <dl class="mt-4 grid gap-3 text-sm">
+                <div><dt class="text-zinc-500">Algorytm</dt><dd class="mt-1 font-mono text-zinc-200">{proof.algorithm_version}</dd></div>
+                <div><dt class="text-zinc-500">Kandydaci / zwycięzcy</dt><dd class="mt-1 text-zinc-200">{proof.eligible_count} / {proof.selected_winners}</dd></div>
+                <div><dt class="text-zinc-500">Łączna liczba entries</dt><dd class="mt-1 text-zinc-200">{proof.total_entries}</dd></div>
+                <div><dt class="text-zinc-500">Run ID</dt><dd class="mt-1 font-mono text-zinc-200">{proof.run_id}</dd></div>
+              </dl>
+            </section>
+            <section class="rounded-3xl border border-white/10 bg-white/[.03] p-6">
+              <h2 class="font-black">Zewnętrzny anchor</h2>
+              <p class={`mt-4 text-xl font-black ${proof.anchor.status === "confirmed" ? "text-emerald-300" : proof.anchor.status === "dead" ? "text-rose-300" : "text-cyan-200"}`}>{proof.anchor.status}</p>
+              <p class="mt-3 text-sm text-zinc-500">Batch {proof.anchor.batch_id}</p>
+              {proof.anchor.transaction_hash && <p class="mt-2 font-mono text-xs text-zinc-500">Tx {short(proof.anchor.transaction_hash)}</p>}
+              {txUrl && <a class="mt-4 inline-block rounded-xl border border-cyan-300/30 px-4 py-2 text-sm font-black text-cyan-200" href={txUrl} target="_blank" rel="noreferrer">Sprawdź w explorerze ↗</a>}
+            </section>
+          </div>
+
+          <section class="mt-6 rounded-3xl border border-white/10 bg-white/[.03] p-6">
+            <h2 class="font-black">Commitments</h2>
+            <dl class="mt-4 grid gap-4 text-xs">
+              <div><dt class="text-zinc-500">Seed commitment</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.seed_hash_sha256}</dd></div>
+              <div><dt class="text-zinc-500">Revealed seed</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.revealed_seed_hex}</dd></div>
+              <div><dt class="text-zinc-500">Candidate snapshot</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.candidate_snapshot_sha256}</dd></div>
+              <div><dt class="text-zinc-500">Winner snapshot</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.winner_snapshot_sha256}</dd></div>
+            </dl>
+          </section>
+        </>
+      )}
+    </main>
+    <Footer lang="pl" />
+  </div>
+</Layout>
