@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "preact/hooks"
+import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
 import type { CitySignal, PublicEvent } from "../../../lib/crowdrelay-client"
@@ -40,6 +40,9 @@ export default function SignalHub({ lang }: Props) {
   const [submitMessage, setSubmitMessage] = useState("")
   const [referralUrl, setReferralUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [formStep, setFormStep] = useState<1 | 2 | 3>(1)
+  const [reloadKey, setReloadKey] = useState(0)
+  const formRef = useRef<HTMLFormElement>(null)
   const campaignId = useMemo(() => campaignIdFromLocation(), [])
 
   useEffect(() => {
@@ -85,7 +88,7 @@ export default function SignalHub({ lang }: Props) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [reloadKey])
 
   const rankedCities = useMemo(
     () =>
@@ -103,6 +106,27 @@ export default function SignalHub({ lang }: Props) {
     () => upcomingLiveEvents(events ?? [], { limit: 6 }),
     [events],
   )
+
+
+  function goToCityStep() {
+    const email = formRef.current?.elements.namedItem("email") as HTMLInputElement | null
+    if (!email?.checkValidity()) {
+      email?.reportValidity()
+      return
+    }
+    setFormStep(2)
+  }
+
+  function goToConsentStep() {
+    if (!selectedCity) {
+      setSubmitState("error")
+      setSubmitMessage(copy.form.validationError)
+      return
+    }
+    setSubmitState("idle")
+    setSubmitMessage("")
+    setFormStep(3)
+  }
 
   async function submit(event: SubmitEvent) {
     event.preventDefault()
@@ -198,97 +222,69 @@ export default function SignalHub({ lang }: Props) {
           </div>
 
           <div class="virya-panel p-5 shadow-2xl sm:p-7 lg:p-8">
-            <form onSubmit={submit} noValidate>
-              <div class="grid gap-5 sm:grid-cols-2">
-                <label class="block sm:col-span-2">
-                  <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
-                    {copy.form.email}
-                  </span>
-                  <input
-                    name="email"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    required
-                    maxLength={254}
-                    class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm placeholder:text-zinc-600"
-                  />
-                </label>
+            <form ref={formRef} onSubmit={submit} noValidate>
+              <div class="mb-6" aria-label={lang === "pl" ? `Krok ${formStep} z 3` : `Step ${formStep} of 3`}>
+                <div class="flex items-center justify-between text-[9px] font-black uppercase tracking-[.2em] text-zinc-500">
+                  <span>{lang === "pl" ? `KROK ${formStep} Z 3` : `STEP ${formStep} OF 3`}</span>
+                  <span class="text-amber-400">{["Kontakt", "Miasto", "Gotowe"][formStep - 1]}</span>
+                </div>
+                <div class="mt-3 grid grid-cols-3 gap-2" aria-hidden="true">
+                  {[1, 2, 3].map(step => <span class={`h-1 ${step <= formStep ? "bg-amber-400" : "bg-zinc-800"}`}></span>)}
+                </div>
+              </div>
 
+              <div hidden={formStep !== 1} class="grid gap-5">
+                <div class="rounded border border-amber-400/25 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300">
+                  <strong class="block text-sm uppercase text-white">{lang === "pl" ? "Po co to jest?" : "What is this for?"}</strong>
+                  <span class="mt-2 block">{lang === "pl" ? "Żeby dostawać koncerty blisko Ciebie i trzymać bilety oraz aktywne nagrody w jednym miejscu." : "To get nearby show alerts and keep tickets and active rewards in one place."}</span>
+                </div>
                 <label class="block">
-                  <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
-                    {copy.form.nickname}
-                  </span>
-                  <input
-                    name="display_name"
-                    type="text"
-                    autoComplete="nickname"
-                    maxLength={160}
-                    class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm placeholder:text-zinc-600"
-                  />
+                  <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">{copy.form.email}</span>
+                  <input name="email" type="email" inputMode="email" autoComplete="email" required maxLength={254} class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm" />
                 </label>
-
                 <label class="block">
-                  <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
-                    {copy.form.city}
-                  </span>
-                  <select
-                    name="city"
-                    required
-                    value={selectedCity}
-                    onChange={event =>
-                      setSelectedCity((event.currentTarget as HTMLSelectElement).value)
-                    }
-                    disabled={cities === null || submitState === "saving"}
-                    class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm disabled:opacity-60"
-                  >
-                    <option value="">
-                      {cities === null
-                        ? copy.form.loadingCities
-                        : copy.form.cityPlaceholder}
-                    </option>
-                    {(cities ?? []).map(city => (
-                      <option value={city.slug} key={city.slug}>
-                        {city.name}
-                        {city.fan_count > 0 ? ` · ${city.fan_count}` : ""}
-                      </option>
-                    ))}
+                  <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">{copy.form.nickname}</span>
+                  <input name="display_name" type="text" autoComplete="nickname" maxLength={160} class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm" />
+                </label>
+                <button type="button" onClick={goToCityStep} class="virya-button virya-button--primary min-h-[50px] px-6">{lang === "pl" ? "DALEJ: MIASTO" : "NEXT: CITY"} →</button>
+              </div>
+
+              <div hidden={formStep !== 2} class="grid gap-5">
+                <label class="block">
+                  <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">{copy.form.city}</span>
+                  <select name="city" required value={selectedCity} onChange={event => setSelectedCity((event.currentTarget as HTMLSelectElement).value)} disabled={cities === null || submitState === "saving"} class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm disabled:opacity-60">
+                    <option value="">{cities === null ? copy.form.loadingCities : copy.form.cityPlaceholder}</option>
+                    {(cities ?? []).map(city => <option value={city.slug} key={city.slug}>{city.name}</option>)}
                   </select>
                 </label>
+                {cityError && <div class="border border-amber-400/30 bg-amber-400/[.035] p-4 text-xs text-zinc-300"><p>{copy.form.loadError}</p><button type="button" onClick={() => setReloadKey(value => value + 1)} class="mt-3 min-h-[42px] font-black uppercase tracking-widest text-amber-400">{lang === "pl" ? "SPRÓBUJ PONOWNIE" : "TRY AGAIN"}</button></div>}
+                <p class="text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Miasto służy do alertów o koncertach. Nie publikujemy małych liczników fanów." : "Your city is used for nearby show alerts. We do not publish small fan counters."}</p>
+                <div class="grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => setFormStep(1)} class="virya-button virya-button--secondary min-h-[48px]">← {lang === "pl" ? "WRÓĆ" : "BACK"}</button>
+                  <button type="button" onClick={goToConsentStep} class="virya-button virya-button--primary min-h-[48px]">{lang === "pl" ? "DALEJ" : "NEXT"} →</button>
+                </div>
               </div>
 
-              <label class="mt-6 flex cursor-pointer items-start gap-3 border-l-2 border-amber-400/50 bg-amber-400/[.035] p-4">
-                <input
-                  name="consent"
-                  type="checkbox"
-                  required
-                  class="mt-0.5 h-4 w-4 shrink-0 accent-amber-400"
-                />
-                <span class="text-xs leading-relaxed text-zinc-300">
-                  {copy.form.consent}
-                </span>
-              </label>
-
-              <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="submit"
-                  disabled={cities === null || submitState === "saving"}
-                  class="virya-button virya-button--primary min-h-[50px] px-6 disabled:cursor-wait"
-                >
-                  {submitState === "saving" ? copy.form.saving : copy.form.submit}
-                  <span class="ml-3" aria-hidden="true">→</span>
-                </button>
-                <p class="max-w-sm text-[9px] leading-relaxed text-zinc-500">
-                  {copy.form.privacy}
-                </p>
+              <div hidden={formStep !== 3} class="grid gap-5">
+                <div class="rounded border border-zinc-800 bg-zinc-900/60 p-4">
+                  <strong class="text-sm uppercase text-white">{lang === "pl" ? "Po zapisie od razu" : "Immediately after joining"}</strong>
+                  <ul class="mt-3 grid gap-2 text-xs text-zinc-300">
+                    <li>✓ {lang === "pl" ? "zobaczysz następny koncert" : "see the next show"}</li>
+                    <li>✓ {lang === "pl" ? "dostaniesz prywatny Sygnał" : "get your private Signal"}</li>
+                    <li>✓ {lang === "pl" ? "opcjonalnie zaprosisz znajomego" : "optionally invite a friend"}</li>
+                  </ul>
+                </div>
+                <label class="flex cursor-pointer items-start gap-3 border-l-2 border-amber-400/50 bg-amber-400/[.035] p-4">
+                  <input name="consent" type="checkbox" required class="mt-0.5 h-4 w-4 shrink-0 accent-amber-400" />
+                  <span class="text-xs leading-relaxed text-zinc-300">{copy.form.consent}</span>
+                </label>
+                <p class="text-[9px] leading-relaxed text-zinc-500">{copy.form.privacy}</p>
+                <div class="grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => setFormStep(2)} class="virya-button virya-button--secondary min-h-[48px]">← {lang === "pl" ? "WRÓĆ" : "BACK"}</button>
+                  <button type="submit" disabled={cities === null || submitState === "saving"} class="virya-button virya-button--primary min-h-[48px] px-4 disabled:cursor-wait">{submitState === "saving" ? copy.form.saving : copy.form.submit}</button>
+                </div>
               </div>
             </form>
-
-            {cityError && (
-              <p class="mt-5 text-xs font-semibold text-amber-400" role="status">
-                {copy.form.loadError}
-              </p>
-            )}
 
             {submitState !== "idle" && submitState !== "saving" && (
               <div
@@ -407,12 +403,12 @@ export default function SignalHub({ lang }: Props) {
                           <span class="relative h-full w-full rounded-full bg-zinc-600 shadow-[0_0_7px_rgba(113,113,122,.35)]"></span>
                         )}
                       </span>
-                      <strong class="block text-xl font-black text-amber-400">
-                        {city.fan_count}
+                      <strong class="block text-sm font-black uppercase text-amber-400">
+                        {city.fan_count >= 25 ? city.fan_count : lang === "pl" ? "rośnie" : "growing"}
                       </strong>
                     </span>
                     <span class="text-[8px] uppercase tracking-widest text-zinc-500">
-                      {copy.cities.people(city.fan_count)}
+                      {city.fan_count >= 25 ? copy.cities.people(city.fan_count) : lang === "pl" ? "bez rankingu" : "no ranking"}
                     </span>
                   </span>
                 </button>
@@ -446,9 +442,10 @@ export default function SignalHub({ lang }: Props) {
                 <LiveEventSkeleton />
               </>
             ) : upcomingEvents.length === 0 ? (
-              <LiveEventNotice
-                message={eventError ? copy.events.unavailable : copy.events.empty}
-              />
+              <div class="grid gap-3">
+                <LiveEventNotice message={eventError ? copy.events.unavailable : copy.events.empty} />
+                {eventError && <button type="button" onClick={() => setReloadKey(value => value + 1)} class="virya-button virya-button--secondary justify-self-start">{lang === "pl" ? "ODŚWIEŻ KONCERTY" : "RETRY SHOWS"}</button>}
+              </div>
             ) : (
               upcomingEvents.map((event, index) => (
                 <LiveEventCard

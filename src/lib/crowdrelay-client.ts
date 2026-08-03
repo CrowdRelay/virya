@@ -545,6 +545,30 @@ export class CrowdRelayClient {
   }
 
   async #request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    const method = options.method ?? "GET"
+    const retryDelays = method === "GET" ? [0, 180, 600] : [0]
+    let lastError: CrowdRelayError | null = null
+
+    for (let attempt = 0; attempt < retryDelays.length; attempt += 1) {
+      const delay = retryDelays[attempt] ?? 0
+      if (delay > 0) await sleep(delay)
+
+      try {
+        return await this.#requestOnce<T>(path, { ...options, method })
+      } catch (error) {
+        const normalized = normalizeRequestError(error)
+        lastError = normalized
+        const hasAnotherAttempt = attempt + 1 < retryDelays.length
+        if (!hasAnotherAttempt || !isRetryableReadFailure(normalized)) {
+          throw normalized
+        }
+      }
+    }
+
+    throw lastError ?? new CrowdRelayError(0, "CrowdRelay request failed")
+  }
+
+  async #requestOnce<T>(path: string, options: RequestOptions): Promise<T> {
     const controller = new AbortController()
     const timeout = globalThis.setTimeout(
       () => controller.abort(),
@@ -575,15 +599,6 @@ export class CrowdRelayClient {
       if (!response.ok) throw await toError(response)
       if (options.expectEmpty || response.status === 204) return undefined as T
       return await readBoundedJson<T>(response)
-    } catch (error) {
-      if (error instanceof CrowdRelayError) throw error
-      if (error instanceof DOMException && error.name === "AbortError") {
-        throw new CrowdRelayError(0, "CrowdRelay request timed out")
-      }
-      throw new CrowdRelayError(
-        0,
-        error instanceof Error ? error.message : "CrowdRelay request failed",
-      )
     } finally {
       globalThis.clearTimeout(timeout)
     }
@@ -592,6 +607,30 @@ export class CrowdRelayClient {
   #url(path: string): URL {
     return new URL(path.replace(/^\//, ""), this.#baseUrl)
   }
+}
+
+
+const RETRYABLE_READ_STATUSES = new Set([0, 408, 425, 429, 500, 502, 503, 504])
+
+const sleep = (delayMs: number) =>
+  new Promise<void>(resolve => globalThis.setTimeout(resolve, delayMs))
+
+function normalizeRequestError(error: unknown): CrowdRelayError {
+  if (error instanceof CrowdRelayError) return error
+  if (
+    (typeof DOMException !== "undefined" && error instanceof DOMException && error.name === "AbortError") ||
+    (error instanceof Error && error.name === "AbortError")
+  ) {
+    return new CrowdRelayError(0, "CrowdRelay request timed out")
+  }
+  return new CrowdRelayError(
+    0,
+    error instanceof Error ? error.message : "CrowdRelay request failed",
+  )
+}
+
+function isRetryableReadFailure(error: CrowdRelayError): boolean {
+  return RETRYABLE_READ_STATUSES.has(error.status)
 }
 
 async function toError(response: Response): Promise<CrowdRelayError> {

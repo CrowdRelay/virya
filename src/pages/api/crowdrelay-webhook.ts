@@ -81,7 +81,7 @@ const localePath = (locale: unknown, path: string) =>
     ? `/pl${path}`
     : path
 
-const sendConfirmation = async (data: Record<string, unknown>) => {
+const sendConfirmation = async (data: Record<string, unknown>, eventId: string) => {
   const email = typeof data.email === "string" ? data.email.trim() : ""
   const token =
     typeof data.confirmation_token === "string" ? data.confirmation_token : ""
@@ -95,10 +95,11 @@ const sendConfirmation = async (data: Record<string, unknown>) => {
   const mailer = getSiteMailer()
   if (!mailer) throw new Error("mailer_not_configured")
 
-  await mailer.transporter.sendMail({
-    from: `"${isPolish ? "Sygnał Virya" : "Virya Signal"}" <${mailer.user}>`,
+  await mailer.send({
+    fromName: isPolish ? "Sygnał Virya" : "Virya Signal",
     to: email,
     replyTo: mailer.to,
+    idempotencyKey: `fan-confirmation/${eventId}`,
     subject: isPolish ? "Potwierdź swój Sygnał Virya" : "Confirm your Virya Signal",
     text: isPolish
       ? `${name ? `Cześć ${name}!\n\n` : "Cześć!\n\n"}Potwierdź adres, aby aktywować Sygnał Virya:\n${confirmationUrl}\n\nSygnał łączy koncerty, Grę Virya, nagrody i merch. Jeśli to nie Ty, zignoruj wiadomość.`
@@ -107,7 +108,7 @@ const sendConfirmation = async (data: Record<string, unknown>) => {
   })
 }
 
-const sendWelcome = async (data: Record<string, unknown>) => {
+const sendWelcome = async (data: Record<string, unknown>, eventId: string) => {
   const email = typeof data.email === "string" ? data.email.trim() : ""
   const referralCode =
     typeof data.referral_code === "string" ? data.referral_code.trim() : ""
@@ -126,10 +127,11 @@ const sendWelcome = async (data: Record<string, unknown>) => {
   const mailer = getSiteMailer()
   if (!mailer) throw new Error("mailer_not_configured")
 
-  await mailer.transporter.sendMail({
-    from: `"${isPolish ? "Sygnał Virya" : "Virya Signal"}" <${mailer.user}>`,
+  await mailer.send({
+    fromName: isPolish ? "Sygnał Virya" : "Virya Signal",
     to: email,
     replyTo: mailer.to,
+    idempotencyKey: `fan-welcome/${eventId}`,
     subject: isPolish ? "Twój Sygnał Virya jest aktywny" : "Your Virya Signal is active",
     text: isPolish
       ? `Twój Sygnał działa.\n\nMój Sygnał: ${accountUrl}\nLink polecający: ${referralUrl}\n\nWypisz się: ${unsubscribeUrl}`
@@ -141,10 +143,10 @@ const sendWelcome = async (data: Record<string, unknown>) => {
 const handleEnvelope = async (envelope: Envelope) => {
   switch (envelope.type) {
     case "fan.confirmation_requested":
-      await sendConfirmation(envelope.data)
+      await sendConfirmation(envelope.data, envelope.id)
       return
     case "fan.confirmed":
-      await sendWelcome(envelope.data)
+      await sendWelcome(envelope.data, envelope.id)
       return
     case "fan.created":
     case "fan.unsubscribed":

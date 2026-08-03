@@ -166,12 +166,12 @@ const render = (template: string, variables: Variables): RenderedMail | null => 
     const url = safeUrl(variables.confirmation_url)
     if (!url) return null
     const subject = isPolish
-      ? "Potwierdź swój Sygnał Virya"
-      : "Confirm your Virya Signal"
-    const title = isPolish ? "Potwierdź swój sygnał" : "Confirm your signal"
+      ? "Potwierdź adres e-mail — Virya Signal"
+      : "Confirm your email — Virya Signal"
+    const title = isPolish ? "Potwierdź adres e-mail" : "Confirm your email"
     const copy = isPolish
-      ? "Jedno kliknięcie aktywuje prywatną przestrzeń fana: koncerty, nagrody, polecenia i merch w jednym miejscu."
-      : "One click activates your private fan space: shows, rewards, referrals and merch in one place."
+      ? "Otrzymujesz tę wiadomość, ponieważ rozpoczęto zapis do Virya Signal. Kliknij przycisk poniżej, aby potwierdzić adres. Jeśli to nie Ty, zignoruj wiadomość."
+      : "You received this message because a Virya Signal signup was started. Use the button below to confirm the address. If this was not you, ignore this email."
     return {
       subject,
       text: `${hello}\n\n${copy}\n\n${url}`,
@@ -179,7 +179,7 @@ const render = (template: string, variables: Variables): RenderedMail | null => 
         eyebrow: isPolish ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL",
         title,
         body: paragraph(hello) + paragraph(copy),
-        button: isPolish ? "Aktywuj Sygnał" : "Activate Signal",
+        button: isPolish ? "Potwierdź adres" : "Confirm address",
         buttonUrl: url,
         footer: `${isPolish ? "Adres potwierdzenia" : "Confirmation address"}:<br>${escapeHtml(url)}`,
       }),
@@ -440,13 +440,14 @@ export const POST: APIRoute = async ({ request }) => {
   const { leaseId } = lease
 
   try {
-    await mailer.transporter.sendMail({
-      from: `"Virya Signal" <${mailer.user}>`,
+    await mailer.send({
+      fromName: "Virya Signal",
       to: recipient,
       replyTo: mailer.to,
       subject: rendered.subject,
       text: rendered.text,
       html: rendered.html,
+      idempotencyKey: payload.idempotencyKey,
     })
     await completeCrowdRelayMailLease(payload.idempotencyKey, leaseId)
     return json({ ok: true })

@@ -59,10 +59,9 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: "Delivery unavailable" }, 503)
     }
 
-    const { transporter, user, to } = mailer
-    await transporter.sendMail({
-      from: `"Virya Website" <${user}>`,
-      to,
+    await mailer.send({
+      fromName: "Virya Website",
+      to: mailer.to,
       subject: `📬 Newsletter signup — ${email}`,
       text: `New newsletter signup:\n\nEmail: ${email}\n\n— virya.music`,
     })

@@ -71,10 +71,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     const mailer = getSiteMailer()
     if (mailer) {
-      const { transporter, user, to } = mailer
-      await transporter.sendMail({
-        from: `"Virya Website" <${user}>`,
-        to,
+      await mailer.send({
+        fromName: "Virya Website",
+        to: mailer.to,
         replyTo: email,
         subject: `✉️ Message from virya.music — ${name}`,
         text: `From: ${name} <${email}>\n\n${message}`,
