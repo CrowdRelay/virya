@@ -1,14 +1,50 @@
-const CACHE_NAME = 'virya-v12'
-const STATIC_CACHE = 'virya-static-v12'
+const CACHE_NAME = 'virya-v14'
+const STATIC_CACHE = 'virya-static-v14'
 const STATIC_ASSET_PATTERN = /\.(webp|png|jpg|jpeg|svg|css|js|woff2?|ttf|otf)$/
 const PRIVATE_HTML_PATTERN = /^\/(?:pl\/)?(?:merch\/(?:success|cancel)|area\/claim|staff|tickets(?:\/|$)|win(?:\/|$))/
+const OFFLINE_HTML = `<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>Virya offline</title><body style="margin:0;background:#09090b;color:#f4f4f5;font-family:system-ui;padding:32px"><main style="max-width:680px;margin:12vh auto"><p style="color:#fbbf24;font-weight:900;letter-spacing:.16em">VIRYA / OFFLINE</p><h1>Nie udało się połączyć</h1><p style="color:#d4d4d8;line-height:1.6">Sprawdź internet i odśwież stronę. Prywatne bilety i panel staff nigdy nie są odtwarzane z cache.</p><button onclick="location.reload()" style="min-height:44px;border:0;background:#fbbf24;padding:0 16px;font-weight:900">SPRÓBUJ PONOWNIE</button></main></body></html>`
+
+const offlineHtmlResponse = () =>
+  new Response(OFFLINE_HTML, {
+    status: 503,
+    statusText: 'Offline',
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Virya-Offline': '1',
+    },
+  })
+
+const offlineAssetResponse = () =>
+  new Response('', {
+    status: 503,
+    statusText: 'Offline',
+    headers: {
+      'Cache-Control': 'no-store',
+      'X-Virya-Offline': '1',
+    },
+  })
+
+async function notifyOffline(pathname) {
+  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+  await Promise.all(
+    clients.map((client) =>
+      client.postMessage({ type: 'VIRYA_OFFLINE_FALLBACK', path: pathname.slice(0, 300) })
+    )
+  )
+}
+
+async function cacheMatchOr(request, fallback) {
+  const cached = await caches.match(request)
+  return cached || fallback()
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
       Promise.all(
-        ['/', '/pl/', '/videos/', '/pl/videos/', '/gallery/', '/pl/gallery/'].map(
-          (u) => cache.add(u).catch(() => {})
+        ['/', '/pl/', '/videos/', '/pl/videos/', '/gallery/', '/pl/gallery/'].map((url) =>
+          cache.add(url).catch(() => undefined)
         )
       )
     )
@@ -25,6 +61,7 @@ self.addEventListener('activate', (event) => {
             if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE) {
               return caches.delete(cacheName)
             }
+            return undefined
           })
         )
       ),
@@ -33,41 +70,49 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
+})
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
 
-  // Never intercept writes, APIs, or cross-origin requests.
+  // Writes, APIs and cross-origin traffic always stay outside the service worker.
   if (event.request.method !== 'GET') return
   if (url.origin !== self.location.origin) return
   if (url.pathname.startsWith('/api/')) return
 
-  // Cache same-origin static assets with cache-first.
   if (STATIC_ASSET_PATTERN.test(url.pathname)) {
     event.respondWith(
-      caches.open(STATIC_CACHE).then((cache) => {
-        return cache.match(event.request).then((response) => {
-          if (response) {
-            return response
+      caches.open(STATIC_CACHE).then(async (cache) => {
+        const response = await cache.match(event.request)
+        if (response) return response
+
+        try {
+          const fetched = await fetch(event.request)
+          if (fetched.ok && fetched.type !== 'opaque') {
+            event.waitUntil(cache.put(event.request, fetched.clone()))
           }
-          return fetch(event.request).then((fetchResponse) => {
-            if (fetchResponse.ok) {
-              event.waitUntil(cache.put(event.request, fetchResponse.clone()))
-            }
-            return fetchResponse
-          })
-        })
+          return fetched
+        } catch {
+          event.waitUntil(notifyOffline(url.pathname))
+          return cacheMatchOr(event.request, offlineAssetResponse)
+        }
       })
     )
     return
   }
 
-  // Network-first for HTML: always fetch fresh, fall back to cache when offline
   if (event.request.headers.get('accept')?.includes('text/html')) {
-    const canCache =
-      !url.search && !PRIVATE_HTML_PATTERN.test(url.pathname)
+    const canCache = !url.search && !PRIVATE_HTML_PATTERN.test(url.pathname)
 
     if (!canCache) {
-      event.respondWith(fetch(event.request))
+      event.respondWith(
+        fetch(event.request).catch(() => {
+          event.waitUntil(notifyOffline(url.pathname))
+          return offlineHtmlResponse()
+        })
+      )
       return
     }
 
@@ -75,20 +120,24 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request)
         .then((response) => {
           if (response.ok) {
-            const clone = response.clone()
             event.waitUntil(
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()))
             )
           }
           return response
         })
-        .catch(() => caches.match(event.request))
+        .catch(async () => {
+          event.waitUntil(notifyOffline(url.pathname))
+          return cacheMatchOr(event.request, offlineHtmlResponse)
+        })
     )
     return
   }
 
-  // Network-first fallback for everything else
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request).catch(async () => {
+      event.waitUntil(notifyOffline(url.pathname))
+      return cacheMatchOr(event.request, offlineAssetResponse)
+    })
   )
 })
