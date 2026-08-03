@@ -1779,7 +1779,7 @@ function SystemTab({
             body="WEW, VAT, refundy i CSV"
           />
           <LinkCard
-            href="https://automation.virya.music/"
+            href="https://n8n.virya.music/"
             title="n8n"
             body="Dispatcher i workflowy"
             external
