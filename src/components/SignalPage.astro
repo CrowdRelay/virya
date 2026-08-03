@@ -19,14 +19,14 @@ const clarityCards = lang === "pl"
       {
         label: "SYGNAŁ VIRYA",
         title: "Zapisujesz się raz",
-        body: "Podajesz e-mail i miasto. Dostajesz ważne informacje o koncertach, premierach i limitowanych akcjach Viryi.",
-        reward: "Po co: alerty · koncerty · dodatkowe losy",
+        body: "Podajesz e-mail i miasto. Od razu wiesz, gdzie gramy najbliżej Ciebie i gdzie trzymasz bilety.",
+        reward: "START → e-mail + miasto",
       },
       {
         label: "GRA TERENOWA",
         title: "Grasz w terenie",
-        body: "Wybierasz aktywne miasto, idziesz za wskazówką i potwierdzasz telefonem, że dotarłeś do strefy.",
-        reward: "Nagroda: 1 merch gratis + dostawa",
+        body: "Pokazujemy tylko aktywne sygnały. Otwierasz przybliżony punkt, idziesz za wskazówką i potwierdzasz strefę telefonem.",
+        reward: "Nie musisz zbierać całej Polski",
       },
       {
         label: "LIVE QR",
@@ -55,9 +55,9 @@ const clarityCards = lang === "pl"
         reward: "Guest-list spots + global three-album draw",
       },
     ]
-const clarityHeading = lang === "pl" ? "Wybierz, co chcesz zrobić" : "Three simple ways to take part"
+const clarityHeading = lang === "pl" ? "Zacznij od jednej rzeczy" : "Start with one thing"
 const clarityBody = lang === "pl"
-  ? "Każda opcja działa osobno. Najprościej zacząć od Sygnału Virya, a potem zagrać w mieście albo wejść do puli przez QR na koncercie."
+  ? "Nie musisz rozumieć całego systemu. Najpierw aktywuj Sygnał; gra i koncertowe QR-y są opcjonalnymi akcjami, które pojawią się wtedy, gdy są dostępne."
   : "You do not need to understand the whole system. Choose only what you want to do now: join, play in your city or scan a QR at a show."
 const { canonicalUrl, hreflangLinks } = getSeoTags("/signal/", lang)
 const schema = {
@@ -117,15 +117,12 @@ const schema = {
             <p class="mt-7 max-w-2xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify sm:text-base lg:text-lg">
               {copy.hero.body}
             </p>
-            <div class="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <a href="#join-signal" class="virya-button virya-button--primary min-h-[50px] px-6">
+            <div class="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+              <a href="#join-signal" class="virya-button virya-button--primary min-h-[52px] px-7">
                 {copy.hero.primary} <span class="ml-3" aria-hidden="true">→</span>
               </a>
-              <a href={lp(lang, "/area/")} class="virya-button virya-button--accent-outline min-h-[50px] px-6">
-                {copy.hero.secondary}
-              </a>
-              <a href={lp(lang, "/my-signal/")} class="virya-button virya-button--secondary min-h-[50px] px-6">
-                {copy.hero.account}
+              <a href={lp(lang, "/my-signal/")} class="min-h-[44px] px-2 py-3 text-[10px] font-black uppercase tracking-[.18em] text-zinc-400 hover:text-amber-400">
+                {lang === "pl" ? "Mam już Sygnał" : "I already joined"} →
               </a>
             </div>
           </div>
@@ -167,7 +164,7 @@ const schema = {
             {clarityCards.map((card, index) => (
               <article class="virya-panel flex min-h-full flex-col p-5 sm:p-6">
                 <div class="flex items-center justify-between gap-4">
-                  <span class="font-mono text-[9px] font-black text-amber-400">0{index + 1}</span>
+                  <span class="grid h-10 w-10 place-items-center rounded-full border border-amber-400/40 text-lg text-amber-400" aria-hidden="true">{["✉", "⌖", "▣"][index]}</span>
                   <span class="text-[8px] font-black uppercase tracking-[.22em] text-zinc-500">{card.label}</span>
                 </div>
                 <h3 class="mt-7 text-xl font-black uppercase leading-tight text-white">{card.title}</h3>

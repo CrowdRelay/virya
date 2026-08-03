@@ -165,10 +165,11 @@ const sendTickets = async (payload: TicketPayload) => {
       <p style="margin:12px 0 0;font-family:monospace;font-size:12px;font-weight:700">${escapeHtml(ticket.publicReference)}</p>
     </div>`).join("")
 
-  await mailer.transporter.sendMail({
-    from: `"Virya Tickets" <${mailer.user}>`,
+  await mailer.send({
+    fromName: "Virya Tickets",
     to: payload.buyerEmail,
     replyTo: mailer.to,
+    idempotencyKey: `ticket/${payload.eventId}`,
     subject: polish ? `Twoje bilety: ${payload.eventTitle}` : `Your tickets: ${payload.eventTitle}`,
     text: polish
       ? `Cześć${payload.buyerName ? ` ${payload.buyerName}` : ""}!\n\nTwoje bilety na ${payload.eventTitle} są gotowe.\n${formatDate(payload)}${payload.venue ? ` · ${payload.venue}` : ""}\n\nPrywatny portfel biletów: ${url}\n\nKażdy kod QR jest jednorazowy. Nie publikuj go ani nie przekazuj obcej osobie.\nZamówienie: ${payload.orderReference}`

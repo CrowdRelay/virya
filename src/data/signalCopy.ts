@@ -411,9 +411,9 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
     },
     hero: {
       eyebrow: "VIRYA // SYGNAŁ",
-      heading: "Zapisz się raz. Nie przegap tego, co ważne.",
+      heading: "Koncerty blisko Ciebie. Bilety i nagrody w jednym miejscu.",
       body:
-        "Sygnał Virya to prosty zapis: podajesz e-mail i miasto, a my informujemy Cię o koncertach, premierach i limitowanych nagrodach. Za skuteczne polecenia dostajesz dodatkowe losy w automatycznych losowaniach.",
+        "Podaj e-mail i miasto. Dostaniesz tylko ważne informacje o koncertach, premierach i aktywnych akcjach Viryi. Po zapisie od razu zobaczysz swój następny krok.",
       primary: "Dołącz do Sygnału",
       secondary: "Otwórz Grę Virya",
       account: "Mój Sygnał",
@@ -441,8 +441,8 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         },
         {
           number: "03",
-          title: "Odbierz nagrodę",
-          body: "Użyj zdobytego kodu w sklepie. Najdroższa pojedyncza sztuka w koszyku będzie gratis.",
+          title: "Odbierz nagrodę kampanii",
+          body: "Po znalezieniu aktywnej strefy zobaczysz w portfelu dokładną nagrodę i warunki jej użycia. Nie musisz zbierać wszystkich punktów w Polsce.",
           href: "/pl/merch/",
           cta: "Otwórz sklep",
         },
@@ -459,7 +459,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       eyebrow: "Aktywacja",
       heading: "Dołącz do Sygnału Virya",
       body:
-        "Podaj e-mail, nick i miasto. Po potwierdzeniu adresu dostaniesz swój Sygnał, link polecający oraz dostęp do koncertowych akcji.",
+        "Trzy krótkie kroki: kontakt, miasto i zgoda. Po potwierdzeniu adresu dostaniesz swój Sygnał oraz jasną informację, co możesz zrobić dalej.",
       email: "E-mail",
       nickname: "Imię lub nick (opcjonalnie)",
       city: "Twoje miasto",
@@ -487,7 +487,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       eyebrow: "Popyt w miastach",
       heading: "Gdzie rośnie sygnał",
       body:
-        "Każdy potwierdzony fan wzmacnia swoje miasto. Dzięki temu lepiej planujemy trasy, lokalne kampanie i przyszłe koncerty.",
+        "Miasto pomaga nam wysyłać właściwe alerty i planować koncerty. Małych liczb nie pokazujemy — ważny jest kierunek, nie ranking ludzi.",
       loading: "Ładuję sygnały miast…",
       unavailable: "Sygnały miast są chwilowo niedostępne.",
       empty: "Pierwsze sygnały miast pojawią się tutaj.",
@@ -508,9 +508,9 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
     },
     area: {
       eyebrow: "Gra terenowa · działa osobno",
-      heading: "Gra Virya: znajdź strefę i odbierz merch",
+      heading: "Gra Virya: tylko aktywne sygnały w Twoim mieście",
       body:
-        "Gra Virya działa niezależnie od koncertów. Wybierasz aktywne miasto, docierasz do strefy według wskazówki, potwierdzasz lokalizację i odbierasz kolekcjonerski wers oraz kod na darmowy merch z dostawą.",
+        "Nie objeżdżasz Polski i nie musisz zebrać 12 punktów. Wybierasz aktualnie aktywne miasto, otwierasz przybliżony punkt startowy, idziesz za wskazówką i potwierdzasz strefę telefonem.",
       cta: "Otwórz Grę Virya",
       merch: "Użyj nagród w sklepie",
     },

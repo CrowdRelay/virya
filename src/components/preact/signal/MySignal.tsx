@@ -34,32 +34,30 @@ export default function MySignal({ lang }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" })
   const [copied, setCopied] = useState(false)
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    void Promise.all([
+    void Promise.allSettled([
       crowdrelay.getReferralProgress(),
       crowdrelay.listMyEvents(),
-      crowdrelay.getMyAdmissionPass().catch(error => {
-        if (error instanceof CrowdRelayError && (error.status === 401 || error.status === 404)) return null
-        throw error
-      }),
-    ])
-      .then(([progress, events, admissionPass]) => {
-        if (!cancelled) setState({ kind: "ready", progress, events, admissionPass })
-      })
-      .catch(error => {
-        if (cancelled) return
-        if (error instanceof CrowdRelayError && error.status === 401) {
-          setState({ kind: "unauthorized" })
-        } else {
-          setState({ kind: "error" })
-        }
-      })
+      crowdrelay.getMyAdmissionPass(),
+    ]).then(results => {
+      if (cancelled) return
+      const [progressResult, eventsResult, passResult] = results
+      if (progressResult.status === "rejected") {
+        const error = progressResult.reason
+        setState(error instanceof CrowdRelayError && error.status === 401 ? { kind: "unauthorized" } : { kind: "error" })
+        return
+      }
+      const events = eventsResult.status === "fulfilled" ? eventsResult.value : []
+      const admissionPass = passResult.status === "fulfilled" ? passResult.value : null
+      setState({ kind: "ready", progress: progressResult.value, events, admissionPass })
+    })
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [reloadKey])
 
   const referralUrl = useMemo(() => {
     if (state.kind !== "ready" || !state.progress.referral_code) return null
@@ -112,12 +110,10 @@ export default function MySignal({ lang }: Props) {
             ? copy.unauthorizedBody
             : SIGNAL_COPY[lang].form.loadError}
         </p>
-        <a
-          href={pagePath(lang, "/signal/#join-signal")}
-          class="virya-button virya-button--primary mt-6 min-h-[46px] px-5"
-        >
-          {copy.join}
-        </a>
+        <div class="mt-6 flex flex-wrap gap-3">
+          {state.kind === "error" && <button type="button" onClick={() => { setState({ kind: "loading" }); setReloadKey(value => value + 1) }} class="virya-button virya-button--primary min-h-[46px] px-5">{lang === "pl" ? "SPRÓBUJ PONOWNIE" : "TRY AGAIN"}</button>}
+          <a href={pagePath(lang, "/signal/#join-signal")} class="virya-button virya-button--secondary min-h-[46px] px-5">{copy.join}</a>
+        </div>
       </div>
     )
   }
@@ -129,7 +125,13 @@ export default function MySignal({ lang }: Props) {
 
   return (
     <div class="grid gap-6">
-      <section class="grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
+      {progress.qualified_referrals === 0 && progress.pending_referrals === 0 ? (
+        <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-6">
+          <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">{lang === "pl" ? "SYGNAŁ JEST GOTOWY" : "SIGNAL READY"}</p>
+          <h2 class="mt-3 text-2xl font-black uppercase text-white">{lang === "pl" ? "Pierwszy efekt masz od razu" : "Your first result is immediate"}</h2>
+          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">{lang === "pl" ? "Sprawdź najbliższy koncert albo zachowaj link polecający na później. Nie musisz teraz wykonywać kolejnych etapów." : "Check the nearest show or save your referral link for later. There is no need to complete every stage now."}</p>
+        </section>
+      ) : <section class="grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
         <div class="bg-zinc-950 p-5 sm:p-6">
           <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
             {copy.qualified}
@@ -156,7 +158,7 @@ export default function MySignal({ lang }: Props) {
               : copy.allUnlocked}
           </p>
         </div>
-      </section>
+      </section>}
 
       {referralUrl && (
         <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-5 sm:p-6">

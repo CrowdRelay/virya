@@ -222,13 +222,13 @@ export const AREA_COPY = {
     meta: {
       title: "Gra Virya — znajdź strefę, odblokuj wers, odbierz nagrodę.",
       description:
-        "Gra geolokalizacyjna VIRYA w 12 miastach Polski. Docieraj do aktywnych stref, odblokowuj wersy i wygrywaj darmowy merch z darmową dostawą.",
+        "Gra geolokalizacyjna VIRYA. Pokazujemy tylko aktualnie aktywne strefy — nie musisz odwiedzać 12 miast ani zbierać całej Polski.",
     },
     hero: {
       eyebrow: "Gra terenowa Viryi · Polska",
       title: "Znajdź strefę. Odblokuj wers. Wygraj merch.",
       body:
-        "Wybierz aktywne miasto, idź za wskazówką i potwierdź lokalizację telefonem. Za poprawne znalezienie strefy dostajesz kolekcjonerski wers i kod na jeden darmowy produkt z darmową dostawą.",
+        "Wybierz aktywne miasto, otwórz przybliżony punkt startowy, idź za wskazówką i potwierdź lokalizację telefonem. Dokładną nagrodę aktywnej kampanii zobaczysz po znalezieniu strefy.",
       mapCta: "Sprawdź aktywne miasta",
       howCta: "Jak to działa",
       pilot: "Ważne",
@@ -239,7 +239,7 @@ export const AREA_COPY = {
     },
     stats: {
       value: "1 MERCH",
-      valueLabel: "gratis + darmowa dostawa",
+      valueLabel: "nagroda aktywnej kampanii",
       cities: "12",
       citiesLabel: "miast w sygnale pilota",
       tracking: "0×",
@@ -396,7 +396,7 @@ export const AREA_COPY = {
           number: "03",
           title: "Odblokuj i odbierz",
           body:
-            "Potwierdzone znalezisko odsłania wers i daje 1 punkt. Zamień go na kod na jeden darmowy produkt oraz darmową dostawę InPost.",
+            "Potwierdzone znalezisko odsłania wers i zapisuje nagrodę w portfelu. Dokładny benefit i termin ważności zobaczysz przed utworzeniem kodu.",
         },
       ],
     },
@@ -408,7 +408,7 @@ export const AREA_COPY = {
       button: "Udostępnij Grę Virya",
       copied: "Tekst do udostępnienia skopiowany",
       generic:
-        "Gra Virya budzi się w całej Polsce. Dotrzyj do sygnału, odblokuj wers i wygraj darmowy merch. Kto łapie następny? #ViryaArea #StayMad",
+        "Gra Virya jest aktywna tam, gdzie pojawi się sygnał. Dotrzyj do strefy i odblokuj kolekcjonerski wers. #ViryaArea #StayMad",
       claimed: (city: string, line: string) =>
         `Znalazłem strefę Gry Virya w ${city} i odblokowałem „${line}” Kto łapie następny? #ViryaArea #StayMad`,
     },
@@ -432,7 +432,7 @@ export const AREA_COPY = {
       eyebrow: "Nowość // Gra Virya",
       heading: "Następny release może być ukryty w Twoim mieście.",
       body:
-        "Dotrzyj do aktywnego sygnału, odkoduj wers z naszych tekstów i wygraj jeden produkt gratis z darmową dostawą.",
+        "Dotrzyj do aktualnie aktywnego sygnału, odkoduj wers z naszych tekstów i odbierz nagrodę tej kampanii.",
       cta: "Otwórz Grę Virya",
       signal: "Mapa pilota online",
     },

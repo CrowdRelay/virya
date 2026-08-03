@@ -66,10 +66,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     const mailer = getSiteMailer()
     if (mailer) {
-      const { transporter, user, to } = mailer
-      await transporter.sendMail({
-        from: `"Virya Store" <${user}>`,
-        to,
+      await mailer.send({
+        fromName: "Virya Store",
+        to: mailer.to,
         subject: `📦 Restock request — ${product.name} / ${size}`,
         text: `Restock demand registered:\n\nProduct: ${product.name} (${id})\nSize: ${size}\n\n— virya.music/merch`,
       })
