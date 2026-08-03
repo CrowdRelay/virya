@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
+import { safeFormatDate } from "../../../lib/safeDateFormat"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type ApiError = Error & { status?: number }
@@ -150,8 +151,13 @@ const api = async <T,>(path: string, options: { method?: "GET" | "POST"; body?: 
 
 const money = (minor: number, currency = "PLN") =>
   new Intl.NumberFormat("pl-PL", { style: "currency", currency }).format(minor / 100)
-const date = (value: string) => new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" }).format(new Date(value))
-const dateTime = (value: string) => new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
+const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" })
+const dateTimeFormatter = new Intl.DateTimeFormat("pl-PL", {
+  dateStyle: "medium",
+  timeStyle: "short",
+})
+const date = (value: unknown) => safeFormatDate(value, dateFormatter)
+const dateTime = (value: unknown) => safeFormatDate(value, dateTimeFormatter)
 
 export default function AccountingManager() {
   const [state, setState] = useState<LoadState>("checking")
