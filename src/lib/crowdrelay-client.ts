@@ -439,10 +439,14 @@ export class CrowdRelayClient {
     })
   }
 
-  confirmFan(token: string): Promise<FanConfirmationResult> {
+  confirmFan(
+    token: string,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<FanConfirmationResult> {
     return this.#request("fans/confirm", {
       method: "POST",
       body: { token },
+      idempotencyKey,
       timeoutMs: 5_000,
     })
   }
