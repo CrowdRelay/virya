@@ -42,7 +42,3 @@ A concert check-in records attendance and adds one configurable entry to the sin
 ## Operational limitations
 
 A static printed code can be photographed and shared during its active window. Mitigations are a narrow time window, controlled display, optional capacity and immediate revocation. There is deliberately no geolocation requirement because venue GPS is unreliable indoors and would add unnecessary personal-data processing.
-
-## Virya Signal mobile login
-
-Concert check-in QR codes from this page are not login credentials. To pair a staff phone, use the password-protected `/staff/pair/` page documented in [`STAFF_PAIRING.md`](STAFF_PAIRING.md).
