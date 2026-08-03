@@ -77,6 +77,12 @@ npm run build
 
 The deployed site is kept at 100 across the Lighthouse audits tracked for performance, accessibility, best practices and SEO.
 
+## Reliability and diagnostics
+
+The global runtime guard loads before Astro navigation, records bounded privacy-safe diagnostics, and surfaces uncaught client failures instead of leaving a blank page. Middleware converts uncaught server failures into correlated no-store responses. The service worker always returns a concrete fallback response and never caches ticket capabilities or staff pages.
+
+See [reliability](docs/RELIABILITY.md) and run `npm run quality` before release.
+
 ## Security
 
 The repository contains examples only. Production environment files, generated Netlify output and local deployment state are ignored.

@@ -62,6 +62,7 @@
     "audit:live": "node scripts/audit-live.mjs",
     "test:unit": "node --no-warnings=ExperimentalWarning --experimental-strip-types --test tests/*.test.ts",
     "audit:assets": "node scripts/audit-assets.mjs",
-    "budget:build": "node scripts/check-build-budget.mjs dist"
+    "budget:build": "node scripts/check-build-budget.mjs dist",
+    "quality": "npm test && npm run build && npm run budget:build"
   }
 }

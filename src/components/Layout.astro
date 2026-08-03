@@ -57,6 +57,8 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     <link rel="apple-touch-icon" href="/virya.webp" />
     <title>{title}</title>
     <slot name="head" />
+    <!-- Installs before Astro navigation and all hydrated islands. -->
+    <script is:inline src="/runtime-guard.js"></script>
     <ClientRouter />
     {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
     <script is:inline>
@@ -100,7 +102,11 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
       if ('serviceWorker' in navigator && !window.__viryaServiceWorkerScheduled) {
         window.__viryaServiceWorkerScheduled = true;
         window.addEventListener('load', function() {
-          var register = function() { navigator.serviceWorker.register('/sw.js').catch(function() {}); };
+          var register = function() {
+            navigator.serviceWorker.register('/sw.js').catch(function(error) {
+              window.__VIRYA_REPORT__?.report?.('service-worker-registration', error, { visible: false });
+            });
+          };
           if ('requestIdleCallback' in window) window.requestIdleCallback(register, { timeout: 3000 });
           else setTimeout(register, 1000);
         }, { once: true });

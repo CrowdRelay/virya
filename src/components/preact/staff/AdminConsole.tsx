@@ -3,7 +3,7 @@ import TicketInventoryBar from "../tickets/TicketInventoryBar"
 import EcosystemControl from "./EcosystemControl"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
-type Tab = "overview" | "ops" | "ticketing" | "admission" | "mailer" | "system"
+type Tab = "overview" | "signal" | "ops" | "ticketing" | "admission" | "mailer" | "system"
 type ApiError = Error & { status?: number; payload?: { error?: string } }
 
 type Capabilities = {
@@ -129,6 +129,36 @@ type OpsOverview = {
   summary: { outbox: QueueSummary; deliveries: QueueSummary }
   deadDeliveries: OpsItem[]
   deadOutbox: OpsItem[]
+}
+
+type SignalOverview = {
+  generated_at: string
+  summary: {
+    total_fans: number
+    active_fans: number
+    pending_fans: number
+    unsubscribed_fans: number
+    suppressed_fans: number
+    marketing_opted_in: number
+    nearby_enabled: number
+  }
+  activity: {
+    new_fans_7d: number
+    new_fans_30d: number
+    referral_attributions_total: number
+    referral_attributions_30d: number
+    event_interests_total: number
+    event_interests_30d: number
+    nearby_notifications_30d: number
+    pending_city_requests: number
+  }
+  top_cities: Array<{
+    slug: string
+    name: string
+    country_code: string
+    active_fans: number
+  }>
+  unavailable_sources: string[]
 }
 
 type TicketForm = {
@@ -281,6 +311,7 @@ type TicketingSaveReceipt = {
 
 const tabs: Array<{ key: Tab; label: string; hint: string }> = [
   { key: "overview", label: "Stan", hint: "system i koncerty" },
+  { key: "signal", label: "Sygnał", hint: "fani, miasta i wzrost" },
   { key: "ops", label: "Operacje", hint: "kolejki i retry" },
   { key: "ticketing", label: "Bilety", hint: "ceny i pule" },
   { key: "admission", label: "Wejściówki", hint: "wydaj i unieważnij" },
@@ -479,7 +510,7 @@ export default function AdminConsole() {
 
       <nav
         aria-label="Sekcje panelu"
-        class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/30 p-2 sm:grid-cols-3 xl:grid-cols-6"
+        class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/30 p-2 sm:grid-cols-3 xl:grid-cols-7"
       >
         {tabs.map(item => (
           <button
@@ -509,6 +540,7 @@ export default function AdminConsole() {
       {tab === "overview" && (
         <OverviewTab overview={overview} capabilities={capabilities} />
       )}
+      {tab === "signal" && <SignalTab />}
       {tab === "ops" && <OpsTab />}
       {tab === "ticketing" && <TicketingTab events={events} />}
       {tab === "admission" && <AdmissionTab events={events} />}
@@ -1519,6 +1551,191 @@ function MailerTab({ capabilities }: { capabilities: Capabilities | null }) {
           </p>
         )}
       </form>
+    </div>
+  )
+}
+
+function SignalTab() {
+  const [overview, setOverview] = useState<SignalOverview | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState("")
+
+  async function load(signal?: AbortSignal) {
+    setLoading(true)
+    setMessage("")
+    try {
+      setOverview(
+        await api<SignalOverview>("/api/staff/admin/signal/overview", {
+          signal,
+        }),
+      )
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "Nie udało się pobrać statystyk Sygnału",
+        )
+      }
+    } finally {
+      if (!signal?.aborted) setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    const controller = new AbortController()
+    void load(controller.signal)
+    return () => controller.abort()
+  }, [])
+
+  const summary = overview?.summary
+  const activity = overview?.activity
+  const confirmationRate = summary?.total_fans
+    ? Math.round((summary.active_fans / summary.total_fans) * 100)
+    : 0
+  const consentRate = summary?.active_fans
+    ? Math.round((summary.marketing_opted_in / summary.active_fans) * 100)
+    : 0
+
+  return (
+    <div class="grid gap-5">
+      <section class="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-5 sm:p-6">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">
+              Virya Signal control plane
+            </p>
+            <h2 class="mt-2 text-2xl font-black text-white">Baza fanów bez PII</h2>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+              Agregaty z CrowdRelay: potwierdzenia, zgody, polecenia, zainteresowania
+              koncertami i najmocniejsze miasta. Panel nie pobiera e-maili ani identyfikatorów fanów.
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => void load()}
+            class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
+          >
+            {loading ? "Odświeżam…" : "Odśwież"}
+          </button>
+        </div>
+      </section>
+
+      {overview?.unavailable_sources.length ? (
+        <div
+          role="status"
+          class="rounded-2xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
+        >
+          Snapshot działa częściowo. Niedostępne źródła: {overview.unavailable_sources.join(", ")}.
+        </div>
+      ) : null}
+
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric label="Aktywni fani" value={summary ? String(summary.active_fans) : "…"} />
+        <Metric label="Potwierdzenie" value={summary ? `${confirmationRate}%` : "…"} />
+        <Metric label="Zgoda marketingowa" value={summary ? `${consentRate}%` : "…"} />
+        <Metric label="Nowi / 30 dni" value={activity ? String(activity.new_fans_30d) : "…"} />
+      </div>
+
+      <div class="grid gap-5 xl:grid-cols-[1.1fr_.9fr]">
+        <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+          <h3 class="text-xl font-black text-white">Stan bazy</h3>
+          <dl class="mt-5 grid gap-3 sm:grid-cols-2">
+            <SignalStat label="Wszyscy" value={summary?.total_fans} />
+            <SignalStat label="Oczekujący" value={summary?.pending_fans} />
+            <SignalStat label="Wypisani" value={summary?.unsubscribed_fans} />
+            <SignalStat label="Wyciszeni" value={summary?.suppressed_fans} />
+            <SignalStat label="Nearby aktywne" value={summary?.nearby_enabled} />
+            <SignalStat label="Miasta do moderacji" value={activity?.pending_city_requests} />
+          </dl>
+        </section>
+
+        <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+          <h3 class="text-xl font-black text-white">Aktywność</h3>
+          <dl class="mt-5 grid gap-3">
+            <SignalStat label="Nowi / 7 dni" value={activity?.new_fans_7d} />
+            <SignalPair
+              label="Polecenia 30 dni / całość"
+              recent={activity?.referral_attributions_30d}
+              total={activity?.referral_attributions_total}
+            />
+            <SignalPair
+              label="Zainteresowania 30 dni / całość"
+              recent={activity?.event_interests_30d}
+              total={activity?.event_interests_total}
+            />
+            <SignalStat label="Nearby wysłane / 30 dni" value={activity?.nearby_notifications_30d} />
+          </dl>
+        </section>
+      </div>
+
+      <section class="overflow-hidden rounded-3xl border border-white/10 bg-zinc-900/70">
+        <div class="border-b border-white/10 p-5 sm:p-6">
+          <h3 class="text-xl font-black text-white">Najsilniejsze miasta</h3>
+          <p class="mt-1 text-sm text-zinc-500">
+            Maksymalnie 10 zagregowanych lokalizacji aktywnych fanów.
+          </p>
+        </div>
+        <div class="divide-y divide-white/5">
+          {(overview?.top_cities ?? []).map((city, index) => (
+            <article key={city.slug} class="flex items-center justify-between gap-4 p-5">
+              <div class="min-w-0">
+                <span class="text-xs font-black text-zinc-600">#{index + 1}</span>
+                <strong class="ml-3 text-white">{city.name}</strong>
+                <span class="ml-2 text-xs text-zinc-500">{city.country_code}</span>
+              </div>
+              <strong class="tabular-nums text-amber-300">{city.active_fans}</strong>
+            </article>
+          ))}
+          {overview && overview.top_cities.length === 0 ? (
+            <p class="p-5 text-sm text-zinc-500">Brak danych miejskich w tym snapshotcie.</p>
+          ) : null}
+          {!overview && !message ? (
+            <p class="p-5 text-sm text-zinc-500">Ładuję statystyki Sygnału…</p>
+          ) : null}
+        </div>
+      </section>
+
+      {overview ? (
+        <p class="text-xs text-zinc-600">Snapshot: {formatDate(overview.generated_at)} · dane wyłącznie zagregowane</p>
+      ) : null}
+      {message ? (
+        <p
+          role="status"
+          class="rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
+        >
+          {message}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+function SignalStat({ label, value }: { label: string; value?: number }) {
+  return (
+    <div class="rounded-2xl border border-white/10 bg-black/30 p-4">
+      <dt class="text-xs font-bold uppercase tracking-wider text-zinc-500">{label}</dt>
+      <dd class="mt-2 text-2xl font-black tabular-nums text-white">{value ?? "…"}</dd>
+    </div>
+  )
+}
+
+function SignalPair({
+  label,
+  recent,
+  total,
+}: {
+  label: string
+  recent?: number
+  total?: number
+}) {
+  return (
+    <div class="rounded-2xl border border-white/10 bg-black/30 p-4">
+      <dt class="text-xs font-bold uppercase tracking-wider text-zinc-500">{label}</dt>
+      <dd class="mt-2 text-xl font-black tabular-nums text-white">
+        {recent ?? "…"} / {total ?? "…"}
+      </dd>
     </div>
   )
 }
