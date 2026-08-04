@@ -184,25 +184,25 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
 
       <div class="relative grid min-h-56 gap-6 p-5 sm:grid-cols-[80px_minmax(0,1fr)] sm:p-6">
         <time dateTime={event.starts_at} class="virya-live-date">
-          <span class="text-[10px] font-black uppercase tracking-[.2em] text-amber-400">
+          <span class="text-[8px] font-black uppercase tracking-[.2em] text-amber-400">
             {weekday}
           </span>
           <strong class="mt-1 text-3xl font-black leading-none text-white">{day}</strong>
-          <span class="mt-1 text-[10px] font-bold uppercase tracking-[.16em] text-zinc-400">
+          <span class="mt-1 text-[8px] font-bold uppercase tracking-[.16em] text-zinc-400">
             {month}
           </span>
         </time>
 
         <div class="min-w-0">
           <div class="flex items-center justify-between gap-3">
-            <span class="font-mono text-[10px] text-zinc-400">
+            <span class="font-mono text-[8px] text-zinc-600">
               {String(index + 1).padStart(2, "0")}
             </span>
-            <span class="text-[10px] font-black uppercase tracking-[.22em] text-zinc-400">
+            <span class="text-[8px] font-black uppercase tracking-[.22em] text-zinc-500">
               {labels.live ?? "VIRYA // LIVE"}
             </span>
           </div>
-          <p class="mt-4 font-mono text-[10px] uppercase tracking-[.18em] text-amber-400">
+          <p class="mt-4 font-mono text-[9px] uppercase tracking-[.18em] text-amber-400">
             {dateLine}
           </p>
           <h3
@@ -216,7 +216,7 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
           {ticketStatus && (
             <div class="mt-5 max-w-xl border border-zinc-800 bg-black/35 px-3 py-3">
               <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-[10px] font-black uppercase tracking-[.18em] text-amber-400">
+                <span class="text-[9px] font-black uppercase tracking-[.18em] text-amber-400">
                   {lang === "pl" ? "Bilety Virya" : "Virya tickets"}
                 </span>
                 <span class="text-[10px] font-bold text-zinc-200">{ticketStatus}</span>

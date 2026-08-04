@@ -26,19 +26,12 @@
     if (!video) return
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
 
-    const connection = (navigator as Navigator & {
-      connection?: { saveData?: boolean; effectiveType?: string }
-    }).connection
-    if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType ?? "")) return
-
-    let started = false
     const startVideo = () => {
-      if (started || !video.isConnected) return
+      if (!video.isConnected) return
       if (document.visibilityState !== "visible") {
         document.addEventListener("visibilitychange", startVideo, { once: true })
         return
       }
-      started = true
       video.muted = true
       const tryPlay = () => video.play().catch(() => {})
       if (video.readyState >= 2) {
@@ -49,15 +42,6 @@
       }
     }
 
-    const scheduleStart = () => {
-      if ("requestIdleCallback" in window) {
-        window.requestIdleCallback(startVideo, { timeout: 4000 })
-      } else {
-        window.setTimeout(startVideo, 1500)
-      }
-    }
-
-    if (document.readyState === "complete") scheduleStart()
-    else window.addEventListener("load", scheduleStart, { once: true })
+    requestAnimationFrame(() => requestAnimationFrame(startVideo))
   })
 </script>
