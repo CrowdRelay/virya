@@ -1,5 +1,5 @@
-const CACHE_NAME = 'virya-v14'
-const STATIC_CACHE = 'virya-static-v14'
+const CACHE_NAME = 'virya-v15'
+const STATIC_CACHE = 'virya-static-v15'
 const STATIC_ASSET_PATTERN = /\.(webp|png|jpg|jpeg|svg|css|js|woff2?|ttf|otf)$/
 const PRIVATE_HTML_PATTERN = /^\/(?:pl\/)?(?:merch\/(?:success|cancel)|area\/claim|staff|tickets(?:\/|$)|win(?:\/|$))/
 const OFFLINE_HTML = `<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>Virya offline</title><body style="margin:0;background:#09090b;color:#f4f4f5;font-family:system-ui;padding:32px"><main style="max-width:680px;margin:12vh auto"><p style="color:#fbbf24;font-weight:900;letter-spacing:.16em">VIRYA / OFFLINE</p><h1>Nie udało się połączyć</h1><p style="color:#d4d4d8;line-height:1.6">Sprawdź internet i odśwież stronę. Prywatne bilety i panel staff nigdy nie są odtwarzane z cache.</p><button onclick="location.reload()" style="min-height:44px;border:0;background:#fbbf24;padding:0 16px;font-weight:900">SPRÓBUJ PONOWNIE</button></main></body></html>`
@@ -81,6 +81,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
   if (url.origin !== self.location.origin) return
   if (url.pathname.startsWith('/api/')) return
+  // Range requests (video/audio seeking) must be handled natively: Chrome
+  // rejects any service-worker response to a Range request that isn't a
+  // 206/416, and our offline fallback returns 503, which surfaces as an
+  // "unexpected error" for media like rise.webm.
+  if (event.request.headers.has('range')) return
 
   if (STATIC_ASSET_PATTERN.test(url.pathname)) {
     event.respondWith(

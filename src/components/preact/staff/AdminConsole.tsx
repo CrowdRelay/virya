@@ -1390,89 +1390,93 @@ function AdmissionTab({ events }: { events: EventItem[] }) {
     }
   }
   return (
-    <div class="grid gap-5 lg:grid-cols-2">
-      <form
-        onSubmit={issuePass}
-        class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5"
-      >
-        <h2 class="text-xl font-black text-white">Wydaj wejściówkę</h2>
-        <p class="mt-2 text-sm leading-6 text-zinc-400">
-          Fan musi mieć aktywny, potwierdzony Sygnał. Podaj slug puli z
-          bootstrapu CrowdRelay.
-        </p>
-        <div class="mt-5 grid gap-4">
-          <label class="text-sm font-semibold text-zinc-200">
-            Koncert
-            <select
-              value={issue.eventSlug}
-              onChange={event =>
-                setIssue({ ...issue, eventSlug: event.currentTarget.value })
-              }
-              class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white"
-            >
-              <option value="">Wybierz wydarzenie</option>
-              {events.map(event => (
-                <option key={event.slug} value={event.slug}>
-                  {event.title} — {formatDate(event.starts_at)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Field
-            label="Slug puli"
-            value={issue.poolSlug}
-            onInput={value => setIssue({ ...issue, poolSlug: value })}
-          />
-          <Field
-            label="E-mail fana"
-            value={issue.fanEmail}
-            onInput={value => setIssue({ ...issue, fanEmail: value })}
-            type="email"
-          />
-          <Field
-            label="Ważność linku (godziny)"
-            value={issue.claimExpiresHours}
-            onInput={value => setIssue({ ...issue, claimExpiresHours: value })}
-            type="number"
-          />
-          <button
-            disabled={busy || !issue.eventSlug || !issue.fanEmail}
-            class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50"
-          >
-            Wydaj wejściówkę
-          </button>
-        </div>
-      </form>
-      <form
-        onSubmit={revokePass}
-        class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5"
-      >
-        <h2 class="text-xl font-black text-white">Unieważnij wejściówkę</h2>
-        <p class="mt-2 text-sm leading-6 text-zinc-400">
-          Operacja jest natychmiastowa. Kod QR przestanie działać na bramce.
-        </p>
-        <div class="mt-5 grid gap-4">
-          <Field
-            label="Public reference"
-            value={reference}
-            onInput={setReference}
-          />
-          <button
-            disabled={busy || !reference}
-            class="rounded-xl border border-rose-400/40 bg-rose-400/10 px-5 py-3 font-black text-rose-100 disabled:opacity-50"
-          >
-            Unieważnij
-          </button>
-        </div>
-        {message && (
-          <p
-            role="status"
-            class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
-          >
-            {message}
+    <div class="grid gap-5">
+      <div class="grid gap-5 lg:grid-cols-2">
+        <form
+          onSubmit={issuePass}
+          class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5"
+        >
+          <h2 class="text-xl font-black text-white">Wydaj wejściówkę</h2>
+          <p class="mt-2 text-sm leading-6 text-zinc-400">
+            Fan musi mieć aktywny, potwierdzony Sygnał. Podaj slug puli z
+            bootstrapu CrowdRelay.
           </p>
-        )}
-      </form>
+          <div class="mt-5 grid gap-4">
+            <label class="text-sm font-semibold text-zinc-200">
+              Koncert
+              <select
+                value={issue.eventSlug}
+                onChange={event =>
+                  setIssue({ ...issue, eventSlug: event.currentTarget.value })
+                }
+                class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white"
+              >
+                <option value="">Wybierz wydarzenie</option>
+                {events.map(event => (
+                  <option key={event.slug} value={event.slug}>
+                    {event.title} — {formatDate(event.starts_at)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Field
+              label="Slug puli"
+              value={issue.poolSlug}
+              onInput={value => setIssue({ ...issue, poolSlug: value })}
+            />
+            <Field
+              label="E-mail fana"
+              value={issue.fanEmail}
+              onInput={value => setIssue({ ...issue, fanEmail: value })}
+              type="email"
+            />
+            <Field
+              label="Ważność linku (godziny)"
+              value={issue.claimExpiresHours}
+              onInput={value =>
+                setIssue({ ...issue, claimExpiresHours: value })
+              }
+              type="number"
+            />
+            <button
+              disabled={busy || !issue.eventSlug || !issue.fanEmail}
+              class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50"
+            >
+              Wydaj wejściówkę
+            </button>
+          </div>
+        </form>
+        <form
+          onSubmit={revokePass}
+          class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5"
+        >
+          <h2 class="text-xl font-black text-white">Unieważnij wejściówkę</h2>
+          <p class="mt-2 text-sm leading-6 text-zinc-400">
+            Operacja jest natychmiastowa. Kod QR przestanie działać na bramce.
+          </p>
+          <div class="mt-5 grid gap-4">
+            <Field
+              label="Public reference"
+              value={reference}
+              onInput={setReference}
+            />
+            <button
+              disabled={busy || !reference}
+              class="rounded-xl border border-rose-400/40 bg-rose-400/10 px-5 py-3 font-black text-rose-100 disabled:opacity-50"
+            >
+              Unieważnij
+            </button>
+          </div>
+        </form>
+      </div>
+      {message && (
+        <p
+          role="status"
+          class="rounded-xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
+        >
+          {message}
+        </p>
+      )}
     </div>
   )
 }
