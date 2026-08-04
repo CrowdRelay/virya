@@ -78,7 +78,7 @@ test("Signal signup reports queued, cooldown and unknown delivery states honestl
 
 
 test("confirmation mail embeds a CID QR attachment for the mobile flow", () => {
-  assert.match(endpoint, /QRCode\.toBuffer\(qrPayload/)
+  assert.match(endpoint, /qrGifBuffer\(qrPayload\)/)
   assert.match(endpoint, /cid:\s*"virya-signal-confirmation-qr"/)
   assert.match(endpoint, /src="cid:virya-signal-confirmation-qr"/)
   assert.match(endpoint, /attachments:\s*rendered\.attachments/)
