@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto"
 import type { APIRoute } from "astro"
+import * as QRCode from "qrcode"
 import {
   acquireCrowdRelayMailLease,
   completeCrowdRelayMailLease,
@@ -39,6 +40,12 @@ type RenderedMail = {
   subject: string
   text: string
   html: string
+  attachments?: readonly {
+    filename: string
+    content: Uint8Array
+    contentType: string
+    cid: string
+  }[]
 }
 
 const json = (payload: Record<string, unknown>, status = 200) =>
@@ -158,7 +165,7 @@ const paragraph = (value: string) => `<p>${escapeHtml(value)}</p>`
 const linkLine = (label: string, url: string) =>
   `<p>${escapeHtml(label)}:<br><a style="color:#fbbf24" href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>`
 
-const render = (template: string, variables: Variables): RenderedMail | null => {
+const render = async (template: string, variables: Variables): Promise<RenderedMail | null> => {
   const isPolish = polish(variables)
   const hello = greeting(variables)
 
@@ -193,17 +200,39 @@ const render = (template: string, variables: Variables): RenderedMail | null => 
     const footerLabel = sessionRecovery
       ? isPolish ? "Bezpieczny adres dostępu" : "Secure access address"
       : isPolish ? "Adres potwierdzenia" : "Confirmation address"
+    const qrPayload = valueString(variables.confirmation_qr_payload, 4_096)
+    let qrBlock = ""
+    let attachments: RenderedMail["attachments"]
+    if (qrPayload) {
+      const qrPng = await QRCode.toBuffer(qrPayload, {
+        type: "png",
+        width: 320,
+        margin: 1,
+        errorCorrectionLevel: "M",
+      })
+      const qrLabel = isPolish
+        ? "Zeskanuj w aplikacji Virya Signal"
+        : "Scan in the Virya Signal app"
+      qrBlock = `<div style="margin:28px 0;padding:20px;background:#fff;text-align:center"><p style="margin:0 0 14px;color:#09090b;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">${escapeHtml(qrLabel)}</p><img src="cid:virya-signal-confirmation-qr" width="240" height="240" alt="${escapeHtml(qrLabel)}" style="display:block;margin:auto;width:240px;height:240px" /></div>`
+      attachments = [{
+        filename: "virya-signal-access.png",
+        content: qrPng,
+        contentType: "image/png",
+        cid: "virya-signal-confirmation-qr",
+      }]
+    }
     return {
       subject,
       text: `${hello}\n\n${copy}\n\n${url}`,
       html: layout({
         eyebrow: isPolish ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL",
         title,
-        body: paragraph(hello) + paragraph(copy),
+        body: paragraph(hello) + paragraph(copy) + qrBlock,
         button,
         buttonUrl: url,
         footer: `${footerLabel}:<br>${escapeHtml(url)}`,
       }),
+      attachments,
     }
   }
 
@@ -434,7 +463,7 @@ export const POST: APIRoute = async ({ request }) => {
   const payload = parsePayload(raw)
   if (!payload) return json({ error: "invalid_payload" }, 400)
 
-  const rendered = render(payload.template, payload.variables)
+  const rendered = await render(payload.template, payload.variables)
   if (!rendered) return json({ error: "invalid_template_variables" }, 400)
 
   const mailer = getSiteMailer()
@@ -468,6 +497,7 @@ export const POST: APIRoute = async ({ request }) => {
       subject: rendered.subject,
       text: rendered.text,
       html: rendered.html,
+      attachments: rendered.attachments,
       idempotencyKey: payload.idempotencyKey,
     })
     await completeCrowdRelayMailLease(payload.idempotencyKey, leaseId)

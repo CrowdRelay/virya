@@ -1231,6 +1231,10 @@ const orderStatus = (status: string): { label: string; tone: OrderTone } => {
       return { label: "Anulowane", tone: "zinc" }
     case "payment_failed":
       return { label: "Płatność nieudana", tone: "rose" }
+    case "webhook_failed":
+      return { label: "Dostawa webhooka nieudana", tone: "rose" }
+    case "outbox_failed":
+      return { label: "Event outbox zatrzymany", tone: "rose" }
     default:
       return { label: status.replaceAll("_", " "), tone: "zinc" }
   }
@@ -1881,7 +1885,9 @@ function OpsTab() {
             >
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <OrderStatusBadge status="payment_failed" />
+                  <OrderStatusBadge
+                    status={item.target === "delivery" ? "webhook_failed" : "outbox_failed"}
+                  />
                   <span class="text-[10px] font-black uppercase tracking-wider text-zinc-500">
                     {item.target === "delivery"
                       ? "webhook delivery"

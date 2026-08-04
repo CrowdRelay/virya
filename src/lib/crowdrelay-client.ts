@@ -190,6 +190,10 @@ export interface FanSignupResult {
   retry_after_seconds?: number | null
 }
 
+export interface FanAccessRequestResult {
+  accepted: true
+}
+
 export interface FanConfirmationResult {
   fan_id: string
   status: "active"
@@ -437,6 +441,19 @@ export class CrowdRelayClient {
     return this.#request("fans", {
       method: "POST",
       body: input,
+      idempotencyKey,
+      timeoutMs: 5_000,
+    })
+  }
+
+  requestFanAccess(
+    email: string,
+    locale = "pl",
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<FanAccessRequestResult> {
+    return this.#request("fans/access", {
+      method: "POST",
+      body: { email, locale },
       idempotencyKey,
       timeoutMs: 5_000,
     })
