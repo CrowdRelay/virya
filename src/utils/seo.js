@@ -1,6 +1,5 @@
 import { LANGS, DEFAULT_LANG } from "../i18n/translations"
-
-const SITE_URL = "https://www.virya.music"
+import { VIRYA_SITE_ORIGIN } from "../config"
 
 /**
  * Generates canonical URL and hreflang tags for a given path and language.
@@ -18,7 +17,7 @@ export const getSeoTags = (path, currentLang = DEFAULT_LANG) => {
 
   const buildUrl = lang => {
     const langPrefix = lang === DEFAULT_LANG ? "" : `/${lang}`
-    return `${SITE_URL}${withTrailingSlash(`${langPrefix}${normalizedPath}`)}`
+    return `${VIRYA_SITE_ORIGIN}${withTrailingSlash(`${langPrefix}${normalizedPath}`)}`
   }
 
   const canonicalUrl = buildUrl(currentLang)

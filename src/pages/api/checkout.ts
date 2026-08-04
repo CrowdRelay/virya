@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro"
+import { siteOriginForRequest } from "../../config"
 import Stripe from "stripe"
 import {
   getProduct,
@@ -132,18 +133,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (origin !== requestOrigin) {
       return json({ error: "Invalid request origin" }, 403)
     }
-    let siteOrigin = requestOrigin
-    const configuredSite = import.meta.env.SITE_URL?.trim()
-    if (configuredSite) {
-      try {
-        const parsedSite = new URL(configuredSite)
-        if (parsedSite.protocol === "https:" || parsedSite.protocol === "http:") {
-          siteOrigin = parsedSite.origin
-        }
-      } catch {
-        console.error("[checkout] SITE_URL is invalid; using request origin")
-      }
-    }
+    const siteOrigin = siteOriginForRequest(request)
 
     const contentType = request.headers
       .get("content-type")

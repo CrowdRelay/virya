@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro"
 import nodemailer from "nodemailer"
+import { VIRYA_OPERATIONS_EMAIL, siteOriginForRequest } from "../../../../config"
 import {
   consumeAreaAuthRateLimit,
   getAreaClientNetwork,
@@ -30,8 +31,7 @@ const requestLanguage = (body: unknown): "en" | "pl" => {
 
 const publicSiteUrl = (request: Request) => {
   try {
-    const configured = import.meta.env.SITE_URL
-    const url = new URL(configured || new URL(request.url).origin)
+    const url = new URL(siteOriginForRequest(request))
     if (url.protocol !== "https:" && url.protocol !== "http:") return null
     if (import.meta.env.PROD && url.protocol !== "https:") return null
     url.username = ""
@@ -50,7 +50,7 @@ const sendMagicLink = async (
   lang: "en" | "pl",
   token: string,
 ) => {
-  const user = import.meta.env.GMAIL_USER
+  const user = VIRYA_OPERATIONS_EMAIL
   const pass = import.meta.env.GMAIL_APP_PASSWORD
   const base = publicSiteUrl(request)
   if (!user || !pass || !base) {

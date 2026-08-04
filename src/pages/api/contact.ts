@@ -79,7 +79,7 @@ export const POST: APIRoute = async ({ request }) => {
         text: `From: ${name} <${email}>\n\n${message}`,
       })
     } else {
-      console.warn("[contact] GMAIL_USER / GMAIL_APP_PASSWORD not set — skipping email.")
+      console.warn("[contact] GMAIL_APP_PASSWORD not set — skipping email.")
     }
 
     return json({ ok: true })

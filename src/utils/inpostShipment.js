@@ -90,10 +90,7 @@ export const createInpostShipment = async ({ session }) => {
     )
   }
 
-  const base =
-    BASE_URLS[
-      import.meta.env.INPOST_ENV === "sandbox" ? "sandbox" : "production"
-    ]
+  const base = BASE_URLS.production
   const customer = session.customer_details || {}
   const email = meta.inv_email || customer.email || ""
   const phone = (customer.phone || "").replace(/[^\d+]/g, "")

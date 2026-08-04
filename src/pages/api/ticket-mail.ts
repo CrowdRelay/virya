@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto"
 import type { APIRoute } from "astro"
+import { VIRYA_SITE_ORIGIN } from "../../config"
 import { qrGifBuffer } from "../../server/ticketQr"
 import { getSiteMailer } from "../../server/siteMailer"
 import {
@@ -135,7 +136,7 @@ const parsePayload = (raw: unknown): TicketPayload | null => {
 }
 
 const walletUrl = (payload: TicketPayload) => {
-  const base = (import.meta.env.PUBLIC_SITE_URL || "https://virya.music").replace(/\/$/, "")
+  const base = VIRYA_SITE_ORIGIN
   const prefix = payload.locale === "pl" ? "/pl" : ""
   return `${base}${prefix}/tickets/${encodeURIComponent(payload.orderId)}/#token=${encodeURIComponent(payload.checkoutToken)}`
 }

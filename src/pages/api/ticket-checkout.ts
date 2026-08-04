@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro"
+import { siteOriginForRequest } from "../../config"
 import Stripe from "stripe"
 import {
   bindTicketCheckout,
@@ -130,20 +131,7 @@ const parseInvoiceDetails = (value: unknown): InvoiceDetails | null => {
   }
 }
 
-const siteOrigin = (request: Request) => {
-  const requestOrigin = new URL(request.url).origin
-  const configured = import.meta.env.SITE_URL?.trim()
-  if (!configured) return requestOrigin
-  try {
-    const parsed = new URL(configured)
-    if ((parsed.protocol === "https:" || parsed.protocol === "http:") && !parsed.username && !parsed.password) {
-      return parsed.origin
-    }
-  } catch {
-    console.error("[ticket-checkout] SITE_URL is invalid; using request origin")
-  }
-  return requestOrigin
-}
+const siteOrigin = siteOriginForRequest
 
 const cancelReservation = async (
   orderId: string,

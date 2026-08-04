@@ -5,6 +5,7 @@ import {
   isStaffQrConfigured,
 } from "../../../../server/staffQrAuth"
 import { isStaffApiConfigured } from "../../../../server/staffQrApi"
+import { VIRYA_OPERATIONS_EMAIL } from "../../../../config"
 
 export const prerender = false
 
@@ -24,7 +25,7 @@ export const GET: APIRoute = async ({ cookies }) => {
           crowdrelayMailer: configured(import.meta.env.CROWDRELAY_MAILER_API_KEY, 24),
           ticketMailer: configured(import.meta.env.VIRYA_TICKET_MAILER_API_KEY, 24),
           gmail:
-            configured(import.meta.env.GMAIL_USER) &&
+            configured(VIRYA_OPERATIONS_EMAIL) &&
             configured(import.meta.env.GMAIL_APP_PASSWORD, 8),
           stripe: configured(import.meta.env.STRIPE_SECRET_KEY, 16),
         }

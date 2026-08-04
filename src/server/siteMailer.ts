@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer"
+import { VIRYA_OPERATIONS_EMAIL } from "../config"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const RESEND_ENDPOINT = "https://api.resend.com/emails"
@@ -76,7 +77,7 @@ const resendMailer = (): SiteMailer | null => {
   if (!apiKey || !from) return null
 
   const defaultReplyTo = email(import.meta.env.SIGNAL_MAIL_REPLY_TO) ?? from
-  const operationsTo = email(import.meta.env.ORDER_EMAIL_TO) ?? defaultReplyTo
+  const operationsTo = VIRYA_OPERATIONS_EMAIL
 
   return {
     provider: "resend",
@@ -129,12 +130,12 @@ const resendMailer = (): SiteMailer | null => {
 }
 
 const gmailMailer = (): SiteMailer | null => {
-  const user = email(import.meta.env.GMAIL_USER)
+  const user = VIRYA_OPERATIONS_EMAIL
   const pass = envString(import.meta.env.GMAIL_APP_PASSWORD)
   if (!user || !pass) return null
 
-  const defaultReplyTo = email(import.meta.env.SIGNAL_MAIL_REPLY_TO) ?? email(import.meta.env.ORDER_EMAIL_TO) ?? user
-  const operationsTo = email(import.meta.env.ORDER_EMAIL_TO) ?? user
+  const defaultReplyTo = email(import.meta.env.SIGNAL_MAIL_REPLY_TO) ?? user
+  const operationsTo = VIRYA_OPERATIONS_EMAIL
 
   if (!cachedGmailSender) {
     const transporter = nodemailer.createTransport({

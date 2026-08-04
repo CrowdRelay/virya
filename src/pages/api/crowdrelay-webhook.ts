@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 import { getStore } from "@netlify/blobs"
 import type { APIRoute } from "astro"
+import { VIRYA_SITE_ORIGIN } from "../../config"
 import { getSiteMailer } from "../../server/siteMailer"
 
 const MAX_BODY_BYTES = 16 * 1024
@@ -74,7 +75,7 @@ const parseEnvelope = (rawBody: string): Envelope | null => {
 }
 
 const publicBaseUrl = () =>
-  (import.meta.env.PUBLIC_SITE_URL || "https://virya.music").replace(/\/$/, "")
+  VIRYA_SITE_ORIGIN
 
 const localePath = (locale: unknown, path: string) =>
   typeof locale === "string" && locale.toLowerCase().startsWith("pl")
