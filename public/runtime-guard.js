@@ -222,7 +222,9 @@
       else console.error("[virya:runtime]", item)
     }
     window.dispatchEvent(new CustomEvent("virya:runtime-report", { detail: item }))
-    if (options.visible !== false && !overlayOpen) ensureOverlay(item)
+    // The visible crash overlay is intentionally disabled: errors are still
+    // captured to the console and localStorage (see window.__VIRYA_REPORT__),
+    // but end users no longer see a full-screen diagnostic modal.
     return item
   }
 
