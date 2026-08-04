@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer"
+import type SMTPTransport from "nodemailer/lib/smtp-transport"
 import { VIRYA_OPERATIONS_EMAIL } from "../config"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -141,12 +142,11 @@ const gmailMailer = (): SiteMailer | null => {
   if (!cachedGmailSender) {
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      pool: false,
       auth: { user, pass },
       connectionTimeout: 8_000,
       greetingTimeout: 8_000,
       socketTimeout: 25_000,
-    })
+    } satisfies SMTPTransport.Options)
 
     cachedGmailSender = async (message) => {
       const recipient = requireRecipient(message.to)
