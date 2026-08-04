@@ -21,4 +21,4 @@ CrowdRelay is the primary live-event and ticket source. Public event pages retai
 
 ## Server-only values
 
-Never expose `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CROWDRELAY_COMMERCE_API_KEY`, `CROWDRELAY_ADMIN_API_KEY`, `CROWDRELAY_STAFF_API_KEY` or `VIRYA_TICKET_MAILER_API_KEY` through public Astro variables.
+Never expose `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CROWDRELAY_COMMERCE_API_KEY`, `CROWDRELAY_ADMIN_API_KEY`, `STAFF_OPERATOR_KEY` or `VIRYA_TICKET_MAILER_API_KEY` through public Astro variables.
