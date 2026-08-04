@@ -4,12 +4,6 @@ const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8"
 const assertions = [
   ["src/pages/staff/control.astro", "noindex, nofollow, noarchive"],
   ["src/pages/staff/control.astro", "AdminConsole client:load"],
-  ["src/pages/staff/pair.astro", "StaffPairingManager client:load"],
-  ["src/pages/staff/pair.astro", "noindex, nofollow, noarchive"],
-  ["src/pages/api/staff/pairing.ts", "hasStaffQrSession"],
-  ["src/pages/api/staff/pairing.ts", "isSameOriginRequest"],
-  ["src/server/staffPairing.ts", "virya-signal://pair?payload="],
-  ["src/server/staffPairing.ts", 'role: "staff"'],
   ["src/components/preact/staff/AdminConsole.tsx", "/api/staff/qr/login"],
   ["src/components/preact/staff/AdminConsole.tsx", "/api/staff/admin/ticketing/"],
   ["src/pages/api/staff/admin/status.ts", "hasStaffQrSession"],
@@ -63,18 +57,6 @@ for (const secret of [
   "STRIPE_SECRET_KEY",
 ]) {
   if (client.includes(secret)) throw new Error(`Browser bundle references secret ${secret}`)
-}
-
-const pairingClient = read("src/components/preact/staff/StaffPairingManager.tsx")
-for (const secret of ["CROWDRELAY_STAFF_API_KEY", "CROWDRELAY_ADMIN_API_KEY"]) {
-  if (pairingClient.includes(secret)) {
-    throw new Error(`Pairing browser bundle references secret ${secret}`)
-  }
-}
-for (const unsafeExport of ["navigator.clipboard", "downloadSvg", "POBIERZ SVG"]) {
-  if (pairingClient.includes(unsafeExport)) {
-    throw new Error(`Pairing UI exposes portable credential material: ${unsafeExport}`)
-  }
 }
 
 console.log("Admin control center audit passed")

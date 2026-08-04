@@ -1,14 +1,15 @@
 import nodemailer from "nodemailer"
 import { VAT_RATE, vatBreakdown } from "../data/products"
+import { VIRYA_OPERATIONS_EMAIL } from "../config"
 
 export const sendOrderEmail = async ({ session, lineItems }) => {
-  const user = import.meta.env.GMAIL_USER
+  const user = VIRYA_OPERATIONS_EMAIL
   const pass = import.meta.env.GMAIL_APP_PASSWORD
-  const to = import.meta.env.ORDER_EMAIL_TO || user
+  const to = VIRYA_OPERATIONS_EMAIL
 
   if (!user || !pass) {
     throw new Error(
-      "GMAIL_USER / GMAIL_APP_PASSWORD must be configured for order fulfilment.",
+      "GMAIL_APP_PASSWORD must be configured for order fulfilment.",
     )
   }
 
