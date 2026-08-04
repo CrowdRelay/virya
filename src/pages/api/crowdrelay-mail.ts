@@ -165,13 +165,34 @@ const render = (template: string, variables: Variables): RenderedMail | null => 
   if (template === "crowdrelay-confirm-email") {
     const url = safeUrl(variables.confirmation_url)
     if (!url) return null
-    const subject = isPolish
-      ? "Potwierdź adres e-mail — Virya Signal"
-      : "Confirm your email — Virya Signal"
-    const title = isPolish ? "Potwierdź adres e-mail" : "Confirm your email"
-    const copy = isPolish
-      ? "Otrzymujesz tę wiadomość, ponieważ rozpoczęto zapis do Virya Signal. Kliknij przycisk poniżej, aby potwierdzić adres. Jeśli to nie Ty, zignoruj wiadomość."
-      : "You received this message because a Virya Signal signup was started. Use the button below to confirm the address. If this was not you, ignore this email."
+    const sessionRecovery = variables.purpose === "session_recovery"
+    const subject = sessionRecovery
+      ? isPolish
+        ? "Odzyskaj dostęp — Virya Signal"
+        : "Restore access — Virya Signal"
+      : isPolish
+        ? "Potwierdź adres e-mail — Virya Signal"
+        : "Confirm your email — Virya Signal"
+    const title = sessionRecovery
+      ? isPolish
+        ? "Odzyskaj dostęp do Sygnału"
+        : "Restore access to Signal"
+      : isPolish
+        ? "Potwierdź adres e-mail"
+        : "Confirm your email"
+    const copy = sessionRecovery
+      ? isPolish
+        ? "Otrzymujesz tę wiadomość, ponieważ poproszono o bezpieczny link dostępu do aktywnego profilu Virya Signal. Jeśli to nie Ty, zignoruj wiadomość."
+        : "You received this message because a secure access link was requested for an active Virya Signal profile. If this was not you, ignore this email."
+      : isPolish
+        ? "Otrzymujesz tę wiadomość, ponieważ rozpoczęto zapis do Virya Signal. Kliknij przycisk poniżej, aby potwierdzić adres. Jeśli to nie Ty, zignoruj wiadomość."
+        : "You received this message because a Virya Signal signup was started. Use the button below to confirm the address. If this was not you, ignore this email."
+    const button = sessionRecovery
+      ? isPolish ? "Otwórz mój Sygnał" : "Open my Signal"
+      : isPolish ? "Potwierdź adres" : "Confirm address"
+    const footerLabel = sessionRecovery
+      ? isPolish ? "Bezpieczny adres dostępu" : "Secure access address"
+      : isPolish ? "Adres potwierdzenia" : "Confirmation address"
     return {
       subject,
       text: `${hello}\n\n${copy}\n\n${url}`,
@@ -179,9 +200,9 @@ const render = (template: string, variables: Variables): RenderedMail | null => 
         eyebrow: isPolish ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL",
         title,
         body: paragraph(hello) + paragraph(copy),
-        button: isPolish ? "Potwierdź adres" : "Confirm address",
+        button,
         buttonUrl: url,
-        footer: `${isPolish ? "Adres potwierdzenia" : "Confirmation address"}:<br>${escapeHtml(url)}`,
+        footer: `${footerLabel}:<br>${escapeHtml(url)}`,
       }),
     }
   }

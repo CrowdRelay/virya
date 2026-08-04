@@ -119,6 +119,7 @@ const resendMailer = (): SiteMailer | null => {
         method: "POST",
         headers: requestHeaders,
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(35_000),
       })
       if (!response.ok) throw await providerError(response)
       const result = await response.json().catch(() => null) as { id?: unknown } | null
@@ -140,13 +141,11 @@ const gmailMailer = (): SiteMailer | null => {
   if (!cachedGmailSender) {
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      pool: true,
-      maxConnections: 2,
-      maxMessages: 100,
+      pool: false,
       auth: { user, pass },
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 20_000,
+      connectionTimeout: 8_000,
+      greetingTimeout: 8_000,
+      socketTimeout: 25_000,
     })
 
     cachedGmailSender = async (message) => {
