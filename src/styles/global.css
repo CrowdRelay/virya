@@ -78,6 +78,12 @@
   color: rgb(251 191 36);
 }
 
+.arrows path.a1,
+.arrows path.a2,
+.arrows path.a3 {
+  will-change: opacity;
+}
+
 .arrows path.a1 {
   animation: arrowFade 1.8s ease-in-out 4s infinite backwards;
 }
