@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto"
 import type { APIRoute } from "astro"
-import * as QRCode from "qrcode"
+import { qrGifBuffer } from "../../server/ticketQr"
 import {
   acquireCrowdRelayMailLease,
   completeCrowdRelayMailLease,
@@ -204,20 +204,15 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
     let qrBlock = ""
     let attachments: RenderedMail["attachments"]
     if (qrPayload) {
-      const qrPng = await QRCode.toBuffer(qrPayload, {
-        type: "png",
-        width: 320,
-        margin: 1,
-        errorCorrectionLevel: "M",
-      })
+      const qrGif = qrGifBuffer(qrPayload)
       const qrLabel = isPolish
         ? "Zeskanuj w aplikacji Virya Signal"
         : "Scan in the Virya Signal app"
       qrBlock = `<div style="margin:28px 0;padding:20px;background:#fff;text-align:center"><p style="margin:0 0 14px;color:#09090b;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">${escapeHtml(qrLabel)}</p><img src="cid:virya-signal-confirmation-qr" width="240" height="240" alt="${escapeHtml(qrLabel)}" style="display:block;margin:auto;width:240px;height:240px" /></div>`
       attachments = [{
-        filename: "virya-signal-access.png",
-        content: qrPng,
-        contentType: "image/png",
+        filename: "virya-signal-access.gif",
+        content: qrGif,
+        contentType: "image/gif",
         cid: "virya-signal-confirmation-qr",
       }]
     }
