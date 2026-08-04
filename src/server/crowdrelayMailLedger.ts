@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto"
 import { getStore } from "@netlify/blobs"
 
 const STORE_NAME = "virya-crowdrelay-mail-deliveries"
-const LEASE_MS = 5 * 60 * 1_000
+const LEASE_MS = 75 * 1_000
 const MAX_CAS_ATTEMPTS = 6
 
 type DeliveryRecord = {

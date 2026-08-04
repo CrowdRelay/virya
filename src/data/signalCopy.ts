@@ -38,6 +38,9 @@ export interface SignalCopy {
     saveError: string
     pendingTitle: string
     pendingBody: string
+    recoveryBody: string
+    cooldownBody: (minutes: number) => string
+    acceptedBody: string
     savedTitle: string
     savedBody: string
     referralTitle: string
@@ -242,7 +245,13 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       saveError: "We could not activate the signal. Check the data and try again.",
       pendingTitle: "Check your inbox",
       pendingBody:
-        "Confirm the address to activate your private Signal session and referral link.",
+        "We sent a confirmation message. Confirm the address to activate your private Signal session and referral link.",
+      recoveryBody:
+        "We sent a secure access link for your existing Virya Signal profile.",
+      cooldownBody: (minutes) =>
+        `A new message was not sent because the previous code is still valid. Use the previous email or try again in about ${minutes} min.`,
+      acceptedBody:
+        "Your request was accepted. Check your inbox and spam; if nothing arrives, try again later.",
       savedTitle: "Signal active",
       savedBody: "Your city, shows and referral progress now live in one place.",
       referralTitle: "Your referral link",
@@ -475,7 +484,13 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       saveError: "Nie udało się aktywować sygnału. Sprawdź dane i spróbuj ponownie.",
       pendingTitle: "Sprawdź skrzynkę",
       pendingBody:
-        "Potwierdź adres, aby aktywować prywatny Sygnał i link polecający.",
+        "Wysłaliśmy wiadomość potwierdzającą. Potwierdź adres, aby aktywować prywatny Sygnał i link polecający.",
+      recoveryBody:
+        "Wysłaliśmy bezpieczny link dostępu do Twojego istniejącego profilu Virya Signal.",
+      cooldownBody: (minutes) =>
+        `Nowa wiadomość nie została wysłana, bo poprzedni kod jest jeszcze ważny. Użyj poprzedniego maila albo spróbuj ponownie za około ${minutes} min.`,
+      acceptedBody:
+        "Zgłoszenie zostało przyjęte. Sprawdź skrzynkę i spam; jeśli nic nie dotrze, spróbuj ponownie później.",
       savedTitle: "Sygnał aktywny",
       savedBody: "Miasto, koncerty i postęp poleceń masz teraz w jednym miejscu.",
       referralTitle: "Twój link polecający",

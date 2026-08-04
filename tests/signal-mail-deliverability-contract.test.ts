@@ -6,6 +6,11 @@ const root = new URL("../", import.meta.url)
 const read = (path: string) => readFile(new URL(path, root), "utf8")
 const mailer = await read("src/server/siteMailer.ts")
 const endpoint = await read("src/pages/api/crowdrelay-mail.ts")
+
+const ledger = await read("src/server/crowdrelayMailLedger.ts")
+const signalHub = await read("src/components/preact/signal/SignalHub.tsx")
+const signalClient = await read("src/lib/crowdrelay-client.ts")
+const signalCopy = await read("src/data/signalCopy.ts")
 const migratedEndpoints = await Promise.all([
   "src/pages/api/contact.ts",
   "src/pages/api/crowdrelay-webhook.ts",
@@ -46,4 +51,27 @@ test("confirmation copy is transactional rather than promotional", () => {
   assert.match(endpoint, /Potwierdź adres e-mail/)
   assert.match(endpoint, /Jeśli to nie Ty, zignoruj wiadomość/)
   assert.doesNotMatch(endpoint, /Jedno kliknięcie aktywuje prywatną przestrzeń fana/)
+})
+test("CrowdRelay mail time budgets fit the durable webhook retry window", () => {
+  assert.match(mailer, /AbortSignal\.timeout\(35_000\)/)
+  assert.match(mailer, /connectionTimeout:\s*8_000/)
+  assert.match(mailer, /socketTimeout:\s*25_000/)
+  assert.match(ledger, /LEASE_MS\s*=\s*75\s*\*\s*1_000/)
+})
+
+test("session recovery receives dedicated transactional copy", () => {
+  assert.match(endpoint, /variables\.purpose\s*===\s*"session_recovery"/)
+  assert.match(endpoint, /Odzyskaj dostęp — Virya Signal/)
+  assert.match(endpoint, /Otwórz mój Sygnał/)
+})
+
+test("Signal signup reports queued, cooldown and unknown delivery states honestly", () => {
+  assert.match(signalClient, /email_queued\?: boolean/)
+  assert.match(signalClient, /retry_after_seconds\?: number \| null/)
+  assert.match(signalHub, /result\.email_queued === true/)
+  assert.match(signalHub, /result\.email_queued === false/)
+  assert.match(signalHub, /copy\.form\.cooldownBody\(minutes\)/)
+  assert.match(signalHub, /copy\.form\.acceptedBody/)
+  assert.match(signalCopy, /Nowa wiadomość nie została wysłana/)
+  assert.doesNotMatch(signalHub, /setSubmitMessage\([^)]*Mail wysłany/)
 })

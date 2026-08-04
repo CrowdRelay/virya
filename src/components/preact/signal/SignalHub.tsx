@@ -169,7 +169,21 @@ export default function SignalHub({ lang }: Props) {
       setReferralUrl(result.referral_url)
       if (result.confirmation_required) {
         setSubmitState("pending")
-        setSubmitMessage(copy.form.pendingBody)
+        if (result.email_queued === true) {
+          setSubmitMessage(
+            result.email_kind === "session_recovery"
+              ? copy.form.recoveryBody
+              : copy.form.pendingBody,
+          )
+        } else if (result.email_queued === false) {
+          const minutes = Math.max(
+            1,
+            Math.ceil((result.retry_after_seconds ?? 15 * 60) / 60),
+          )
+          setSubmitMessage(copy.form.cooldownBody(minutes))
+        } else {
+          setSubmitMessage(copy.form.acceptedBody)
+        }
       } else {
         setSubmitState("saved")
         setSubmitMessage(copy.form.savedBody)
