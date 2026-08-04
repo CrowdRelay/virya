@@ -18,18 +18,21 @@ const clarityCards = lang === "pl"
   ? [
       {
         label: "SYGNAŁ VIRYA",
+        icon: "mail",
         title: "Zapisujesz się raz",
         body: "Podajesz e-mail i miasto. Od razu wiesz, gdzie gramy najbliżej Ciebie i gdzie trzymasz bilety.",
         reward: "START → e-mail + miasto",
       },
       {
         label: "GRA TERENOWA",
+        icon: "location",
         title: "Grasz w terenie",
         body: "Pokazujemy tylko aktywne sygnały. Otwierasz przybliżony punkt, idziesz za wskazówką i potwierdzasz strefę telefonem.",
         reward: "Nie musisz zbierać całej Polski",
       },
       {
         label: "LIVE QR",
+        icon: "qr",
         title: "Przychodzisz na koncert",
         body: "Skanujesz koncertowy QR i potwierdzasz obecność. Wejściówki pozostają pulą wydarzenia, a check-in dodaje los do globalnej puli trzech płyt.",
         reward: "Nagroda: wejściówki + globalna pula 3 płyt",
@@ -38,18 +41,21 @@ const clarityCards = lang === "pl"
   : [
       {
         label: "SIGNAL",
+        icon: "mail",
         title: "Join once",
         body: "Choose your city and receive meaningful Virya updates about shows, releases and limited fan actions.",
         reward: "Alerts · live pools · referrals",
       },
       {
         label: "AREA",
+        icon: "location",
         title: "Play in the city",
         body: "Follow a clue, reach a live zone and unlock a collectible lyric plus a real reward.",
         reward: "1 free merch item + free delivery",
       },
       {
         label: "LIVE QR",
+        icon: "qr",
         title: "Come to a show",
         body: "Scan the venue QR to confirm attendance. Guest-list spots stay event-specific, while the check-in adds an entry to the global three-album draw.",
         reward: "Guest-list spots + global three-album draw",
@@ -161,10 +167,29 @@ const schema = {
             <p class="virya-copy mt-5 text-zinc-300">{clarityBody}</p>
           </div>
           <div class="mt-9 grid gap-4 md:grid-cols-3">
-            {clarityCards.map((card, index) => (
+            {clarityCards.map((card) => (
               <article class="virya-panel flex min-h-full flex-col p-5 sm:p-6">
                 <div class="flex items-center justify-between gap-4">
-                  <span class="grid h-10 w-10 place-items-center rounded-full border border-amber-400/40 text-lg text-amber-400" aria-hidden="true">{["✉", "⌖", "▣"][index]}</span>
+                  <span class="signal-clarity-icon" aria-hidden="true">
+                    {card.icon === "mail" && (
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4.5 6.75h15v10.5h-15z" />
+                        <path d="m5.25 7.5 6.75 5.25 6.75-5.25" />
+                      </svg>
+                    )}
+                    {card.icon === "location" && (
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0Z" />
+                        <circle cx="12" cy="10" r="2.25" />
+                      </svg>
+                    )}
+                    {card.icon === "qr" && (
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4.5 4.5h5v5h-5zM14.5 4.5h5v5h-5zM4.5 14.5h5v5h-5z" />
+                        <path d="M14.5 14.5h2v2h-2zM17.5 17.5h2v2h-2zM17.5 14.5h2M14.5 18.5v1" />
+                      </svg>
+                    )}
+                  </span>
                   <span class="text-[8px] font-black uppercase tracking-[.22em] text-zinc-500">{card.label}</span>
                 </div>
                 <h3 class="mt-7 text-xl font-black uppercase leading-tight text-white">{card.title}</h3>
@@ -218,6 +243,33 @@ const schema = {
 </Layout>
 
 <style>
+  .signal-clarity-icon {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    border-radius: 9999px;
+    background: rgba(251, 191, 36, 0.035);
+    color: rgb(252 211 77);
+    line-height: 0;
+  }
+
+  .signal-clarity-icon svg {
+    display: block;
+    width: 1.15rem;
+    height: 1.15rem;
+    flex: none;
+    overflow: visible;
+    stroke: currentColor;
+    stroke-width: 1.65;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+
   .signal-hero-grid {
     background-image:
       linear-gradient(rgba(251, 191, 36, 0.06) 1px, transparent 1px),
