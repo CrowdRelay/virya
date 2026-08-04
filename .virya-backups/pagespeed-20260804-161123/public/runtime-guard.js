@@ -34,6 +34,8 @@
     document.head?.appendChild(style)
   }
 
+  installStyles()
+
   const now = () => new Date().toISOString()
   const epoch = () => Date.now()
   const safePath = () => `${location.origin}${location.pathname}`.slice(0, 1000)
@@ -149,7 +151,6 @@
       .join("\n")
 
   const ensureOverlay = (report) => {
-    installStyles()
     if (!document.body) {
       setTimeout(() => ensureOverlay(report), 50)
       return
@@ -217,10 +218,7 @@
       userAgent: String(navigator.userAgent || "").slice(0, 500),
     }
     rememberReport(item)
-    if (options.console !== false) {
-      if (options.visible === false) console.warn("[virya:runtime]", item)
-      else console.error("[virya:runtime]", item)
-    }
+    console.error("[virya:runtime]", item)
     window.dispatchEvent(new CustomEvent("virya:runtime-report", { detail: item }))
     if (options.visible !== false && !overlayOpen) ensureOverlay(item)
     return item
@@ -307,7 +305,6 @@
     report(
       "unexpected-previous-termination",
       "Poprzednia sesja strony zakończyła się bez poprawnego przejścia do tła.",
-      { visible: false, console: false },
     )
   }
 })()

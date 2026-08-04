@@ -59,7 +59,7 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
         )}
         <div class="flex items-center gap-1 ml-4 pl-4 border-l border-white/10 text-xs font-bold uppercase tracking-widest" aria-label={t(lang, "nav.language")}>
           <button data-lang-switch="en" class={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 py-1 transition-colors cursor-pointer ${lang === "en" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="EN — Switch to English" aria-current={lang === "en" ? "true" : undefined}>EN</button>
-          <span class="text-zinc-700" aria-hidden="true">/</span>
+          <span class="text-zinc-700">/</span>
           <button data-lang-switch="pl" class={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 py-1 transition-colors cursor-pointer ${lang === "pl" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="PL — Przełącz na polski" aria-current={lang === "pl" ? "true" : undefined}>PL</button>
         </div>
       </div>
@@ -67,7 +67,7 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
       <div class="flex lg:hidden items-center gap-2">
         <div class="flex items-center gap-1 mr-1 text-xs font-bold uppercase tracking-widest">
           <button data-lang-switch="en" class={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 py-1 transition-colors cursor-pointer ${lang === "en" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="EN — Switch to English">EN</button>
-          <span class="text-zinc-700" aria-hidden="true">/</span>
+          <span class="text-zinc-700">/</span>
           <button data-lang-switch="pl" class={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 py-1 transition-colors cursor-pointer ${lang === "pl" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="PL — Przełącz na polski">PL</button>
         </div>
         {displayLinks && activePage !== "signal" && (

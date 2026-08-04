@@ -57,8 +57,8 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     <link rel="apple-touch-icon" href="/virya.webp" />
     <title>{title}</title>
     <slot name="head" />
-    <!-- Parse HTML first; the full diagnostic guard is not on the critical rendering path. -->
-    <script is:inline src="/runtime-guard.js" defer></script>
+    <!-- Installs before Astro navigation and all hydrated islands. -->
+    <script is:inline src="/runtime-guard.js"></script>
     <ClientRouter />
     {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
     <script is:inline>
