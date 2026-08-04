@@ -311,7 +311,6 @@
     report(
       "unexpected-previous-termination",
       "Poprzednia sesja strony zakończyła się bez poprawnego przejścia do tła.",
-      { visible: false, console: false },
     )
   }
 })()

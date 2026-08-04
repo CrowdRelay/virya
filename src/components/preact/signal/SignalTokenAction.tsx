@@ -22,6 +22,9 @@ export default function SignalTokenAction({ lang, action }: Props) {
   const [message, setMessage] = useState(
     action === "confirm" ? copy.confirmWorking : copy.unsubscribeWorking,
   )
+  const [email, setEmail] = useState("")
+  const [resending, setResending] = useState(false)
+  const [resendDone, setResendDone] = useState(false)
 
   useEffect(() => {
     const token = readFragmentToken()
@@ -96,6 +99,30 @@ export default function SignalTokenAction({ lang, action }: Props) {
     }
   }, [action, copy])
 
+  async function resendAccess(event: SubmitEvent) {
+    event.preventDefault()
+    const normalized = email.trim()
+    if (!normalized || resending) return
+    setResending(true)
+    try {
+      await crowdrelay.requestFanAccess(normalized, lang)
+      setResendDone(true)
+      setMessage(
+        lang === "pl"
+          ? "Jeśli ten e-mail jest zapisany w Virya Signal, wysłaliśmy nowy link. Możesz ustawić nowy PIN na tym lub innym urządzeniu."
+          : "If this email belongs to Virya Signal, we sent a new link. You can set a new PIN on this or another device.",
+      )
+    } catch {
+      setMessage(
+        lang === "pl"
+          ? "Nie udało się teraz wysłać linku. Spróbuj ponownie za chwilę."
+          : "We could not send the link right now. Please try again shortly.",
+      )
+    } finally {
+      setResending(false)
+    }
+  }
+
   return (
     <section
       class={`relative overflow-hidden border p-6 sm:p-8 ${
@@ -115,6 +142,32 @@ export default function SignalTokenAction({ lang, action }: Props) {
       <p class="mt-5 max-w-2xl text-sm leading-relaxed text-zinc-300" role="status" aria-live="polite">
         {message}
       </p>
+      {state === "error" && action === "confirm" && (
+        <form onSubmit={resendAccess} class="mt-6 max-w-md">
+          <label class="block text-xs font-black uppercase tracking-wider text-zinc-300">
+            {lang === "pl" ? "E-mail konta" : "Account email"}
+            <input
+              type="email"
+              autocomplete="email"
+              value={email}
+              onInput={event => setEmail((event.currentTarget as HTMLInputElement).value)}
+              class="mt-2 min-h-12 w-full border border-white/15 bg-black/40 px-4 text-sm text-white outline-none focus:border-amber-400"
+              required
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={resending || resendDone}
+            class="virya-button virya-button--primary mt-3 min-h-[46px] px-5 disabled:opacity-50"
+          >
+            {resending
+              ? lang === "pl" ? "WYSYŁAM…" : "SENDING…"
+              : resendDone
+                ? lang === "pl" ? "LINK WYSŁANY" : "LINK SENT"
+                : lang === "pl" ? "WYŚLIJ NOWY LINK" : "SEND A NEW LINK"}
+          </button>
+        </form>
+      )}
       <div class="mt-7 flex flex-wrap gap-3">
         {state === "success" && action === "confirm" && (
           <a
