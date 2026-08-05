@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto"
 import type { APIRoute } from "astro"
 import { VIRYA_SITE_ORIGIN } from "../../config"
+import { safeTimeZone } from "../../lib/safeDateFormat"
 import { qrGifBuffer } from "../../server/ticketQr"
 import { getSiteMailer } from "../../server/siteMailer"
 import {
@@ -91,7 +92,7 @@ const parsePayload = (raw: unknown): TicketPayload | null => {
   const eventSlug = stringValue(data.event_slug, 128)
   const eventTitle = stringValue(data.event_title, 300)
   const venue = data.venue == null ? null : stringValue(data.venue, 300)
-  const timezone = stringValue(data.timezone, 80) ?? "Europe/Warsaw"
+  const timezone = safeTimeZone(stringValue(data.timezone, 80))
   const startsAt = stringValue(data.starts_at, 64)
   const buyerEmail = stringValue(data.buyer_email, 320)?.toLowerCase()
   const buyerName = data.buyer_name == null ? null : stringValue(data.buyer_name, 200)
