@@ -10,7 +10,7 @@ It started as a fast multilingual band site. It now includes:
 - Stripe merch checkout with InPost delivery;
 - first-party Stripe ticket reservations and webhook reconciliation backed by CrowdRelay;
 - VIRYA AREA, a browser-based geolocation field game;
-- Virya Signal fan registration, consent, referrals and event interest;
+- Virya Signal fan registration, consent, referrals, event interest and anonymous in-app feedback;
 - admission-pass and concert check-in flows backed by CrowdRelay;
 - a private staff panel for rotating concert QR campaigns;
 - server-rendered Netlify routes for trusted integrations.
@@ -63,6 +63,7 @@ npm run build
 | Checkout creation and webhooks | server-side routes + Stripe |
 | AREA challenges, claims and vouchers | AREA server modules and durable ledger |
 | Fan consent, referrals, events, draws and admission | [CrowdRelay](https://github.com/wojciechbator/crowdrelay) |
+| Anonymous Signal feedback | bounded first-party route + durable HMAC rate limit + site mailer |
 | Operational notifications and delivery | asynchronous workflows |
 
 ## Performance rules

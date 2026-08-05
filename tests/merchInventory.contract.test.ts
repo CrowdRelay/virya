@@ -41,3 +41,13 @@ test("availability fails open to the established static stock when read model is
     { available: true, lowStock: true },
   )
 })
+
+test("mobile bundle catalog is sourced from the same canonical bundle list", async () => {
+  const source = await import("node:fs/promises").then(fs =>
+    fs.readFile(new URL("../src/pages/api/merch/inventory.ts", import.meta.url), "utf8"),
+  )
+  assert.match(source, /BUNDLES\.map\(bundle =>/)
+  assert.match(source, /discountedPrice\(bundle\)/)
+  assert.match(source, /inventoryAvailability\(bundle, size, inventoryBySku\)/)
+  assert.match(source, /source=signal-app&product=/)
+})
