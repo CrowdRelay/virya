@@ -289,7 +289,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
               <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{t("product.size")}</p>
               <button type="button" onClick={() => setGuideOpen(true)} class="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors cursor-pointer">{t("product.sizeGuide")}</button>
             </div>
-            <div class="flex flex-wrap gap-1.5">
+            <div class="grid grid-cols-3 gap-1.5 sm:flex sm:flex-nowrap">
               {product.sizes.map((s) => {
                 const sizeInventory = inventoryAvailability(
                   product,
