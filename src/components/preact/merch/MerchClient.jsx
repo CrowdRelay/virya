@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "preact/compat"
 import { LanguageProvider, useI18n } from "../../../i18n/I18nContext"
 import { CartProvider, useCart } from "./cartContext"
+import { useCartActions } from "./cartContext"
 import { useMerchImages } from "./useMerchImages"
 import ProductCard from "./productCard"
 import { PRODUCTS, BUNDLES, discountActive, discountEndsLabel } from "../../../data/products"
@@ -27,10 +28,23 @@ const CartFab = () => {
   )
 }
 
+const CartDrawerFallback = () => (
+  <div class="fixed inset-0 z-40 flex items-center justify-end bg-black/40" role="status" aria-live="polite">
+    <div class="flex h-full w-full max-w-md items-center justify-center border-l border-zinc-800 bg-zinc-950">
+      <span class="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-400" aria-hidden="true" />
+    </div>
+  </div>
+)
+
 const MerchInner = () => {
   const { t, lang, lp } = useI18n()
+  const { open: cartOpen, count: cartCount } = useCart()
   const images = useMerchImages()
   const [isWide, setIsWide] = useState(true)
+  const [inventory, setInventory] = useState({
+    status: "loading",
+    variants: null,
+  })
   const saleActive = discountActive()
 
   useEffect(() => {
@@ -39,6 +53,49 @@ const MerchInner = () => {
     update()
     mq.addEventListener("change", update)
     return () => mq.removeEventListener("change", update)
+  }, [])
+  useEffect(() => {
+    const controller = new AbortController()
+    let active = true
+    const timeout = window.setTimeout(() => controller.abort(), 3500)
+    fetch("/api/merch/inventory", {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    })
+      .then(async response => {
+        if (!response.ok) throw new Error(`inventory ${response.status}`)
+        return response.json()
+      })
+      .then(payload => {
+        if (payload?.status !== "ready" || !payload.variants) {
+          throw new Error("invalid inventory payload")
+        }
+        if (active) {
+          setInventory({ status: "ready", variants: payload.variants })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setInventory({ status: "unavailable", variants: null })
+        }
+      })
+      .finally(() => window.clearTimeout(timeout))
+    return () => {
+      active = false
+      window.clearTimeout(timeout)
+      controller.abort()
+    }
+  }, [])
+  useEffect(() => {
+    const product = new URLSearchParams(window.location.search).get("product")
+    if (!product || !/^[a-z0-9_-]{1,128}$/.test(product)) return
+    const frame = window.requestAnimationFrame(() => {
+      const card = document.getElementById(`merch-${product}`)
+      if (!card) return
+      card.scrollIntoView({ behavior: "smooth", block: "center" })
+      window.setTimeout(() => card.focus({ preventScroll: true }), 450)
+    })
+    return () => window.cancelAnimationFrame(frame)
   }, [])
   const saleLabel = saleActive ? discountEndsLabel(lang === "pl" ? "pl-PL" : "en-GB") : null
 
@@ -87,7 +144,7 @@ const MerchInner = () => {
 
           <div class="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {PRODUCTS.map((product, i) => (
-              <ProductCard key={product.id} product={product} images={images} index={i} isWide={isWide} />
+              <ProductCard key={product.id} product={product} images={images} index={i} isWide={isWide} inventory={inventory} />
             ))}
           </div>
 
@@ -101,7 +158,7 @@ const MerchInner = () => {
               </div>
               <div class="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-6">
                 {BUNDLES.map((product, i) => (
-                  <ProductCard key={product.id} product={product} images={images} index={PRODUCTS.length + i} isWide={isWide} />
+                  <ProductCard key={product.id} product={product} images={images} index={PRODUCTS.length + i} isWide={isWide} inventory={inventory} />
                 ))}
               </div>
             </div>
@@ -130,9 +187,11 @@ const MerchInner = () => {
       </main>
 
       <CartFab />
-      <Suspense fallback={null}>
-        <CartDrawer />
-      </Suspense>
+      {(cartOpen || cartCount > 0) && (
+        <Suspense fallback={<CartDrawerFallback />}>
+          <CartDrawer />
+        </Suspense>
+      )}
     </div>
   )
 }

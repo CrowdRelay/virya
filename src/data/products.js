@@ -44,6 +44,7 @@ export const PRODUCTS = [
     name: "Echoes Of The Modern Mind",
     name_pl: "Echoes Of The Modern Mind",
     type: "album",
+    inventorySku: "VIRYA-CD-ECHOES",
     spotifyId: "5dAAKIVnr96ILc9gxPnRzt",
     price: 50,
     front: "merch/echoes.webp",
@@ -60,6 +61,7 @@ export const PRODUCTS = [
     name: "From The Ashes — Colour Tee",
     name_pl: "From The Ashes — Koszulka Kolorowa",
     type: "shirt",
+    inventorySkuPrefix: "VIRYA-TEE-ASHES-COLOR",
     price: 70,
     front: "merch/Ashes Color Front.webp",
     back: "merch/back.webp",
@@ -75,6 +77,7 @@ export const PRODUCTS = [
     name: "From The Ashes — Mono Tee",
     name_pl: "From The Ashes — Koszulka monochrom",
     type: "shirt",
+    inventorySkuPrefix: "VIRYA-TEE-ASHES-MONO",
     price: 70,
     front: "merch/Ashes BW Front.webp",
     back: "merch/back.webp",
@@ -89,6 +92,7 @@ export const PRODUCTS = [
     name: "Wave Of Uncertainty Tee",
     name_pl: "Fala Niepewności — Koszulka",
     type: "shirt",
+    inventorySkuPrefix: "VIRYA-TEE-WAVE",
     price: 70,
     front: "merch/Wave Front.webp",
     back: "merch/back.webp",
@@ -103,6 +107,7 @@ export const PRODUCTS = [
     name: "Virya Logo Tee",
     name_pl: "Koszulka z Logo Viryi",
     type: "shirt",
+    inventorySkuPrefix: "VIRYA-TEE-LOGO",
     price: 60,
     front: "merch/virya.webp",
     back: "merch/virya2.webp",
@@ -117,6 +122,7 @@ export const PRODUCTS = [
     name: "Virya Tote Bag",
     name_pl: "Torba Viryi",
     type: "bag",
+    inventorySku: "VIRYA-BAG-CREST",
     price: 50,
     front: "merch/bag1.webp",
     back: "merch/bag2.webp",
@@ -134,6 +140,7 @@ export const BUNDLES = [
     name_pl: "Pakiet Sceniczny",
     type: "bundle",
     bundle: true,
+    inventoryComponents: ["echoes", "virya-logo"],
     price: 100,
     front: "merch/echoes.webp",
     back: "merch/virya.webp",
@@ -151,6 +158,7 @@ export const BUNDLES = [
     name_pl: "Pakiet Catharsis",
     type: "bundle",
     bundle: true,
+    inventoryComponents: ["bag", "echoes"],
     price: 90,
     front: "merch/bag1.webp",
     back: "merch/echoes.webp",
@@ -167,6 +175,7 @@ export const BUNDLES = [
     name_pl: "Pakiet Stay Mad",
     type: "bundle",
     bundle: true,
+    inventoryComponents: ["virya-logo", "bag"],
     price: 100,
     front: "merch/virya.webp",
     back: "merch/bag1.webp",
@@ -236,3 +245,54 @@ export const vatBreakdown = (gross, rate = VAT_RATE) => {
 }
 
 export const toMinorUnits = pln => Math.round(pln * 100)
+
+
+export const inventorySku = (product, size = "") => {
+  if (!product) return null
+  if (product.inventorySku) return product.inventorySku
+  if (product.inventorySkuPrefix && size) {
+    return `${product.inventorySkuPrefix}-${String(size).trim().toUpperCase()}`
+  }
+  return null
+}
+
+export const inventoryItemsForCartEntry = (
+  product,
+  size = "",
+  quantity = 1,
+) => {
+  if (!product || !Number.isInteger(quantity) || quantity < 1) return []
+  if (Array.isArray(product.inventoryComponents)) {
+    return product.inventoryComponents.flatMap(componentId => {
+      const component = PRODUCTS.find(item => item.id === componentId)
+      const componentSize = Array.isArray(component?.sizes) ? size : ""
+      return inventoryItemsForCartEntry(component, componentSize, quantity)
+    })
+  }
+  const sku = inventorySku(product, size)
+  return sku ? [{ sku, quantity }] : []
+}
+
+export const inventoryAvailability = (product, size, inventoryBySku) => {
+  if (!product || !inventoryBySku || typeof inventoryBySku !== "object") {
+    return null
+  }
+  if (Array.isArray(product.sizes) && !size) {
+    const sizes = product.sizes
+      .map(candidate => inventoryAvailability(product, candidate, inventoryBySku))
+      .filter(Boolean)
+    if (sizes.length === 0) return null
+    return {
+      available: sizes.some(item => item.available),
+      lowStock: sizes.some(item => item.available && item.lowStock),
+    }
+  }
+  const items = inventoryItemsForCartEntry(product, size, 1)
+  if (items.length === 0) return null
+  const states = items.map(item => inventoryBySku[item.sku]).filter(Boolean)
+  if (states.length !== items.length) return null
+  return {
+    available: states.every(item => item.available === true),
+    lowStock: states.some(item => item.availability === "low_stock"),
+  }
+}

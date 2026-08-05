@@ -14,6 +14,11 @@ import {
   releaseAreaRewardCode,
 } from "../../server/areaReward"
 import { reconcileTicketStripeEvent } from "../../server/ticketStripeWebhook"
+import {
+  CrowdRelayCommerceError,
+  commitMerchInventory,
+  releaseMerchInventory,
+} from "../../server/crowdrelayCommerce"
 
 export const POST: APIRoute = async ({ request }) => {
   const stripeKey = import.meta.env.STRIPE_SECRET_KEY?.trim()
@@ -97,6 +102,26 @@ export const POST: APIRoute = async ({ request }) => {
       } catch (error) {
         console.error("[stripe-webhook] reward release failed:", error)
         return new Response("Reward release temporarily failed", { status: 500 })
+      }
+    }
+    const inventoryReservationId =
+      session.metadata?.crowdrelay_inventory_reservation_id
+    if (inventoryReservationId) {
+      try {
+        await releaseMerchInventory(
+          inventoryReservationId,
+          `Stripe checkout ${event.type}`,
+        )
+      } catch (error) {
+        if (
+          !(error instanceof CrowdRelayCommerceError) ||
+          error.status !== 409
+        ) {
+          console.error("[stripe-webhook] inventory release failed:", error)
+          return new Response("Inventory release temporarily failed", {
+            status: 500,
+          })
+        }
       }
     }
   }
@@ -239,6 +264,24 @@ export const POST: APIRoute = async ({ request }) => {
           metadata: {
             ...session.metadata,
             virya_shipment_done: "1",
+          },
+        })
+      }
+
+      // Inventory is appended after the established email and shipment
+      // checkpoints. A CrowdRelay or Stripe retry therefore cannot resend the
+      // customer email, recreate the shipment or decrement stock twice.
+      const inventoryReservationId =
+        session.metadata?.crowdrelay_inventory_reservation_id
+      if (
+        inventoryReservationId &&
+        session.metadata?.virya_inventory_done !== "1"
+      ) {
+        await commitMerchInventory(inventoryReservationId)
+        session = await stripe.checkout.sessions.update(session.id, {
+          metadata: {
+            ...session.metadata,
+            virya_inventory_done: "1",
           },
         })
       }

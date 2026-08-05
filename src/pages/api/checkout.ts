@@ -11,6 +11,7 @@ import {
   sizeInStock,
   productInStock,
   isAreaRewardEligible,
+  inventoryItemsForCartEntry,
 } from "../../data/products"
 import {
   AREA_REWARD_CHECKOUT_SECONDS,
@@ -18,6 +19,12 @@ import {
   reserveAreaRewardCode,
 } from "../../server/areaReward"
 import { mutateAreaWallet } from "../../server/areaLedger"
+import {
+  CrowdRelayCommerceError,
+  merchInventoryWritesEnabled,
+  releaseMerchInventory,
+  reserveMerchInventory,
+} from "../../server/crowdrelayCommerce"
 
 const MAX_QTY = 20
 const MAX_LINES = 50
@@ -127,6 +134,7 @@ const stripeLine = (
 })
 
 export const POST: APIRoute = async ({ request }) => {
+  let inventoryReservationId: string | null = null
   try {
     const requestOrigin = new URL(request.url).origin
     const origin = request.headers.get("origin")
@@ -183,8 +191,9 @@ export const POST: APIRoute = async ({ request }) => {
     if (rewardCode == null) {
       return json({ error: "Invalid VIRYA Area reward code" }, 400)
     }
-    if (rewardCode && !UUID_PATTERN.test(checkoutRequestId)) {
-      return json({ error: "Invalid reward checkout request" }, 400)
+    const inventoryWrites = merchInventoryWritesEnabled()
+    if ((rewardCode || inventoryWrites) && !UUID_PATTERN.test(checkoutRequestId)) {
+      return json({ error: "Invalid checkout request" }, 400)
     }
 
     const stripeKey = import.meta.env.STRIPE_SECRET_KEY
@@ -268,8 +277,9 @@ export const POST: APIRoute = async ({ request }) => {
     const ispl = lang === "pl"
     const successPath = ispl ? "/pl/merch/success" : "/merch/success"
     const cancelPath = ispl ? "/pl/merch" : "/merch"
-    const checkoutExpiresAt =
-      Math.floor(Date.now() / 1000) + AREA_REWARD_CHECKOUT_SECONDS
+    let checkoutExpiresAt =
+      Math.floor(Date.now() / 1000) +
+      (rewardCode ? AREA_REWARD_CHECKOUT_SECONDS : inventoryWrites ? 60 * 60 : AREA_REWARD_CHECKOUT_SECONDS)
 
     let rewardReservation:
       | Awaited<ReturnType<typeof reserveAreaRewardCode>>
@@ -398,6 +408,60 @@ export const POST: APIRoute = async ({ request }) => {
       metadata.area_reward_product_label = freeEntry.label
     }
 
+    if (inventoryWrites) {
+      const quantities = new Map<string, number>()
+      for (const entry of cart) {
+        for (const item of inventoryItemsForCartEntry(
+          entry.product,
+          entry.size,
+          entry.qty,
+        )) {
+          quantities.set(item.sku, (quantities.get(item.sku) ?? 0) + item.quantity)
+        }
+      }
+      const inventoryItems = [...quantities].map(([sku, quantity]) => ({
+        sku,
+        quantity,
+      }))
+      if (inventoryItems.length === 0) {
+        return json({ error: "Inventory mapping is incomplete" }, 503)
+      }
+      try {
+        const reservation = await reserveMerchInventory({
+          externalReference: checkoutRequestId,
+          expiresAt: new Date(checkoutExpiresAt * 1000).toISOString(),
+          items: inventoryItems,
+        })
+        inventoryReservationId = reservation.id
+        const reservedUntil = reservation.expires_at
+          ? Math.floor(new Date(reservation.expires_at).getTime() / 1000)
+          : Number.NaN
+        if (Number.isFinite(reservedUntil) && reservedUntil > Math.floor(Date.now() / 1000)) {
+          checkoutExpiresAt = reservedUntil
+        }
+        metadata.crowdrelay_inventory_reservation_id = reservation.id
+        metadata.merch_checkout_request_id = checkoutRequestId
+      } catch (error) {
+        if (error instanceof CrowdRelayCommerceError && error.status === 409) {
+          return json(
+            {
+              error: "One of the selected items is no longer available",
+              retrySameRequest: false,
+            },
+            409,
+          )
+        }
+        console.error("[checkout:inventory-reserve]", error)
+        return json(
+          {
+            error: "Stock confirmation is temporarily unavailable",
+            retrySameRequest: true,
+          },
+          503,
+        )
+      }
+    }
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
       line_items: lineItems,
@@ -406,7 +470,7 @@ export const POST: APIRoute = async ({ request }) => {
       cancel_url: `${siteOrigin}${cancelPath}`,
       customer_email: invoiceEmail,
       ...(needsShipping ? { phone_number_collection: { enabled: true } } : {}),
-      ...(rewardCode ? { expires_at: checkoutExpiresAt } : {}),
+      ...(rewardCode || inventoryWrites ? { expires_at: checkoutExpiresAt } : {}),
       metadata,
     }
 
@@ -414,7 +478,9 @@ export const POST: APIRoute = async ({ request }) => {
       sessionParams,
       rewardCode
         ? { idempotencyKey: `area-checkout-${checkoutRequestId}` }
-        : undefined,
+        : inventoryWrites
+          ? { idempotencyKey: `merch-checkout-${checkoutRequestId}` }
+          : undefined,
     )
 
     if (rewardCode && rewardReservation?.ok && freeEntry) {
@@ -436,12 +502,24 @@ export const POST: APIRoute = async ({ request }) => {
           freeProductLabel: freeEntry.label,
         })
       } catch (error) {
+        let sessionExpired = false
         try {
           if (session.status === "open") {
             await stripe.checkout.sessions.expire(session.id)
+            sessionExpired = true
           }
         } catch (expireError) {
           console.error("[checkout:reward-expire]", expireError)
+        }
+        if (sessionExpired && inventoryReservationId) {
+          try {
+            await releaseMerchInventory(
+              inventoryReservationId,
+              "Stripe checkout expired after reward attachment failure",
+            )
+          } catch (releaseError) {
+            console.error("[checkout:inventory-release-after-expire]", releaseError)
+          }
         }
         throw error
       }
@@ -449,6 +527,15 @@ export const POST: APIRoute = async ({ request }) => {
 
     return json({ url: session.url })
   } catch (err) {
+    // Do not release an inventory reservation after an ambiguous Stripe error.
+    // Stripe may have accepted the idempotent request even when this function
+    // lost the response. The same checkout identity can safely retry, while the
+    // bounded reservation expires automatically if no session was created.
+    if (inventoryReservationId) {
+      console.warn("[checkout:inventory-held-for-safe-retry]", {
+        reservationId: inventoryReservationId,
+      })
+    }
     console.error("[checkout]", err)
     return json(
       {

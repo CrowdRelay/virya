@@ -9,6 +9,7 @@ const inputClass =
   "bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-amber-400/60 transition-colors"
 
 const CHECKOUT_REQUEST_KEY = "virya-checkout-request"
+const CHECKOUT_FINGERPRINT_KEY = "virya-checkout-fingerprint"
 const REWARD_CODE_KEY = "virya-area-reward-code"
 
 const readSessionValue = (key) => {
@@ -23,7 +24,22 @@ const readSessionValue = (key) => {
 const clearRewardCheckout = () => {
   try {
     sessionStorage.removeItem(CHECKOUT_REQUEST_KEY)
+    sessionStorage.removeItem(CHECKOUT_FINGERPRINT_KEY)
   } catch {}
+}
+
+const checkoutFingerprint = async (payload) => {
+  const encoded = new TextEncoder().encode(JSON.stringify(payload))
+  if (globalThis.crypto?.subtle) {
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", encoded)
+    return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("")
+  }
+  let hash = 0x811c9dc5
+  for (const byte of encoded) {
+    hash ^= byte
+    hash = Math.imul(hash, 0x01000193) >>> 0
+  }
+  return `fnv1a-${hash.toString(16).padStart(8, "0")}`
 }
 
 const PlusIcon = ({ class: cls }) => (
@@ -237,21 +253,26 @@ const CartDrawer = () => {
     if (rewardCode.trim() && !rewardApplied) { setError(t("cart.rewardApplyFirst")); return }
     setLoading(true)
     try {
-      const checkoutRequestId = rewardApplied
-        ? sessionStorage.getItem(CHECKOUT_REQUEST_KEY) || crypto.randomUUID()
-        : ""
-      if (rewardApplied) sessionStorage.setItem(CHECKOUT_REQUEST_KEY, checkoutRequestId)
+      const checkoutPayload = {
+        lang,
+        items: lines.map((l) => ({ id: l.id, size: l.size, qty: l.qty })),
+        point: needsShipping ? point : null,
+        invoice: { name, surname, email, address, nip: invoice.nip.trim(), company: invoice.company.trim() },
+        rewardCode: rewardApplied ? rewardCode.trim().toUpperCase() : "",
+      }
+      const fingerprint = await checkoutFingerprint(checkoutPayload)
+      const previousFingerprint = sessionStorage.getItem(CHECKOUT_FINGERPRINT_KEY) || ""
+      const previousRequestId = sessionStorage.getItem(CHECKOUT_REQUEST_KEY) || ""
+      const checkoutRequestId =
+        previousFingerprint === fingerprint && previousRequestId
+          ? previousRequestId
+          : crypto.randomUUID()
+      sessionStorage.setItem(CHECKOUT_REQUEST_KEY, checkoutRequestId)
+      sessionStorage.setItem(CHECKOUT_FINGERPRINT_KEY, fingerprint)
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          lang,
-          items: lines.map((l) => ({ id: l.id, size: l.size, qty: l.qty })),
-          point: needsShipping ? point : null,
-          invoice: { name, surname, email, address, nip: invoice.nip.trim(), company: invoice.company.trim() },
-          rewardCode: rewardApplied ? rewardCode.trim().toUpperCase() : "",
-          checkoutRequestId,
-        }),
+        body: JSON.stringify({ ...checkoutPayload, checkoutRequestId }),
       })
       const data = await res.json()
       if (!res.ok || !data.url) {
