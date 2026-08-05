@@ -59,9 +59,14 @@ type ProofBatch = {
   status: "queued" | "processing" | "confirmed" | "failed" | "dead"
   attempts: number
   max_attempts: number
-  chain_id: number | null
-  transaction_hash: string | null
-  transaction_batch_index: number | null
+  anchor_kind: string | null
+  anchor_url: string | null
+  anchor_entry_id: string | null
+  anchor_sequence: number | null
+  anchor_integrated_at: string | null
+  anchor_log_id: string | null
+  signer_fingerprint: string | null
+  signed_payload_sha256: string | null
   last_error_kind: string | null
   created_at: string
   confirmed_at: string | null
@@ -77,7 +82,7 @@ const labels: Record<string, string> = {
   n8n_ingress_enabled: "Ingress automatyzacji",
   automatic_retry_enabled: "Ręczny retry kolejek",
   draw_proofs_enabled: "Dowody losowań",
-  blockchain_anchoring_enabled: "Kotwiczenie blockchain",
+  external_proof_anchoring_enabled: "Kotwiczenie w Sigstore Rekor",
 }
 const checklistLabels: Record<string, string> = {
   announcement_published: "Zapowiedź opublikowana",
@@ -303,12 +308,12 @@ export default function EcosystemControl() {
         <div class="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h3 class="text-sm font-black uppercase tracking-wider text-zinc-300">External proofs</h3>
-            <p class="mt-1 max-w-3xl text-sm text-zinc-500">Lokalne SHA-256/Merkle receipts są tworzone bez RPC. Opcjonalny relayer kotwiczy do 16 rootów jedną transakcją, poza ścieżką sprzedaży i bramki.</p>
+            <p class="mt-1 max-w-3xl text-sm text-zinc-500">Lokalne SHA-256/Merkle receipts są tworzone bez RPC. Izolowany relayer podpisuje rooty i publikuje je w publicznym logu Sigstore Rekor, poza ścieżką sprzedaży, maili i bramki.</p>
           </div>
           <button type="button" onClick={() => void createAuditProof()} disabled={!!busy} class="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm font-black text-cyan-100 disabled:opacity-50">{busy === "audit-proof" ? "Buduję…" : "Zbuduj proof audytu"}</button>
         </div>
         <div class="mt-3 grid gap-3 sm:grid-cols-3">
-          <div class="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4"><span class="text-xs text-zinc-500">Potwierdzone on-chain</span><strong class="mt-2 block text-2xl text-emerald-300">{proofStats.confirmed}</strong></div>
+          <div class="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4"><span class="text-xs text-zinc-500">Potwierdzone w Rekorze</span><strong class="mt-2 block text-2xl text-emerald-300">{proofStats.confirmed}</strong></div>
           <div class="rounded-2xl border border-cyan-300/20 bg-cyan-300/5 p-4"><span class="text-xs text-zinc-500">W kolejce / retry</span><strong class="mt-2 block text-2xl text-cyan-200">{proofStats.pending}</strong></div>
           <div class="rounded-2xl border border-rose-400/20 bg-rose-400/5 p-4"><span class="text-xs text-zinc-500">Dead</span><strong class="mt-2 block text-2xl text-rose-300">{proofStats.dead}</strong></div>
         </div>
@@ -320,9 +325,10 @@ export default function EcosystemControl() {
                 <span class="text-xs text-zinc-500">{item.leaf_count} leaves · {formatDate(item.confirmed_at ?? item.created_at)}</span>
               </div>
               <p class="mt-2 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10px] text-zinc-600">SHA-256 {item.root_sha256}</p>
-              {item.transaction_hash && item.chain_id === 84532
-                ? <a href={`https://sepolia.basescan.org/tx/${item.transaction_hash}`} target="_blank" rel="noreferrer" class="mt-2 inline-block text-xs font-bold text-cyan-300 hover:text-cyan-200">Transakcja #{item.transaction_batch_index ?? 0} ↗</a>
-                : item.transaction_hash && <p class="mt-2 font-mono text-[10px] text-cyan-300">Tx {item.transaction_hash}</p>}
+              {item.anchor_kind === "sigstore.rekor.v1" && item.anchor_url && item.anchor_entry_id && /^[0-9a-f]{64,128}$/.test(item.anchor_entry_id)
+                ? <a href={`${item.anchor_url.replace(/\/+$/, "")}/api/v1/log/entries/${item.anchor_entry_id}`} target="_blank" rel="noopener noreferrer" class="mt-2 inline-block text-xs font-bold text-cyan-300 hover:text-cyan-200">Rekor #${item.anchor_sequence ?? "—"} ↗</a>
+                : item.anchor_entry_id && <p class="mt-2 font-mono text-[10px] text-cyan-300">Entry {item.anchor_entry_id}</p>}
+              {item.signer_fingerprint && <p class="mt-2 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10px] text-zinc-600">Signer {item.signer_fingerprint}</p>}
               {item.last_error_kind && <p class="mt-2 text-xs text-rose-300">{item.last_error_kind} · próba {item.attempts}/{item.max_attempts}</p>}
             </article>
           ))}

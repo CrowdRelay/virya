@@ -1,61 +1,30 @@
 # Architecture
 
-## Source of truth
+Virya is a static-first Astro application with narrowly hydrated Preact islands and server-side Netlify routes.
 
-CrowdRelay owns products, SKU variants, inventory movements, reservations,
-physical reward allocations and fulfillment. The stock value is derived from
-an append-only ledger; active reservations are subtracted separately.
+## Trust boundaries
 
-`available = sum(inventory_ledger.delta) - active_reservations`
+- The browser receives public content, short-lived fan capabilities and masked ticket data only.
+- Astro API routes own Stripe secrets, CrowdRelay admin credentials, staff sessions and transactional mail credentials.
+- CrowdRelay owns fan consent, referrals, events, ticket inventory, admission state and durable asynchronous delivery.
+- n8n consumes signed events after CrowdRelay has committed business state; automation is not part of the transaction boundary.
 
-The ledger records receipts, initial counts, sales, refunds, manual adjustments,
-promotional issues, damage and staff issues. Every mutation is workspace-scoped
-and the externally retried operations use stable idempotency keys.
+## Request path
 
-## Stripe order lifecycle
+1. Astro renders static public pages or a server route.
+2. Preact islands call same-origin `/api/*` routes with bounded timeouts and abort signals.
+3. Server routes validate the staff session or public capability before calling CrowdRelay or Stripe.
+4. CrowdRelay returns authoritative state and a request correlation identifier.
+5. The middleware attaches `X-Request-ID`, security headers and no-store policy to private or failed responses.
 
-1. Virya validates the cart and expands bundles to physical SKU quantities.
-2. With the site write switch enabled, CrowdRelay creates an expiring order
-   reservation before Stripe Checkout is created.
-3. The checkout request identity is a fingerprint of the complete cart,
-   customer, parcel-locker, language and reward payload. An unchanged retry
-   reuses the same Stripe idempotency key.
-4. Ambiguous Stripe failures do not release stock immediately. The reservation
-   expires naturally, or the exact checkout retries safely.
-5. Signed Stripe payment events run the established mail and InPost checkpoints
-   first. Inventory commit is appended afterwards.
-6. CrowdRelay commit is idempotent. A paid event may also commit an expired or
-   released reservation when Stripe events arrived out of order; preserving a
-   paid order takes precedence over hiding a temporary negative correction.
+## Failure isolation
 
-## Reward campaigns
+- Public pages remain renderable when CrowdRelay analytics are unavailable.
+- Staff overview uses independent upstream reads and exposes degraded sources instead of collapsing the whole screen.
+- Ticket and winner capability pages are never cached by the service worker.
+- Runtime failures are captured before Astro navigation starts and can be copied as a bounded, privacy-safe report.
+- Uncaught server failures become correlated `application/problem+json` or diagnostic HTML responses without stack leakage.
 
-A physical reward campaign reuses the existing weighted draw and existing
-`physical_reward.granted` outbox contract. A new allocation links one draw to a
-SKU, reserves `winner_count × units_per_winner`, and creates fulfillment rows
-only for actual selected winners. If fewer winners qualify, unused reservation
-quantity is released inside the draw transaction.
+## Data minimization
 
-Campaign states remain the established draw states: draft, scheduled, running,
-completed and cancelled. Scheduling is separately gated. Cancellation is only
-allowed before running and releases the allocation.
-
-## Public site failure isolation
-
-Static product cards render immediately. Only the small availability indicator
-calls `/api/merch/inventory`, with bounded upstream and browser timeouts. A
-CrowdRelay outage produces an error/retry state rather than blocking or removing
-the page.
-
-## Mobile payment boundary
-
-Virya Signal reads the coarse public catalog and links products to the existing
-Virya store. Concert cards continue to use `PublicEvent.ticket_url` and open the
-system browser. Both tickets and merch therefore use hosted Stripe Checkout;
-the mobile app never embeds card collection or stores payment credentials.
-
-## n8n and mail boundary
-
-No workflow JSON was modified. The existing mail paths continue to consume the
-same events. The protected `physical_reward.granted` outbox block and the Stripe
-mail/shipment block are covered by exact SHA-256 source guards.
+The Signal admin view consumes only aggregate counters and a maximum of ten city aggregates. It does not request e-mail addresses, display names, fan IDs or consent history.

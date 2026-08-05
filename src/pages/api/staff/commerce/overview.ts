@@ -5,7 +5,11 @@ import {
   StaffQrUpstreamError,
   staffApiRequest,
 } from "../../../../server/staffQrApi"
-import type { MerchCatalog } from "../../../../server/crowdrelayCommerce"
+import type {
+  InventoryActivation,
+  InventoryOverview,
+  MerchCatalog,
+} from "../../../../server/crowdrelayCommerce"
 
 export const prerender = false
 
@@ -21,31 +25,47 @@ const logFailure = (source: string, error: unknown) => {
   })
 }
 
+const valueOr = <T,>(result: PromiseSettledResult<T>, fallback: T) =>
+  result.status === "fulfilled" ? result.value : fallback
+
 export const GET: APIRoute = async ({ cookies }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
 
-  const requests = await Promise.allSettled([
-    staffApiRequest<MerchCatalog>("admin/merch/catalog", { timeoutMs: 8_000 }),
-    staffApiRequest<Campaign[]>("admin/reward-campaigns", { timeoutMs: 8_000 }),
-    staffApiRequest<Fulfillment[]>("admin/reward-fulfillments", { timeoutMs: 8_000 }),
-    staffApiRequest<Recommendation[]>("admin/merch/promotion-recommendations", { timeoutMs: 8_000 }),
-  ] as const)
-  const sources = ["catalog", "campaigns", "fulfillments", "recommendations"] as const
-  const unavailable = requests.flatMap((result, index) => {
+  const [catalog, activation, inventory, campaigns, fulfillments, recommendations] =
+    await Promise.allSettled([
+      staffApiRequest<MerchCatalog>("admin/merch/catalog", { timeoutMs: 8_000 }),
+      staffApiRequest<InventoryActivation>("admin/merch/inventory/activation", { timeoutMs: 8_000 }),
+      staffApiRequest<InventoryOverview>("admin/merch/inventory/overview", { timeoutMs: 8_000 }),
+      staffApiRequest<Campaign[]>("admin/reward-campaigns", { timeoutMs: 8_000 }),
+      staffApiRequest<Fulfillment[]>("admin/reward-fulfillments", { timeoutMs: 8_000 }),
+      staffApiRequest<Recommendation[]>("admin/merch/promotion-recommendations", { timeoutMs: 8_000 }),
+    ] as const)
+
+  const entries = [
+    ["catalog", catalog],
+    ["activation", activation],
+    ["inventory", inventory],
+    ["campaigns", campaigns],
+    ["fulfillments", fulfillments],
+    ["recommendations", recommendations],
+  ] as const
+  const unavailable = entries.flatMap(([source, result]) => {
     if (result.status === "fulfilled") return []
-    logFailure(sources[index] ?? "unknown", result.reason)
-    return [sources[index]]
+    logFailure(source, result.reason)
+    return [source]
   })
 
-  if (unavailable.length === sources.length) {
+  if (catalog.status === "rejected" && activation.status === "rejected" && inventory.status === "rejected") {
     return areaJson({ error: "Commerce panel temporarily unavailable" }, 503)
   }
 
   return areaJson({
-    catalog: requests[0].status === "fulfilled" ? requests[0].value : { generated_at: null, products: [] },
-    campaigns: requests[1].status === "fulfilled" ? requests[1].value : [],
-    fulfillments: requests[2].status === "fulfilled" ? requests[2].value : [],
-    recommendations: requests[3].status === "fulfilled" ? requests[3].value : [],
+    catalog: valueOr(catalog, { generated_at: "", products: [] }),
+    activation: valueOr(activation, null),
+    inventory: valueOr(inventory, { generated_at: "", items: [] }),
+    campaigns: valueOr(campaigns, []),
+    fulfillments: valueOr(fulfillments, []),
+    recommendations: valueOr(recommendations, []),
     degraded: { active: unavailable.length > 0, unavailable },
     generatedAt: new Date().toISOString(),
   })

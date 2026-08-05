@@ -22,13 +22,26 @@ try {
   unavailable = true
 }
 const title = proof ? `Dowód losowania: ${proof.draw_name} · Virya` : "Dowód losowania · Virya"
-const description = "Publiczny, niezależnie weryfikowalny SHA-256 receipt losowania CrowdRelay."
+const description = "Publiczny, niezależnie weryfikowalny SHA-256 receipt losowania CrowdRelay zakotwiczony w Sigstore Rekor."
 const short = (value: unknown) => typeof value === "string" && value.length > 24
   ? `${value.slice(0, 12)}…${value.slice(-10)}`
   : String(value ?? "—")
-const txUrl = proof?.anchor?.chain_id === 84532 && proof?.anchor?.transaction_hash
-  ? `https://sepolia.basescan.org/tx/${proof.anchor.transaction_hash}`
-  : null
+const rekorEntryUrl = (() => {
+  const anchor = proof?.anchor
+  if (anchor?.anchor_kind !== "sigstore.rekor.v1") return null
+  if (typeof anchor.anchor_url !== "string" || typeof anchor.entry_id !== "string") return null
+  if (!/^[0-9a-f]{64,128}$/.test(anchor.entry_id)) return null
+  try {
+    const url = new URL(anchor.anchor_url)
+    if (url.protocol !== "https:" || url.username || url.password) return null
+    url.pathname = `${url.pathname.replace(/\/+$/, "")}/api/v1/log/entries/${anchor.entry_id}`
+    url.search = ""
+    url.hash = ""
+    return url.toString()
+  } catch {
+    return null
+  }
+})()
 ---
 
 <Layout title={title} description={description} lang="pl" canonical={Astro.url.href}>
@@ -39,7 +52,7 @@ const txUrl = proof?.anchor?.chain_id === 84532 && proof?.anchor?.transaction_ha
     <main class="mx-auto w-full max-w-5xl flex-1 px-5 py-24 sm:px-8">
       <p class="text-xs font-black uppercase tracking-[.28em] text-cyan-300">CrowdRelay external proof</p>
       <h1 class="mt-4 text-3xl font-black sm:text-5xl">{proof?.draw_name ?? "Dowód losowania"}</h1>
-      <p class="mt-5 max-w-3xl text-base leading-7 text-zinc-400">Receipt wiąże algorytm, seed i snapshoty kandydatów oraz zwycięzców. Nie zawiera nazwisk, e-maili ani danych biletowych. PostgreSQL pozostaje źródłem prawdy, a blockchain jest wyłącznie opcjonalnym, zewnętrznym stemplem czasu.</p>
+      <p class="mt-5 max-w-3xl text-base leading-7 text-zinc-400">Receipt wiąże algorytm, seed i snapshoty kandydatów oraz zwycięzców. Nie zawiera nazwisk, e-maili ani danych biletowych. PostgreSQL pozostaje źródłem prawdy, a Sigstore Rekor jest wyłącznie zewnętrznym, publicznym i append-only stemplem czasu.</p>
 
       {unavailable || !proof ? (
         <section class="mt-10 rounded-3xl border border-amber-300/20 bg-amber-300/5 p-6"><h2 class="font-black text-amber-200">Dowód nie jest jeszcze dostępny</h2><p class="mt-2 text-sm text-zinc-400">Losowanie mogło nie zostać zakończone albo warstwa proofów nie była jeszcze aktywna.</p></section>
@@ -65,8 +78,12 @@ const txUrl = proof?.anchor?.chain_id === 84532 && proof?.anchor?.transaction_ha
               <h2 class="font-black">Zewnętrzny anchor</h2>
               <p class={`mt-4 text-xl font-black ${proof.anchor.status === "confirmed" ? "text-emerald-300" : proof.anchor.status === "dead" ? "text-rose-300" : "text-cyan-200"}`}>{proof.anchor.status}</p>
               <p class="mt-3 text-sm text-zinc-500">Batch {proof.anchor.batch_id}</p>
-              {proof.anchor.transaction_hash && <p class="mt-2 font-mono text-xs text-zinc-500">Tx {short(proof.anchor.transaction_hash)}</p>}
-              {txUrl && <a class="mt-4 inline-block rounded-xl border border-cyan-300/30 px-4 py-2 text-sm font-black text-cyan-200" href={txUrl} target="_blank" rel="noreferrer">Sprawdź w explorerze ↗</a>}
+              {proof.anchor.anchor_kind && <p class="mt-2 text-xs font-bold text-cyan-200">{proof.anchor.anchor_kind}</p>}
+              {proof.anchor.entry_id && <p class="mt-2 font-mono text-xs text-zinc-500">Entry {short(proof.anchor.entry_id)}</p>}
+              {proof.anchor.sequence !== null && proof.anchor.sequence !== undefined && <p class="mt-2 text-xs text-zinc-500">Log index {proof.anchor.sequence}</p>}
+              {proof.anchor.integrated_at && <p class="mt-2 text-xs text-zinc-500">Rekor: {new Date(proof.anchor.integrated_at).toLocaleString("pl-PL", { timeZone: "Europe/Warsaw" })}</p>}
+              {proof.anchor.signer_fingerprint && <p class="mt-2 break-all font-mono text-[10px] text-zinc-600">Signer {proof.anchor.signer_fingerprint}</p>}
+              {rekorEntryUrl && <a class="mt-4 inline-block rounded-xl border border-cyan-300/30 px-4 py-2 text-sm font-black text-cyan-200" href={rekorEntryUrl} target="_blank" rel="noopener noreferrer">Sprawdź wpis w Rekorze ↗</a>}
             </section>
           </div>
 
