@@ -142,7 +142,7 @@ const MerchInner = () => {
             </div>
           </aside>
 
-          <div class="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-16">
             {PRODUCTS.map((product, i) => (
               <ProductCard key={product.id} product={product} images={images} index={i} isWide={isWide} inventory={inventory} />
             ))}
@@ -156,7 +156,7 @@ const MerchInner = () => {
                 </h2>
                 <p class="text-sm text-zinc-400">{t("merch.bundlesSub")}</p>
               </div>
-              <div class="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {BUNDLES.map((product, i) => (
                   <ProductCard key={product.id} product={product} images={images} index={PRODUCTS.length + i} isWide={isWide} inventory={inventory} />
                 ))}
