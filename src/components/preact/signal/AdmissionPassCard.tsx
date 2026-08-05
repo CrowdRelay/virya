@@ -3,6 +3,7 @@ import type { Lang } from "../../../i18n/t"
 import type { AdmissionPass, AdmissionQr } from "../../../lib/crowdrelay-client"
 import { crowdrelay } from "../../../lib/crowdrelay"
 import { qrDataUrl } from "../../../lib/qr"
+import { safeFormatDate } from "../../../lib/safeDateFormat"
 
 interface Props {
   lang: Lang
@@ -13,6 +14,11 @@ type QrState =
   | { kind: "loading" }
   | { kind: "ready"; qr: AdmissionQr }
   | { kind: "unavailable" }
+
+const dateFormatters = {
+  pl: new Intl.DateTimeFormat("pl-PL", { dateStyle: "full", timeStyle: "short" }),
+  en: new Intl.DateTimeFormat("en-GB", { dateStyle: "full", timeStyle: "short" }),
+} as const
 
 const text = {
   pl: {
@@ -71,7 +77,7 @@ export default function AdmissionPassCard({ lang, pass }: Props) {
         <div>
           <h3 class="text-xl font-black uppercase text-white">{pass.event_title}</h3>
           <p class="mt-3 text-sm leading-relaxed text-zinc-300">
-            {new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", { dateStyle: "full", timeStyle: "short" }).format(new Date(pass.starts_at))}
+            {safeFormatDate(pass.starts_at, dateFormatters[lang])}
             {pass.venue ? ` · ${pass.venue}` : ""}
           </p>
           <p class="mt-5 text-xs leading-relaxed text-zinc-400">{copy.show}</p>

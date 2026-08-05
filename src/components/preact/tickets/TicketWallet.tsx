@@ -5,6 +5,7 @@ import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import { crowdrelay } from "../../../lib/crowdrelay"
 import { qrDataUrl } from "../../../lib/qr"
 import { captureTicketToken } from "../../../lib/ticketWallet"
+import { safeFormatDate, safeTimeZone } from "../../../lib/safeDateFormat"
 
 interface Props {
   lang: Lang
@@ -201,13 +202,28 @@ function TicketStatus({ message, danger = false }: { message: string; danger?: b
 
 function OrderSummary({ order, lang }: { order: TicketOrder; lang: Lang }) {
   const locale = lang === "pl" ? "pl-PL" : "en-GB"
-  const amount = new Intl.NumberFormat(locale, { style: "currency", currency: order.currency }).format(order.amount_gross_minor / 100)
+  const timezone = safeTimeZone(order.timezone)
+  const amount = useMemo(
+    () => new Intl.NumberFormat(locale, { style: "currency", currency: order.currency }).format(order.amount_gross_minor / 100),
+    [locale, order.amount_gross_minor, order.currency],
+  )
+  const startsAt = useMemo(
+    () => safeFormatDate(
+      order.starts_at,
+      new Intl.DateTimeFormat(locale, {
+        dateStyle: "long",
+        timeStyle: "short",
+        timeZone: timezone,
+      }),
+    ),
+    [locale, order.starts_at, timezone],
+  )
   return (
     <article class="virya-panel grid gap-5 p-5 sm:grid-cols-[1fr_auto] sm:items-end sm:p-6">
       <div>
         <p class="text-[8px] font-black uppercase tracking-[.25em] text-zinc-500">{order.public_reference}</p>
         <h2 class="mt-2 text-xl font-black uppercase text-white">{order.event_title}</h2>
-        <p class="mt-2 text-xs text-zinc-400">{new Intl.DateTimeFormat(locale, { dateStyle: "long", timeStyle: "short", timeZone: order.timezone }).format(new Date(order.starts_at))}{order.venue ? ` · ${order.venue}` : ""}</p>
+        <p class="mt-2 text-xs text-zinc-400">{startsAt}{order.venue ? ` · ${order.venue}` : ""}</p>
       </div>
       <strong class="text-2xl font-black text-amber-400">{amount}</strong>
     </article>

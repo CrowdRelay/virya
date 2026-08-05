@@ -1,5 +1,11 @@
 import { useEffect, useState } from "preact/hooks"
 import type { Lang } from "../../../i18n/t"
+import { safeFormatDate } from "../../../lib/safeDateFormat"
+
+const dateFormatters = {
+  pl: new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" }),
+  en: new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }),
+} as const
 
 type Reward = {
   eventSlug: string
@@ -139,7 +145,7 @@ export default function AreaTicketRewards({ lang }: { lang: Lang }) {
           {data.rewards.map(reward => {
             const alreadyClaimed = claimed.has(reward.eventSlug)
             const date = reward.startsAt
-              ? new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(reward.startsAt))
+              ? safeFormatDate(reward.startsAt, dateFormatters[lang])
               : null
             return (
               <article key={reward.eventSlug} class="border border-zinc-800 bg-zinc-900/50 p-4">

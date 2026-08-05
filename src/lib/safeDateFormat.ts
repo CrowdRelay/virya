@@ -36,3 +36,17 @@ export function safeFormatDate(
     return fallback
   }
 }
+
+export function safeTimeZone(
+  value: unknown,
+  fallback = "Europe/Warsaw",
+): string {
+  if (typeof value !== "string" || value.trim() === "") return fallback
+  try {
+    return new Intl.DateTimeFormat("en", { timeZone: value.trim() })
+      .resolvedOptions()
+      .timeZone
+  } catch {
+    return fallback
+  }
+}
