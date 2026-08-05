@@ -12,9 +12,10 @@ import {
   discountActive,
   discountPct,
   SIZE_CHART,
+  inventoryAvailability,
 } from "../../../data/products"
 
-const ProductCard = ({ product, images, index = 0, isWide = true }) => {
+const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) => {
   const { add } = useCartActions()
   const { t, lang } = useI18n()
   const [size, setSize] = useState(null)
@@ -42,11 +43,25 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
   const bundle = isBundle(product)
   const showBack = bundle ? (hovered ? !!backSrc : autoImageIndex === 1) : hovered && backSrc
   const needsSize = Array.isArray(product.sizes)
-  const available = productInStock(product)
+  const inventoryState = inventoryAvailability(
+    product,
+    size,
+    inventory?.status === "ready" ? inventory.variants : null,
+  )
+  const available = inventoryState?.available ?? productInStock(product)
   const price = discountedPrice(product)
   const onSale = discountActive() && price < product.price
-  const lowStock = productLowStock(product)
-  const selectedLow = needsSize && size && sizeLowStock(product, size)
+  const lowStock = inventoryState?.lowStock ?? productLowStock(product)
+  const selectedInventoryState = needsSize && size
+    ? inventoryAvailability(
+        product,
+        size,
+        inventory?.status === "ready" ? inventory.variants : null,
+      )
+    : null
+  const selectedLow = needsSize && size
+    ? selectedInventoryState?.lowStock ?? sizeLowStock(product, size)
+    : false
   const blurb = lang === "pl" && product.blurb_pl ? product.blurb_pl : product.blurb
   const includes = lang === "pl" && product.includes_pl ? product.includes_pl : product.includes
   const name = lang === "pl" && product.name_pl ? product.name_pl : product.name
@@ -163,7 +178,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
     `block w-full h-auto transition-opacity duration-500 ${hidden ? "opacity-0" : "opacity-100"} ${available ? "" : "grayscale"}`
 
   return (
-    <div ref={cardRef} class={`group flex flex-col bg-zinc-900/40 border border-zinc-800/60 hover:border-amber-400/40 transition-colors duration-300 ${available ? "" : "opacity-60"}`}>
+    <div id={`merch-${product.id}`} tabIndex={-1} ref={cardRef} class={`group flex flex-col bg-zinc-900/40 border border-zinc-800/60 hover:border-amber-400/40 focus:border-amber-300 focus:outline-none transition-colors duration-300 ${available ? "" : "opacity-60"}`}>
       <div
         class="relative overflow-hidden bg-zinc-950"
         onMouseEnter={() => setHovered(true)}
@@ -276,12 +291,17 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
             </div>
             <div class="flex flex-wrap gap-1.5">
               {product.sizes.map((s) => {
-                const inStock = sizeInStock(product, s)
+                const sizeInventory = inventoryAvailability(
+                  product,
+                  s,
+                  inventory?.status === "ready" ? inventory.variants : null,
+                )
+                const inStock = sizeInventory?.available ?? sizeInStock(product, s)
                 if (!inStock) return (
                   <button key={s} onClick={() => requestSize(s)} title={t("product.restockTitle", s)} aria-label={t("product.restockAria", s)}
                     class="relative min-h-[44px] min-w-[44px] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-zinc-800 text-zinc-400 line-through cursor-pointer hover:border-amber-400/40 hover:text-amber-400/80 transition-colors">{s}</button>
                 )
-                const low = sizeLowStock(product, s)
+                const low = sizeInventory?.lowStock ?? sizeLowStock(product, s)
                 return (
                   <button key={s} onClick={() => { setSize(size === s ? null : s); setError(false) }} title={low ? t("product.fewLeft", s) : undefined}
                     class={`relative min-h-[44px] min-w-[44px] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-colors cursor-pointer ${size === s ? "border-amber-400 bg-amber-400 text-black" : "border-zinc-700 text-zinc-300 hover:border-amber-400/60"}`}>
@@ -299,6 +319,29 @@ const ProductCard = ({ product, images, index = 0, isWide = true }) => {
             </div>
           </div>
         )}
+
+        <div class="mb-3 min-h-[22px]" role="status" aria-live="polite">
+          {inventory?.status === "loading" && (
+            <span class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+              <span class="h-3 w-3 animate-spin rounded-full border border-zinc-700 border-t-amber-400" aria-hidden="true" />
+              {lang === "pl" ? "Sprawdzam dostępność" : "Checking availability"}
+            </span>
+          )}
+          {inventory?.status === "ready" && inventoryState && (
+            <span class={`text-[10px] font-bold uppercase tracking-widest ${inventoryState.available ? "text-zinc-400" : "text-zinc-500"}`}>
+              {inventoryState.available
+                ? inventoryState.lowStock
+                  ? (lang === "pl" ? "Ostatnie sztuki" : "Last items")
+                  : (lang === "pl" ? "Dostępny" : "Available")
+                : (lang === "pl" ? "Brak w magazynie" : "Out of stock")}
+            </span>
+          )}
+          {inventory?.status === "unavailable" && (
+            <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+              {lang === "pl" ? "Stan potwierdzimy przy zakupie" : "Stock confirmed at checkout"}
+            </span>
+          )}
+        </div>
 
         <div class="flex flex-col gap-3 mt-auto sm:flex-row sm:items-center sm:justify-between">
           <span class="flex items-baseline gap-2">
