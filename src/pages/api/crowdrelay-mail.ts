@@ -23,6 +23,7 @@ const TEMPLATES = new Set([
   "crowdrelay-new-gig",
   "crowdrelay-event-change",
   "crowdrelay-merch-reward",
+  "crowdrelay-ticket-reward",
   "crowdrelay-admission-winner",
   "crowdrelay-admission-redeemed",
 ])
@@ -164,6 +165,34 @@ const layout = ({
 const paragraph = (value: string) => `<p>${escapeHtml(value)}</p>`
 const linkLine = (label: string, url: string) =>
   `<p>${escapeHtml(label)}:<br><a style="color:#fbbf24" href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>`
+
+type TicketPromoEvent = {
+  title: string
+  startsAt: string
+  location: string | null
+  ticketUrl: string
+}
+
+const ticketPromoEvents = (value: unknown, isPolish: boolean): TicketPromoEvent[] | null => {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 12) return null
+  const events: TicketPromoEvent[] = []
+  for (const candidate of value) {
+    const event = asRecord(candidate)
+    const title = valueString(event?.title ?? event?.event_title, 300)
+    const startsAtRaw = valueString(event?.starts_at, 64)
+    const ticketUrl = safeUrl(event?.ticket_url ?? event?.event_url)
+    const venue = optionalString(event?.venue, 300)
+    const city = optionalString(event?.city, 200)
+    if (!title || !startsAtRaw || Number.isNaN(Date.parse(startsAtRaw)) || !ticketUrl) return null
+    events.push({
+      title,
+      startsAt: formatDate(startsAtRaw, isPolish) ?? startsAtRaw,
+      location: [venue, city].filter(Boolean).join(" · ") || null,
+      ticketUrl,
+    })
+  }
+  return events
+}
 
 const render = async (template: string, variables: Variables): Promise<RenderedMail | null> => {
   const isPolish = polish(variables)
@@ -347,6 +376,62 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
           (current ? paragraph(`${isPolish ? "Teraz" : "Now"}: ${current}`) : ""),
         button: isPolish ? "Sprawdź szczegóły" : "Check details",
         buttonUrl: eventUrl,
+      }),
+    }
+  }
+
+  if (template === "crowdrelay-ticket-reward") {
+    const code = valueString(variables.coupon_code, 100)
+    const discount = Number(variables.discount_percent)
+    const expiresAt = formatDate(variables.expires_at, isPolish)
+    const events = ticketPromoEvents(
+      variables.upcoming_events ?? variables.events,
+      isPolish,
+    )
+    if (
+      !code ||
+      !Number.isFinite(discount) ||
+      discount <= 0 ||
+      discount > 100 ||
+      !expiresAt ||
+      !events
+    ) return null
+
+    const nearest = events[0]
+    const textEvents = events
+      .map(event => `• ${event.title} — ${event.startsAt}${event.location ? ` · ${event.location}` : ""}\n  ${event.ticketUrl}`)
+      .join("\n")
+    const htmlEvents = events
+      .map(event => `<li style="margin:0 0 16px"><strong style="color:#fff">${escapeHtml(event.title)}</strong><br><span style="color:#a1a1aa">${escapeHtml(event.startsAt)}${event.location ? ` · ${escapeHtml(event.location)}` : ""}</span><br><a style="color:#fbbf24" href="${escapeHtml(event.ticketUrl)}">${isPolish ? "Bilety i szczegóły" : "Tickets and details"}</a></li>`)
+      .join("")
+    const intro = isPolish
+      ? `Masz kod promocyjny na bilet na nasz najbliższy koncert: ${nearest.title}. Kod działa także dla pozostałych koncertów z listy poniżej, o ile dana pula sprzedaży go obsługuje.`
+      : `You have a ticket promo code for our nearest show: ${nearest.title}. The code also works for the other listed shows when their ticket pool accepts it.`
+
+    return {
+      subject: isPolish
+        ? `Kod −${discount}% na najbliższy koncert Viryi`
+        : `A ${discount}% code for Virya's nearest show`,
+      text: `${hello}
+
+${intro}
+
+${isPolish ? "Twój kod" : "Your code"}: ${code}
+${isPolish ? "Rabat" : "Discount"}: ${discount}%
+${isPolish ? "Ważny do" : "Valid until"}: ${expiresAt}
+
+${isPolish ? "Najbliższe koncerty" : "Upcoming shows"}:
+${textEvents}`,
+      html: layout({
+        eyebrow: "VIRYA // LIVE REWARD",
+        title: isPolish ? "Kod na najbliższy koncert" : "A code for the nearest show",
+        body:
+          paragraph(hello) +
+          paragraph(intro) +
+          `<div style="margin:22px 0;padding:22px;background:#fff;color:#09090b;text-align:center"><div style="font-family:monospace;font-size:24px;font-weight:800">${escapeHtml(code)}</div><div style="margin-top:8px;font-size:12px;font-weight:800">−${discount}% · ${escapeHtml(expiresAt)}</div></div>` +
+          `<h2 style="margin:30px 0 16px;color:#fff;font-size:18px">${isPolish ? "Najbliższe koncerty" : "Upcoming shows"}</h2><ul style="margin:0;padding-left:20px">${htmlEvents}</ul>`,
+        button: isPolish ? "Bilety na najbliższy koncert" : "Tickets for the nearest show",
+        buttonUrl: nearest.ticketUrl,
       }),
     }
   }
