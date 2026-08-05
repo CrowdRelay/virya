@@ -28,7 +28,7 @@ const assertions = [
   ["src/pages/api/staff/admin/admission/revoke.ts", "isSameOriginRequest"],
   ["src/pages/api/staff/admin/mailer/test.ts", "isSameOriginRequest"],
   ["src/components/preact/staff/EcosystemControl.tsx", "External proofs"],
-  ["src/components/preact/staff/EcosystemControl.tsx", "blockchain_anchoring_enabled"],
+  ["src/components/preact/staff/EcosystemControl.tsx", "external_proof_anchoring_enabled"],
   ["src/components/preact/staff/EcosystemControl.tsx", "Promise.allSettled"],
   ["src/pages/api/staff/admin/ecosystem/emit-due.ts", "isSameOriginRequest"],
   ["src/pages/api/staff/admin/ecosystem/reconcile.ts", "isSameOriginRequest"],

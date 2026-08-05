@@ -35,6 +35,54 @@ export type MerchCatalog = {
   products: MerchProduct[]
 }
 
+export type InventoryActivation = {
+  status: "preparing" | "ready"
+  ready: boolean
+  fully_enabled: boolean
+  catalog_seed_version: number
+  catalog_seeded_at?: string | null
+  ready_at?: string | null
+  ready_by?: string | null
+  version: number
+  total_active_variants: number
+  counted_active_variants: number
+  missing_skus: string[]
+  blockers: string[]
+  can_mark_ready: boolean
+  public_enabled: boolean
+  writes_enabled: boolean
+  campaigns_enabled: boolean
+}
+
+export type InventoryOverviewItem = {
+  product_slug: string
+  product_name: string
+  variant_id: string
+  sku: string
+  variant_label: string
+  attributes: Record<string, unknown>
+  active: boolean
+  low_stock_threshold: number
+  sell_without_stock: boolean
+  counted: boolean
+  last_counted_at?: string | null
+  on_hand: number
+  order_reserved: number
+  campaign_reserved: number
+  operational_reserved: number
+  reserved: number
+  available_quantity: number
+  sold_total: number
+  sold_30d: number
+  promotional_issued_total: number
+  active_campaigns: number
+}
+
+export type InventoryOverview = {
+  generated_at: string
+  items: InventoryOverviewItem[]
+}
+
 export type InventoryReservation = {
   id: string
   external_reference: string
@@ -78,9 +126,7 @@ const commerceKey = () => {
     : null
 }
 
-export const merchInventoryWritesEnabled = () =>
-  import.meta.env.CROWDRELAY_MERCH_INVENTORY_WRITES_ENABLED === "true" &&
-  commerceKey() !== null
+export const merchInventoryConfigured = () => commerceKey() !== null
 
 const readLimitedJson = async <T>(response: Response): Promise<T> => {
   const declaredLength = Number(response.headers.get("content-length") ?? "0")
@@ -152,6 +198,26 @@ const commerceRequest = async <T>(
 
 export const fetchPublicMerchCatalog = (timeoutMs = 2_500) =>
   commerceRequest<MerchCatalog>("public/merch/catalog", { timeoutMs })
+
+export const fetchMerchInventoryActivation = (timeoutMs = 3_000) =>
+  commerceRequest<InventoryActivation>("internal/merch/inventory/activation", {
+    authenticated: true,
+    timeoutMs,
+  })
+
+export const merchInventoryWritesReady = async () => {
+  if (!merchInventoryConfigured()) return false
+  try {
+    const activation = await fetchMerchInventoryActivation()
+    return activation.ready && activation.fully_enabled
+  } catch (error) {
+    // Compatibility with a backend deployed before inventory onboarding. Once
+    // the endpoint exists, every other error fails closed rather than bypassing
+    // stock reservations after staff activation.
+    if (error instanceof CrowdRelayCommerceError && error.status === 404) return false
+    throw error
+  }
+}
 
 export const reserveMerchInventory = (input: {
   externalReference: string

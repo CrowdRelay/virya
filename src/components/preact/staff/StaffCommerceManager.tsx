@@ -89,8 +89,53 @@ type Recommendation = {
   reason: string
 }
 
+type InventoryActivation = {
+  status: "preparing" | "ready"
+  ready: boolean
+  fully_enabled: boolean
+  catalog_seed_version: number
+  catalog_seeded_at?: string | null
+  ready_at?: string | null
+  ready_by?: string | null
+  version: number
+  total_active_variants: number
+  counted_active_variants: number
+  missing_skus: string[]
+  blockers: string[]
+  can_mark_ready: boolean
+  public_enabled: boolean
+  writes_enabled: boolean
+  campaigns_enabled: boolean
+}
+
+type InventoryItem = {
+  product_slug: string
+  product_name: string
+  variant_id: string
+  sku: string
+  variant_label: string
+  attributes: Record<string, unknown>
+  active: boolean
+  low_stock_threshold: number
+  sell_without_stock: boolean
+  counted: boolean
+  last_counted_at?: string | null
+  on_hand: number
+  order_reserved: number
+  campaign_reserved: number
+  operational_reserved: number
+  reserved: number
+  available_quantity: number
+  sold_total: number
+  sold_30d: number
+  promotional_issued_total: number
+  active_campaigns: number
+}
+
 type Overview = {
   catalog: { generated_at: string | null; products: Product[] }
+  activation: InventoryActivation | null
+  inventory: { generated_at: string | null; items: InventoryItem[] }
   campaigns: Campaign[]
   fulfillments: Fulfillment[]
   recommendations: Recommendation[]
@@ -201,6 +246,13 @@ const campaignStatus = (status: Campaign["status"]) => ({
   cancelled: "ANULOWANA",
 })[status]
 
+const activationBlocker = (blocker: string) => ({
+  catalog_empty: "Katalog nie został założony.",
+  uncounted_variants: "Nie wszystkie aktywne warianty mają wpisany dokładny stan.",
+  reserved_exceeds_stock: "Aktywne rezerwacje przekraczają policzony stan.",
+  feature_flags_inconsistent: "Magazyn jest oznaczony jako gotowy, ale przełączniki nie są spójne.",
+})[blocker] ?? blocker
+
 const fulfillmentStatus = (status: Fulfillment["status"]) => ({
   pending: "DO PRZYGOTOWANIA",
   prepared: "PRZYGOTOWANA",
@@ -222,6 +274,7 @@ export default function StaffCommerceManager() {
   const [stockSku, setStockSku] = useState("")
   const [stockDelta, setStockDelta] = useState(1)
   const [stockReason, setStockReason] = useState("")
+  const [stockCounts, setStockCounts] = useState<Record<string, string>>({})
   const [campaign, setCampaign] = useState<CampaignForm>(initialCampaign)
   const passwordRef = useRef<HTMLInputElement | null>(null)
   const requestRef = useRef<AbortController | null>(null)
@@ -236,6 +289,20 @@ export default function StaffCommerceManager() {
     () => new Map((overview?.recommendations ?? []).map(item => [item.sku, item])),
     [overview],
   )
+  const inventoryItems = useMemo(
+    () => (overview?.inventory.items ?? []).filter(item => item.active),
+    [overview],
+  )
+  const inventoryBySku = useMemo(
+    () => new Map((overview?.inventory.items ?? []).map(item => [item.sku, item])),
+    [overview],
+  )
+  const activation = overview?.activation ?? null
+  const inventoryReady = Boolean(activation?.ready && activation.fully_enabled)
+  const stocktakeComplete = inventoryItems.length > 0 && inventoryItems.every(item => {
+    const value = Number(stockCounts[item.sku])
+    return stockCounts[item.sku]?.trim() !== "" && Number.isInteger(value) && value >= 0 && value <= 1_000_000
+  })
 
   useEffect(() => {
     const controller = new AbortController()
@@ -270,6 +337,16 @@ export default function StaffCommerceManager() {
       setCampaign(current => ({ ...current, prizeSku: variants[0].variant.sku }))
     }
   }, [variants, stockSku, campaign.prizeSku])
+
+  useEffect(() => {
+    setStockCounts(current => {
+      const next: Record<string, string> = {}
+      for (const item of inventoryItems) {
+        next[item.sku] = current[item.sku] ?? (item.counted ? String(item.on_hand) : "")
+      }
+      return next
+    })
+  }, [inventoryItems])
 
   async function refresh() {
     requestRef.current?.abort()
@@ -361,6 +438,35 @@ export default function StaffCommerceManager() {
     }
   }
 
+  async function saveExactStock(event: SubmitEvent) {
+    event.preventDefault()
+    if (!stocktakeComplete || inventoryItems.length === 0) {
+      setMessage("Uzupełnij dokładny stan każdego aktywnego wariantu, również zera.")
+      return
+    }
+    await mutate(
+      "/api/staff/commerce/stocktake",
+      {
+        items: inventoryItems.map(item => ({
+          sku: item.sku,
+          on_hand: Number(stockCounts[item.sku]),
+        })),
+        actor_id: "virya-staff-web",
+        reason: "exact physical stocktake before inventory activation",
+      },
+      "Dokładny stan wszystkich wariantów został zapisany. Sprawdź podsumowanie i uruchom magazyn przyciskiem READY.",
+    )
+  }
+
+  async function markInventoryReady() {
+    if (!activation?.can_mark_ready || busy) return
+    await mutate(
+      "/api/staff/commerce/ready",
+      { actor_id: "virya-staff-web" },
+      "Magazyn jest gotowy. Sprzedaż, rezerwacje i kampanie zostały uruchomione automatycznie.",
+    )
+  }
+
   async function createCampaign(event: SubmitEvent) {
     event.preventDefault()
     if (!campaign.name.trim() || !campaign.slug || !campaign.prizeSku) return
@@ -449,6 +555,92 @@ export default function StaffCommerceManager() {
         {message ? <Message>{message}</Message> : null}
       </section>
 
+      {!inventoryReady ? (
+        <section class="rounded-3xl border border-amber-300/25 bg-zinc-900/80 p-5 sm:p-7">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Przygotowanie magazynu</p>
+              <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">Policz warianty, zapisz i uruchom</h2>
+              <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">
+                Katalog został założony automatycznie. Wpisz rzeczywisty stan każdego wariantu — także <strong class="text-zinc-200">0</strong>.
+                Sam zapis nie uruchamia sprzedaży. Dopiero przycisk READY wykonuje preflight i atomowo włącza publiczny stan, rezerwacje Stripe oraz kampanie.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-right">
+              <strong class="block text-2xl text-white">{activation?.counted_active_variants ?? 0}/{activation?.total_active_variants ?? inventoryItems.length}</strong>
+              <span class="text-xs text-zinc-500">wariantów zatwierdzonych</span>
+            </div>
+          </div>
+
+          {activation?.blockers.length ? (
+            <div class="mt-5 grid gap-2">
+              {activation.blockers.map(blocker => (
+                <p key={blocker} class="rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-2 text-sm text-amber-100">
+                  {activationBlocker(blocker)}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          <form onSubmit={saveExactStock} class="mt-6">
+            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {inventoryItems.length === 0 ? (
+                <Empty>Katalog lub overview magazynu jest chwilowo niedostępny. Migracja 0028 seeduje katalog automatycznie.</Empty>
+              ) : inventoryItems.map(item => (
+                <label key={item.variant_id} class={`rounded-2xl border p-4 ${item.counted ? "border-emerald-400/20 bg-emerald-400/[0.04]" : "border-white/10 bg-black/30"}`}>
+                  <span class="block text-sm font-black text-white">{item.product_name} — {item.variant_label}</span>
+                  <code class="mt-1 block text-[11px] text-zinc-500">{item.sku}</code>
+                  <span class="mt-3 flex items-center gap-3">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max="1000000"
+                      step="1"
+                      value={stockCounts[item.sku] ?? ""}
+                      onInput={event => setStockCounts(current => ({ ...current, [item.sku]: event.currentTarget.value }))}
+                      placeholder="0"
+                      class="input w-full"
+                    />
+                    <span class="shrink-0 text-xs font-bold text-zinc-500">SZT.</span>
+                  </span>
+                  <span class="mt-2 block text-[11px] text-zinc-500">
+                    {item.counted ? `Ostatnio zapisano ${item.on_hand}; rezerwacje ${item.reserved}.` : "Jeszcze niezatwierdzony."}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <div class="mt-5 grid gap-3 sm:grid-cols-2">
+              <button disabled={busy || !stocktakeComplete} class="rounded-xl bg-white px-5 py-3 font-black text-zinc-950 disabled:opacity-40">
+                {busy ? "ZAPISUJĘ…" : "ZAPISZ DOKŁADNY STAN"}
+              </button>
+              <button
+                type="button"
+                disabled={busy || !activation?.can_mark_ready}
+                onClick={() => void markInventoryReady()}
+                class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-40"
+              >
+                {activation?.ready ? "NAPRAW AKTYWACJĘ" : "MAGAZYN GOTOWY — READY"}
+              </button>
+            </div>
+            <p class="mt-3 text-xs leading-5 text-zinc-500">
+              READY jest aktywny dopiero po zapisaniu wszystkich aktywnych SKU i sprawdzeniu, że rezerwacje nie przekraczają stanu. Jeżeli same flagi się rozjadą, ten sam przycisk bezpiecznie je naprawi. Kliknięcie nie zmienia mail-flow ani workflowów n8n.
+            </p>
+          </form>
+        </section>
+      ) : (
+        <section class="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] px-5 py-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Magazyn aktywny</p>
+              <p class="mt-1 text-sm text-zinc-300">Publiczny stan, rezerwacje Stripe i kampanie są włączone. Aktywował: {activation?.ready_by ?? "staff"}.</p>
+            </div>
+            <span class="rounded-full bg-emerald-300 px-4 py-2 text-xs font-black text-zinc-950">READY</span>
+          </div>
+        </section>
+      )}
+
+      {inventoryReady ? (<>
       <section class="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <div class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
           <div class="flex items-end justify-between gap-4">
@@ -459,8 +651,9 @@ export default function StaffCommerceManager() {
             <span class="text-xs text-zinc-500">sprzedaż + rezerwacje + kampanie</span>
           </div>
           <div class="mt-5 grid gap-3">
-            {variants.length === 0 ? <Empty>Brak katalogu. Najpierw zastosuj seed katalogu.</Empty> : variants.map(({ product, variant }) => {
-              const available = variant.available_quantity ?? 0
+            {variants.length === 0 ? <Empty>Katalog jest chwilowo niedostępny.</Empty> : variants.map(({ product, variant }) => {
+              const exact = inventoryBySku.get(variant.sku)
+              const available = exact?.available_quantity ?? variant.available_quantity ?? 0
               const recommendation = recommendationBySku.get(variant.sku)
               const promotable = recommendation?.recommended_max_giveaway ?? 0
               return (
@@ -474,10 +667,12 @@ export default function StaffCommerceManager() {
                       dostępne {available}
                     </span>
                   </div>
-                  <div class="mt-3 grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
-                    <Metric label="Fizycznie" value={variant.on_hand ?? 0} />
-                    <Metric label="Rezerwacje" value={variant.reserved ?? 0} />
-                    <Metric label="Sprzedaż 30 dni" value={recommendation?.sold_30d ?? 0} />
+                  <div class="mt-3 grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-3 xl:grid-cols-6">
+                    <Metric label="Fizycznie" value={exact?.on_hand ?? variant.on_hand ?? 0} />
+                    <Metric label="Zamówienia" value={exact?.order_reserved ?? 0} />
+                    <Metric label="Kampanie" value={exact?.campaign_reserved ?? 0} />
+                    <Metric label="Operacyjne" value={exact?.operational_reserved ?? 0} />
+                    <Metric label="Sprzedaż 30 dni" value={exact?.sold_30d ?? recommendation?.sold_30d ?? 0} />
                     <Metric label="Bezpiecznie rozdać" value={promotable} />
                   </div>
                   {recommendation ? (
@@ -499,7 +694,7 @@ export default function StaffCommerceManager() {
           <div class="mt-5 grid gap-4">
             <Field label="Wariant">
               <select value={stockSku} onChange={event => setStockSku(event.currentTarget.value)} class="input">
-                {variants.map(({ product, variant }) => <option value={variant.sku}>{product.name} — {variant.label}</option>)}
+                {variants.map(({ product, variant }) => <option key={variant.id} value={variant.sku}>{product.name} — {variant.label}</option>)}
               </select>
             </Field>
             <Field label="Zmiana sztuk (+ / −)">
@@ -528,7 +723,7 @@ export default function StaffCommerceManager() {
             </Field>
             <Field label="Nagroda" wide>
               <select value={campaign.prizeSku} onChange={event => setCampaign(current => ({ ...current, prizeSku: event.currentTarget.value }))} class="input">
-                {variants.map(({ product, variant }) => <option value={variant.sku}>{product.name} — {variant.label} ({variant.available_quantity ?? 0} dostępnych)</option>)}
+                {variants.map(({ product, variant }) => <option key={variant.id} value={variant.sku}>{product.name} — {variant.label} ({variant.available_quantity ?? 0} dostępnych)</option>)}
               </select>
             </Field>
             <Field label="Zwycięzcy">
@@ -624,6 +819,7 @@ export default function StaffCommerceManager() {
           ))}
         </div>
       </section>
+      </>) : null}
     </div>
   )
 }

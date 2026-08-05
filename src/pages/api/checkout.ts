@@ -21,7 +21,7 @@ import {
 import { mutateAreaWallet } from "../../server/areaLedger"
 import {
   CrowdRelayCommerceError,
-  merchInventoryWritesEnabled,
+  merchInventoryWritesReady,
   releaseMerchInventory,
   reserveMerchInventory,
 } from "../../server/crowdrelayCommerce"
@@ -191,7 +191,13 @@ export const POST: APIRoute = async ({ request }) => {
     if (rewardCode == null) {
       return json({ error: "Invalid VIRYA Area reward code" }, 400)
     }
-    const inventoryWrites = merchInventoryWritesEnabled()
+    let inventoryWrites = false
+    try {
+      inventoryWrites = await merchInventoryWritesReady()
+    } catch (error) {
+      console.error("[checkout-inventory-activation]", error)
+      return json({ error: "Inventory is temporarily unavailable" }, 503)
+    }
     if ((rewardCode || inventoryWrites) && !UUID_PATTERN.test(checkoutRequestId)) {
       return json({ error: "Invalid checkout request" }, 400)
     }
