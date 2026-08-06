@@ -1,3 +1,5 @@
+import { readServerEnv } from "./runtimeEnv"
+
 /**
  * Private, server-only VIRYA AREA drop configuration.
  *
@@ -24,7 +26,10 @@ let cachedRaw: string | undefined
 let cachedConfig: AreaLiveDropMap = {}
 
 export const getAreaLiveDropConfigs = (): AreaLiveDropMap => {
-  const raw = import.meta.env.AREA_LIVE_DROPS_JSON?.trim()
+  const raw = readServerEnv(
+    "AREA_LIVE_DROPS_JSON",
+    import.meta.env.AREA_LIVE_DROPS_JSON,
+  )
   if (!raw) return {}
   if (raw === cachedRaw) return cachedConfig
 

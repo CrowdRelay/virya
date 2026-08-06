@@ -7,6 +7,7 @@ import {
 } from "node:crypto"
 import { getStore } from "@netlify/blobs"
 import type { AreaCookieJar } from "./areaHttp"
+import { readServerEnv } from "./runtimeEnv"
 
 const STORE_NAME = "virya-area-auth"
 const SESSION_COOKIE = "virya-area-session"
@@ -68,7 +69,10 @@ const memoryAccounts = new Map<string, AccountRecord>()
 const store = () => getStore({ name: STORE_NAME, consistency: "strong" })
 
 const authSecret = () => {
-  const secret = import.meta.env.AREA_AUTH_SECRET
+  const secret = readServerEnv(
+    "AREA_AUTH_SECRET",
+    import.meta.env.AREA_AUTH_SECRET,
+  )
   return typeof secret === "string" && secret.length >= 32 ? secret : null
 }
 
