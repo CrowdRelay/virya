@@ -15,9 +15,9 @@ export type AreaDrop = {
   clue: Record<AreaLang, string>
 }
 
-// Public campaign data only. These are coarse city-level reference points
-// used solely by the client-side "nearest city" helper. Exact claim
-// coordinates come from AREA_LIVE_DROPS_JSON on the server.
+// Coarse, non-sensitive emergency display catalogue. CrowdRelay is the
+// canonical source for activation, capacity, discovery state and exact claim
+// geometry. These city-level points keep the map readable during an outage.
 export const AREA_DROPS: AreaDrop[] = [
   {
     id: "wro-001",

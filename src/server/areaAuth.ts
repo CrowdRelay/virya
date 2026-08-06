@@ -8,6 +8,7 @@ import {
 import { getStore } from "@netlify/blobs"
 import type { AreaCookieJar } from "./areaHttp"
 import { readServerEnv } from "./runtimeEnv"
+import { linkAreaPlayer } from "./crowdrelayArea"
 
 const STORE_NAME = "virya-area-auth"
 const SESSION_COOKIE = "virya-area-session"
@@ -58,6 +59,7 @@ type AccountRecord = {
   version: 1
   id: string
   emailMasked: string
+  backendPlayerId?: string
   createdAt: string
   lastLoginAt: string
 }
@@ -339,6 +341,10 @@ export const upsertAreaAccount = async (
   email: string,
 ): Promise<AccountRecord> => {
   const key = `accounts/${accountId}`
+  // Link once per login attempt. CAS retries must not fan out into repeated
+  // internal CrowdRelay mutations when the Blob write races.
+  const linkedBackendPlayerId = await linkAreaPlayer(email).catch(() => undefined)
+
   for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
     try {
       const current = await store().getWithMetadata(key, {
@@ -347,10 +353,16 @@ export const upsertAreaAccount = async (
       })
       const previous = current?.data as Partial<AccountRecord> | undefined
       const now = new Date().toISOString()
+      const backendPlayerId =
+        linkedBackendPlayerId ??
+        (typeof previous?.backendPlayerId === "string"
+          ? previous.backendPlayerId
+          : undefined)
       const account: AccountRecord = {
         version: 1,
         id: accountId,
         emailMasked: maskEmail(email),
+        backendPlayerId,
         createdAt:
           typeof previous?.createdAt === "string" ? previous.createdAt : now,
         lastLoginAt: now,
@@ -369,6 +381,7 @@ export const upsertAreaAccount = async (
         version: 1,
         id: accountId,
         emailMasked: maskEmail(email),
+        backendPlayerId: linkedBackendPlayerId ?? previous?.backendPlayerId,
         createdAt: previous?.createdAt ?? now,
         lastLoginAt: now,
       }
@@ -387,9 +400,16 @@ export const getAreaAccount = async (accountId: string) => {
       consistency: "strong",
     })
     const account = value as Partial<AccountRecord> | null
+    const backendPlayerIdValid =
+      account?.backendPlayerId === undefined ||
+      (typeof account.backendPlayerId === "string" &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          account.backendPlayerId,
+        ))
     return account?.version === 1 &&
       account.id === accountId &&
-      typeof account.emailMasked === "string"
+      typeof account.emailMasked === "string" &&
+      backendPlayerIdValid
       ? (account as AccountRecord)
       : null
   } catch (error) {
