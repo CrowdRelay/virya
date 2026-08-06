@@ -296,6 +296,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                 <button
                   type="button"
                   data-drop-button
+                  data-drop-marker
                   data-drop-id={drop.id}
                   data-city={drop.city}
                   data-city-slug={drop.signalCitySlug}
@@ -306,11 +307,17 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                   data-lng={drop.approximateLng}
                   aria-label={`${drop.number} — ${copy.map.markerAria(drop.city)}`}
                   aria-pressed={index === 0 ? "true" : "false"}
-                  class={`area-marker absolute flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center sm:h-11 sm:w-11 ${index === 0 ? "is-selected" : ""}`}
+                  class={`area-marker absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center ${index === 0 ? "is-selected" : ""}`}
                   style={`left:${drop.mapX}%;top:${drop.mapY}%`}
                 >
                   <span class="absolute inset-0 rounded-full border border-amber-400/20" aria-hidden="true"></span>
-                  <span class="relative flex h-7 w-7 items-center justify-center border border-amber-400/70 bg-zinc-950 font-mono text-[8px] font-black text-amber-400">{drop.number}</span>
+                  <span class="area-marker-core relative flex h-8 w-8 items-center justify-center rounded-full border border-amber-400/70 bg-zinc-950 text-amber-400" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+                      <circle cx="12" cy="10" r="2.2"></circle>
+                    </svg>
+                    <span class="area-marker-number absolute -bottom-2 -right-2 min-w-5 rounded-full border border-zinc-700 bg-zinc-950 px-1 py-0.5 text-center font-mono text-[7px] font-black leading-none text-zinc-200">{drop.number.slice(-2)}</span>
+                  </span>
                 </button>
               ))}
             </div>
@@ -366,6 +373,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                 <button
                   type="button"
                   data-drop-button
+                  data-drop-list
                   data-drop-id={drop.id}
                   data-city={drop.city}
                   data-city-slug={drop.signalCitySlug}
@@ -378,8 +386,14 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                   aria-pressed={index === 0 ? "true" : "false"}
                   class={`area-drop-list min-h-[64px] border p-3 text-left transition-colors ${index === 0 ? "is-selected" : ""}`}
                 >
-                  <span class="block font-mono text-[8px] text-zinc-400">#{drop.number}</span>
-                  <span class="mt-1 block text-[10px] font-black uppercase tracking-widest text-zinc-200">{drop.city}</span>
+                  <span class="flex items-center gap-2">
+                    <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+                      <circle cx="12" cy="10" r="2.2"></circle>
+                    </svg>
+                    <span class="block font-mono text-[8px] text-zinc-400">#{drop.number}</span>
+                  </span>
+                  <span class="mt-2 block text-[10px] font-black uppercase tracking-widest text-zinc-200">{drop.city}</span>
                 </button>
               ))}
             </div>
@@ -668,15 +682,29 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
     opacity: 1;
   }
 
-  .area-marker.is-selected > span:last-child,
-  .area-marker:hover > span:last-child {
+  .area-marker.is-selected .area-marker-core,
+  .area-marker:hover .area-marker-core,
+  .area-marker:focus-visible .area-marker-core {
     background: #fbbf24;
     color: #09090b;
   }
 
-  .area-marker.is-claimed > span:last-child {
+  .area-marker.is-claimed .area-marker-core {
     border-color: #f4f4f5;
     color: #f4f4f5;
+  }
+
+  .area-marker.is-inactive {
+    opacity: .74;
+  }
+
+  .area-marker.is-inactive .area-marker-core {
+    border-color: rgba(113, 113, 122, .8);
+    color: #a1a1aa;
+  }
+
+  .area-marker-number {
+    transition: border-color .15s ease, color .15s ease;
   }
 
   .area-drop-list {
@@ -685,9 +713,15 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
   }
 
   .area-drop-list:hover,
+  .area-drop-list:focus-visible,
   .area-drop-list.is-selected {
     border-color: rgba(251, 191, 36, 0.8);
     background: rgba(251, 191, 36, 0.06);
+  }
+
+  .area-drop-list.is-inactive:not(.is-selected) {
+    border-color: rgba(63, 63, 70, 0.72);
+    background: rgba(24, 24, 27, 0.28);
   }
 
   .area-collection-card.is-unlocked {
@@ -1343,7 +1377,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         buttons.forEach((button) => {
           const live = liveDrops.has(button.dataset.dropId || "")
           button.classList.toggle("is-live", live)
-          button.hidden = !live
+          button.classList.toggle("is-inactive", !live)
+          button.dataset.signalState = live ? "live" : "inactive"
         })
         const firstLive = Array.from(liveDrops)[0]
         if (firstLive) {
