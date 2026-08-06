@@ -22,6 +22,11 @@ const clientCopy = {
   coordinates: copy.map.coordinates,
   locationWorking: copy.map.locationWorking,
   locationDenied: copy.map.locationDenied,
+  locationUnavailable: copy.map.locationUnavailable,
+  locationTimeout: copy.map.locationTimeout,
+  liveStateLoading: copy.map.liveStateLoading,
+  liveStateUnavailable: copy.map.liveStateUnavailable,
+  noActiveSignals: copy.map.noActiveSignals,
   nearestTemplate:
     lang === "pl"
       ? "{city} to Twój najbliższy sygnał — około {distance}."
@@ -847,6 +852,16 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
     return `${kilometres < 10 ? kilometres.toFixed(1) : Math.round(kilometres)} km`
   }
 
+  const areaLocationErrorMessage = (error: unknown, copy: ClientCopy) => {
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? Number((error as { code?: unknown }).code)
+        : 0
+    if (code === 1) return copy.locationDenied
+    if (code === 3) return copy.locationTimeout
+    return copy.locationUnavailable
+  }
+
   const initAreaExperience = () => {
     document.querySelectorAll<HTMLElement>("[data-area-experience]").forEach((root) => {
       if (root.dataset.ready === "true") return
@@ -870,6 +885,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       let isAuthenticated = false
       let profileResolved = false
       let hasCommunityProgress = false
+      let liveStateResolved = false
+      let liveStateAvailable = true
 
       buttons.forEach((button) => {
         const id = button.dataset.dropId
@@ -1118,6 +1135,18 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       )
 
       root.querySelector<HTMLElement>("[data-nearest-button]")?.addEventListener("click", async () => {
+        if (!liveStateResolved) {
+          if (locationStatus) locationStatus.textContent = copy.liveStateLoading
+          return
+        }
+        if (!liveStateAvailable) {
+          if (locationStatus) locationStatus.textContent = copy.liveStateUnavailable
+          return
+        }
+        if (liveDrops.size === 0) {
+          if (locationStatus) locationStatus.textContent = copy.noActiveSignals
+          return
+        }
         if (locationStatus) locationStatus.textContent = copy.locationWorking
         try {
           const position = await areaPosition()
@@ -1132,14 +1161,19 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             )
             if (!nearest || distance < nearest.distance) nearest = { drop, distance }
           }
-          if (!nearest) throw new Error("no drops")
+          if (!nearest) {
+            if (locationStatus) locationStatus.textContent = copy.noActiveSignals
+            return
+          }
           renderSelected(nearest.drop.id)
           const result = copy.nearestTemplate
             .replace("{city}", nearest.drop.city)
             .replace("{distance}", formatAreaDistance(nearest.distance))
           if (locationStatus) locationStatus.textContent = result
-        } catch {
-          if (locationStatus) locationStatus.textContent = copy.locationDenied
+        } catch (error) {
+          if (locationStatus) {
+            locationStatus.textContent = areaLocationErrorMessage(error, copy)
+          }
         }
       })
 
@@ -1354,6 +1388,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       }
 
       const renderWallet = (data: any) => {
+        liveStateResolved = true
+        liveStateAvailable = data?.liveState !== "unavailable"
         const balance = Number(data?.tokenBalance || 0)
         const balanceEl = root.querySelector<HTMLElement>("[data-wallet-balance]")
         const statusEl = root.querySelector<HTMLElement>("[data-wallet-status]")
@@ -1381,14 +1417,19 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           button.dataset.signalState = live ? "live" : "inactive"
         })
         const firstLive = Array.from(liveDrops)[0]
-        if (firstLive) {
+        if (!liveStateAvailable) {
+          const panel = root.querySelector<HTMLElement>("[data-claim-panel]")
+          if (panel) panel.hidden = true
+          if (navigationButton) navigationButton.hidden = true
+          if (locationStatus) locationStatus.textContent = copy.liveStateUnavailable
+        } else if (firstLive) {
           renderSelected(firstLive)
           if (locationStatus) locationStatus.textContent = lang === "pl" ? "Wybierz aktywny sygnał albo znajdź najbliższy." : "Choose a live signal or find the nearest one."
         } else {
           const panel = root.querySelector<HTMLElement>("[data-claim-panel]")
           if (panel) panel.hidden = true
           if (navigationButton) navigationButton.hidden = true
-          if (locationStatus) locationStatus.textContent = lang === "pl" ? "Teraz nie ma aktywnego sygnału. Wróć później — nie musisz niczego szukać na własną rękę." : "There is no live signal now. Come back later; do not search on your own."
+          if (locationStatus) locationStatus.textContent = copy.noActiveSignals
         }
 
         renderClaims(Array.isArray(data?.claims) ? data.claims : [])
@@ -1411,8 +1452,11 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           if (!response.ok) throw new Error("wallet unavailable")
           renderWallet(await response.json())
         } catch {
+          liveStateResolved = true
+          liveStateAvailable = false
           const status = root.querySelector<HTMLElement>("[data-wallet-status]")
           if (status) status.textContent = copy.voucherError
+          if (locationStatus) locationStatus.textContent = copy.liveStateUnavailable
           renderProfile({ authenticated: false }, copy.profileUnavailable)
         }
       }

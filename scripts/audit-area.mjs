@@ -28,6 +28,18 @@ assert(
   "Exact drop configuration must come from AREA_LIVE_DROPS_JSON.",
 )
 assert(
+  liveConfig.includes('from "astro:env/server"') &&
+    liveConfig.includes('getSecret("AREA_LIVE_DROPS_JSON")') &&
+    liveConfig.includes("getAreaLiveDropConfigState") &&
+    !liveConfig.includes("import.meta.env.AREA_LIVE_DROPS_JSON"),
+  "AREA live-drop configuration must be resolved from the Netlify function runtime.",
+)
+assert(
+  wallet.includes("getAreaLiveDropConfigState() === \"ready\"") &&
+    wallet.includes("liveState:"),
+  "AREA wallet must distinguish an inactive campaign from missing runtime configuration.",
+)
+assert(
   !/["'](?:wro|poz|gdn|waw|ktw|krk)-\d{3}["']\s*:\s*\{/.test(liveConfig),
   "Server live-drop config must not hardcode campaign locations.",
 )
@@ -114,6 +126,13 @@ assert(
   experience.includes("data-drop-marker") &&
     experience.includes("area-marker-core"),
   "AREA map must render explicit city marker icons.",
+)
+assert(
+  experience.indexOf("if (liveDrops.size === 0)") >= 0 &&
+    experience.indexOf("if (liveDrops.size === 0)") <
+      experience.indexOf("const position = await areaPosition()") &&
+    experience.includes("areaLocationErrorMessage(error, copy)"),
+  "AREA nearest-signal UX must distinguish no live campaign from GPS errors.",
 )
 assert(
   actor.includes('request.headers.get("authorization")') &&
