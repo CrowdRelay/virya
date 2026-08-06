@@ -71,7 +71,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     }
 
     const actor = await getAreaReadActor(request, cookies)
-    if (!actor) return areaJson({ error: "Unauthorized", code: "AUTH_REQUIRED" }, 401)
+    if (!actor) return areaJson(await anonymousWallet(false))
     if (!actor.authenticated || !actor.backendPlayerId) {
       return areaJson(
         await anonymousWallet(
