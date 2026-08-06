@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro"
 import { getAreaDrop } from "../../../data/area"
-import { getAreaActor } from "../../../server/areaActor"
+import { getAreaMutationActor } from "../../../server/areaActor"
 import {
   AREA_CHALLENGE_MAX_SAMPLES,
   AREA_CHALLENGE_MIN_DURATION_MS,
@@ -10,16 +10,14 @@ import {
 import { getCollectible, getLiveDrop } from "../../../server/areaCatalog"
 import {
   areaJson,
-  isSameOriginRequest,
   readSmallJsonObject,
 } from "../../../server/areaHttp"
 
 export const prerender = false
 
 export const POST: APIRoute = async ({ request, cookies }) => {
-  if (!isSameOriginRequest(request)) {
-    return areaJson({ error: "Invalid request origin" }, 403)
-  }
+  const actor = await getAreaMutationActor(request, cookies)
+  if (!actor) return areaJson({ error: "Invalid request origin" }, 403)
 
   let body: Record<string, unknown>
   try {
@@ -34,7 +32,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
-    const actor = await getAreaActor(cookies)
     if (!actor.authenticated) {
       return areaJson(
         { error: "Player profile required", code: "AUTH_REQUIRED" },

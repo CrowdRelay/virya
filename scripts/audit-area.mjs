@@ -15,6 +15,8 @@ const wallet = read("src/pages/api/area/wallet.ts")
 const claim = read("src/pages/api/area/claim.ts")
 const experience = read("src/components/AreaExperience.astro")
 const publicDrops = read("src/data/area.ts")
+const actor = read("src/server/areaActor.ts")
+const challenge = read("src/pages/api/area/challenge.ts")
 
 assert(
   BUNDLES.length > 0 && BUNDLES.every(isAreaRewardEligible),
@@ -102,6 +104,33 @@ if (configuredDrops) {
     failures.push("AREA_LIVE_DROPS_JSON is not valid JSON.")
   }
 }
+
+
+assert(
+  !/button\.hidden\s*=\s*!live/.test(experience),
+  "AREA city markers must remain visible when no drop is live.",
+)
+assert(
+  experience.includes("data-drop-marker") &&
+    experience.includes("area-marker-core"),
+  "AREA map must render explicit city marker icons.",
+)
+assert(
+  actor.includes('request.headers.get("authorization")') &&
+    actor.includes('"x-virya-area-wallet"') &&
+    actor.includes('createHash("sha256").update(token)'),
+  "Virya Signal AREA authentication must validate a bearer session without storing the raw token.",
+)
+assert(
+  wallet.includes("getAreaReadActor(request, cookies)") &&
+    challenge.includes("getAreaMutationActor(request, cookies)") &&
+    claim.includes("getAreaMutationActor(request, cookies)"),
+  "AREA wallet/challenge/claim endpoints must share the mobile-aware actor boundary.",
+)
+assert(
+  !actor.includes("console.log") && !actor.includes("console.error"),
+  "AREA actor authentication must not log session material.",
+)
 
 if (failures.length) {
   console.error("VIRYA AREA audit failed:\n")

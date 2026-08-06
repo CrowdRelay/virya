@@ -5,7 +5,7 @@ import {
   getPublicCollectible,
   getPublicLiveDrops,
 } from "../../../server/areaCatalog"
-import { getAreaActor } from "../../../server/areaActor"
+import { getAreaReadActor } from "../../../server/areaActor"
 import {
   getAreaCommunityProgress,
   getAreaWallet,
@@ -14,9 +14,10 @@ import { areaJson } from "../../../server/areaHttp"
 
 export const prerender = false
 
-export const GET: APIRoute = async ({ cookies }) => {
+export const GET: APIRoute = async ({ request, cookies }) => {
   try {
-    const actor = await getAreaActor(cookies)
+    const actor = await getAreaReadActor(request, cookies)
+    if (!actor) return areaJson({ error: "Unauthorized" }, 401)
     const [wallet, community, browserWallet] = await Promise.all([
       getAreaWallet(actor.actorId),
       getAreaCommunityProgress(AREA_DROPS.map(drop => drop.id)),
