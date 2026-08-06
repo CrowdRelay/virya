@@ -82,3 +82,11 @@ public/resp/
 src/srcsets.json
 
 .test-dist/
+
+# Editor/recovery files must never enter source packages.
+*.bak
+*.orig
+*.rej
+*.tmp
+*~
+.recovery-backup
