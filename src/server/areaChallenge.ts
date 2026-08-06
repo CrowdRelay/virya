@@ -4,6 +4,7 @@ import {
   randomBytes,
   timingSafeEqual,
 } from "node:crypto"
+import { readServerEnv } from "./runtimeEnv"
 
 export const AREA_CHALLENGE_LIFETIME_MS = 90_000
 export const AREA_CHALLENGE_MIN_DURATION_MS = 6_000
@@ -21,11 +22,17 @@ type AreaChallengePayload = {
 }
 
 const challengeSecret = () => {
-  const dedicated = import.meta.env.AREA_CHALLENGE_SECRET
+  const dedicated = readServerEnv(
+    "AREA_CHALLENGE_SECRET",
+    import.meta.env.AREA_CHALLENGE_SECRET,
+  )
   if (typeof dedicated === "string" && dedicated.length >= 32) {
     return dedicated
   }
-  const auth = import.meta.env.AREA_AUTH_SECRET
+  const auth = readServerEnv(
+    "AREA_AUTH_SECRET",
+    import.meta.env.AREA_AUTH_SECRET,
+  )
   return typeof auth === "string" && auth.length >= 32 ? auth : null
 }
 
