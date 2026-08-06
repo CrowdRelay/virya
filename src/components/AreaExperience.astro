@@ -1,5 +1,6 @@
 ---
-import { AREA_DROPS } from "../data/area"
+import { AREA_DROPS as FALLBACK_AREA_DROPS } from "../data/area"
+import { getPublicAreaDrops } from "../server/crowdrelayArea"
 import { AREA_COPY } from "../data/areaCopy"
 import { SIGNAL_COPY } from "../data/signalCopy"
 import { lp, type Lang } from "../i18n/t"
@@ -13,7 +14,14 @@ interface Props {
 const { lang = "en" } = Astro.props
 const copy = AREA_COPY[lang] ?? AREA_COPY.en
 const signalCopy = SIGNAL_COPY[lang] ?? SIGNAL_COPY.en
-const firstDrop = AREA_DROPS[0]
+let areaDrops = FALLBACK_AREA_DROPS
+try {
+  const backendDrops = await getPublicAreaDrops()
+  if (backendDrops.length > 0) areaDrops = backendDrops
+} catch (error) {
+  console.warn("[area-page] using the build-safe AREA catalogue fallback", error)
+}
+const firstDrop = areaDrops[0] ?? FALLBACK_AREA_DROPS[0]
 const clientCopy = {
   live: copy.map.live,
   signal: copy.map.signal,
@@ -22,11 +30,10 @@ const clientCopy = {
   coordinates: copy.map.coordinates,
   locationWorking: copy.map.locationWorking,
   locationDenied: copy.map.locationDenied,
-  locationUnavailable: copy.map.locationUnavailable,
-  locationTimeout: copy.map.locationTimeout,
-  liveStateLoading: copy.map.liveStateLoading,
-  liveStateUnavailable: copy.map.liveStateUnavailable,
-  noActiveSignals: copy.map.noActiveSignals,
+  noLiveSignal:
+    lang === "pl"
+      ? "Teraz nie ma aktywnego sygnału. Wróć później — nie musisz niczego szukać na własną rękę."
+      : "There is no live signal now. Come back later; do not search on your own.",
   nearestTemplate:
     lang === "pl"
       ? "{city} to Twój najbliższy sygnał — około {distance}."
@@ -152,7 +159,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                 <div class="min-w-0">
                   <p class="text-[9px] font-black uppercase tracking-[0.28em] text-amber-400 sm:tracking-[0.35em]">{lang === "pl" ? "VIRYA // GRA" : "VIRYA // AREA"}</p>
                   <p class="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-400">
-                    {lang === "pl" ? "Karta" : "Collectible"} 001 / {String(AREA_DROPS.length).padStart(3, "0")}
+                    {lang === "pl" ? "Karta" : "Collectible"} 001 / {String(areaDrops.length).padStart(3, "0")}
                   </p>
                 </div>
                 <img src="/virya.webp" alt="" width="48" height="48" class="h-12 w-12 rounded-full opacity-80" />
@@ -297,7 +304,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                 <path d="M125 195L472 357M156 370L455 147M287 78L292 438M87 277L510 282" stroke="#71717a" stroke-opacity=".15" stroke-dasharray="4 10"></path>
               </svg>
 
-              {AREA_DROPS.map((drop, index) => (
+              {areaDrops.map((drop, index) => (
                 <button
                   type="button"
                   data-drop-button
@@ -374,7 +381,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             </aside>
 
             <div class="grid min-w-0 grid-cols-1 gap-2 min-[360px]:grid-cols-2" aria-label={copy.map.heading}>
-              {AREA_DROPS.map((drop, index) => (
+              {areaDrops.map((drop, index) => (
                 <button
                   type="button"
                   data-drop-button
@@ -476,7 +483,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             <div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
               <p class="min-w-0 text-[9px] font-black uppercase tracking-[.22em] text-zinc-400 sm:tracking-[.28em]">{copy.collection.progress}</p>
               <p class="font-mono text-sm font-black text-amber-400">
-                <span data-collection-count>0</span> / <span data-collection-size>{AREA_DROPS.length}</span>
+                <span data-collection-count>0</span> / <span data-collection-size>{areaDrops.length}</span>
               </p>
             </div>
             <div
@@ -484,7 +491,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               role="progressbar"
               aria-label={copy.collection.progress}
               aria-valuemin="0"
-              aria-valuemax={AREA_DROPS.length}
+              aria-valuemax={areaDrops.length}
               aria-valuenow="0"
               data-collection-progress
             >
@@ -505,7 +512,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                 <h3 class="mt-2 text-lg font-black uppercase text-white">{copy.community.heading}</h3>
               </div>
               <p class="shrink-0 font-mono text-sm font-black text-amber-400">
-                <span data-community-count>—</span> / <span data-community-total>{AREA_DROPS.length}</span>
+                <span data-community-count>—</span> / <span data-community-total>{areaDrops.length}</span>
               </p>
             </div>
             <p class="mt-3 text-xs leading-relaxed text-zinc-400 text-justify mobile-justify">{copy.community.body}</p>
@@ -514,7 +521,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               role="progressbar"
               aria-label={copy.community.progress}
               aria-valuemin="0"
-              aria-valuemax={AREA_DROPS.length}
+              aria-valuemax={areaDrops.length}
               aria-valuetext={copy.community.loading}
               data-community-progress
             >
@@ -527,7 +534,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         </div>
 
         <div class="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {AREA_DROPS.map((drop) => (
+          {areaDrops.map((drop) => (
             <article data-collection-card={drop.id} class="area-collection-card relative min-h-72 min-w-0 overflow-hidden border border-zinc-800 bg-zinc-900/40 p-5 sm:min-h-80 sm:p-6">
               <div class="absolute inset-0 area-card-grid opacity-40" aria-hidden="true"></div>
               <div class="relative flex h-full flex-col">
@@ -852,16 +859,6 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
     return `${kilometres < 10 ? kilometres.toFixed(1) : Math.round(kilometres)} km`
   }
 
-  const areaLocationErrorMessage = (error: unknown, copy: ClientCopy) => {
-    const code =
-      error && typeof error === "object" && "code" in error
-        ? Number((error as { code?: unknown }).code)
-        : 0
-    if (code === 1) return copy.locationDenied
-    if (code === 3) return copy.locationTimeout
-    return copy.locationUnavailable
-  }
-
   const initAreaExperience = () => {
     document.querySelectorAll<HTMLElement>("[data-area-experience]").forEach((root) => {
       if (root.dataset.ready === "true") return
@@ -885,8 +882,6 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       let isAuthenticated = false
       let profileResolved = false
       let hasCommunityProgress = false
-      let liveStateResolved = false
-      let liveStateAvailable = true
 
       buttons.forEach((button) => {
         const id = button.dataset.dropId
@@ -1135,16 +1130,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       )
 
       root.querySelector<HTMLElement>("[data-nearest-button]")?.addEventListener("click", async () => {
-        if (!liveStateResolved) {
-          if (locationStatus) locationStatus.textContent = copy.liveStateLoading
-          return
-        }
-        if (!liveStateAvailable) {
-          if (locationStatus) locationStatus.textContent = copy.liveStateUnavailable
-          return
-        }
         if (liveDrops.size === 0) {
-          if (locationStatus) locationStatus.textContent = copy.noActiveSignals
+          if (locationStatus) locationStatus.textContent = copy.noLiveSignal
           return
         }
         if (locationStatus) locationStatus.textContent = copy.locationWorking
@@ -1161,19 +1148,14 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             )
             if (!nearest || distance < nearest.distance) nearest = { drop, distance }
           }
-          if (!nearest) {
-            if (locationStatus) locationStatus.textContent = copy.noActiveSignals
-            return
-          }
+          if (!nearest) throw new Error("no drops")
           renderSelected(nearest.drop.id)
           const result = copy.nearestTemplate
             .replace("{city}", nearest.drop.city)
             .replace("{distance}", formatAreaDistance(nearest.distance))
           if (locationStatus) locationStatus.textContent = result
-        } catch (error) {
-          if (locationStatus) {
-            locationStatus.textContent = areaLocationErrorMessage(error, copy)
-          }
+        } catch {
+          if (locationStatus) locationStatus.textContent = copy.locationDenied
         }
       })
 
@@ -1388,8 +1370,6 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       }
 
       const renderWallet = (data: any) => {
-        liveStateResolved = true
-        liveStateAvailable = data?.liveState !== "unavailable"
         const balance = Number(data?.tokenBalance || 0)
         const balanceEl = root.querySelector<HTMLElement>("[data-wallet-balance]")
         const statusEl = root.querySelector<HTMLElement>("[data-wallet-status]")
@@ -1417,19 +1397,14 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           button.dataset.signalState = live ? "live" : "inactive"
         })
         const firstLive = Array.from(liveDrops)[0]
-        if (!liveStateAvailable) {
-          const panel = root.querySelector<HTMLElement>("[data-claim-panel]")
-          if (panel) panel.hidden = true
-          if (navigationButton) navigationButton.hidden = true
-          if (locationStatus) locationStatus.textContent = copy.liveStateUnavailable
-        } else if (firstLive) {
+        if (firstLive) {
           renderSelected(firstLive)
           if (locationStatus) locationStatus.textContent = lang === "pl" ? "Wybierz aktywny sygnał albo znajdź najbliższy." : "Choose a live signal or find the nearest one."
         } else {
           const panel = root.querySelector<HTMLElement>("[data-claim-panel]")
           if (panel) panel.hidden = true
           if (navigationButton) navigationButton.hidden = true
-          if (locationStatus) locationStatus.textContent = copy.noActiveSignals
+          if (locationStatus) locationStatus.textContent = copy.noLiveSignal
         }
 
         renderClaims(Array.isArray(data?.claims) ? data.claims : [])
@@ -1452,11 +1427,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           if (!response.ok) throw new Error("wallet unavailable")
           renderWallet(await response.json())
         } catch {
-          liveStateResolved = true
-          liveStateAvailable = false
           const status = root.querySelector<HTMLElement>("[data-wallet-status]")
           if (status) status.textContent = copy.voucherError
-          if (locationStatus) locationStatus.textContent = copy.liveStateUnavailable
           renderProfile({ authenticated: false }, copy.profileUnavailable)
         }
       }
@@ -1632,6 +1604,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               LOW_ACCURACY: copy.claimAccuracy,
               OUTSIDE_ZONE: copy.claimOutside,
               DROP_FULL: copy.claimFull,
+              CLAIM_CONFLICT: copy.claimAlready,
               RATE_LIMITED: copy.claimRateLimited,
               AUTH_REQUIRED: copy.claimAccountRequired,
               UNAUTHORIZED: copy.claimAccountRequired,
