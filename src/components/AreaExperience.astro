@@ -15,13 +15,24 @@ const { lang = "en" } = Astro.props
 const copy = AREA_COPY[lang] ?? AREA_COPY.en
 const signalCopy = SIGNAL_COPY[lang] ?? SIGNAL_COPY.en
 let areaDrops = FALLBACK_AREA_DROPS
+let activeDropIds = new Set<string>()
 try {
   const backendDrops = await getPublicAreaDrops()
-  if (backendDrops.length > 0) areaDrops = backendDrops
+  if (backendDrops.length > 0) {
+    areaDrops = backendDrops
+    activeDropIds = new Set(
+      backendDrops
+        .filter(drop => drop.active && !drop.full)
+        .map(drop => drop.id),
+    )
+  }
 } catch (error) {
   console.warn("[area-page] using the build-safe AREA catalogue fallback", error)
 }
-const firstDrop = areaDrops[0] ?? FALLBACK_AREA_DROPS[0]
+const firstDrop =
+  areaDrops.find(drop => activeDropIds.has(drop.id)) ??
+  areaDrops[0] ??
+  FALLBACK_AREA_DROPS[0]
 const clientCopy = {
   live: copy.map.live,
   signal: copy.map.signal,
@@ -317,6 +328,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                   data-clue={drop.clue[lang]}
                   data-lat={drop.approximateLat}
                   data-lng={drop.approximateLng}
+                  data-live={activeDropIds.has(drop.id) ? "true" : "false"}
                   aria-label={`${drop.number} — ${copy.map.markerAria(drop.city)}`}
                   aria-pressed={index === 0 ? "true" : "false"}
                   class={`area-marker absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center ${index === 0 ? "is-selected" : ""}`}
@@ -394,6 +406,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                   data-clue={drop.clue[lang]}
                   data-lat={drop.approximateLat}
                   data-lng={drop.approximateLng}
+                  data-live={activeDropIds.has(drop.id) ? "true" : "false"}
                   aria-label={`${drop.number} — ${copy.map.selectAria(drop.city)}`}
                   aria-pressed={index === 0 ? "true" : "false"}
                   class={`area-drop-list min-h-[64px] border p-3 text-left transition-colors ${index === 0 ? "is-selected" : ""}`}
@@ -885,7 +898,13 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
       buttons.forEach((button) => {
         const id = button.dataset.dropId
-        if (!id || drops.has(id)) return
+        if (!id) return
+        const live = button.dataset.live === "true"
+        if (live) liveDrops.add(id)
+        button.classList.toggle("is-live", live)
+        button.classList.toggle("is-inactive", !live)
+        button.dataset.signalState = live ? "live" : "inactive"
+        if (drops.has(id)) return
         drops.set(id, {
           id,
           city: button.dataset.city || "",
@@ -916,7 +935,10 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       const claimButton = root.querySelector<HTMLButtonElement>("[data-claim-button]")
       const claimAuthRequired = root.querySelector<HTMLElement>("[data-claim-auth-required]")
       const claimStatus = root.querySelector<HTMLElement>("[data-claim-status]")
-      let selectedId = buttons[0]?.dataset.dropId || ""
+      let selectedId =
+        buttons.find(button => button.dataset.live === "true")?.dataset.dropId ||
+        buttons[0]?.dataset.dropId ||
+        ""
 
       const sendAreaEvent = (
         event: "page_view" | "share",
@@ -1386,10 +1408,12 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           renderCommunity(data)
         }
 
-        liveDrops.clear()
-        Array.isArray(data?.liveDrops) && data.liveDrops.forEach((drop: any) => {
-          if (typeof drop?.id === "string") liveDrops.add(drop.id)
-        })
+        if (Array.isArray(data?.liveDrops)) {
+          liveDrops.clear()
+          data.liveDrops.forEach((drop: any) => {
+            if (typeof drop?.id === "string") liveDrops.add(drop.id)
+          })
+        }
         buttons.forEach((button) => {
           const live = liveDrops.has(button.dataset.dropId || "")
           button.classList.toggle("is-live", live)
