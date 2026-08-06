@@ -31,3 +31,25 @@ test("Virya Signal AREA requests authenticate without exposing exact locations",
   assert.ok(coordinates.length > 0)
   for (const coordinate of coordinates) assert.ok((coordinate[1]?.length ?? 0) <= 1)
 })
+
+test("AREA live-drop configuration is read at Netlify function runtime", () => {
+  const liveConfig = read("src/server/areaLiveDrops.ts")
+  const wallet = read("src/pages/api/area/wallet.ts")
+  assert.match(liveConfig, /import \{ getSecret \} from "astro:env\/server"/)
+  assert.match(liveConfig, /getSecret\("AREA_LIVE_DROPS_JSON"\)/)
+  assert.match(liveConfig, /getAreaLiveDropConfigState/)
+  assert.doesNotMatch(liveConfig, /import\.meta\.env\.AREA_LIVE_DROPS_JSON/)
+  assert.match(wallet, /liveState:/)
+  assert.match(wallet, /getAreaLiveDropConfigState\(\) === "ready"/)
+})
+
+test("nearest-signal UX does not misreport an empty campaign as denied GPS", () => {
+  const experience = read("src/components/AreaExperience.astro")
+  const noLiveGuard = experience.indexOf("if (liveDrops.size === 0)")
+  const positionRead = experience.indexOf("const position = await areaPosition()")
+  assert.ok(noLiveGuard >= 0)
+  assert.ok(positionRead > noLiveGuard)
+  assert.match(experience, /areaLocationErrorMessage\(error, copy\)/)
+  assert.match(experience, /code === 1/)
+  assert.match(experience, /code === 3/)
+})

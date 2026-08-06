@@ -46,6 +46,15 @@ export const AREA_COPY = {
       locationWorking: "Reading your position…",
       locationDenied:
         "Location was not available. Allow it in browser settings or choose a city from the list.",
+      locationUnavailable:
+        "Your position could not be determined. Move outdoors, enable precise location and try again.",
+      locationTimeout:
+        "Location took too long. Keep the page open, move outdoors and try again.",
+      liveStateLoading: "Checking which signals are live…",
+      liveStateUnavailable:
+        "Live signal status is temporarily unavailable. Refresh the page in a moment.",
+      noActiveSignals:
+        "There is no live signal now. Come back later; do not search on your own.",
       nearestResult: (city: string, distance: string) =>
         `${city} is your nearest signal — about ${distance} away.`,
       selectAria: (city: string) => `Select the ${city} VIRYA Area drop`,
@@ -263,6 +272,15 @@ export const AREA_COPY = {
       locationWorking: "Odczytuję pozycję…",
       locationDenied:
         "Lokalizacja jest niedostępna. Zezwól na nią w ustawieniach przeglądarki albo wybierz miasto z listy.",
+      locationUnavailable:
+        "Nie udało się ustalić pozycji. Wyjdź na zewnątrz, włącz dokładną lokalizację i spróbuj ponownie.",
+      locationTimeout:
+        "Odczyt lokalizacji trwał zbyt długo. Zostaw stronę otwartą, wyjdź na zewnątrz i spróbuj ponownie.",
+      liveStateLoading: "Sprawdzam, które sygnały są aktywne…",
+      liveStateUnavailable:
+        "Status aktywnych sygnałów jest chwilowo niedostępny. Odśwież stronę za moment.",
+      noActiveSignals:
+        "Teraz nie ma aktywnego sygnału. Wróć później — nie musisz niczego szukać na własną rękę.",
       nearestResult: (city: string, distance: string) =>
         `${city} to Twój najbliższy sygnał — około ${distance}.`,
       selectAria: (city: string) => `Wybierz strefę Gry Virya w mieście ${city}`,

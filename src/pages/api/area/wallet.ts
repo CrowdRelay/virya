@@ -5,6 +5,7 @@ import {
   getPublicCollectible,
   getPublicLiveDrops,
 } from "../../../server/areaCatalog"
+import { getAreaLiveDropConfigState } from "../../../server/areaLiveDrops"
 import { getAreaReadActor } from "../../../server/areaActor"
 import {
   getAreaCommunityProgress,
@@ -93,6 +94,8 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       // Public live state intentionally contains IDs only. Exact coordinates,
       // radius and capacity never leave the server.
       liveDrops: getPublicLiveDrops(),
+      liveState:
+        getAreaLiveDropConfigState() === "ready" ? "ready" : "unavailable",
     })
   } catch (error) {
     console.error("[area-wallet]", error)

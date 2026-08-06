@@ -1,5 +1,3 @@
-import { readServerEnv } from "./runtimeEnv"
-
 /**
  * Private, server-only VIRYA AREA drop configuration.
  *
@@ -7,6 +5,8 @@ import { readServerEnv } from "./runtimeEnv"
  * server environment. Keeping them out of the repository prevents accidental
  * disclosure through source archives, public forks and client bundles.
  */
+
+import { getSecret } from "astro:env/server"
 
 export type AreaLiveDropConfig = {
   lat: number
@@ -18,19 +18,28 @@ export type AreaLiveDropConfig = {
 }
 
 type AreaLiveDropMap = Record<string, AreaLiveDropConfig>
+export type AreaLiveDropConfigState = "ready" | "missing" | "invalid"
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value)
 
 let cachedRaw: string | undefined
 let cachedConfig: AreaLiveDropMap = {}
+let cachedState: AreaLiveDropConfigState = "missing"
 
 export const getAreaLiveDropConfigs = (): AreaLiveDropMap => {
-  const raw = readServerEnv(
-    "AREA_LIVE_DROPS_JSON",
-    import.meta.env.AREA_LIVE_DROPS_JSON,
-  )
-  if (!raw) return {}
+  // `import.meta.env` may be statically replaced while Astro builds the
+  // Netlify function. When the variable is intentionally scoped to Functions,
+  // that replacement becomes `undefined` and every live drop disappears at
+  // runtime. `getSecret()` is adapter-backed and reads the deployed function
+  // environment instead of freezing the build-time value.
+  const raw = getSecret("AREA_LIVE_DROPS_JSON")?.trim()
+  if (!raw) {
+    cachedRaw = undefined
+    cachedConfig = {}
+    cachedState = "missing"
+    return cachedConfig
+  }
   if (raw === cachedRaw) return cachedConfig
 
   try {
@@ -39,6 +48,7 @@ export const getAreaLiveDropConfigs = (): AreaLiveDropMap => {
       console.error("[area] AREA_LIVE_DROPS_JSON must be a JSON object")
       cachedRaw = raw
       cachedConfig = {}
+      cachedState = "invalid"
       return cachedConfig
     }
 
@@ -58,12 +68,19 @@ export const getAreaLiveDropConfigs = (): AreaLiveDropMap => {
 
     cachedRaw = raw
     cachedConfig = next
+    cachedState = "ready"
     return cachedConfig
   } catch {
     // Never log the raw value because it contains exact locations.
     console.error("[area] AREA_LIVE_DROPS_JSON contains invalid JSON")
     cachedRaw = raw
     cachedConfig = {}
+    cachedState = "invalid"
     return cachedConfig
   }
+}
+
+export const getAreaLiveDropConfigState = (): AreaLiveDropConfigState => {
+  getAreaLiveDropConfigs()
+  return cachedState
 }
