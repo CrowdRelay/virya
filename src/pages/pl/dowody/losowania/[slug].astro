@@ -5,35 +5,47 @@ import Layout from "../../../../components/Layout.astro"
 import Navbar from "../../../../components/Navbar.astro"
 import Footer from "../../../../components/Footer.astro"
 import ScrollToTop from "../../../../components/ScrollToTop.astro"
-import { resolvePublicDrawProof } from "../../../../data/drawProofs"
+import { loadPublicDrawProofState } from "../../../../server/publicDrawProof"
 
 const slug = Astro.params.slug ?? ""
-const drawRef = resolvePublicDrawProof(slug)
-const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL?.trim() || "https://signal-api.virya.music/v1/"
-const base = configured.endsWith("/") ? configured : `${configured}/`
-let proof: any = null
-let proofState: "ready" | "pending" | "unavailable" = "pending"
-try {
-  const response = await fetch(`${base}public/proofs/draws/${encodeURIComponent(drawRef.drawSlug)}`, {
-    headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(8_000),
-  })
-  if (response.ok) {
-    proof = await response.json()
-    proofState = "ready"
-  } else if (response.status === 404) {
-    proofState = "pending"
-  } else {
-    proofState = "unavailable"
-  }
-} catch {
-  proofState = "unavailable"
+const state = await loadPublicDrawProofState(slug)
+const proof = state.kind === "ready" ? state.proof : null
+const drawStatus = "status" in state ? state.status : null
+
+if (state.kind === "not_found") {
+  Astro.response.status = 404
+  Astro.response.headers.set("Cache-Control", "no-store")
+} else if (state.kind === "cancelled") {
+  Astro.response.status = 410
+  Astro.response.headers.set("Cache-Control", "no-store")
+} else if (state.kind === "unavailable" || state.kind === "proof_unavailable") {
+  Astro.response.status = 503
+  Astro.response.headers.set("Cache-Control", "no-store")
+  Astro.response.headers.set("Retry-After", "30")
+} else {
+  Astro.response.headers.set("Cache-Control", "public, max-age=15, s-maxage=30, must-revalidate")
 }
-const title = proof ? `Dowód losowania: ${proof.draw_name} · Virya` : drawRef.title ? `Dowód losowania: ${drawRef.title} · Virya` : "Dowód losowania · Virya"
+
+const drawName = proof?.draw_name ?? drawStatus?.draw_name
+const title = state.kind === "not_found"
+  ? "Losowanie nie istnieje · Virya"
+  : drawName
+    ? `Proof of Fair: ${drawName} · Virya`
+    : "Proof of Fair · Virya"
 const description = "Publiczny Proof of Fair losowania Virya — wynik, który można niezależnie sprawdzić."
+const robots = state.kind === "ready" || state.kind === "scheduled" || state.kind === "running" || state.kind === "completed_pending"
+  ? "index,follow"
+  : "noindex,follow"
 const short = (value: unknown) => typeof value === "string" && value.length > 24
   ? `${value.slice(0, 12)}…${value.slice(-10)}`
   : String(value ?? "—")
+const formatDrawAt = (value?: string) => value
+  ? new Intl.DateTimeFormat("pl-PL", {
+      dateStyle: "long",
+      timeStyle: "short",
+      timeZone: "Europe/Warsaw",
+    }).format(new Date(value))
+  : "—"
 const rekorEntryUrl = (() => {
   const anchor = proof?.anchor
   if (anchor?.anchor_kind !== "sigstore.rekor.v1") return null
@@ -53,44 +65,74 @@ const rekorEntryUrl = (() => {
 ---
 
 <Layout title={title} description={description} lang="pl" canonical={Astro.url.href}>
-  <Fragment slot="head"><meta name="robots" content="index,follow" /></Fragment>
+  <Fragment slot="head"><meta name="robots" content={robots} /></Fragment>
   <div class="flex min-h-screen flex-col bg-zinc-950 text-white">
     <Navbar lang="pl" displayLinks={true} />
     <ScrollToTop />
     <main class="mx-auto w-full max-w-5xl flex-1 px-5 py-24 sm:px-8">
       <p class="text-xs font-black uppercase tracking-[.28em] text-cyan-300">VIRYA // PROOF OF FAIR</p>
-      <h1 class="mt-4 text-3xl font-black sm:text-5xl">{proof?.draw_name ?? drawRef.title ?? "Dowód losowania"}</h1>
-      <p class="mt-5 max-w-3xl text-base leading-7 text-zinc-400">
-        Każde losowanie w Virya może zostać niezależnie zweryfikowane. Publikujemy dowód, który potwierdza, że wynik został zapisany w niezmiennej formie i nie został później podmieniony.
-      </p>
-      <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-500">
-        Dowód nie zawiera nazwisk, adresów e-mail ani danych biletowych. To nasze proste: <strong class="text-zinc-300">nie musisz nam wierzyć na słowo — możesz to sprawdzić.</strong>
-      </p>
+      <h1 class="mt-4 text-3xl font-black sm:text-5xl">{drawName ?? (state.kind === "not_found" ? "Tego losowania już nie ma" : "Proof of Fair")}</h1>
 
-      {!proof ? (
-        proofState === "unavailable" ? (
-          <section class="mt-10 rounded-3xl border border-rose-400/20 bg-rose-400/5 p-6">
-            <h2 class="font-black text-rose-200">Usługa proofów jest chwilowo niedostępna</h2>
-            <p class="mt-2 text-sm leading-6 text-zinc-400">Nie udało się teraz pobrać publicznego dowodu. Sam wynik losowania pozostaje zapisany niezależnie od tej strony — spróbuj ponownie później.</p>
-          </section>
-        ) : (
-          <section class="mt-10 rounded-3xl border border-amber-300/20 bg-amber-300/5 p-6">
-            <h2 class="font-black text-amber-200">Proof of Fair jeszcze nie jest dostępny</h2>
-            <p class="mt-2 text-sm leading-6 text-zinc-400">Dowód pojawi się automatycznie po zakończeniu aktywnego losowania. Jeśli losowanie zostało anulowane albo usunięte przed startem, publiczny dowód nie powstanie.</p>
-            <p class="mt-2 font-mono text-[11px] text-zinc-600">Draw slug: {drawRef.drawSlug}</p>
-          </section>
-        )
-      ) : (
+      {state.kind !== "not_found" && (
+        <>
+          <p class="mt-5 max-w-3xl text-base leading-7 text-zinc-400">
+            Każde losowanie w Virya może zostać niezależnie zweryfikowane. Publikujemy dowód, który potwierdza, że wynik został zapisany w niezmiennej formie i nie został później podmieniony.
+          </p>
+          <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-500">
+            Dowód nie zawiera nazwisk, adresów e-mail ani danych biletowych. To nasze proste: <strong class="text-zinc-300">nie musisz nam wierzyć na słowo — możesz to sprawdzić.</strong>
+          </p>
+        </>
+      )}
+
+      {state.kind === "not_found" ? (
+        <section class="mt-10 rounded-3xl border border-white/10 bg-white/[.03] p-6">
+          <h2 class="font-black text-zinc-100">Losowanie nie istnieje</h2>
+          <p class="mt-2 text-sm leading-6 text-zinc-400">Mogło zostać usunięte przed startem albo ten link jest już nieaktualny. Nie ma wyniku ani publicznego Proof of Fair do pokazania.</p>
+        </section>
+      ) : state.kind === "cancelled" ? (
+        <section class="mt-10 rounded-3xl border border-zinc-500/20 bg-white/[.03] p-6">
+          <h2 class="font-black text-zinc-200">Losowanie zostało anulowane</h2>
+          <p class="mt-2 text-sm leading-6 text-zinc-400">Nie zostało przeprowadzone, dlatego nie powstał publiczny dowód wyniku.</p>
+        </section>
+      ) : state.kind === "scheduled" ? (
+        <section class="mt-10 rounded-3xl border border-cyan-300/20 bg-cyan-300/5 p-6">
+          <p class="text-xs font-black uppercase tracking-wider text-cyan-300">Proof of Fair aktywny</p>
+          <h2 class="mt-2 text-xl font-black text-cyan-100">Losowanie jest zaplanowane</h2>
+          <p class="mt-2 text-sm leading-6 text-zinc-400">Planowany termin: <strong class="text-zinc-200">{formatDrawAt(state.status.draw_at)}</strong>. Po zakończeniu tutaj automatycznie pojawi się niezależnie weryfikowalny dowód wyniku.</p>
+        </section>
+      ) : state.kind === "running" ? (
+        <section class="mt-10 rounded-3xl border border-cyan-300/20 bg-cyan-300/5 p-6">
+          <p class="text-xs font-black uppercase tracking-wider text-cyan-300">Proof of Fair aktywny</p>
+          <h2 class="mt-2 text-xl font-black text-cyan-100">Losowanie jest właśnie wykonywane</h2>
+          <p class="mt-2 text-sm leading-6 text-zinc-400">Po zapisaniu wyniku publiczny dowód pojawi się tutaj automatycznie.</p>
+        </section>
+      ) : state.kind === "completed_pending" ? (
+        <section class="mt-10 rounded-3xl border border-amber-300/20 bg-amber-300/5 p-6">
+          <h2 class="font-black text-amber-200">Wynik zapisany — publikujemy Proof of Fair</h2>
+          <p class="mt-2 text-sm leading-6 text-zinc-400">Losowanie jest zakończone. Publiczny receipt i zewnętrzne potwierdzenie mogą pojawić się chwilę później.</p>
+        </section>
+      ) : state.kind === "unavailable" ? (
+        <section class="mt-10 rounded-3xl border border-rose-400/20 bg-rose-400/5 p-6">
+          <h2 class="font-black text-rose-200">Nie możemy teraz sprawdzić losowania</h2>
+          <p class="mt-2 text-sm leading-6 text-zinc-400">CrowdRelay jest chwilowo niedostępny. Nie zgadujemy stanu losowania — odśwież stronę za moment.</p>
+        </section>
+      ) : state.kind === "proof_unavailable" ? (
+        <section class="mt-10 rounded-3xl border border-rose-400/20 bg-rose-400/5 p-6">
+          <h2 class="font-black text-rose-200">Losowanie zakończone, ale dowód jest chwilowo niedostępny</h2>
+          <p class="mt-2 text-sm leading-6 text-zinc-400">Wynik istnieje w CrowdRelay. Nie udało się teraz pobrać publicznego Proof of Fair — spróbuj ponownie za moment.</p>
+        </section>
+      ) : proof ? (
         <>
           <section class={`mt-10 rounded-3xl border p-6 ${proof.locally_verified ? "border-emerald-400/25 bg-emerald-400/5" : "border-rose-400/25 bg-rose-400/5"}`}>
-            <p class="text-xs font-black uppercase tracking-wider text-zinc-400">Weryfikacja lokalna</p>
-            <strong class={`mt-3 block text-2xl ${proof.locally_verified ? "text-emerald-300" : "text-rose-300"}`}>{proof.locally_verified ? "Receipt zgodny" : "Niezgodność receipt"}</strong>
+            <p class="text-xs font-black uppercase tracking-wider text-zinc-400">Proof of Fair</p>
+            <strong class={`mt-3 block text-2xl ${proof.locally_verified ? "text-emerald-300" : "text-rose-300"}`}>{proof.locally_verified ? "Wynik zweryfikowany" : "Dowód wymaga uwagi"}</strong>
+            <p class="mt-3 text-sm leading-6 text-zinc-400">{proof.locally_verified ? "Publiczny receipt zgadza się z zapisanym wynikiem losowania." : "Automatyczna weryfikacja receiptu wykryła niezgodność."}</p>
             <p class="mt-3 font-mono text-xs text-zinc-500">SHA-256 {proof.receipt_sha256}</p>
           </section>
 
           <div class="mt-6 grid gap-4 md:grid-cols-2">
             <section class="rounded-3xl border border-white/10 bg-white/[.03] p-6">
-              <h2 class="font-black">Parametry losowania</h2>
+              <h2 class="font-black">Szczegóły losowania</h2>
               <dl class="mt-4 grid gap-3 text-sm">
                 <div><dt class="text-zinc-500">Algorytm</dt><dd class="mt-1 font-mono text-zinc-200">{proof.algorithm_version}</dd></div>
                 <div><dt class="text-zinc-500">Kandydaci / zwycięzcy</dt><dd class="mt-1 text-zinc-200">{proof.eligible_count} / {proof.selected_winners}</dd></div>
@@ -99,8 +141,8 @@ const rekorEntryUrl = (() => {
               </dl>
             </section>
             <section class="rounded-3xl border border-white/10 bg-white/[.03] p-6">
-              <h2 class="font-black">Zewnętrzny anchor</h2>
-              <p class={`mt-4 text-xl font-black ${proof.anchor.status === "confirmed" ? "text-emerald-300" : proof.anchor.status === "dead" ? "text-rose-300" : "text-cyan-200"}`}>{proof.anchor.status}</p>
+              <h2 class="font-black">Niezależne potwierdzenie</h2>
+              <p class={`mt-4 text-xl font-black ${proof.anchor.status === "confirmed" ? "text-emerald-300" : proof.anchor.status === "dead" ? "text-rose-300" : "text-cyan-200"}`}>{proof.anchor.status === "confirmed" ? "Potwierdzone publicznie" : proof.anchor.status}</p>
               <p class="mt-3 text-sm text-zinc-500">Batch {proof.anchor.batch_id}</p>
               {proof.anchor.anchor_kind && <p class="mt-2 text-xs font-bold text-cyan-200">{proof.anchor.anchor_kind}</p>}
               {proof.anchor.entry_id && <p class="mt-2 font-mono text-xs text-zinc-500">Entry {short(proof.anchor.entry_id)}</p>}
@@ -111,17 +153,17 @@ const rekorEntryUrl = (() => {
             </section>
           </div>
 
-          <section class="mt-6 rounded-3xl border border-white/10 bg-white/[.03] p-6">
-            <h2 class="font-black">Commitments</h2>
+          <details class="mt-6 rounded-3xl border border-white/10 bg-white/[.03] p-6">
+            <summary class="cursor-pointer font-black text-zinc-200">Dane techniczne dowodu</summary>
             <dl class="mt-4 grid gap-4 text-xs">
               <div><dt class="text-zinc-500">Seed commitment</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.seed_hash_sha256}</dd></div>
               <div><dt class="text-zinc-500">Revealed seed</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.revealed_seed_hex}</dd></div>
               <div><dt class="text-zinc-500">Candidate snapshot</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.candidate_snapshot_sha256}</dd></div>
               <div><dt class="text-zinc-500">Winner snapshot</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.winner_snapshot_sha256}</dd></div>
             </dl>
-          </section>
+          </details>
         </>
-      )}
+      ) : null}
     </main>
     <Footer lang="pl" />
   </div>

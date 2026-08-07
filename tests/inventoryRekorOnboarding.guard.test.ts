@@ -33,14 +33,19 @@ test("proof UI uses Rekor coordinates and contains no Base Sepolia contract", as
 })
 
 
-test("public Namysłów proof resolves the friendly URL to the CrowdRelay draw", async () => {
+test("public Namysłów proof resolves the friendly URL but CrowdRelay owns lifecycle truth", async () => {
   const publicProof = await source("src/pages/pl/dowody/losowania/[slug].astro")
-  const proxy = await source("src/pages/api/proofs/draws/[slug].ts")
+  const proofProxy = await source("src/pages/api/proofs/draws/[slug].ts")
+  const statusProxy = await source("src/pages/api/proofs/draws/[slug]/status.ts")
+  const lifecycle = await source("src/server/publicDrawProof.ts")
   const refs = await source("src/data/drawProofs.ts")
   assert.match(refs, /namyslow-guest-list-2026/)
-  assert.match(publicProof, /resolvePublicDrawProof/)
-  assert.match(proxy, /resolvePublicDrawProof/)
-  assert.match(publicProof, /Proof of Fair jeszcze nie jest dostępny/)
-  assert.match(publicProof, /Dowód pojawi się automatycznie po zakończeniu aktywnego losowania/)
+  assert.doesNotMatch(refs, /4 wejściówki — Namysłów/)
+  assert.match(proofProxy, /resolvePublicDrawProof/)
+  assert.match(statusProxy, /resolvePublicDrawProof/)
+  assert.match(lifecycle, /loadPublicDrawProofState/)
+  assert.match(lifecycle, /crowdrelay\/draw-status\/v1/)
+  assert.match(publicProof, /Losowanie nie istnieje/)
+  assert.match(publicProof, /Proof of Fair aktywny/)
   assert.doesNotMatch(publicProof, /warstwa proofów nie była jeszcze aktywna/)
 })
