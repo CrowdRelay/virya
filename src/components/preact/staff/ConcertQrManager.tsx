@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
+import BackendLoader from "./BackendLoader"
 import {
   generateQr,
   renderQrToCanvas,
@@ -85,6 +86,7 @@ export default function ConcertQrManager() {
   const [language, setLanguage] = useState<Language>("pl")
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [dataLoading, setDataLoading] = useState(false)
   const [message, setMessage] = useState("")
   const [fullscreen, setFullscreen] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
@@ -182,6 +184,7 @@ export default function ConcertQrManager() {
     dataRequestRef.current?.abort()
     const controller = new AbortController()
     dataRequestRef.current = controller
+    setDataLoading(true)
     setMessage("")
 
     try {
@@ -218,7 +221,10 @@ export default function ConcertQrManager() {
       }
       setDataLoaded(true)
     } finally {
-      if (dataRequestRef.current === controller) dataRequestRef.current = null
+      if (dataRequestRef.current === controller) {
+        dataRequestRef.current = null
+        setDataLoading(false)
+      }
     }
   }
 
@@ -439,7 +445,8 @@ export default function ConcertQrManager() {
   }
 
   return (
-    <div class="grid w-full min-w-0 max-w-full gap-6">
+    <div class="relative grid w-full min-w-0 max-w-full gap-6">
+      {dataLoading && <BackendLoader overlay label="Pobieram koncerty, kampanie QR i bramkę…" />}
       <header class="flex flex-col gap-4 border-b border-zinc-800 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div class="min-w-0">
           <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
@@ -453,7 +460,7 @@ export default function ConcertQrManager() {
           </p>
         </div>
         <div class="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-none">
-          <button type="button" onClick={() => void refreshData()} disabled={busy} class={secondaryButton}>
+          <button type="button" onClick={() => void refreshData()} disabled={busy || dataLoading} class={secondaryButton}>
             Odśwież
           </button>
           <button type="button" onClick={() => void logout()} disabled={busy} class={secondaryButton}>

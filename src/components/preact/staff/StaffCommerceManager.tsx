@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact"
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
+import BackendLoader from "./BackendLoader"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type ApiError = Error & { status?: number }
@@ -46,6 +47,25 @@ type Campaign = {
   reserved_quantity: number
   pending_fulfillments: number
   delivered_fulfillments: number
+  opens_at: string
+  closes_at: string
+  draw_at: string
+  completed_at?: string | null
+}
+
+type RewardDraw = {
+  id: string
+  slug: string
+  name: string
+  prize_kind: "admission_pass" | "physical_item"
+  eligibility_kind: "all_active" | "event_interest"
+  event_slug?: string | null
+  status: "draft" | "scheduled" | "running" | "completed" | "cancelled"
+  winner_count: number
+  run_count: number
+  selected_winners: number
+  proof_count: number
+  can_delete: boolean
   opens_at: string
   closes_at: string
   draw_at: string
@@ -137,6 +157,7 @@ type Overview = {
   activation: InventoryActivation | null
   inventory: { generated_at: string | null; items: InventoryItem[] }
   campaigns: Campaign[]
+  draws: RewardDraw[]
   fulfillments: Fulfillment[]
   recommendations: Recommendation[]
   degraded: { active: boolean; unavailable: string[] }
@@ -269,6 +290,7 @@ export default function StaffCommerceManager() {
   const [state, setState] = useState<LoadState>("checking")
   const [password, setPassword] = useState("")
   const [overview, setOverview] = useState<Overview | null>(null)
+  const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
   const [stockSku, setStockSku] = useState("")
@@ -352,7 +374,7 @@ export default function StaffCommerceManager() {
     requestRef.current?.abort()
     const controller = new AbortController()
     requestRef.current = controller
-    setBusy(true)
+    setLoading(true)
     setMessage("")
     try {
       const next = await api<Overview>("/api/staff/commerce/overview", {
@@ -368,7 +390,7 @@ export default function StaffCommerceManager() {
         setMessage("Nie udało się odświeżyć danych commerce.")
       }
     } finally {
-      if (!controller.signal.aborted) setBusy(false)
+      if (!controller.signal.aborted) setLoading(false)
     }
   }
 
@@ -407,7 +429,9 @@ export default function StaffCommerceManager() {
       if (status === 401) setState("login")
       setMessage(
         status === 409
-          ? "Operacja koliduje z aktualnym stanem lub dostępnym magazynem."
+          ? path.includes("/draws/")
+            ? "Tego losowania nie można już usunąć: istnieje run, zwycięzca, Proof of Fair albo stan nie pozwala na usunięcie."
+            : "Operacja koliduje z aktualnym stanem lub dostępnym magazynem."
           : status === 503
             ? "Funkcja jest wyłączona albo CrowdRelay jest chwilowo niedostępny."
             : "Operacja nie powiodła się.",
@@ -416,6 +440,19 @@ export default function StaffCommerceManager() {
     } finally {
       setBusy(false)
     }
+  }
+
+  async function deleteDraw(draw: RewardDraw) {
+    if (busy || loading || !draw.can_delete) return
+    const confirmed = window.confirm(
+      `Usunąć błędne losowanie „${draw.name}”?\n\nTa akcja nie usuwa koncertu. Jest dostępna tylko przed pierwszym runem, zwycięzcą i Proof of Fair.`,
+    )
+    if (!confirmed) return
+    await mutate(
+      `/api/staff/commerce/draws/${draw.id}/delete`,
+      {},
+      `Losowanie „${draw.name}” zostało usunięte. Koncert pozostał bez zmian.`,
+    )
   }
 
   async function adjustStock(event: SubmitEvent) {
@@ -532,7 +569,8 @@ export default function StaffCommerceManager() {
   }
 
   return (
-    <div class="grid gap-6">
+    <div class="relative grid gap-6">
+      {loading && <BackendLoader overlay label="Pobieram merch, magazyn i losowania…" />}
       <section class="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -542,9 +580,9 @@ export default function StaffCommerceManager() {
               Jeden stan magazynowy dla strony, Virya Signal, sprzedaży Stripe i nagród. Operacje są idempotentne, a nowe funkcje mają osobne kill switche.
             </p>
           </div>
-          <button type="button" disabled={busy} onClick={() => void refresh()}
+          <button type="button" disabled={busy || loading} onClick={() => void refresh()}
             class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-zinc-200 hover:bg-white/10 disabled:opacity-50">
-            {busy ? "ODŚWIEŻAM…" : "ODŚWIEŻ"}
+            {loading ? "ODŚWIEŻAM…" : "ODŚWIEŻ"}
           </button>
         </div>
         {overview?.degraded.active ? (
@@ -791,6 +829,54 @@ export default function StaffCommerceManager() {
               </article>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+        <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Losowania / administracja</p>
+        <h2 class="mt-2 text-2xl font-black text-white">Wszystkie weighted draws</h2>
+        <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+          Tu są także losowania wejściówek, które nie mają merchowego stocku. Błędny draw możesz usunąć tylko zanim powstanie pierwszy run, zwycięzca albo Proof of Fair. Koncert nie jest usuwany.
+        </p>
+        <div class="mt-5 grid gap-3">
+          {(overview?.draws ?? []).length === 0 ? <Empty>Brak skonfigurowanych losowań.</Empty> : overview?.draws.map(draw => (
+            <article key={draw.id} class="rounded-2xl border border-white/10 bg-black/30 p-4">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p class="font-black text-white">{draw.name}</p>
+                  <p class="mt-1 font-mono text-[11px] text-zinc-500">{draw.slug}</p>
+                  <p class="mt-2 text-xs text-zinc-400">
+                    {draw.prize_kind === "admission_pass" ? "Wejściówki" : "Nagroda fizyczna"}
+                    {draw.event_slug ? ` · ${draw.event_slug}` : " · pula globalna"}
+                    {` · ${draw.winner_count} zwycięzców`}
+                  </p>
+                </div>
+                <span class="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-zinc-200">{campaignStatus(draw.status)}</span>
+              </div>
+              <div class="mt-3 grid gap-1 text-xs text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+                <span>Losowanie: {displayDate(draw.draw_at)}</span>
+                <span>Runy: {draw.run_count}</span>
+                <span>Zwycięzcy: {draw.selected_winners}</span>
+                <span>Proofy: {draw.proof_count}</span>
+              </div>
+              {draw.can_delete ? (
+                <button
+                  type="button"
+                  disabled={busy || loading}
+                  onClick={() => void deleteDraw(draw)}
+                  class="mt-4 rounded-lg border border-red-400/35 bg-red-400/[.04] px-3 py-2 text-xs font-black text-red-300 hover:bg-red-400/10 disabled:opacity-50"
+                >
+                  USUŃ BŁĘDNE LOSOWANIE
+                </button>
+              ) : (
+                <p class="mt-4 text-xs font-semibold text-zinc-500">
+                  {draw.run_count > 0 || draw.selected_winners > 0 || draw.proof_count > 0
+                    ? "Zablokowane: istnieje już trwała historia losowania / Proof of Fair."
+                    : "Zablokowane w aktualnym stanie losowania."}
+                </p>
+              )}
+            </article>
+          ))}
         </div>
       </section>
 

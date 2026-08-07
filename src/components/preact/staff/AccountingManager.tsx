@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { safeFormatDate } from "../../../lib/safeDateFormat"
+import BackendLoader from "./BackendLoader"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type ApiError = Error & { status?: number }
@@ -169,6 +170,7 @@ export default function AccountingManager() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [documentNumber, setDocumentNumber] = useState("")
   const [busy, setBusy] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
   const [profileOpen, setProfileOpen] = useState(false)
   const passwordRef = useRef<HTMLInputElement | null>(null)
@@ -206,7 +208,7 @@ export default function AccountingManager() {
     requestRef.current?.abort()
     const controller = new AbortController()
     requestRef.current = controller
-    setBusy(true)
+    setLoading(true)
     setMessage("")
     try {
       const [nextPreview, invoiceResult] = await Promise.all([
@@ -222,8 +224,10 @@ export default function AccountingManager() {
       if ((error as ApiError).status === 401) setState("login")
       else setMessage("Nie udało się przygotować zestawienia. Sprawdź migracje i połączenie z CrowdRelay.")
     } finally {
-      if (requestRef.current === controller) requestRef.current = null
-      setBusy(false)
+      if (requestRef.current === controller) {
+        requestRef.current = null
+        setLoading(false)
+      }
     }
   }
 
@@ -280,10 +284,11 @@ export default function AccountingManager() {
   )
 
   return (
-    <section class="space-y-6">
+    <section class="relative space-y-6">
+      {loading && <BackendLoader overlay label="Pobieram sprzedaż, Stripe i księgowość…" />}
       <header class="grid gap-5 rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 lg:grid-cols-[1fr_auto] lg:items-end">
         <div><p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">WB Soft · sprzedaż Virya</p><h1 class="mt-2 text-3xl font-black text-white sm:text-4xl">WEW i kontrola Stripe</h1><p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">Wybierz miesiąc, sprawdź brutto/netto/VAT, wpisz numer dokumentu i zamknij niezmienny snapshot. Prowizja Stripe jest kosztem, nie pomniejsza przychodu.</p></div>
-        <div class="flex flex-wrap gap-2"><input aria-label="Miesiąc" type="month" value={month} onInput={event => setMonth(event.currentTarget.value)} class="rounded-xl border border-white/10 bg-black px-4 py-3 text-white" /><button disabled={busy} onClick={() => void loadMonth(month)} class="rounded-xl border border-white/15 px-4 py-3 font-bold text-white hover:bg-white/10 disabled:opacity-50">{busy ? "Liczenie…" : "Przelicz"}</button></div>
+        <div class="flex flex-wrap gap-2"><input aria-label="Miesiąc" type="month" value={month} onInput={event => setMonth(event.currentTarget.value)} class="rounded-xl border border-white/10 bg-black px-4 py-3 text-white" /><button disabled={busy || loading} onClick={() => void loadMonth(month)} class="rounded-xl border border-white/15 px-4 py-3 font-bold text-white hover:bg-white/10 disabled:opacity-50">{loading ? "Liczenie…" : "Przelicz"}</button></div>
       </header>
 
       {message && <div role="status" class="rounded-2xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">{message}</div>}
