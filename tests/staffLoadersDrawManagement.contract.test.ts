@@ -44,7 +44,27 @@ test("public draw page explains Proof of Fair before technical details", () => {
   assert.match(page, /VIRYA \/\/ PROOF OF FAIR/)
   assert.match(page, /Każde losowanie w Virya może zostać niezależnie zweryfikowane/)
   assert.match(page, /nie musisz nam wierzyć na słowo/)
-  const intro = page.split("VIRYA // PROOF OF FAIR", 2)[1]?.split("{!proof ?", 1)[0] ?? ""
+  assert.match(page, /Dane techniczne dowodu/)
+  const intro = page.split("VIRYA // PROOF OF FAIR", 2)[1]?.split("state.kind === \"not_found\"", 1)[0] ?? ""
   assert.doesNotMatch(intro, /PostgreSQL pozostaje źródłem prawdy/)
   assert.doesNotMatch(intro, /snapshoty kandydatów/)
+  assert.doesNotMatch(page, /Draw slug:/)
+})
+
+test("public proof lifecycle is sourced from CrowdRelay and removed draws become real 404s", () => {
+  const page = read("src/pages/pl/dowody/losowania/[slug].astro")
+  const lifecycle = read("src/server/publicDrawProof.ts")
+  const statusProxy = read("src/pages/api/proofs/draws/[slug]/status.ts")
+
+  assert.match(lifecycle, /public\/proofs\/draws\/\$\{encodeURIComponent\(drawRef\.drawSlug\)\}\/status/)
+  assert.match(lifecycle, /statusResponse\.status === 404/)
+  assert.match(page, /Astro\.response\.status = 404/)
+  assert.match(page, /Astro\.response\.status = 410/)
+  assert.match(page, /Astro\.response\.status = 503/)
+  assert.match(page, /Proof of Fair aktywny/)
+  assert.match(page, /Losowanie jest zaplanowane/)
+  assert.match(page, /Losowanie jest właśnie wykonywane/)
+  assert.match(page, /Wynik zapisany — publikujemy Proof of Fair/)
+  assert.match(statusProxy, /max-age=5, s-maxage=10, must-revalidate/)
+  assert.match(statusProxy, /no-store/)
 })

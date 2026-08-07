@@ -1,17 +1,9 @@
 export type PublicDrawProofRef = {
   drawSlug: string
-  title?: string
 }
 
 const knownDraws: Record<string, PublicDrawProofRef> = {
-  namyslow: {
-    drawSlug: "namyslow-guest-list-2026",
-    title: "4 wejściówki — Namysłów",
-  },
-  "namyslow-guest-list-2026": {
-    drawSlug: "namyslow-guest-list-2026",
-    title: "4 wejściówki — Namysłów",
-  },
+  namyslow: { drawSlug: "namyslow-guest-list-2026" },
 }
 
 export function resolvePublicDrawProof(slug: string): PublicDrawProofRef {
