@@ -31,3 +31,17 @@ test("proof UI uses Rekor coordinates and contains no Base Sepolia contract", as
     assert.doesNotMatch(value, /basescan|Base Sepolia|transaction_hash|chain_id/)
   }
 })
+
+
+test("public Namysłów proof resolves the friendly URL to the scheduled CrowdRelay draw", async () => {
+  const publicProof = await source("src/pages/pl/dowody/losowania/[slug].astro")
+  const proxy = await source("src/pages/api/proofs/draws/[slug].ts")
+  const refs = await source("src/data/drawProofs.ts")
+  assert.match(refs, /namyslow-guest-list-2026/)
+  assert.match(refs, /2026-09-01T20:05:00\+02:00/)
+  assert.match(publicProof, /resolvePublicDrawProof/)
+  assert.match(proxy, /resolvePublicDrawProof/)
+  assert.match(publicProof, /Dowód pojawi się po losowaniu/)
+  assert.match(publicProof, /Działający Sigstore Rekor może w tym czasie normalnie kotwiczyć inne proofy/)
+  assert.doesNotMatch(publicProof, /warstwa proofów nie była jeszcze aktywna/)
+})

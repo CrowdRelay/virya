@@ -5,23 +5,36 @@ import Layout from "../../../../components/Layout.astro"
 import Navbar from "../../../../components/Navbar.astro"
 import Footer from "../../../../components/Footer.astro"
 import ScrollToTop from "../../../../components/ScrollToTop.astro"
+import { resolvePublicDrawProof } from "../../../../data/drawProofs"
 
 const slug = Astro.params.slug ?? ""
+const drawRef = resolvePublicDrawProof(slug)
 const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL?.trim() || "https://signal-api.virya.music/v1/"
 const base = configured.endsWith("/") ? configured : `${configured}/`
 let proof: any = null
-let unavailable = false
+let proofState: "ready" | "pending" | "unavailable" = "pending"
 try {
-  const response = await fetch(`${base}public/proofs/draws/${encodeURIComponent(slug)}`, {
+  const response = await fetch(`${base}public/proofs/draws/${encodeURIComponent(drawRef.drawSlug)}`, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(8_000),
   })
-  if (response.ok) proof = await response.json()
-  else unavailable = true
+  if (response.ok) {
+    proof = await response.json()
+    proofState = "ready"
+  } else if (response.status === 404) {
+    proofState = "pending"
+  } else {
+    proofState = "unavailable"
+  }
 } catch {
-  unavailable = true
+  proofState = "unavailable"
 }
-const title = proof ? `Dowód losowania: ${proof.draw_name} · Virya` : "Dowód losowania · Virya"
+const drawAt = drawRef.drawAt ? new Date(drawRef.drawAt) : null
+const scheduled = !proof && proofState === "pending" && drawAt && drawAt.getTime() > Date.now()
+const scheduledDrawLabel = drawAt
+  ? drawAt.toLocaleString("pl-PL", { timeZone: "Europe/Warsaw", dateStyle: "long", timeStyle: "short" })
+  : null
+const title = proof ? `Dowód losowania: ${proof.draw_name} · Virya` : drawRef.title ? `Dowód losowania: ${drawRef.title} · Virya` : "Dowód losowania · Virya"
 const description = "Publiczny, niezależnie weryfikowalny SHA-256 receipt losowania CrowdRelay zakotwiczony w Sigstore Rekor."
 const short = (value: unknown) => typeof value === "string" && value.length > 24
   ? `${value.slice(0, 12)}…${value.slice(-10)}`
@@ -51,11 +64,31 @@ const rekorEntryUrl = (() => {
     <ScrollToTop />
     <main class="mx-auto w-full max-w-5xl flex-1 px-5 py-24 sm:px-8">
       <p class="text-xs font-black uppercase tracking-[.28em] text-cyan-300">CrowdRelay external proof</p>
-      <h1 class="mt-4 text-3xl font-black sm:text-5xl">{proof?.draw_name ?? "Dowód losowania"}</h1>
+      <h1 class="mt-4 text-3xl font-black sm:text-5xl">{proof?.draw_name ?? drawRef.title ?? "Dowód losowania"}</h1>
       <p class="mt-5 max-w-3xl text-base leading-7 text-zinc-400">Receipt wiąże algorytm, seed i snapshoty kandydatów oraz zwycięzców. Nie zawiera nazwisk, e-maili ani danych biletowych. PostgreSQL pozostaje źródłem prawdy, a Sigstore Rekor jest wyłącznie zewnętrznym, publicznym i append-only stemplem czasu.</p>
 
-      {unavailable || !proof ? (
-        <section class="mt-10 rounded-3xl border border-amber-300/20 bg-amber-300/5 p-6"><h2 class="font-black text-amber-200">Dowód nie jest jeszcze dostępny</h2><p class="mt-2 text-sm text-zinc-400">Losowanie mogło nie zostać zakończone albo warstwa proofów nie była jeszcze aktywna.</p></section>
+      {!proof ? (
+        scheduled ? (
+          <section class="mt-10 rounded-3xl border border-cyan-300/20 bg-cyan-300/5 p-6">
+            <h2 class="font-black text-cyan-100">Dowód pojawi się po losowaniu</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-400">
+              To losowanie jest jeszcze zaplanowane. CrowdRelay tworzy receipt dopiero po zakończeniu konkretnego runu, ponieważ dowód wiąże również snapshot zwycięzców i ujawniony seed. Działający Sigstore Rekor może w tym czasie normalnie kotwiczyć inne proofy.
+            </p>
+            <p class="mt-4 text-sm font-bold text-zinc-300">Losowanie: {scheduledDrawLabel}</p>
+            <p class="mt-2 font-mono text-[11px] text-zinc-600">Draw slug: {drawRef.drawSlug}</p>
+          </section>
+        ) : proofState === "unavailable" ? (
+          <section class="mt-10 rounded-3xl border border-rose-400/20 bg-rose-400/5 p-6">
+            <h2 class="font-black text-rose-200">Usługa proofów jest chwilowo niedostępna</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-400">Nie udało się pobrać stanu z CrowdRelay. Sam wynik losowania i kolejka Rekor pozostają niezależne od tej strony.</p>
+          </section>
+        ) : (
+          <section class="mt-10 rounded-3xl border border-amber-300/20 bg-amber-300/5 p-6">
+            <h2 class="font-black text-amber-200">Brak zakończonego receipt</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-400">CrowdRelay nie ma jeszcze zakończonego runu z publicznym receipt dla tego losowania. Jeśli termin losowania już minął, stan wymaga sprawdzenia w panelu operacyjnym.</p>
+            <p class="mt-2 font-mono text-[11px] text-zinc-600">Draw slug: {drawRef.drawSlug}</p>
+          </section>
+        )
       ) : (
         <>
           <section class={`mt-10 rounded-3xl border p-6 ${proof.locally_verified ? "border-emerald-400/25 bg-emerald-400/5" : "border-rose-400/25 bg-rose-400/5"}`}>

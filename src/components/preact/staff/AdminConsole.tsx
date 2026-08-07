@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import TicketInventoryBar from "../tickets/TicketInventoryBar"
 import EcosystemControl from "./EcosystemControl"
+import BackendLoader from "./BackendLoader"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type Tab = "overview" | "signal" | "ops" | "ticketing" | "admission" | "mailer" | "system"
@@ -325,6 +326,7 @@ export default function AdminConsole() {
   const [tab, setTab] = useState<Tab>("overview")
   const [capabilities, setCapabilities] = useState<Capabilities | null>(null)
   const [overview, setOverview] = useState<Overview | null>(null)
+  const [overviewLoading, setOverviewLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
   const passwordRef = useRef<HTMLInputElement | null>(null)
@@ -402,19 +404,24 @@ export default function AdminConsole() {
   }
 
   async function loadOverview(signal?: AbortSignal) {
+    setOverviewLoading(true)
     setMessage("")
     try {
       setOverview(await api<Overview>("/api/staff/admin/overview", { signal }))
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Nie udało się pobrać stanu systemu",
-      )
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "Nie udało się pobrać stanu systemu",
+        )
+      }
+    } finally {
+      if (!signal?.aborted) setOverviewLoading(false)
     }
   }
 
-  if (state === "checking") return <StatusCard title="Sprawdzam dostęp…" />
+  if (state === "checking") return <StatusCard title="Sprawdzam dostęp…" loading />
   if (state === "unconfigured")
     return (
       <StatusCard
@@ -491,11 +498,11 @@ export default function AdminConsole() {
           </div>
           <div class="flex gap-2">
             <button
-              disabled={busy}
+              disabled={busy || overviewLoading}
               onClick={() => void loadOverview()}
               class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
             >
-              Odśwież
+              {overviewLoading ? "Odświeżam…" : "Odśwież"}
             </button>
             <button
               disabled={busy}
@@ -538,7 +545,7 @@ export default function AdminConsole() {
       )}
 
       {tab === "overview" && (
-        <OverviewTab overview={overview} capabilities={capabilities} />
+        <OverviewTab overview={overview} capabilities={capabilities} loading={overviewLoading} />
       )}
       {tab === "signal" && <SignalTab />}
       {tab === "ops" && <OpsTab />}
@@ -546,7 +553,7 @@ export default function AdminConsole() {
       {tab === "admission" && <AdmissionTab events={events} />}
       {tab === "mailer" && <MailerTab capabilities={capabilities} />}
       {tab === "system" && (
-        <SystemTab capabilities={capabilities} overview={overview} />
+        <SystemTab capabilities={capabilities} overview={overview} loading={overviewLoading} />
       )}
     </section>
   )
@@ -555,9 +562,11 @@ export default function AdminConsole() {
 function OverviewTab({
   overview,
   capabilities,
+  loading,
 }: {
   overview: Overview | null
   capabilities: Capabilities | null
+  loading: boolean
 }) {
   const upcoming = (overview?.publicEvents ?? []).filter(
     event => Date.parse(event.starts_at) >= Date.now() - 12 * 60 * 60 * 1000,
@@ -570,7 +579,8 @@ function OverviewTab({
     0,
   )
   return (
-    <div class="grid gap-5">
+    <div class="relative grid gap-5" aria-busy={loading}>
+      {loading && <BackendLoader overlay label="Pobieram stan CrowdRelay…" />}
       {overview?.degraded.active && (
         <div
           role="status"
@@ -781,6 +791,7 @@ function TicketingTab({ events }: { events: EventItem[] }) {
   const [eventSlug, setEventSlug] = useState("")
   const [overview, setOverview] = useState<TicketingOverview | null>(null)
   const [form, setForm] = useState<TicketForm>(blankTicketForm())
+  const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
 
@@ -790,8 +801,11 @@ function TicketingTab({ events }: { events: EventItem[] }) {
     setEventSlug(slug)
     setOverview(null)
     setMessage("")
-    if (!slug) return
-    setBusy(true)
+    if (!slug) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
     try {
       const result = await api<TicketingOverview>(
         `/api/staff/admin/ticketing/${encodeURIComponent(slug)}`,
@@ -813,7 +827,7 @@ function TicketingTab({ events }: { events: EventItem[] }) {
         )
       }
     } finally {
-      setBusy(false)
+      setLoading(false)
     }
   }
 
@@ -894,7 +908,8 @@ function TicketingTab({ events }: { events: EventItem[] }) {
     }))
 
   return (
-    <section class="grid gap-5">
+    <section class="relative grid gap-5" aria-busy={loading}>
+      {loading && <BackendLoader overlay label="Pobieram sprzedaż z CrowdRelay…" />}
       <div class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -910,7 +925,7 @@ function TicketingTab({ events }: { events: EventItem[] }) {
           {eventSlug && (
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || loading}
               onClick={() => void load(eventSlug)}
               class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
             >
@@ -922,6 +937,7 @@ function TicketingTab({ events }: { events: EventItem[] }) {
           Koncert
           <select
             value={eventSlug}
+            disabled={loading || busy}
             onChange={event => void load(event.currentTarget.value)}
             class="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white"
           >
@@ -1606,7 +1622,8 @@ function SignalTab() {
     : 0
 
   return (
-    <div class="grid gap-5">
+    <div class="relative grid gap-5" aria-busy={loading}>
+      {loading && <BackendLoader overlay label="Pobieram statystyki Sygnału…" />}
       <section class="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-5 sm:p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -1750,19 +1767,25 @@ function SignalPair({
 
 function OpsTab() {
   const [overview, setOverview] = useState<OpsOverview | null>(null)
+  const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState("")
   const [message, setMessage] = useState("")
 
   async function load(signal?: AbortSignal) {
+    setLoading(true)
     setMessage("")
     try {
       setOverview(
         await api<OpsOverview>("/api/staff/admin/ops/summary", { signal }),
       )
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Nie udało się pobrać kolejek",
-      )
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setMessage(
+          error instanceof Error ? error.message : "Nie udało się pobrać kolejek",
+        )
+      }
+    } finally {
+      if (!signal?.aborted) setLoading(false)
     }
   }
 
@@ -1814,7 +1837,8 @@ function OpsTab() {
   return (
     <div class="grid gap-5">
       <EcosystemControl />
-      <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+      <section class="relative rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6" aria-busy={loading}>
+        {loading && <BackendLoader overlay label="Pobieram kolejki CrowdRelay…" />}
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 class="text-xl font-black text-white">
@@ -1827,7 +1851,7 @@ function OpsTab() {
           </div>
           <button
             type="button"
-            disabled={!!busyId}
+            disabled={!!busyId || loading}
             onClick={() => void load()}
             class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
           >
@@ -1948,9 +1972,11 @@ function OpsTab() {
 function SystemTab({
   capabilities,
   overview,
+  loading,
 }: {
   capabilities: Capabilities | null
   overview: Overview | null
+  loading: boolean
 }) {
   const cards = [
     [
@@ -1977,7 +2003,8 @@ function SystemTab({
     ["Gmail", capabilities?.gmail, "Wysyłka wszystkich wiadomości"],
   ] as Array<[string, boolean | undefined, string]>
   return (
-    <div class="grid gap-5">
+    <div class="relative grid gap-5" aria-busy={loading}>
+      {loading && <BackendLoader overlay label="Pobieram stan integracji…" />}
       <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map(([label, ok, description]) => (
           <article
@@ -2134,9 +2161,10 @@ function LinkCard({
     </a>
   )
 }
-function StatusCard({ title, body }: { title: string; body?: string }) {
+function StatusCard({ title, body, loading = false }: { title: string; body?: string; loading?: boolean }) {
   return (
-    <section class="mx-auto max-w-xl rounded-3xl border border-white/10 bg-zinc-900/80 p-8">
+    <section class="relative mx-auto min-h-40 max-w-xl rounded-3xl border border-white/10 bg-zinc-900/80 p-8" aria-busy={loading}>
+      {loading && <BackendLoader overlay label={title} />}
       <h1 class="text-2xl font-black text-white">{title}</h1>
       {body && <p class="mt-3 text-zinc-400">{body}</p>}
     </section>

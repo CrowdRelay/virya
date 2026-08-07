@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks"
+import BackendLoader from "./BackendLoader"
 
 type FeatureFlag = {
   key: string
@@ -126,6 +127,7 @@ export default function EcosystemControl() {
   const [findings, setFindings] = useState<Finding[]>([])
   const [checklist, setChecklist] = useState<Checklist | null>(null)
   const [proofs, setProofs] = useState<ProofBatch[]>([])
+  const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState("")
   const [message, setMessage] = useState("")
 
@@ -141,6 +143,7 @@ export default function EcosystemControl() {
   }), [proofs])
 
   async function load() {
+    setLoading(true)
     setMessage("")
     try {
       const [overviewResult, findingsResult, proofsResult] = await Promise.allSettled([
@@ -174,6 +177,8 @@ export default function EcosystemControl() {
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Control plane niedostępny")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -265,7 +270,8 @@ export default function EcosystemControl() {
   }
 
   return (
-    <section class="grid gap-5 rounded-3xl border border-amber-300/15 bg-zinc-950/80 p-5 sm:p-6">
+    <section class="relative grid gap-5 rounded-3xl border border-amber-300/15 bg-zinc-950/80 p-5 sm:p-6" aria-busy={loading}>
+      {loading && <BackendLoader overlay label="Pobieram control plane i proofy…" />}
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p class="text-[10px] font-black uppercase tracking-[.28em] text-amber-300">Ecosystem control plane</p>
@@ -275,7 +281,7 @@ export default function EcosystemControl() {
           </p>
         </div>
         <div class="flex gap-2">
-          <button type="button" onClick={() => void load()} disabled={!!busy} class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">Odśwież</button>
+          <button type="button" onClick={() => void load()} disabled={!!busy || loading} class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">Odśwież</button>
           <button type="button" onClick={() => void reconcile()} disabled={!!busy} class="rounded-xl bg-amber-300 px-4 py-2 text-sm font-black text-zinc-950 disabled:opacity-50">{busy === "reconcile" ? "Sprawdzam…" : "Uruchom reconciliation"}</button>
         </div>
       </div>
