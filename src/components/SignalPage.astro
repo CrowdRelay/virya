@@ -31,6 +31,13 @@ const clarityCards = lang === "pl"
         reward: "Nie musisz zbierać całej Polski",
       },
       {
+        label: "SYNESTHESIA",
+        icon: "door",
+        title: "Przechodzisz przez album",
+        body: "Jedenaście utworów staje się pokojami świadomości. Ukończenie całej podróży daje jedno wejście do osobnego, audytowalnego losowania pięciu płyt.",
+        reward: "5 płyt · 1 ukończenie = 1 los",
+      },
+      {
         label: "LIVE QR",
         icon: "qr",
         title: "Przychodzisz na koncert",
@@ -52,6 +59,13 @@ const clarityCards = lang === "pl"
         title: "Play in the city",
         body: "Follow a clue, reach a live zone and unlock a collectible lyric plus a real reward.",
         reward: "1 free merch item + free delivery",
+      },
+      {
+        label: "SYNESTHESIA",
+        icon: "door",
+        title: "Walk through the album",
+        body: "Eleven tracks become rooms of consciousness. Finish the whole experience to receive one entry into a separate, auditable five-album draw.",
+        reward: "5 albums · 1 completion = 1 entry",
       },
       {
         label: "LIVE QR",
@@ -130,6 +144,9 @@ const schema = {
               <a href={lp(lang, "/my-signal/")} class="min-h-[44px] px-2 py-3 text-[10px] font-black uppercase tracking-[.18em] text-zinc-400 hover:text-amber-400">
                 {lang === "pl" ? "Mam już Sygnał" : "I already joined"} →
               </a>
+              <a href="https://synesthesia.virya.music/?source=virya-signal" class="min-h-[44px] px-2 py-3 text-[10px] font-black uppercase tracking-[.18em] text-cyan-300 hover:text-cyan-100">
+                SYNESTHESIA ↗
+              </a>
             </div>
           </div>
 
@@ -153,7 +170,7 @@ const schema = {
                 <p class="text-[8px] font-black uppercase tracking-[.25em] text-zinc-500">{lang === "pl" ? "RDZEŃ" : "CORE"}</p>
                 <p class="mt-1 text-sm font-black uppercase text-white">{lang === "pl" ? "Najpierw muzyka" : "Music first"}</p>
               </div>
-              <p class="font-mono text-[9px] uppercase tracking-[.18em] text-amber-400">{lang === "pl" ? "GRA + LIVE + MERCH" : "AREA + LIVE + MERCH"}</p>
+              <p class="font-mono text-[9px] uppercase tracking-[.18em] text-amber-400">{lang === "pl" ? "SYN + GRA + LIVE + MERCH" : "SYN + AREA + LIVE + MERCH"}</p>
             </div>
           </aside>
         </div>
@@ -166,7 +183,7 @@ const schema = {
             <h2 id="signal-simple-heading" class="virya-heading mt-4 !text-[clamp(2rem,7vw,4rem)]">{clarityHeading}</h2>
             <p class="virya-copy mt-5 text-zinc-300">{clarityBody}</p>
           </div>
-          <div class="mt-9 grid gap-4 md:grid-cols-3">
+          <div class="mt-9 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {clarityCards.map((card) => (
               <article class="virya-panel flex min-h-full flex-col p-5 sm:p-6">
                 <div class="flex items-center justify-between gap-4">
@@ -181,6 +198,12 @@ const schema = {
                       <svg viewBox="0 0 24 24" fill="none">
                         <path d="M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0Z" />
                         <circle cx="12" cy="10" r="2.25" />
+                      </svg>
+                    )}
+                    {card.icon === "door" && (
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M6.5 20V4h11v16M9.5 20V7l5-1.4V20" />
+                        <circle cx="13.1" cy="12.7" r=".65" fill="currentColor" stroke="none" />
                       </svg>
                     )}
                     {card.icon === "qr" && (
@@ -233,6 +256,7 @@ const schema = {
           <div class="flex flex-col gap-3 sm:flex-row lg:flex-col">
             <a href={lp(lang, "/area/")} class="virya-button virya-button--primary min-h-[48px] px-6">{copy.area.cta}</a>
             <a href={lp(lang, "/merch/")} class="virya-button virya-button--secondary min-h-[48px] px-6">{copy.area.merch}</a>
+            <a href="https://synesthesia.virya.music/?source=virya-signal-bottom" class="virya-button virya-button--secondary min-h-[48px] px-6">SYNESTHESIA ↗</a>
           </div>
         </div>
       </section>

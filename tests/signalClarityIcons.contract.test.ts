@@ -14,5 +14,5 @@ test("Signal clarity icons use centered monochrome SVGs", () => {
   assert.match(source, /justify-content: center/)
   assert.match(source, /stroke: currentColor/)
   assert.doesNotMatch(source, /\["✉", "⌖", "▣"\]/)
-  assert.equal((source.match(/<svg viewBox="0 0 24 24" fill="none">/g) ?? []).length, 3)
+  assert.equal((source.match(/<svg viewBox="0 0 24 24" fill="none">/g) ?? []).length, 4)
 })
