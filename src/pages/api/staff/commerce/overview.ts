@@ -14,6 +14,7 @@ import type {
 export const prerender = false
 
 type Campaign = Record<string, unknown>
+type RewardDraw = Record<string, unknown>
 type Fulfillment = Record<string, unknown>
 type Recommendation = Record<string, unknown>
 
@@ -31,12 +32,13 @@ const valueOr = <T,>(result: PromiseSettledResult<T>, fallback: T) =>
 export const GET: APIRoute = async ({ cookies }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
 
-  const [catalog, activation, inventory, campaigns, fulfillments, recommendations] =
+  const [catalog, activation, inventory, campaigns, draws, fulfillments, recommendations] =
     await Promise.allSettled([
       staffApiRequest<MerchCatalog>("admin/merch/catalog", { timeoutMs: 8_000 }),
       staffApiRequest<InventoryActivation>("admin/merch/inventory/activation", { timeoutMs: 8_000 }),
       staffApiRequest<InventoryOverview>("admin/merch/inventory/overview", { timeoutMs: 8_000 }),
       staffApiRequest<Campaign[]>("admin/reward-campaigns", { timeoutMs: 8_000 }),
+      staffApiRequest<RewardDraw[]>("admin/reward-draws", { timeoutMs: 8_000 }),
       staffApiRequest<Fulfillment[]>("admin/reward-fulfillments", { timeoutMs: 8_000 }),
       staffApiRequest<Recommendation[]>("admin/merch/promotion-recommendations", { timeoutMs: 8_000 }),
     ] as const)
@@ -46,6 +48,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     ["activation", activation],
     ["inventory", inventory],
     ["campaigns", campaigns],
+    ["draws", draws],
     ["fulfillments", fulfillments],
     ["recommendations", recommendations],
   ] as const
@@ -64,6 +67,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     activation: valueOr(activation, null),
     inventory: valueOr(inventory, { generated_at: "", items: [] }),
     campaigns: valueOr(campaigns, []),
+    draws: valueOr(draws, []),
     fulfillments: valueOr(fulfillments, []),
     recommendations: valueOr(recommendations, []),
     degraded: { active: unavailable.length > 0, unavailable },

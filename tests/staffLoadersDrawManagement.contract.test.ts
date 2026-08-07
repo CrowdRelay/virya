@@ -1,0 +1,50 @@
+import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
+import test from "node:test"
+
+const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
+
+test("standalone staff tabs use the same scoped backend loader as Control Center", () => {
+  const qr = read("src/components/preact/staff/ConcertQrManager.tsx")
+  const accounting = read("src/components/preact/staff/AccountingManager.tsx")
+  const commerce = read("src/components/preact/staff/StaffCommerceManager.tsx")
+  const loader = read("src/components/preact/staff/BackendLoader.tsx")
+
+  for (const [source, label] of [
+    [qr, "Pobieram koncerty, kampanie QR i bramkę"],
+    [accounting, "Pobieram sprzedaż, Stripe i księgowość"],
+    [commerce, "Pobieram merch, magazyn i losowania"],
+  ] as const) {
+    assert.match(source, /BackendLoader/)
+    assert.ok(source.includes(label), `missing loader label: ${label}`)
+    assert.match(source, /overlay/)
+  }
+  assert.match(loader, /animate-spin/)
+})
+
+test("staff commerce manages every draw and only exposes fail-closed deletion", () => {
+  const panel = read("src/components/preact/staff/StaffCommerceManager.tsx")
+  const overview = read("src/pages/api/staff/commerce/overview.ts")
+  const deletion = read("src/pages/api/staff/commerce/draws/[id]/delete.ts")
+
+  assert.match(overview, /admin\/reward-draws/)
+  assert.match(panel, /Wszystkie weighted draws/)
+  assert.match(panel, /USUŃ BŁĘDNE LOSOWANIE/)
+  assert.match(panel, /draw\.can_delete/)
+  assert.match(panel, /run_count/)
+  assert.match(panel, /proof_count/)
+  assert.match(panel, /Koncert nie jest usuwany/)
+  assert.match(deletion, /isSameOriginRequest/)
+  assert.match(deletion, /hasStaffQrSession/)
+  assert.ok(deletion.includes("admin/reward-draws/${encodeURIComponent(id)}/delete"))
+})
+
+test("public draw page explains Proof of Fair before technical details", () => {
+  const page = read("src/pages/pl/dowody/losowania/[slug].astro")
+  assert.match(page, /VIRYA \/\/ PROOF OF FAIR/)
+  assert.match(page, /Każde losowanie w Virya może zostać niezależnie zweryfikowane/)
+  assert.match(page, /nie musisz nam wierzyć na słowo/)
+  const intro = page.split("VIRYA // PROOF OF FAIR", 2)[1]?.split("{!proof ?", 1)[0] ?? ""
+  assert.doesNotMatch(intro, /PostgreSQL pozostaje źródłem prawdy/)
+  assert.doesNotMatch(intro, /snapshoty kandydatów/)
+})
