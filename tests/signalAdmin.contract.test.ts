@@ -6,6 +6,8 @@ const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.ur
 
 const ui = read("src/components/preact/staff/AdminConsole.tsx")
 const route = read("src/pages/api/staff/admin/signal/overview.ts")
+const ecosystem = read("src/components/preact/staff/EcosystemControl.tsx")
+const loader = read("src/components/preact/staff/BackendLoader.tsx")
 
 test("admin panel exposes a dedicated aggregate-only Signal tab", () => {
   for (const marker of [
@@ -27,4 +29,23 @@ test("Signal proxy stays behind staff session and server-side admin credentials"
   assert.match(route, /Signal control plane temporarily unavailable/)
   assert.doesNotMatch(route, /CROWDRELAY_ADMIN_API_KEY/)
   assert.doesNotMatch(route, /email|display_name|fan_id/i)
+})
+
+
+test("backend-backed admin sections expose scoped loading overlays", () => {
+  for (const marker of [
+    "BackendLoader",
+    "overviewLoading",
+    "Pobieram stan CrowdRelay",
+    "Pobieram sprzedaż z CrowdRelay",
+    "Pobieram statystyki Sygnału",
+    "Pobieram kolejki CrowdRelay",
+    "aria-busy",
+  ]) {
+    assert.ok(ui.includes(marker), `missing admin loading marker: ${marker}`)
+  }
+  assert.match(ecosystem, /BackendLoader/)
+  assert.match(ecosystem, /Pobieram control plane i proofy/)
+  assert.match(loader, /animate-spin/)
+  assert.match(loader, /role="status"/)
 })
