@@ -34,6 +34,9 @@ test("staff commerce manages every draw and only exposes fail-closed deletion", 
   assert.match(panel, /run_count/)
   assert.match(panel, /proof_count/)
   assert.match(panel, /Koncert nie jest usuwany/)
+  assert.match(panel, /IDŹ DO LOSOWANIA/)
+  assert.match(panel, /\/pl\/dowody\/losowania\//)
+  assert.match(panel, /encodeURIComponent\(draw\.slug\)/)
   assert.match(deletion, /isSameOriginRequest/)
   assert.match(deletion, /hasStaffQrSession/)
   assert.ok(deletion.includes("admin/reward-draws/${encodeURIComponent(id)}/delete"))
@@ -67,4 +70,10 @@ test("public proof lifecycle is sourced from CrowdRelay and removed draws become
   assert.match(page, /Wynik zapisany — publikujemy Proof of Fair/)
   assert.match(statusProxy, /max-age=5, s-maxage=10, must-revalidate/)
   assert.match(statusProxy, /no-store/)
+})
+
+
+test("Gorzów friendly proof alias resolves to the canonical CrowdRelay draw slug", () => {
+  const refs = read("src/data/drawProofs.ts")
+  assert.match(refs, /gorzow-guest-list-2026/)
 })
