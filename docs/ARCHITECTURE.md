@@ -1,30 +1,26 @@
 # Architecture
 
-Virya is a static-first Astro application with narrowly hydrated Preact islands and server-side Netlify routes.
+`virya.music` is the static-first public/trusted-edge frontend of the VIRYA ecosystem.
 
-## Trust boundaries
+## Boundaries
 
-- The browser receives public content, short-lived fan capabilities and masked ticket data only.
-- Astro API routes own Stripe secrets, CrowdRelay admin credentials, staff sessions and transactional mail credentials.
-- CrowdRelay owns fan consent, referrals, events, ticket inventory, admission state and durable asynchronous delivery.
-- n8n consumes signed events after CrowdRelay has committed business state; automation is not part of the transaction boundary.
+- Astro renders public/static pages; Preact hydrates only interactive surfaces.
+- same-origin `/api/*` routes own Stripe, mail and privileged CrowdRelay credentials;
+- CrowdRelay owns fan consent, event/ticket/inventory/draw state and durable outbox delivery;
+- Virya Signal is a native client of first-party HTTP/deep-link contracts;
+- Synesthesia is an independent Godot album experience using additive CrowdRelay run/draw endpoints;
+- n8n consumes signed events after business state commits and is never a transaction dependency.
 
-## Request path
+The browser never receives Stripe secrets, staff/admin/service keys or shipping-provider credentials.
 
-1. Astro renders static public pages or a server route.
-2. Preact islands call same-origin `/api/*` routes with bounded timeouts and abort signals.
-3. Server routes validate the staff session or public capability before calling CrowdRelay or Stripe.
-4. CrowdRelay returns authoritative state and a request correlation identifier.
-5. The middleware attaches `X-Request-ID`, security headers and no-store policy to private or failed responses.
+## Reliability
 
-## Failure isolation
-
-- Public pages remain renderable when CrowdRelay analytics are unavailable.
-- Staff overview uses independent upstream reads and exposes degraded sources instead of collapsing the whole screen.
-- Ticket and winner capability pages are never cached by the service worker.
-- Runtime failures are captured before Astro navigation starts and can be copied as a bounded, privacy-safe report.
-- Uncaught server failures become correlated `application/problem+json` or diagnostic HTML responses without stack leakage.
+Public content fails open around analytics/provider enrichment. Ticket checkout, inventory mutation, staff actions and admission validation fail closed when authoritative state is unavailable. Private/token routes are no-store/noindex. Requests are time-bounded and cancellable; staff dashboards may degrade per source rather than collapse globally.
 
 ## Data minimization
 
-The Signal admin view consumes only aggregate counters and a maximum of ten city aggregates. It does not request e-mail addresses, display names, fan IDs or consent history.
+Signal/AREA/Synesthesia are separate purpose boundaries. AREA exposes only coarse public city references. Synesthesia draw entry does not grant marketing consent or collect shipping PII. Staff aggregate views avoid fan PII unless the operation explicitly requires it.
+
+## Product links
+
+The public ecosystem rail exposes `virya.music`, Signal/AREA and `synesthesia.virya.music`. Links are navigation boundaries, not shared runtime dependencies, so a failure in one experience cannot take down the others.

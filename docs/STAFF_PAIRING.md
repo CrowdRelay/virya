@@ -41,7 +41,7 @@ The web generator fixes the role to `staff`, allows a validity window of one to 
 2. Enter a recognizable person/device label.
 3. Generate a three-, five- or ten-minute QR.
 4. In Virya Signal open the operator area and choose `ZESKANUJ KOD QR`.
-5. Scan the code and set a local PIN of at least six characters.
+5. Scan the code and set a local 4–6 digit PIN.
 6. Hide the code immediately after the device confirms pairing.
 
 ## Security boundary

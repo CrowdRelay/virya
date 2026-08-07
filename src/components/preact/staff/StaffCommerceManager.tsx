@@ -3,6 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
+type EligibilityKind = "all_active" | "event_interest" | "synesthesia_completion"
+
+const SYNESTHESIA_CAMPAIGN = "virya-synesthesia-album-v1"
 type ApiError = Error & { status?: number }
 
 type Variant = {
@@ -36,7 +39,8 @@ type Campaign = {
   slug: string
   name: string
   status: "draft" | "scheduled" | "running" | "completed" | "cancelled"
-  eligibility_kind: "all_active" | "event_interest"
+  eligibility_kind: EligibilityKind
+  eligibility_ref?: string | null
   event_slug?: string | null
   winner_count: number
   selected_winners: number
@@ -58,7 +62,8 @@ type RewardDraw = {
   slug: string
   name: string
   prize_kind: "admission_pass" | "physical_item"
-  eligibility_kind: "all_active" | "event_interest"
+  eligibility_kind: EligibilityKind
+  eligibility_ref?: string | null
   event_slug?: string | null
   status: "draft" | "scheduled" | "running" | "completed" | "cancelled"
   winner_count: number
@@ -170,7 +175,7 @@ type CampaignForm = {
   prizeSku: string
   winnerCount: number
   unitsPerWinner: number
-  eligibilityKind: "all_active" | "event_interest"
+  eligibilityKind: EligibilityKind
   eventSlug: string
   opensAt: string
   closesAt: string
@@ -522,13 +527,16 @@ export default function StaffCommerceManager() {
         winner_count: campaign.winnerCount,
         units_per_winner: campaign.unitsPerWinner,
         eligibility_kind: campaign.eligibilityKind,
+        eligibility_ref: campaign.eligibilityKind === "synesthesia_completion"
+          ? SYNESTHESIA_CAMPAIGN
+          : null,
         event_slug: campaign.eligibilityKind === "event_interest"
           ? campaign.eventSlug.trim()
           : null,
         base_entries: 1,
-        entries_per_referral: 1,
+        entries_per_referral: campaign.eligibilityKind === "synesthesia_completion" ? 0 : 1,
         entries_per_checkin: campaign.eligibilityKind === "event_interest" ? 1 : 0,
-        max_entries: 1000,
+        max_entries: campaign.eligibilityKind === "synesthesia_completion" ? 1 : 1000,
         claim_expires_hours: 168,
         opens_at: dates[0].toISOString(),
         closes_at: dates[1].toISOString(),
@@ -766,21 +774,36 @@ export default function StaffCommerceManager() {
               </select>
             </Field>
             <Field label="Zwycięzcy">
-              <input type="number" min="1" max="10000" value={campaign.winnerCount} onInput={event => setCampaign(current => ({ ...current, winnerCount: Number(event.currentTarget.value) }))} class="input" />
+              <input type="number" min="1" max="10000" value={campaign.winnerCount} disabled={campaign.eligibilityKind === "synesthesia_completion"} onInput={event => setCampaign(current => ({ ...current, winnerCount: Number(event.currentTarget.value) }))} class="input disabled:opacity-60" />
             </Field>
             <Field label="Sztuk na osobę">
-              <input type="number" min="1" max="100" value={campaign.unitsPerWinner} onInput={event => setCampaign(current => ({ ...current, unitsPerWinner: Number(event.currentTarget.value) }))} class="input" />
+              <input type="number" min="1" max="100" value={campaign.unitsPerWinner} disabled={campaign.eligibilityKind === "synesthesia_completion"} onInput={event => setCampaign(current => ({ ...current, unitsPerWinner: Number(event.currentTarget.value) }))} class="input disabled:opacity-60" />
             </Field>
             <Field label="Kwalifikacja" wide>
-              <select value={campaign.eligibilityKind} onChange={event => setCampaign(current => ({ ...current, eligibilityKind: event.currentTarget.value as CampaignForm["eligibilityKind"] }))} class="input">
+              <select
+                value={campaign.eligibilityKind}
+                onChange={event => {
+                  const eligibilityKind = event.currentTarget.value as CampaignForm["eligibilityKind"]
+                  setCampaign(current => eligibilityKind === "synesthesia_completion"
+                    ? { ...current, eligibilityKind, winnerCount: 5, unitsPerWinner: 1, eventSlug: "" }
+                    : { ...current, eligibilityKind })
+                }}
+                class="input"
+              >
                 <option value="all_active">Wszyscy aktywni Sygnałowcy</option>
                 <option value="event_interest">Zainteresowani konkretnym koncertem</option>
+                <option value="synesthesia_completion">Synesthesia · ukończenie całego albumu</option>
               </select>
             </Field>
             {campaign.eligibilityKind === "event_interest" ? (
               <Field label="Slug koncertu" wide>
                 <input value={campaign.eventSlug} onInput={event => setCampaign(current => ({ ...current, eventSlug: slugify(event.currentTarget.value) }))} class="input" />
               </Field>
+            ) : null}
+            {campaign.eligibilityKind === "synesthesia_completion" ? (
+              <div class="sm:col-span-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[.04] p-3 text-xs leading-5 text-cyan-100/80">
+                Synesthesia jest trybem stałym: <strong>5 płyt · 1 ukończenie = 1 los</strong>. Bez bonusu za polecenia i check-in. Kandydaci trafiają do zwykłego CrowdRelay Proof of Fair, a stock jest rezerwowany przed losowaniem.
+              </div>
             ) : null}
             <Field label="Start zapisów"><input type="datetime-local" value={campaign.opensAt} onInput={event => setCampaign(current => ({ ...current, opensAt: event.currentTarget.value }))} class="input" /></Field>
             <Field label="Koniec zapisów"><input type="datetime-local" value={campaign.closesAt} onInput={event => setCampaign(current => ({ ...current, closesAt: event.currentTarget.value }))} class="input" /></Field>
@@ -810,6 +833,7 @@ export default function StaffCommerceManager() {
                   <div>
                     <p class="font-black text-white">{item.name}</p>
                     <p class="mt-1 text-xs text-zinc-500">{item.prize_name} / {item.prize_variant} · {item.winner_count} × {item.units_per_winner}</p>
+                    {item.eligibility_kind === "synesthesia_completion" ? <p class="mt-1 text-xs font-semibold text-cyan-200/80">Synesthesia · 1 ukończenie = 1 los</p> : null}
                   </div>
                   <span class="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-zinc-200">{campaignStatus(item.status)}</span>
                 </div>
@@ -848,7 +872,9 @@ export default function StaffCommerceManager() {
                   <p class="mt-1 font-mono text-[11px] text-zinc-500">{draw.slug}</p>
                   <p class="mt-2 text-xs text-zinc-400">
                     {draw.prize_kind === "admission_pass" ? "Wejściówki" : "Nagroda fizyczna"}
-                    {draw.event_slug ? ` · ${draw.event_slug}` : " · pula globalna"}
+                    {draw.eligibility_kind === "synesthesia_completion"
+                      ? " · Synesthesia"
+                      : draw.event_slug ? ` · ${draw.event_slug}` : " · pula globalna"}
                     {` · ${draw.winner_count} zwycięzców`}
                   </p>
                 </div>
