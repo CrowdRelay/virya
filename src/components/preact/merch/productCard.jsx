@@ -287,7 +287,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
           <div class="mb-4">
             <div class="flex items-center justify-between mb-2">
               <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{t("product.size")}</p>
-              <button type="button" onClick={() => setGuideOpen(true)} class="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors cursor-pointer">{t("product.sizeGuide")}</button>
+              <button type="button" onClick={() => setGuideOpen(true)} class="hidden sm:inline-flex min-h-[44px] items-center text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors cursor-pointer">{t("product.sizeGuide")}</button>
             </div>
             <div class="grid grid-cols-3 gap-1.5 sm:flex sm:flex-nowrap">
               {product.sizes.map((s) => {
@@ -311,7 +311,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
                 )
               })}
             </div>
-            <button type="button" onClick={() => setGuideOpen(true)} class="sm:hidden mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors cursor-pointer">{t("product.sizeGuide")}</button>
+            <button type="button" onClick={() => setGuideOpen(true)} class="sm:hidden mt-2 min-h-[44px] items-center text-[10px] font-bold uppercase tracking-widest text-zinc-400 underline underline-offset-2 hover:text-amber-400 transition-colors cursor-pointer">{t("product.sizeGuide")}</button>
             <div role="status" aria-live="polite">
               {error && <p class="text-[10px] uppercase tracking-widest text-red-400 mt-2">{t("product.pickSize")}</p>}
               {selectedLow && <p class="text-[10px] uppercase tracking-widest text-amber-400/90 mt-2">{t("product.fewLeft", size)}</p>}
@@ -351,7 +351,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
             </span>
           </span>
           <button onClick={handleAdd} disabled={!available}
-            class="w-full sm:w-auto text-center whitespace-nowrap text-[11px] font-bold uppercase tracking-widest px-4 py-2.5 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-amber-400 cursor-pointer transition-all duration-200">
+            class="w-full sm:w-auto min-h-[44px] text-center whitespace-nowrap text-[11px] font-bold uppercase tracking-widest px-4 py-2.5 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-amber-400 cursor-pointer transition-all duration-200">
             {available ? t("product.addToCart") : t("product.soldOut")}
           </button>
         </div>
@@ -364,7 +364,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
           <div class="w-full max-w-sm bg-zinc-950 border border-zinc-800 p-5" onClick={(e) => e.stopPropagation()}>
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-sm font-black uppercase tracking-widest text-zinc-100">{t("product.sizeGuideTitle")}</h3>
-              <button type="button" onClick={() => setGuideOpen(false)} aria-label={t("product.closeGuide")} class="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
+              <button type="button" onClick={() => setGuideOpen(false)} aria-label={t("product.closeGuide")} class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
             </div>
             <table class="w-full text-left">
               <thead><tr class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-zinc-800">
@@ -392,7 +392,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
           <div class="w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div class="flex items-center justify-between mb-3">
               <h3 class="text-sm font-black uppercase tracking-widest text-zinc-100">{name}</h3>
-              <button type="button" onClick={() => setPlaying(false)} aria-label={t("product.hidePreview")} class="text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none">&times;</button>
+              <button type="button" onClick={() => setPlaying(false)} aria-label={t("product.hidePreview")} class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
             </div>
             <div class="relative">
               {!iframeLoaded && (

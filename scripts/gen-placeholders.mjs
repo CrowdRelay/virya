@@ -1,5 +1,6 @@
 import sharp from "sharp"
 import { createHash } from "node:crypto"
+import { createReadStream } from "node:fs"
 import { readdir, readFile, writeFile, mkdir, rm, rename, stat } from "node:fs/promises"
 import { join, relative, extname, basename, dirname } from "node:path"
 
@@ -28,7 +29,11 @@ async function* walk(dir) {
 const loadJson = async (path, fallback) => { try { return JSON.parse(await readFile(path, "utf8")) } catch { return fallback } }
 const atomicJson = async (path, value) => { const temp=`${path}.tmp-${process.pid}`; await writeFile(temp, JSON.stringify(value)); await rename(temp,path) }
 const exists = async path => { try { return (await stat(path)).isFile() } catch { return false } }
-const fingerprint = async file => createHash("sha256").update(CONFIG_VERSION).update(await readFile(file)).digest("hex")
+const fingerprint = async file => {
+  const hash = createHash("sha256").update(CONFIG_VERSION)
+  for await (const chunk of createReadStream(file)) hash.update(chunk)
+  return hash.digest("hex")
+}
 const stable = record => Object.fromEntries(Object.keys(record).sort().map(key => [key, record[key]]))
 
 await mkdir("src", { recursive: true })
@@ -64,14 +69,13 @@ async function processImage(file) {
     const relDir=dirname(rel), base=basename(rel,extname(rel)), outDir=relDir==="."?RESP_DIR:join(RESP_DIR,relDir)
     await mkdir(outDir,{recursive:true})
     const prefix=relDir==="."?`/resp/${base}`:`/resp/${relDir}/${base}`
-    const parts=[], tasks=[]
+    const parts=[]
     for (const width of WIDTHS) if (width < nativeW) {
       const output=join(outDir,`${base}-${width}w.webp`); outputs.push(output)
-      tasks.push(sharp(file).resize(width,null,{withoutEnlargement:true}).webp({quality:80}).toFile(output))
+      await sharp(file).resize(width,null,{withoutEnlargement:true}).webp({quality:80}).toFile(output)
       parts.push(`${prefix}-${width}w.webp ${width}w`)
     }
     if (parts.length) { parts.push(`${key} ${nativeW}w`); srcset=parts.join(", ") }
-    await Promise.all(tasks)
   }
   const entry={ fingerprint:hash, placeholder:`data:image/webp;base64,${placeholder}`, dimensions:{w:meta.width||0,h:meta.height||0}, srcset, outputs }
   entries[key]=entry; placeholders[key]=entry.placeholder; dimensions[key]=entry.dimensions; if(srcset) srcsets[key]=srcset

@@ -18,7 +18,6 @@ const MAX_TICKET_SALE_CACHE_ENTRIES = 128
 const MAX_TICKET_SALE_ENRICHMENT_EVENTS = 24
 const TICKET_SALE_ENRICHMENT_CONCURRENCY = 4
 const EVENT_MATCH_WINDOW_MS = 8 * 60 * 60 * 1000
-const encoder = new TextEncoder()
 
 type BandsintownEvent = {
   id?: string | number
@@ -61,10 +60,23 @@ const readJson = async (response: Response): Promise<unknown> => {
   if (Number.isFinite(declared) && declared > MAX_RESPONSE_BYTES) {
     throw new Error("Response too large")
   }
-  const text = await response.text()
-  if (encoder.encode(text).byteLength > MAX_RESPONSE_BYTES) {
-    throw new Error("Response too large")
+  if (!response.body) return JSON.parse(await response.text())
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let received = 0
+  let text = ""
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    received += value.byteLength
+    if (received > MAX_RESPONSE_BYTES) {
+      void reader.cancel()
+      throw new Error("Response too large")
+    }
+    text += decoder.decode(value, { stream: true })
   }
+  text += decoder.decode()
   return JSON.parse(text)
 }
 

@@ -56,7 +56,7 @@ const MinusIcon = ({ class: cls }) => (
 
 const QtyButton = ({ children, onClick, label }) => (
   <button onClick={onClick} aria-label={label}
-    class="group w-7 h-7 flex items-center justify-center border border-zinc-700 hover:border-amber-400 transition-colors cursor-pointer">
+    class="group w-11 h-11 flex items-center justify-center border border-zinc-700 hover:border-amber-400 transition-colors cursor-pointer">
     <span class="flex items-center justify-center text-zinc-300 group-hover:text-amber-400">
       {children}
     </span>
@@ -328,7 +328,7 @@ const CartDrawer = () => {
                         <span class="text-sm font-bold text-zinc-100">{l.lineTotal} PLN</span>
                       </div>
                     </div>
-                    <button onClick={() => remove(l.id, l.size)} aria-label={t("cart.remove")} class="self-start text-zinc-400 hover:text-red-400 transition-colors text-xs cursor-pointer">{t("cart.remove")}</button>
+                    <button onClick={() => remove(l.id, l.size)} aria-label={t("cart.remove")} class="self-start inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-red-400 transition-colors text-xs cursor-pointer">{t("cart.remove")}</button>
                   </li>
                 )
               })}
@@ -353,10 +353,10 @@ const CartDrawer = () => {
                       <p class="text-xs font-bold text-amber-400">{point.code}</p>
                       {point.address && <p class="text-[11px] text-zinc-400 truncate">{point.address}</p>}
                     </div>
-                    <button onClick={() => setPickerOpen(true)} class="text-[10px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 whitespace-nowrap cursor-pointer">{t("cart.change")}</button>
+                    <button onClick={() => setPickerOpen(true)} class="inline-flex min-h-[44px] items-center text-[10px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 whitespace-nowrap cursor-pointer">{t("cart.change")}</button>
                   </div>
                 ) : (
-                  <button onClick={() => setPickerOpen(true)} class="w-full text-xs font-bold uppercase tracking-widest py-2.5 border border-zinc-700 text-zinc-200 hover:border-amber-400 hover:text-amber-400 transition-colors cursor-pointer">{t("cart.choosePaczkomat")}</button>
+                  <button onClick={() => setPickerOpen(true)} class="w-full min-h-[44px] text-xs font-bold uppercase tracking-widest py-2.5 border border-zinc-700 text-zinc-200 hover:border-amber-400 hover:text-amber-400 transition-colors cursor-pointer">{t("cart.choosePaczkomat")}</button>
                 )}
               </div>
             )}

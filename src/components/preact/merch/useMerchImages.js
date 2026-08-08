@@ -1,5 +1,13 @@
-export const useMerchImages = () =>
-  new Proxy(
-    {},
-    { get: (_, key) => (typeof key === "string" ? `/images/${key}` : undefined) }
-  )
+const merchImages = new Proxy(
+  {},
+  {
+    get: (_, key) =>
+      typeof key === "string"
+        ? key.startsWith("/")
+          ? key
+          : `/images/${key}`
+        : undefined,
+  },
+)
+
+export const useMerchImages = () => merchImages
