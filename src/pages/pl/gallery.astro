@@ -97,7 +97,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
         aria-label={t(lang, "gallery.heading")}
         tabindex="-1"
       >
-        <div id="modal-blur" class="absolute inset-0 opacity-0 transition-opacity duration-300 bg-contain bg-center bg-no-repeat pointer-events-none" style="filter:blur(20px);transform:scale(1.05)"></div>
+        <div id="modal-blur" class="absolute inset-0 opacity-0 transition-opacity duration-300 bg-cover bg-center bg-no-repeat pointer-events-none" style="filter:blur(20px);transform:scale(1.05)"></div>
         <button id="modal-close" data-dialog-initial-focus class="absolute top-4 right-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-amber-400 transition-colors z-10 text-3xl leading-none" aria-label={t(lang, "gallery.close")}>&times;</button>
         <button id="modal-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.prev")}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
@@ -106,7 +106,15 @@ const dims = rawDims as Record<string, { w: number; h: number }>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
         </button>
         <div class="relative z-10 w-full max-w-5xl min-w-0 px-16 flex flex-col items-center gap-4">
-          <img id="modal-img" src="" alt="" class="max-h-[80vh] max-w-full object-contain" />
+          <div class="relative w-full flex items-center justify-center min-h-[200px]">
+            <div id="modal-spinner" class="absolute hidden" aria-hidden="true">
+              <svg class="animate-spin h-8 w-8 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+            <img id="modal-img" src="" alt="" class="max-h-[80vh] max-w-full object-contain" />
+          </div>
           <div class="flex items-center justify-between gap-3 flex-wrap w-full">
             <p id="modal-caption" class="text-xs text-zinc-400 uppercase tracking-widest"></p>
             <a id="modal-download" href="" download class="inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest px-3 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-all duration-200">
@@ -131,6 +139,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
     modal.dataset.initialized = "true"
     const modalImg = document.getElementById("modal-img") as HTMLImageElement
     const modalBlur = document.getElementById("modal-blur") as HTMLElement
+    const modalSpinner = document.getElementById("modal-spinner") as HTMLElement
     const modalCaption = document.getElementById("modal-caption")
     const modalDownload = document.getElementById("modal-download") as HTMLAnchorElement
     const closeBtn = document.getElementById("modal-close")
@@ -159,28 +168,30 @@ const dims = rawDims as Record<string, { w: number; h: number }>
         if (blur) {
           modalBlur.style.backgroundImage = `url(${blur})`
           modalBlur.style.opacity = "1"
-          modalImg.addEventListener("load", () => {
-            modalBlur.style.opacity = "0"
-          }, { once: true })
         }
         modalImg.src = src
         modalImg.alt = alt
         modalCaption!.textContent = alt
         modalDownload!.href = src
         modalImg.style.opacity = "1"
+        modalSpinner!.classList.add("hidden")
       }
+
       if (modal!.style.display !== "none") {
         modalImg.style.opacity = "0"
+        modalImg.src = ""
+        modalSpinner!.classList.remove("hidden")
         const preload = new Image()
         preload.onload = doSwap
         preload.onerror = doSwap
         preload.src = src
-        return
-      }
-      doSwap()
+      } else {
+        modalSpinner!.classList.remove("hidden")
+        doSwap()
         modal!.style.display = "flex"
         document.body.style.overflow = "hidden"
         dialogFocus.activate(btn)
+      }
     }
 
     function closeModal() {
