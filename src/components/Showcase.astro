@@ -66,25 +66,22 @@ const { lang = "en" } = Astro.props
     const icon = document.getElementById("showcase-play-icon")
     if (!btn || !video || !poster) return
 
-    let playing = false
+    const restorePoster = () => {
+      video.pause()
+      video.classList.add("hidden")
+      poster.classList.remove("hidden")
+      btn.classList.remove("hidden")
+    }
 
     btn.addEventListener("click", () => {
-      playing = !playing
-      if (playing) {
-        poster.classList.add("hidden")
-        video.classList.remove("hidden")
-        video.play().catch(() => {})
-        if (icon) {
-          icon.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-black"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>`
-        }
-      } else {
-        video.pause()
-        video.classList.add("hidden")
-        poster.classList.remove("hidden")
-        if (icon) {
-          icon.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-black ml-1"><path d="M8 5v14l11-7z"/></svg>`
-        }
-      }
+      poster.classList.add("hidden")
+      video.classList.remove("hidden")
+      // The launch button must leave the stacking context while the native
+      // media controls are visible; otherwise it intercepts seeking/volume taps.
+      btn.classList.add("hidden")
+      video.play().catch(restorePoster)
     })
+
+    video.addEventListener("ended", restorePoster)
   })
 </script>
