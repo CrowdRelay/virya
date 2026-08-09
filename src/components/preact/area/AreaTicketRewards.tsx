@@ -58,6 +58,8 @@ const copy = {
   },
 } as const
 
+const REQUEST_TIMEOUT_MS = 10_000
+
 const requestKey = (eventSlug: string) => `virya-area-ticket-request:${eventSlug}`
 
 const requestId = (eventSlug: string) => {
@@ -76,7 +78,11 @@ export default function AreaTicketRewards({ lang }: { lang: Lang }) {
   const [message, setMessage] = useState<string | null>(null)
 
   const load = () => {
-    void fetch("/api/area/tickets", { headers: { Accept: "application/json" }, cache: "no-store" })
+    void fetch("/api/area/tickets", {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
       .then(async response => {
         const result = await response.json() as ListResponse
         if (!response.ok) throw new Error(result.error || text.error)
@@ -97,6 +103,7 @@ export default function AreaTicketRewards({ lang }: { lang: Lang }) {
     try {
       const response = await fetch("/api/area/tickets", {
         method: "POST",
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           requestId: requestId(reward.eventSlug),

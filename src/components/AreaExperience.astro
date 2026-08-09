@@ -619,7 +619,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           </section>
         </div>
 
-        <AreaTicketRewards client:load lang={lang} />
+        <AreaTicketRewards client:visible lang={lang} />
 
         <section data-signal-bridge hidden class="mt-6 overflow-hidden border border-amber-400/35 bg-amber-400/[.045]">
           <div class="grid gap-px bg-zinc-800 lg:grid-cols-[minmax(0,1fr)_auto]">
@@ -844,6 +844,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
   }
 
   type ClientCopy = Record<string, string>
+  const AREA_REQUEST_TIMEOUT_MS = 10_000
 
   const areaRadians = (value: number) => value * Math.PI / 180
   const areaDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
@@ -1445,6 +1446,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       const loadWallet = async () => {
         try {
           const response = await fetch("/api/area/wallet", {
+            signal: AbortSignal.timeout(AREA_REQUEST_TIMEOUT_MS),
             headers: { Accept: "application/json" },
             cache: "no-store",
           })
@@ -1461,6 +1463,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         if (profileStatus) profileStatus.textContent = copy.profileVerifying
         try {
           const response = await fetch("/api/area/auth/verify", {
+            signal: AbortSignal.timeout(AREA_REQUEST_TIMEOUT_MS),
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({ token }),
@@ -1497,6 +1500,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         if (profileStatus) profileStatus.textContent = copy.profileRequestWorking
         try {
           const response = await fetch("/api/area/auth/request", {
+            signal: AbortSignal.timeout(AREA_REQUEST_TIMEOUT_MS),
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
@@ -1527,6 +1531,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         if (profileStatus) profileStatus.textContent = copy.profileSignOutWorking
         try {
           const response = await fetch("/api/area/auth/logout", {
+            signal: AbortSignal.timeout(AREA_REQUEST_TIMEOUT_MS),
             method: "POST",
             headers: { Accept: "application/json" },
           })
@@ -1567,6 +1572,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         if (status) status.textContent = copy.claimWorking
         try {
           const challengeResponse = await fetch("/api/area/challenge", {
+            signal: AbortSignal.timeout(AREA_REQUEST_TIMEOUT_MS),
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({ dropId: selectedId }),
@@ -1611,6 +1617,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           }
 
           const response = await fetch("/api/area/claim", {
+            signal: AbortSignal.timeout(AREA_REQUEST_TIMEOUT_MS),
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
@@ -1662,6 +1669,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             sessionStorage.getItem(voucherRequestKey) || crypto.randomUUID()
           sessionStorage.setItem(voucherRequestKey, requestId)
           const response = await fetch("/api/area/voucher", {
+            signal: AbortSignal.timeout(AREA_REQUEST_TIMEOUT_MS),
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({ tokens, requestId }),

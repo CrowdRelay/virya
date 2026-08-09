@@ -23,7 +23,7 @@ const api = async <T,>(path: string, options: ApiOptions = {}): Promise<T> => {
     method: options.method ?? "GET",
     credentials: "same-origin",
     cache: "no-store",
-    signal: options.signal,
+    signal: options.signal ?? AbortSignal.timeout(10_000),
     headers: options.body === undefined
       ? { Accept: "application/json" }
       : { Accept: "application/json", "Content-Type": "application/json" },

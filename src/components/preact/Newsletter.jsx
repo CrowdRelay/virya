@@ -15,6 +15,7 @@ const NewsletterInner = () => {
     try {
       const response = await fetch("/api/subscribe", {
         method: "POST",
+        signal: AbortSignal.timeout(10_000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, website: honeypot }),
       })

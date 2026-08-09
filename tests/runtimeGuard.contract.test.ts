@@ -50,3 +50,17 @@ test("middleware converts uncaught server failures into correlated no-store resp
   assert.match(middleware, /context\.url\.pathname/)
   assert.doesNotMatch(middleware, /context\.url\.href/)
 })
+
+test("static service-worker assets are stale-while-revalidate", () => {
+  assert.match(worker, /const cached = await cache\.match\(event\.request\)/)
+  assert.match(worker, /const revalidate = fetch\(event\.request\)/)
+  assert.match(worker, /if \(cached\)[\s\S]*return cached/)
+})
+
+test("service-worker caches stay bounded", () => {
+  assert.match(worker, /MAX_PAGE_CACHE_ENTRIES = 32/)
+  assert.match(worker, /MAX_STATIC_CACHE_ENTRIES = 160/)
+  assert.match(worker, /async function trimCache/)
+  assert.match(worker, /trimCache\(cache, MAX_STATIC_CACHE_ENTRIES\)/)
+  assert.match(worker, /trimCache\(cache, MAX_PAGE_CACHE_ENTRIES\)/)
+})

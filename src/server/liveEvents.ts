@@ -12,6 +12,7 @@ const REQUEST_TIMEOUT_MS = 6_000
 const MAX_RESPONSE_BYTES = 512 * 1024
 const HEALTHY_CACHE_TTL_MS = 60 * 1000
 const DEGRADED_CACHE_TTL_MS = 30 * 1000
+const HEALTHY_STALE_TTL_MS = 10 * 60 * 1000
 const TICKET_SALE_CACHE_TTL_MS = 45 * 1000
 const TICKET_SALE_NEGATIVE_CACHE_TTL_MS = 15 * 1000
 const MAX_TICKET_SALE_CACHE_ENTRIES = 128
@@ -388,6 +389,7 @@ export type LiveEventLoadResult = {
 
 type CachedLiveEvents = {
   expiresAt: number
+  staleUntil: number
   result: LiveEventLoadResult
 }
 
@@ -435,14 +437,31 @@ export const loadLiveEvents = async (): Promise<LiveEventLoadResult> => {
   }
   if (pendingLiveEvents) return pendingLiveEvents
 
+  const staleHealthy = cachedLiveEvents &&
+    !cachedLiveEvents.result.degraded &&
+    cachedLiveEvents.staleUntil > now
+    ? cachedLiveEvents
+    : null
+
   pendingLiveEvents = resolveLiveEvents()
     .then(result => {
+      const resolvedAt = Date.now()
+      // During a short CrowdRelay outage, keep the last ticket-aware event model
+      // rather than replacing it immediately with a content-only provider fallback.
+      // The degraded flag stays visible and the stale window is never extended.
+      const effective = result.degraded && staleHealthy
+        ? { events: staleHealthy.result.events, degraded: true }
+        : result
       cachedLiveEvents = {
-        result,
+        result: effective,
         expiresAt:
-          Date.now() + (result.degraded ? DEGRADED_CACHE_TTL_MS : HEALTHY_CACHE_TTL_MS),
+          resolvedAt + (effective.degraded ? DEGRADED_CACHE_TTL_MS : HEALTHY_CACHE_TTL_MS),
+        staleUntil:
+          result.degraded && staleHealthy
+            ? staleHealthy.staleUntil
+            : resolvedAt + (effective.degraded ? DEGRADED_CACHE_TTL_MS : HEALTHY_STALE_TTL_MS),
       }
-      return result
+      return effective
     })
     .finally(() => {
       pendingLiveEvents = null

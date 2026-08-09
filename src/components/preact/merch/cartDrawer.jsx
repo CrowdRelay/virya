@@ -210,6 +210,7 @@ const CartDrawer = () => {
     try {
       const response = await fetch("/api/area/reward/preview", {
         method: "POST",
+        signal: AbortSignal.timeout(10_000),
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           code,
@@ -271,6 +272,7 @@ const CartDrawer = () => {
       sessionStorage.setItem(CHECKOUT_FINGERPRINT_KEY, fingerprint)
       const res = await fetch("/api/checkout", {
         method: "POST",
+        signal: AbortSignal.timeout(15_000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...checkoutPayload, checkoutRequestId }),
       })

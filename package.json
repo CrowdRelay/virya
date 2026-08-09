@@ -18,15 +18,15 @@
     "disposable-email-domains-js": "1.25.0",
     "nodemailer": "^9.0.1",
     "preact": "^10.29.2",
+    "qrcode-generator": "1.5.2",
     "stripe": "^22.2.1",
-    "tailwindcss": "^4.3.1",
-    "qrcode-generator": "1.5.2"
+    "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
     "@types/nodemailer": "^8.0.1",
     "prettier": "^3.3.3",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.3",
     "typescript": "^6.0.3"
   },
   "homepage": "https://www.virya.music",

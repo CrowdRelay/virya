@@ -36,7 +36,9 @@ export function captureConcertCheckinFromLocation(
   expectedSlug: string,
 ): PendingConcertCheckin | null {
   if (typeof window === "undefined") return null
-  const token = new URLSearchParams(window.location.hash.slice(1)).get("checkin")
+  const token = new URLSearchParams(window.location.hash.slice(1)).get(
+    "checkin",
+  )
   if (!token) return getPendingConcertCheckin(expectedSlug)
 
   history.replaceState(null, "", `${location.pathname}${location.search}`)
@@ -100,7 +102,10 @@ export function clearPendingConcertCheckin(): void {
 export function campaignIdFromLocation(): string | undefined {
   if (typeof window === "undefined") return undefined
   const value = new URLSearchParams(window.location.search).get("campaign_id")
-  return value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  return value &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    )
     ? value
     : undefined
 }
@@ -138,6 +143,23 @@ export function readFragmentToken(): string | null {
     history.replaceState(null, "", `${location.pathname}${location.search}`)
   }
   return token
+}
+
+const SYNESTHESIA_HANDOFF_PATTERN = /^[0-9a-f]{64}$/i
+
+export function synesthesiaHandoffFromLocation(): string | null {
+  if (typeof window === "undefined") return null
+  const value = new URLSearchParams(window.location.hash.slice(1)).get(
+    "handoff",
+  )
+  return value && SYNESTHESIA_HANDOFF_PATTERN.test(value)
+    ? value.toLowerCase()
+    : null
+}
+
+export function clearSynesthesiaHandoff(): void {
+  if (typeof window === "undefined") return
+  history.replaceState(null, "", `${location.pathname}${location.search}`)
 }
 
 export function bestEffort(task: Promise<unknown>): void {

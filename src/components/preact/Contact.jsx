@@ -16,6 +16,7 @@ const ContactInner = () => {
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
+        signal: AbortSignal.timeout(12_000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       })

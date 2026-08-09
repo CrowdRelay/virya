@@ -47,7 +47,6 @@ export interface PublicEvent {
   ticket_sale?: TicketSaleSummary | null
 }
 
-
 export interface TicketTypeOffer {
   id: string
   slug: string
@@ -80,7 +79,13 @@ export interface TicketSaleOffer {
   sales_open_at: string
   sales_close_at: string
   active: boolean
-  sales_state: "upcoming" | "open" | "closed" | "sold_out" | "inactive" | "event_unavailable"
+  sales_state:
+    | "upcoming"
+    | "open"
+    | "closed"
+    | "sold_out"
+    | "inactive"
+    | "event_unavailable"
   ticket_types: TicketTypeOffer[]
 }
 
@@ -301,6 +306,80 @@ export interface AdmissionQr {
   expires_at: string
 }
 
+export interface FanHomeSnapshot {
+  schema_version: number
+  generated_at: string
+  profile: {
+    display_name: string | null
+    locale: string | null
+    primary_city: string | null
+  }
+  next_event: null | {
+    slug: string
+    title: string
+    venue: string | null
+    city: string | null
+    starts_at: string
+    doors_at: string | null
+    ends_at: string | null
+    phase: "upcoming" | "live" | "afterglow" | string
+    ticket_url: string | null
+    interested: boolean
+    has_pass: boolean
+    has_paid_ticket: boolean
+    ticket_sale_active: boolean
+  }
+  synesthesia: {
+    started: boolean
+    completed: boolean
+    rooms_completed: number
+    client_total_elapsed_ms: number | null
+    linked_at: string | null
+    reward_entered: boolean
+  }
+  referral: { qualified: number; pending: number }
+  counts: {
+    event_interests: number
+    active_passes: number
+    paid_orders: number
+    area_claims: number
+  }
+  recommended_action:
+    | "continue_synesthesia"
+    | "open_wallet"
+    | "open_live_event"
+    | "share_post_show_feedback"
+    | "get_ticket"
+    | "follow_next_event"
+    | "explore_signal"
+    | string
+}
+
+export interface FanEventContextSnapshot {
+  schema_version: number
+  slug: string
+  title: string
+  venue: string | null
+  city: string | null
+  starts_at: string
+  doors_at: string | null
+  ends_at: string | null
+  phase: "upcoming" | "live" | "afterglow" | string
+  ticket_url: string | null
+  interested: boolean
+  pass_status: string | null
+  paid_ticket_quantity: number
+  ticket_sale_active: boolean
+  recommended_action: string
+}
+
+export interface SynesthesiaLinkResult {
+  linked: boolean
+  run_id: string
+  rooms_completed: number
+  client_total_elapsed_ms: number
+}
+
 export interface ProblemDetails {
   type: string
   title: string
@@ -314,9 +393,13 @@ const MAX_API_RESPONSE_BYTES = 1024 * 1024
 async function readBoundedJson<T>(response: Response): Promise<T> {
   const declared = Number(response.headers.get("content-length") ?? "0")
   if (Number.isFinite(declared) && declared > MAX_API_RESPONSE_BYTES) {
-    throw new CrowdRelayError(0, "CrowdRelay response exceeded the safety limit")
+    throw new CrowdRelayError(
+      0,
+      "CrowdRelay response exceeded the safety limit",
+    )
   }
-  if (!response.body) throw new CrowdRelayError(0, "CrowdRelay returned an empty response")
+  if (!response.body)
+    throw new CrowdRelayError(0, "CrowdRelay returned an empty response")
   const reader = response.body.getReader()
   const chunks: Uint8Array[] = []
   let total = 0
@@ -327,7 +410,10 @@ async function readBoundedJson<T>(response: Response): Promise<T> {
       total += value.byteLength
       if (total > MAX_API_RESPONSE_BYTES) {
         await reader.cancel("response too large")
-        throw new CrowdRelayError(0, "CrowdRelay response exceeded the safety limit")
+        throw new CrowdRelayError(
+          0,
+          "CrowdRelay response exceeded the safety limit",
+        )
       }
       chunks.push(value)
     }
@@ -336,7 +422,10 @@ async function readBoundedJson<T>(response: Response): Promise<T> {
   }
   const bytes = new Uint8Array(total)
   let offset = 0
-  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength }
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset)
+    offset += chunk.byteLength
+  }
   try {
     return JSON.parse(new TextDecoder().decode(bytes)) as T
   } catch {
@@ -410,10 +499,13 @@ export class CrowdRelayClient {
   }
 
   getTicketOrder(orderId: string, token: string): Promise<TicketOrder> {
-    return this.#request(`public/ticket-orders/${encodeURIComponent(orderId)}`, {
-      bearerToken: token,
-      timeoutMs: 4_000,
-    })
+    return this.#request(
+      `public/ticket-orders/${encodeURIComponent(orderId)}`,
+      {
+        bearerToken: token,
+        timeoutMs: 4_000,
+      },
+    )
   }
 
   getTicketWallet(orderId: string, token: string): Promise<TicketWallet> {
@@ -510,6 +602,27 @@ export class CrowdRelayClient {
 
   getReferralProgress(): Promise<ReferralProgress> {
     return this.#request("me/referral")
+  }
+
+  getFanHome(): Promise<FanHomeSnapshot> {
+    return this.#request("me/home", { timeoutMs: 3_000 })
+  }
+
+  getFanEventContext(slug: string): Promise<FanEventContextSnapshot> {
+    return this.#request(`me/events/${encodeURIComponent(slug)}/context`, {
+      timeoutMs: 3_000,
+    })
+  }
+
+  linkSynesthesiaCompletion(
+    handoffCode: string,
+  ): Promise<SynesthesiaLinkResult> {
+    return this.#request("me/synesthesia/link", {
+      method: "POST",
+      body: { handoff_code: handoffCode },
+      idempotencyKey: `synesthesia-link-${handoffCode.slice(0, 16)}`,
+      timeoutMs: 5_000,
+    })
   }
 
   claimAdmissionPass(token: string): Promise<AdmissionPass> {
@@ -629,7 +742,6 @@ export class CrowdRelayClient {
   }
 }
 
-
 const RETRYABLE_READ_STATUSES = new Set([0, 408, 425, 429, 500, 502, 503, 504])
 
 const sleep = (delayMs: number) =>
@@ -638,7 +750,9 @@ const sleep = (delayMs: number) =>
 function normalizeRequestError(error: unknown): CrowdRelayError {
   if (error instanceof CrowdRelayError) return error
   if (
-    (typeof DOMException !== "undefined" && error instanceof DOMException && error.name === "AbortError") ||
+    (typeof DOMException !== "undefined" &&
+      error instanceof DOMException &&
+      error.name === "AbortError") ||
     (error instanceof Error && error.name === "AbortError")
   ) {
     return new CrowdRelayError(0, "CrowdRelay request timed out")
