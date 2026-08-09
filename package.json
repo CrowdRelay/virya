@@ -56,13 +56,14 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,json,md}\"",
     "check": "tsc --noEmit",
     "audit:area": "node scripts/audit-area.mjs",
-    "test": "npm run check && npm run test:unit && npm run audit:assets && npm run audit:area && npm run audit:signal && npm run audit:admin && npm run audit:live",
+    "test": "npm run check && npm run test:unit && npm run audit:assets && npm run audit:area && npm run audit:signal && npm run audit:admin && npm run audit:live && npm run audit:ui",
     "audit:signal": "node scripts/audit-signal.mjs",
     "audit:admin": "node scripts/audit-admin.mjs",
     "audit:live": "node scripts/audit-live.mjs",
     "test:unit": "node --no-warnings=ExperimentalWarning --experimental-strip-types --test tests/*.test.ts",
     "audit:assets": "node scripts/audit-assets.mjs",
     "budget:build": "node scripts/check-build-budget.mjs dist",
-    "quality": "npm test && npm run build && npm run budget:build"
+    "quality": "npm test && npm run build && npm run budget:build",
+    "audit:ui": "node scripts/audit-ui.mjs"
   }
 }
