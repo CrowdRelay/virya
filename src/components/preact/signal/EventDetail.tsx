@@ -2,7 +2,11 @@ import type { ComponentChildren } from "preact"
 import { useEffect, useMemo, useState } from "preact/hooks"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
-import type { PublicEvent, TicketSaleOffer } from "../../../lib/crowdrelay-client"
+import type {
+  FanEventContextSnapshot,
+  PublicEvent,
+  TicketSaleOffer,
+} from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import { normalizeTicketInventory } from "../../../lib/ticketInventory"
 import TicketInventoryBar from "../tickets/TicketInventoryBar"
@@ -48,6 +52,9 @@ export default function EventDetail({
   const [event, setEvent] = useState<PublicEvent | null>(initialEvent)
   const [unavailable, setUnavailable] = useState(false)
   const [interestState, setInterestState] = useState<InterestState>("idle")
+  const [fanContext, setFanContext] = useState<FanEventContextSnapshot | null>(
+    null,
+  )
   const [checkinState, setCheckinState] = useState<CheckinState>("none")
   const [shareLabel, setShareLabel] = useState(copy.share)
   const campaignId = useMemo(() => campaignIdFromLocation(), [])
@@ -87,6 +94,30 @@ export default function EventDetail({
       cancelled = true
     }
   }, [slug, initialEvent, campaignId])
+
+  useEffect(() => {
+    const source = event?.source ?? initialEvent?.source
+    if (source !== "crowdrelay") return
+    let cancelled = false
+    void crowdrelay
+      .getFanEventContext(slug)
+      .then(value => {
+        if (cancelled) return
+        setFanContext(value)
+        if (value.interested) setInterestState("saved")
+      })
+      .catch(error => {
+        if (cancelled) return
+        // This is private enrichment only. Public event rendering remains fully
+        // usable for anonymous fans and during transient context failures.
+        if (!(error instanceof CrowdRelayError && error.status === 401)) {
+          setFanContext(null)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [slug, event?.source, initialEvent?.source])
 
   useEffect(() => {
     if (initialEvent?.source && initialEvent.source !== "crowdrelay") return
@@ -207,7 +238,8 @@ export default function EventDetail({
 
   const isCrowdRelayEvent = event.source === "crowdrelay"
   const bandsintownRsvp = withTrigger(event.external_event_url, "rsvp_going")
-  const bandsintownFollow = "https://www.bandsintown.com/a/15587796-virya?trigger=track"
+  const bandsintownFollow =
+    "https://www.bandsintown.com/a/15587796-virya?trigger=track"
   const mapQuery = [event.venue, event.venue_address, event.city?.name]
     .filter(Boolean)
     .join(", ")
@@ -257,7 +289,9 @@ export default function EventDetail({
                 {lang === "pl" ? "Nadchodzący koncert" : "Upcoming show"}
               </span>
               {saleStateLabel && (
-                <span class={`virya-event-ticket-state virya-event-ticket-state--${initialTicketSale?.sales_state}`}>
+                <span
+                  class={`virya-event-ticket-state virya-event-ticket-state--${initialTicketSale?.sales_state}`}
+                >
                   {saleStateLabel}
                 </span>
               )}
@@ -270,14 +304,26 @@ export default function EventDetail({
               {event.title}
             </h1>
             <p class="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-[.12em] text-zinc-400 sm:text-sm">
-              <span class="text-white">{event.venue ?? event.city?.name ?? "Virya live"}</span>
-              {event.city?.name && event.venue && <span aria-hidden="true">//</span>}
-              {event.city?.name && event.venue && <span>{event.city.name}</span>}
+              <span class="text-white">
+                {event.venue ?? event.city?.name ?? "Virya live"}
+              </span>
+              {event.city?.name && event.venue && (
+                <span aria-hidden="true">//</span>
+              )}
+              {event.city?.name && event.venue && (
+                <span>{event.city.name}</span>
+              )}
             </p>
 
             {event.description && (
-              <section class="virya-event-description mt-7 max-w-3xl" aria-labelledby="event-description-heading">
-                <p id="event-description-heading" class="text-[9px] font-black uppercase tracking-[.22em] text-amber-400">
+              <section
+                class="virya-event-description mt-7 max-w-3xl"
+                aria-labelledby="event-description-heading"
+              >
+                <p
+                  id="event-description-heading"
+                  class="text-[9px] font-black uppercase tracking-[.22em] text-amber-400"
+                >
                   {lang === "pl" ? "O koncercie" : "About the show"}
                 </p>
                 <p class="virya-prose mt-3 text-sm leading-relaxed text-zinc-300 lg:text-base">
@@ -294,23 +340,64 @@ export default function EventDetail({
               />
             )}
 
+            {fanContext &&
+              (fanContext.pass_status ||
+                fanContext.paid_ticket_quantity > 0 ||
+                fanContext.interested) && (
+                <aside
+                  class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border border-cyan-300/20 bg-cyan-300/[.035] px-4 py-3 text-[9px] font-black uppercase tracking-[.16em] text-cyan-100"
+                  aria-label={
+                    lang === "pl"
+                      ? "Twój kontekst koncertu"
+                      : "Your event context"
+                  }
+                >
+                  <span class="text-cyan-300">
+                    {lang === "pl" ? "TWÓJ SYGNAŁ" : "YOUR SIGNAL"}
+                  </span>
+                  {fanContext.pass_status && (
+                    <span>
+                      {lang === "pl" ? "PASS" : "PASS"}:{" "}
+                      {fanContext.pass_status}
+                    </span>
+                  )}
+                  {fanContext.paid_ticket_quantity > 0 && (
+                    <span>
+                      {lang === "pl" ? "BILETY" : "TICKETS"}:{" "}
+                      {fanContext.paid_ticket_quantity}
+                    </span>
+                  )}
+                  {fanContext.interested && (
+                    <span>{lang === "pl" ? "OBSERWUJESZ" : "FOLLOWING"}</span>
+                  )}
+                </aside>
+              )}
+
             <div class="mt-8 flex flex-wrap gap-3">
               {saleOpen && (
-                <a href="#tickets" class="virya-button virya-button--primary min-h-12 px-5">
+                <a
+                  href="#tickets"
+                  class="virya-button virya-button--primary min-h-12 px-5"
+                >
                   {lang === "pl" ? "Kup bilet" : "Buy tickets"}
                   {lowestPrice != null && (
                     <span class="ml-2 font-mono">
-                      {lang === "pl" ? "od" : "from"} {money(lowestPrice, initialTicketSale!.currency, locale)}
+                      {lang === "pl" ? "od" : "from"}{" "}
+                      {money(lowestPrice, initialTicketSale!.currency, locale)}
                     </span>
                   )}
-                  <span class="ml-2" aria-hidden="true">↓</span>
+                  <span class="ml-2" aria-hidden="true">
+                    ↓
+                  </span>
                 </a>
               )}
               {isCrowdRelayEvent && (
                 <button
                   type="button"
                   onClick={registerInterest}
-                  disabled={interestState === "saving" || interestState === "saved"}
+                  disabled={
+                    interestState === "saving" || interestState === "saved"
+                  }
                   class={`virya-button min-h-12 px-5 ${saleOpen ? "virya-button--accent-outline" : "virya-button--primary"}`}
                 >
                   {interestState === "saving"
@@ -328,7 +415,9 @@ export default function EventDetail({
                   class="virya-button virya-button--accent-outline min-h-12 px-5"
                 >
                   {lang === "pl" ? "Bilety zewnętrzne" : "External tickets"}
-                  <span class="ml-2" aria-hidden="true">↗</span>
+                  <span class="ml-2" aria-hidden="true">
+                    ↗
+                  </span>
                 </a>
               )}
             </div>
@@ -341,7 +430,10 @@ export default function EventDetail({
                   rel="noopener noreferrer"
                   class="virya-event-text-link"
                 >
-                  {lang === "pl" ? "RSVP na Bandsintown" : "RSVP on Bandsintown"} ↗
+                  {lang === "pl"
+                    ? "RSVP na Bandsintown"
+                    : "RSVP on Bandsintown"}{" "}
+                  ↗
                 </a>
               )}
               <a
@@ -362,7 +454,11 @@ export default function EventDetail({
                   {copy.calendar} ↓
                 </a>
               )}
-              <button type="button" onClick={shareEvent} class="virya-event-text-link">
+              <button
+                type="button"
+                onClick={shareEvent}
+                class="virya-event-text-link"
+              >
                 {shareLabel}
               </button>
             </div>
@@ -427,12 +523,15 @@ export default function EventDetail({
                     </p>
                     <p class="mt-2 text-3xl font-black text-white">
                       {ticketInventory.available}
-                      <span class="ml-1 text-sm text-zinc-500">/ {ticketInventory.capacity}</span>
+                      <span class="ml-1 text-sm text-zinc-500">
+                        / {ticketInventory.capacity}
+                      </span>
                     </p>
                   </div>
                   {lowestPrice != null && (
                     <p class="text-right text-xs font-bold text-amber-400">
-                      {lang === "pl" ? "od" : "from"}<br />
+                      {lang === "pl" ? "od" : "from"}
+                      <br />
                       <strong class="text-lg text-white">
                         {money(lowestPrice, initialTicketSale.currency, locale)}
                       </strong>
@@ -454,10 +553,18 @@ export default function EventDetail({
   )
 }
 
-function Fact({ label, children }: { label: string; children: ComponentChildren }) {
+function Fact({
+  label,
+  children,
+}: {
+  label: string
+  children: ComponentChildren
+}) {
   return (
     <div>
-      <dt class="text-[8px] font-black uppercase tracking-[.2em] text-zinc-500">{label}</dt>
+      <dt class="text-[8px] font-black uppercase tracking-[.2em] text-zinc-500">
+        {label}
+      </dt>
       <dd class="mt-2 text-sm font-bold text-white">{children}</dd>
     </div>
   )
@@ -514,7 +621,9 @@ function CheckinPanel({
           <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">
             {copy.checkinBonus}
           </p>
-          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-200">{body}</p>
+          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-200">
+            {body}
+          </p>
           {state === "login" && (
             <a
               href={pagePath(lang, "/signal/#join-signal")}
@@ -614,11 +723,12 @@ function lowestAvailablePrice(sale: TicketSaleOffer): number | null {
 function ticketStateLabel(sale: TicketSaleOffer, lang: Lang): string {
   if (sale.sales_state === "open") {
     const inventory = normalizeTicketInventory(sale)
-    const reserved = inventory.reserved > 0
-      ? lang === "pl"
-        ? ` · ${inventory.reserved} w płatności`
-        : ` · ${inventory.reserved} in payment`
-      : ""
+    const reserved =
+      inventory.reserved > 0
+        ? lang === "pl"
+          ? ` · ${inventory.reserved} w płatności`
+          : ` · ${inventory.reserved} in payment`
+        : ""
     return lang === "pl"
       ? `${inventory.available} biletów dostępnych${reserved}`
       : `${inventory.available} tickets available${reserved}`

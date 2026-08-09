@@ -5,10 +5,15 @@ import type { Lang } from "../../../i18n/t"
 import type {
   AdmissionPass,
   FanEventInterest,
+  FanHomeSnapshot,
   ReferralProgress,
 } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
-import { crowdrelay } from "../../../lib/crowdrelay"
+import {
+  clearSynesthesiaHandoff,
+  crowdrelay,
+  synesthesiaHandoffFromLocation,
+} from "../../../lib/crowdrelay"
 
 interface Props {
   lang: Lang
@@ -17,15 +22,27 @@ interface Props {
 const dateTimeFormatters = new Map<string, Intl.DateTimeFormat>()
 const dateOnlyFormatters = new Map<string, Intl.DateTimeFormat>()
 
+const EMPTY_PROGRESS: ReferralProgress = {
+  referral_code: "",
+  qualified_referrals: 0,
+  pending_referrals: 0,
+  next_reward_threshold: null,
+  draw_entries: [],
+  coupons: [],
+  physical_rewards: [],
+}
+
 type State =
   | { kind: "loading" }
   | { kind: "unauthorized" }
   | { kind: "error" }
   | {
       kind: "ready"
+      home: FanHomeSnapshot
       progress: ReferralProgress
       events: FanEventInterest[]
       admissionPass: AdmissionPass | null
+      detailsLoading: boolean
     }
 
 export default function MySignal({ lang }: Props) {
@@ -38,22 +55,93 @@ export default function MySignal({ lang }: Props) {
 
   useEffect(() => {
     let cancelled = false
-    void Promise.allSettled([
-      crowdrelay.getReferralProgress(),
-      crowdrelay.listMyEvents(),
-      crowdrelay.getMyAdmissionPass(),
-    ]).then(results => {
-      if (cancelled) return
-      const [progressResult, eventsResult, passResult] = results
-      if (progressResult.status === "rejected") {
-        const error = progressResult.reason
-        setState(error instanceof CrowdRelayError && error.status === 401 ? { kind: "unauthorized" } : { kind: "error" })
+    const load = async () => {
+      const handoff = synesthesiaHandoffFromLocation()
+      if (handoff) {
+        try {
+          await crowdrelay.linkSynesthesiaCompletion(handoff)
+          if (!cancelled) clearSynesthesiaHandoff()
+        } catch (error) {
+          if (cancelled) return
+          if (error instanceof CrowdRelayError && error.status === 401) {
+            setState({ kind: "unauthorized" })
+            return
+          }
+          if (
+            error instanceof CrowdRelayError &&
+            [404, 409, 422].includes(error.status)
+          ) {
+            clearSynesthesiaHandoff()
+          }
+          // Keep transient/network failures in the fragment so a retry never
+          // destroys the completion handoff before it is consumed.
+        }
+      }
+
+      let home: FanHomeSnapshot
+      try {
+        home = await crowdrelay.getFanHome()
+      } catch (error) {
+        if (cancelled) return
+        setState(
+          error instanceof CrowdRelayError && error.status === 401
+            ? { kind: "unauthorized" }
+            : { kind: "error" },
+        )
         return
       }
-      const events = eventsResult.status === "fulfilled" ? eventsResult.value : []
-      const admissionPass = passResult.status === "fulfilled" ? passResult.value : null
-      setState({ kind: "ready", progress: progressResult.value, events, admissionPass })
-    })
+      if (cancelled) return
+
+      // The single fan/home read-model unlocks the useful dashboard first.
+      // Detailed reward/pass/interest views enrich it without extending TTI.
+      setState({
+        kind: "ready",
+        home,
+        progress: EMPTY_PROGRESS,
+        events: [],
+        admissionPass: null,
+        detailsLoading: true,
+      })
+
+      const [progressResult, eventsResult, passResult] =
+        await Promise.allSettled([
+          crowdrelay.getReferralProgress(),
+          crowdrelay.listMyEvents(),
+          crowdrelay.getMyAdmissionPass(),
+        ])
+      if (cancelled) return
+      const authFailure = [progressResult, eventsResult, passResult].some(
+        result =>
+          result.status === "rejected" &&
+          result.reason instanceof CrowdRelayError &&
+          result.reason.status === 401,
+      )
+      if (authFailure) {
+        setState({ kind: "unauthorized" })
+        return
+      }
+      setState(current =>
+        current.kind === "ready"
+          ? {
+              ...current,
+              progress:
+                progressResult.status === "fulfilled"
+                  ? progressResult.value
+                  : current.progress,
+              events:
+                eventsResult.status === "fulfilled"
+                  ? eventsResult.value
+                  : current.events,
+              admissionPass:
+                passResult.status === "fulfilled"
+                  ? passResult.value
+                  : current.admissionPass,
+              detailsLoading: false,
+            }
+          : current,
+      )
+    }
+    void load()
     return () => {
       cancelled = true
     }
@@ -94,9 +182,16 @@ export default function MySignal({ lang }: Props) {
   }
 
   if (state.kind === "unauthorized" || state.kind === "error") {
+    const pendingHandoff = synesthesiaHandoffFromLocation()
+    const joinHref = pendingHandoff
+      ? `${pagePath(lang, "/signal/")}#join-signal&handoff=${encodeURIComponent(pendingHandoff)}`
+      : pagePath(lang, "/signal/#join-signal")
     return (
       <div class="virya-panel relative overflow-hidden border-amber-400/30 bg-amber-400/[.035] p-6 sm:p-8">
-        <div class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
+        <div
+          class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl"
+          aria-hidden="true"
+        ></div>
         <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
           {copy.eyebrow}
         </p>
@@ -111,54 +206,225 @@ export default function MySignal({ lang }: Props) {
             : SIGNAL_COPY[lang].form.loadError}
         </p>
         <div class="mt-6 flex flex-wrap gap-3">
-          {state.kind === "error" && <button type="button" onClick={() => { setState({ kind: "loading" }); setReloadKey(value => value + 1) }} class="virya-button virya-button--primary min-h-[46px] px-5">{lang === "pl" ? "SPRÓBUJ PONOWNIE" : "TRY AGAIN"}</button>}
-          <a href={pagePath(lang, "/signal/#join-signal")} class="virya-button virya-button--secondary min-h-[46px] px-5">{copy.join}</a>
+          {state.kind === "error" && (
+            <button
+              type="button"
+              onClick={() => {
+                setState({ kind: "loading" })
+                setReloadKey(value => value + 1)
+              }}
+              class="virya-button virya-button--primary min-h-[46px] px-5"
+            >
+              {lang === "pl" ? "SPRÓBUJ PONOWNIE" : "TRY AGAIN"}
+            </button>
+          )}
+          <a
+            href={joinHref}
+            class="virya-button virya-button--secondary min-h-[46px] px-5"
+          >
+            {pendingHandoff
+              ? lang === "pl"
+                ? "POŁĄCZ SESJĘ I SYNESTEZJĘ"
+                : "CONNECT SESSION & SYNESTHESIA"
+              : copy.join}
+          </a>
         </div>
       </div>
     )
   }
 
-  const { progress, events, admissionPass } = state
+  const { home, progress, events, admissionPass, detailsLoading } = state
   const drawEntries = progress.draw_entries ?? []
   const coupons = progress.coupons ?? []
   const physicalRewards = progress.physical_rewards ?? []
 
+  const nextEvent = home.next_event
+  const synesthesia = home.synesthesia
+
   return (
     <div class="grid gap-6">
-      {progress.qualified_referrals === 0 && progress.pending_referrals === 0 ? (
-        <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-6">
-          <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">{lang === "pl" ? "SYGNAŁ JEST GOTOWY" : "SIGNAL READY"}</p>
-          <h2 class="mt-3 text-2xl font-black uppercase text-white">{lang === "pl" ? "Pierwszy efekt masz od razu" : "Your first result is immediate"}</h2>
-          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">{lang === "pl" ? "Sprawdź najbliższy koncert albo zachowaj link polecający na później. Nie musisz teraz wykonywać kolejnych etapów." : "Check the nearest show or save your referral link for later. There is no need to complete every stage now."}</p>
+      <section class="virya-panel overflow-hidden border-cyan-300/20 bg-cyan-300/[.025] p-5 sm:p-7">
+        <div class="flex flex-wrap items-start justify-between gap-5">
+          <div>
+            <p class="text-[9px] font-black uppercase tracking-[.3em] text-cyan-300">
+              {lang === "pl" ? "TWÓJ SYGNAŁ TERAZ" : "YOUR SIGNAL NOW"}
+            </p>
+            <h2 class="mt-3 text-2xl font-black uppercase text-white">
+              {home.profile.display_name ||
+                (lang === "pl" ? "Połączenie aktywne" : "Signal connected")}
+            </h2>
+            <p class="mt-2 text-xs text-zinc-400">
+              {home.profile.primary_city
+                ? `${lang === "pl" ? "Miasto" : "City"}: ${home.profile.primary_city}`
+                : lang === "pl"
+                  ? "Kontekst aktualizuje się wraz z Twoimi akcjami."
+                  : "Context updates with your actions."}
+            </p>
+          </div>
+          <div class="grid grid-cols-3 gap-px border border-zinc-800 bg-zinc-800 text-center">
+            <div class="bg-zinc-950 px-4 py-3">
+              <strong class="block text-xl text-white">
+                {home.counts.active_passes}
+              </strong>
+              <span class="text-[8px] uppercase tracking-widest text-zinc-500">
+                PASS
+              </span>
+            </div>
+            <div class="bg-zinc-950 px-4 py-3">
+              <strong class="block text-xl text-white">
+                {home.counts.area_claims}
+              </strong>
+              <span class="text-[8px] uppercase tracking-widest text-zinc-500">
+                AREA
+              </span>
+            </div>
+            <div class="bg-zinc-950 px-4 py-3">
+              <strong class="block text-xl text-white">
+                {home.referral.qualified}
+              </strong>
+              <span class="text-[8px] uppercase tracking-widest text-zinc-500">
+                REF
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-6 grid gap-3 md:grid-cols-2">
+          <div class="border border-zinc-800 bg-black/40 p-4">
+            <p class="text-[8px] font-black uppercase tracking-[.24em] text-cyan-300">
+              SYNESTEZJA
+            </p>
+            <p class="mt-2 text-sm font-bold text-white">
+              {synesthesia.completed
+                ? lang === "pl"
+                  ? "Podróż ukończona i połączona"
+                  : "Journey completed and linked"
+                : `${Math.max(0, synesthesia.rooms_completed)}/11 ${lang === "pl" ? "pokojów" : "rooms"}`}
+            </p>
+            <a
+              href="https://synesthesia.virya.music/"
+              class="mt-3 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-cyan-300"
+            >
+              {synesthesia.completed
+                ? lang === "pl"
+                  ? "WRÓĆ DO ALBUM MODE"
+                  : "RETURN TO ALBUM MODE"
+                : lang === "pl"
+                  ? "KONTYNUUJ PODRÓŻ"
+                  : "CONTINUE JOURNEY"}{" "}
+              →
+            </a>
+          </div>
+          {nextEvent ? (
+            <div
+              class={`border bg-black/40 p-4 ${nextEvent.phase === "live" ? "border-rose-400/50" : nextEvent.phase === "afterglow" ? "border-cyan-300/30" : "border-zinc-800"}`}
+            >
+              <p
+                class={`text-[8px] font-black uppercase tracking-[.24em] ${nextEvent.phase === "live" ? "text-rose-300" : nextEvent.phase === "afterglow" ? "text-cyan-300" : "text-amber-400"}`}
+              >
+                {nextEvent.phase === "live"
+                  ? lang === "pl"
+                    ? "SYGNAŁ TRWA TERAZ"
+                    : "SIGNAL LIVE NOW"
+                  : nextEvent.phase === "afterglow"
+                    ? lang === "pl"
+                      ? "PO SYGNALE"
+                      : "AFTER THE SIGNAL"
+                    : lang === "pl"
+                      ? "NASTĘPNY SYGNAŁ"
+                      : "NEXT SIGNAL"}
+              </p>
+              <p class="mt-2 text-sm font-bold text-white">{nextEvent.title}</p>
+              <p class="mt-1 text-xs text-zinc-400">
+                {[nextEvent.city, nextEvent.venue].filter(Boolean).join(" · ")}
+              </p>
+              {nextEvent.phase === "live" && (
+                <p class="mt-2 text-[10px] leading-relaxed text-rose-100/80">
+                  {lang === "pl"
+                    ? "Bilet, pass i kontekst koncertu są teraz najważniejsze."
+                    : "Your ticket, pass and show context are the priority right now."}
+                </p>
+              )}
+              {nextEvent.phase === "afterglow" && (
+                <p class="mt-2 text-[10px] leading-relaxed text-cyan-100/75">
+                  {lang === "pl"
+                    ? "Koncert właśnie wybrzmiał — to dobry moment na krótkie echo po występie."
+                    : "The show just ended — this is a good moment to leave a short post-show echo."}
+                </p>
+              )}
+              <a
+                href={pagePath(lang, `/live/${nextEvent.slug}/`)}
+                class="mt-3 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-amber-400"
+              >
+                {lang === "pl"
+                  ? "OTWÓRZ KONTEKST KONCERTU"
+                  : "OPEN EVENT CONTEXT"}{" "}
+                →
+              </a>
+            </div>
+          ) : (
+            <div class="border border-zinc-800 bg-black/40 p-4 text-xs text-zinc-400">
+              {lang === "pl"
+                ? "Kolejny koncert pojawi się tutaj, gdy tylko zostanie opublikowany."
+                : "Your next show will appear here as soon as it is published."}
+            </div>
+          )}
+        </div>
+      </section>
+      {detailsLoading ? (
+        <section class="virya-panel p-5" aria-busy="true">
+          <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
+            {lang === "pl"
+              ? "DOCZYTUJĘ NAGRODY I PASSY…"
+              : "LOADING REWARDS & PASSES…"}
+          </p>
         </section>
-      ) : <section class="grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
-        <div class="bg-zinc-950 p-5 sm:p-6">
-          <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
-            {copy.qualified}
+      ) : progress.qualified_referrals === 0 &&
+        progress.pending_referrals === 0 ? (
+        <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-6">
+          <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
+            {lang === "pl" ? "SYGNAŁ JEST GOTOWY" : "SIGNAL READY"}
           </p>
-          <p class="mt-3 text-4xl font-black text-amber-400">
-            {progress.qualified_referrals}
+          <h2 class="mt-3 text-2xl font-black uppercase text-white">
+            {lang === "pl"
+              ? "Pierwszy efekt masz od razu"
+              : "Your first result is immediate"}
+          </h2>
+          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+            {lang === "pl"
+              ? "Sprawdź najbliższy koncert albo zachowaj link polecający na później. Nie musisz teraz wykonywać kolejnych etapów."
+              : "Check the nearest show or save your referral link for later. There is no need to complete every stage now."}
           </p>
-        </div>
-        <div class="bg-zinc-950 p-5 sm:p-6">
-          <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
-            {copy.pending}
-          </p>
-          <p class="mt-3 text-4xl font-black text-white">
-            {progress.pending_referrals}
-          </p>
-        </div>
-        <div class="bg-zinc-950 p-5 sm:p-6">
-          <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
-            {copy.referrals}
-          </p>
-          <p class="mt-3 text-xs leading-relaxed text-zinc-300">
-            {progress.next_reward_threshold
-              ? copy.nextReward(progress.next_reward_threshold)
-              : copy.allUnlocked}
-          </p>
-        </div>
-      </section>}
+        </section>
+      ) : (
+        <section class="grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
+          <div class="bg-zinc-950 p-5 sm:p-6">
+            <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
+              {copy.qualified}
+            </p>
+            <p class="mt-3 text-4xl font-black text-amber-400">
+              {progress.qualified_referrals}
+            </p>
+          </div>
+          <div class="bg-zinc-950 p-5 sm:p-6">
+            <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
+              {copy.pending}
+            </p>
+            <p class="mt-3 text-4xl font-black text-white">
+              {progress.pending_referrals}
+            </p>
+          </div>
+          <div class="bg-zinc-950 p-5 sm:p-6">
+            <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
+              {copy.referrals}
+            </p>
+            <p class="mt-3 text-xs leading-relaxed text-zinc-300">
+              {progress.next_reward_threshold
+                ? copy.nextReward(progress.next_reward_threshold)
+                : copy.allUnlocked}
+            </p>
+          </div>
+        </section>
+      )}
 
       {referralUrl && (
         <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-5 sm:p-6">
@@ -201,16 +467,17 @@ export default function MySignal({ lang }: Props) {
         ) : (
           <ul class="mt-6 grid gap-3 lg:grid-cols-2">
             {drawEntries.map(draw => (
-              <li
-                key={draw.draw_id}
-                class="virya-panel p-5"
-              >
+              <li key={draw.draw_id} class="virya-panel p-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p class="text-[8px] font-black uppercase tracking-[.24em] text-zinc-500">
                       {draw.prize_kind === "admission_pass"
-                        ? lang === "pl" ? "Wejściówki" : "Guest list"
-                        : lang === "pl" ? "Album / nagroda fizyczna" : "Album / physical prize"}
+                        ? lang === "pl"
+                          ? "Wejściówki"
+                          : "Guest list"
+                        : lang === "pl"
+                          ? "Album / nagroda fizyczna"
+                          : "Album / physical prize"}
                     </p>
                     <h3 class="mt-2 text-base font-black uppercase text-white">
                       {draw.name}
@@ -221,7 +488,8 @@ export default function MySignal({ lang }: Props) {
                   </strong>
                 </div>
                 <p class="mt-3 text-xs font-semibold text-zinc-300">
-                  {copy.drawEntries(draw.total_entries)} · {copy.drawReferrals(draw.qualified_referrals)}
+                  {copy.drawEntries(draw.total_entries)} ·{" "}
+                  {copy.drawReferrals(draw.qualified_referrals)}
                   {draw.concert_checkins > 0 && (
                     <> · {copy.drawCheckins(draw.concert_checkins)}</>
                   )}
@@ -297,13 +565,17 @@ export default function MySignal({ lang }: Props) {
                 </p>
                 {reward.expires_at && (
                   <p class="mt-3 text-[10px] text-zinc-300">
-                    {copy.rewardExpires}: {formatDate(reward.expires_at, locale)}
+                    {copy.rewardExpires}:{" "}
+                    {formatDate(reward.expires_at, locale)}
                   </p>
                 )}
               </li>
             ))}
             {coupons.map(coupon => (
-              <li class="border border-zinc-800 bg-zinc-900/50 p-4" key={coupon.id}>
+              <li
+                class="border border-zinc-800 bg-zinc-900/50 p-4"
+                key={coupon.id}
+              >
                 <div class="flex items-start justify-between gap-3">
                   <code class="break-all text-sm font-black text-amber-400">
                     {coupon.code}
@@ -373,7 +645,8 @@ export default function MySignal({ lang }: Props) {
                     {event.title}
                   </h3>
                   <p class="mt-1 text-[9px] uppercase tracking-widest text-zinc-500">
-                    {event.city?.name ?? event.venue ?? "Virya"} · {formatDateOnly(interested_at, locale)}
+                    {event.city?.name ?? event.venue ?? "Virya"} ·{" "}
+                    {formatDateOnly(interested_at, locale)}
                   </p>
                 </div>
                 <a
@@ -396,7 +669,9 @@ export default function MySignal({ lang }: Props) {
           <span class="text-sm font-black uppercase tracking-widest text-white group-hover:text-amber-400">
             {copy.openArea}
           </span>
-          <span class="text-2xl text-amber-400" aria-hidden="true">→</span>
+          <span class="text-2xl text-amber-400" aria-hidden="true">
+            →
+          </span>
         </a>
         <a
           href={pagePath(lang, "/merch/")}
@@ -405,7 +680,9 @@ export default function MySignal({ lang }: Props) {
           <span class="text-sm font-black uppercase tracking-widest text-black">
             {copy.openStore}
           </span>
-          <span class="text-2xl text-black" aria-hidden="true">→</span>
+          <span class="text-2xl text-black" aria-hidden="true">
+            →
+          </span>
         </a>
       </div>
     </div>

@@ -106,6 +106,7 @@ const request = async <T,>(path: string, init?: RequestInit): Promise<T> => {
     ...init,
     credentials: "same-origin",
     cache: "no-store",
+    signal: init?.signal ?? AbortSignal.timeout(10_000),
     headers,
   })
   const payload = (await response.json().catch(() => ({}))) as T & { error?: string }

@@ -270,6 +270,7 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
     try {
       const response = await fetch("/api/ticket-checkout", {
         method: "POST",
+        signal: AbortSignal.timeout(15_000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           eventSlug: slug,

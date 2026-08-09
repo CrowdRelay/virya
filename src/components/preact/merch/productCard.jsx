@@ -168,6 +168,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
     try {
       await fetch("/api/size-demand", {
         method: "POST",
+        signal: AbortSignal.timeout(6_000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: product.id, size: s }),
       })

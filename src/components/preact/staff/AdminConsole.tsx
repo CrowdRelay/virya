@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import TicketInventoryBar from "../tickets/TicketInventoryBar"
 import EcosystemControl from "./EcosystemControl"
 import BackendLoader from "./BackendLoader"
+import AudienceIntelligence from "./AudienceIntelligence"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
-type Tab = "overview" | "signal" | "ops" | "ticketing" | "admission" | "mailer" | "system"
+type Tab = "overview" | "signal" | "audience" | "ops" | "ticketing" | "admission" | "mailer" | "system"
 type ApiError = Error & { status?: number; payload?: { error?: string } }
 
 type Capabilities = {
@@ -313,6 +314,7 @@ type TicketingSaveReceipt = {
 const tabs: Array<{ key: Tab; label: string; hint: string }> = [
   { key: "overview", label: "Stan", hint: "system i koncerty" },
   { key: "signal", label: "Sygnał", hint: "fani, miasta i wzrost" },
+  { key: "audience", label: "Audience", hint: "Fan 360 i kampanie" },
   { key: "ops", label: "Operacje", hint: "kolejki i retry" },
   { key: "ticketing", label: "Bilety", hint: "ceny i pule" },
   { key: "admission", label: "Wejściówki", hint: "wydaj i unieważnij" },
@@ -492,7 +494,7 @@ export default function AdminConsole() {
               Cały system w jednym miejscu
             </h1>
             <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">
-              CrowdRelay, sprzedaż biletów, wejściówki, QR, księgowość i mailer.
+              CrowdRelay, Audience Intelligence, sprzedaż biletów, wejściówki, QR, księgowość i mailer.
               Sekrety nigdy nie trafiają do przeglądarki.
             </p>
           </div>
@@ -517,7 +519,7 @@ export default function AdminConsole() {
 
       <nav
         aria-label="Sekcje panelu"
-        class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/30 p-2 sm:grid-cols-3 xl:grid-cols-7"
+        class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/30 p-2 sm:grid-cols-4 xl:grid-cols-8"
       >
         {tabs.map(item => (
           <button
@@ -548,6 +550,7 @@ export default function AdminConsole() {
         <OverviewTab overview={overview} capabilities={capabilities} loading={overviewLoading} />
       )}
       {tab === "signal" && <SignalTab />}
+      {tab === "audience" && <AudienceIntelligence />}
       {tab === "ops" && <OpsTab />}
       {tab === "ticketing" && <TicketingTab events={events} />}
       {tab === "admission" && <AdmissionTab events={events} />}
