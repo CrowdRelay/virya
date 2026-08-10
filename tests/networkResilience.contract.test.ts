@@ -11,7 +11,7 @@ test('deep AREA rewards hydrate only when visible', () => {
 })
 
 test('interactive public request paths are bounded', () => {
-  const area = read('src/components/AreaExperience.astro')
+  const area = read('src/components/AreaExperience.astro') + read('src/client/areaExperience.ts')
   assert.match(area, /const AREA_REQUEST_TIMEOUT_MS = 10_000/)
   for (const endpoint of [
     '/api/area/wallet',

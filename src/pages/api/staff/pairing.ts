@@ -41,7 +41,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     return areaJson(
-      createStaffPairingEnvelope(body.displayName, body.ttlMinutes),
+      await createStaffPairingEnvelope(body.displayName, body.ttlMinutes),
     )
   } catch (error) {
     if (error instanceof TypeError) {

@@ -4,7 +4,12 @@ import test from "node:test"
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 
-const ui = read("src/components/preact/staff/AdminConsole.tsx")
+const ui = [
+  "src/components/preact/staff/AdminConsole.tsx",
+  "src/components/preact/staff/AdminConsoleTabs.tsx",
+  "src/components/preact/staff/AdminTicketingTab.tsx",
+  "src/components/preact/staff/adminConsoleShared.ts",
+].map(read).join("\n")
 const route = read("src/pages/api/staff/admin/signal/overview.ts")
 const ecosystem = read("src/components/preact/staff/EcosystemControl.tsx")
 const loader = read("src/components/preact/staff/BackendLoader.tsx")

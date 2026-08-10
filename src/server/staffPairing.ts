@@ -1,14 +1,17 @@
 import { readServerEnv } from "./runtimeEnv.ts"
+
 const DEFAULT_API_BASE_URL = "https://signal-api.virya.music/v1/"
-const MIN_TOKEN_LENGTH = 24
-const MAX_TOKEN_LENGTH = 180
+const MIN_SECRET_LENGTH = 24
+const MAX_SECRET_LENGTH = 512
+const MAX_PAIRING_CODE_LENGTH = 128
 const MAX_DISPLAY_NAME_CHARS = 64
 const MIN_TTL_MINUTES = 1
 const MAX_TTL_MINUTES = 10
 const MAX_QR_PAYLOAD_BYTES = 400
+const BROKER_TIMEOUT_MS = 10_000
 
 export type StaffPairingEnvelope = {
-  version: 1
+  version: 2
   role: "staff"
   displayName: string
   expiresAt: number
@@ -16,27 +19,45 @@ export type StaffPairingEnvelope = {
 }
 
 type StaffPairingPayload = {
-  version: 1
+  version: 2
   apiBaseUrl: string
   displayName: string
   role: "staff"
-  bearerToken: string
+  pairingCode: string
+  expiresAt: number
+}
+
+export type StaffPairingCode = {
+  version: 2
+  role: "staff"
+  displayName: string
+  pairingCode: string
   expiresAt: number
 }
 
 type StaffPairingConfig = {
-  bearerToken: unknown
+  adminApiKey: unknown
   apiBaseUrl: unknown
   allowInsecureHttp?: boolean
 }
 
-const cleanBearerToken = (value: unknown) => {
+const cleanSecret = (value: unknown) => {
   if (typeof value !== "string") return null
   const token = value.trim()
-  return token.length >= MIN_TOKEN_LENGTH &&
-    token.length <= MAX_TOKEN_LENGTH &&
+  return token.length >= MIN_SECRET_LENGTH &&
+    token.length <= MAX_SECRET_LENGTH &&
     !/[\u0000-\u0020\u007f]/.test(token)
     ? token
+    : null
+}
+
+const cleanPairingCode = (value: unknown) => {
+  if (typeof value !== "string") return null
+  const code = value.trim()
+  return code.length >= MIN_SECRET_LENGTH &&
+    code.length <= MAX_PAIRING_CODE_LENGTH &&
+    /^[A-Za-z0-9_-]+$/.test(code)
+    ? code
     : null
 }
 
@@ -81,47 +102,53 @@ const cleanTtlMinutes = (value: unknown) => {
 }
 
 const runtimeConfig = (): StaffPairingConfig => ({
-  bearerToken: readServerEnv("STAFF_OPERATOR_KEY", import.meta.env.STAFF_OPERATOR_KEY),
-  apiBaseUrl: readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL),
+  adminApiKey: readServerEnv(
+    "CROWDRELAY_ADMIN_API_KEY",
+    import.meta.env.CROWDRELAY_ADMIN_API_KEY,
+  ),
+  apiBaseUrl: readServerEnv(
+    "PUBLIC_CROWDRELAY_API_URL",
+    import.meta.env.PUBLIC_CROWDRELAY_API_URL,
+  ),
   allowInsecureHttp: import.meta.env.DEV,
 })
 
 export const isStaffPairingConfigured = () => {
   const config = runtimeConfig()
   return (
-    cleanBearerToken(config.bearerToken) !== null &&
+    cleanSecret(config.adminApiKey) !== null &&
     cleanApiBaseUrl(config.apiBaseUrl, config.allowInsecureHttp) !== null
   )
 }
 
 export const buildStaffPairingEnvelope = (
-  config: StaffPairingConfig,
-  displayNameValue: unknown,
-  ttlMinutesValue: unknown,
-  nowSeconds = Math.floor(Date.now() / 1000),
+  apiBaseUrlValue: unknown,
+  brokerValue: StaffPairingCode,
+  allowInsecureHttp = false,
 ): StaffPairingEnvelope => {
-  const bearerToken = cleanBearerToken(config.bearerToken)
-  const baseUrl = cleanApiBaseUrl(
-    config.apiBaseUrl,
-    config.allowInsecureHttp,
-  )
-  const displayName = cleanDisplayName(displayNameValue)
-  const ttlMinutes = cleanTtlMinutes(ttlMinutesValue)
+  const baseUrl = cleanApiBaseUrl(apiBaseUrlValue, allowInsecureHttp)
+  const displayName = cleanDisplayName(brokerValue?.displayName)
+  const pairingCode = cleanPairingCode(brokerValue?.pairingCode)
+  const expiresAt = Number(brokerValue?.expiresAt)
 
-  if (!bearerToken || !baseUrl) {
-    throw new Error("Staff pairing is not configured")
-  }
-  if (!displayName || ttlMinutes === null || !Number.isInteger(nowSeconds)) {
-    throw new TypeError("Invalid staff pairing input")
+  if (!baseUrl) throw new Error("Staff pairing is not configured")
+  if (
+    brokerValue?.version !== 2 ||
+    brokerValue?.role !== "staff" ||
+    !displayName ||
+    !pairingCode ||
+    !Number.isSafeInteger(expiresAt) ||
+    expiresAt <= 0
+  ) {
+    throw new TypeError("Invalid staff pairing broker response")
   }
 
-  const expiresAt = nowSeconds + ttlMinutes * 60
   const payload: StaffPairingPayload = {
-    version: 1,
+    version: 2,
     apiBaseUrl: baseUrl,
     displayName,
     role: "staff",
-    bearerToken,
+    pairingCode,
     expiresAt,
   }
   const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString(
@@ -134,7 +161,7 @@ export const buildStaffPairingEnvelope = (
   }
 
   return {
-    version: 1,
+    version: 2,
     role: "staff",
     displayName,
     expiresAt,
@@ -142,12 +169,89 @@ export const buildStaffPairingEnvelope = (
   }
 }
 
-export const createStaffPairingEnvelope = (
+export const createStaffPairingEnvelope = async (
   displayNameValue: unknown,
   ttlMinutesValue: unknown,
-) =>
-  buildStaffPairingEnvelope(
-    runtimeConfig(),
-    displayNameValue,
-    ttlMinutesValue,
+): Promise<StaffPairingEnvelope> => {
+  const config = runtimeConfig()
+  const adminApiKey = cleanSecret(config.adminApiKey)
+  const apiBaseUrl = cleanApiBaseUrl(config.apiBaseUrl, config.allowInsecureHttp)
+  const displayName = cleanDisplayName(displayNameValue)
+  const ttlMinutes = cleanTtlMinutes(ttlMinutesValue)
+
+  if (!adminApiKey || !apiBaseUrl) {
+    throw new Error("Staff pairing is not configured")
+  }
+  if (!displayName || ttlMinutes === null) {
+    throw new TypeError("Invalid staff pairing input")
+  }
+
+  const response = await fetch(new URL("admin/staff/pairing-codes", apiBaseUrl), {
+    method: "POST",
+    cache: "no-store",
+    signal: AbortSignal.timeout(BROKER_TIMEOUT_MS),
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${adminApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ displayName, ttlMinutes }),
+  })
+  if (!response.ok) {
+    throw new Error(`CrowdRelay pairing broker failed (${response.status})`)
+  }
+
+  const broker = await response.json() as StaffPairingCode
+  return buildStaffPairingEnvelope(apiBaseUrl, broker, config.allowInsecureHttp)
+}
+
+export type StaffDeviceSession = {
+  id: string
+  displayName: string
+  expiresAt: string
+  revokedAt: string | null
+  createdAt: string
+}
+
+const cleanSessionId = (value: unknown) =>
+  typeof value === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim())
+    ? value.trim()
+    : null
+
+const staffAdminRequest = async (path: string, init: RequestInit = {}) => {
+  const config = runtimeConfig()
+  const adminApiKey = cleanSecret(config.adminApiKey)
+  const apiBaseUrl = cleanApiBaseUrl(config.apiBaseUrl, config.allowInsecureHttp)
+  if (!adminApiKey || !apiBaseUrl) throw new Error("Staff pairing is not configured")
+  return await fetch(new URL(path, apiBaseUrl), {
+    ...init,
+    cache: "no-store",
+    signal: AbortSignal.timeout(BROKER_TIMEOUT_MS),
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${adminApiKey}`,
+      ...(init.headers ?? {}),
+    },
+  })
+}
+
+export const listStaffDeviceSessions = async (): Promise<StaffDeviceSession[]> => {
+  const response = await staffAdminRequest("admin/staff/sessions")
+  if (!response.ok) throw new Error(`CrowdRelay staff sessions failed (${response.status})`)
+  const payload = await response.json() as { sessions?: StaffDeviceSession[] }
+  if (!Array.isArray(payload.sessions)) throw new TypeError("Invalid staff session response")
+  return payload.sessions.slice(0, 100)
+}
+
+export const revokeStaffDeviceSession = async (sessionIdValue: unknown): Promise<void> => {
+  const sessionId = cleanSessionId(sessionIdValue)
+  if (!sessionId) throw new TypeError("Invalid staff session id")
+  const response = await staffAdminRequest(
+    `admin/staff/sessions/${encodeURIComponent(sessionId)}/revoke`,
+    { method: "POST" },
   )
+  if (response.status !== 204) {
+    throw new Error(`CrowdRelay staff session revoke failed (${response.status})`)
+  }
+}

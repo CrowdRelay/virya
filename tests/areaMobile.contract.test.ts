@@ -6,7 +6,7 @@ const read = (path: string) =>
   readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 
 test("AREA city icons remain visible and GPS stays idle without a live drop", () => {
-  const experience = read("src/components/AreaExperience.astro")
+  const experience = read("src/components/AreaExperience.astro") + read("src/client/areaExperience.ts")
   assert.doesNotMatch(experience, /button\.hidden\s*=\s*!live/)
   assert.match(experience, /data-drop-marker/)
   assert.match(experience, /area-marker-core/)

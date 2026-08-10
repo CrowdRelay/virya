@@ -486,7 +486,7 @@ export const translations = {
             list: [
               "Stripe — payment processing",
               "InPost — parcel delivery",
-              "Netlify — site hosting, form storage and VIRYA Area wallet storage",
+              "Netlify — site hosting and form storage",
               "Google (Gmail) — sending and receiving email",
             ],
           },
@@ -989,7 +989,7 @@ export const translations = {
             list: [
               "Stripe — obsługa płatności",
               "InPost — dostawa paczek",
-              "Netlify — hosting strony, formularzy i portfeli Gry Virya",
+              "Netlify — hosting strony i formularzy",
               "Google (Gmail) — wysyłanie i odbieranie e-maili",
             ],
           },
