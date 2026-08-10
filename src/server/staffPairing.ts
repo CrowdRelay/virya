@@ -1,3 +1,4 @@
+import { readServerEnv } from "./runtimeEnv.ts"
 const DEFAULT_API_BASE_URL = "https://signal-api.virya.music/v1/"
 const MIN_TOKEN_LENGTH = 24
 const MAX_TOKEN_LENGTH = 180
@@ -80,8 +81,8 @@ const cleanTtlMinutes = (value: unknown) => {
 }
 
 const runtimeConfig = (): StaffPairingConfig => ({
-  bearerToken: import.meta.env.STAFF_OPERATOR_KEY,
-  apiBaseUrl: import.meta.env.PUBLIC_CROWDRELAY_API_URL,
+  bearerToken: readServerEnv("STAFF_OPERATOR_KEY", import.meta.env.STAFF_OPERATOR_KEY),
+  apiBaseUrl: readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL),
   allowInsecureHttp: import.meta.env.DEV,
 })
 

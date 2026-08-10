@@ -1,3 +1,4 @@
+import { readServerEnv } from "./runtimeEnv.ts"
 const DEFAULT_BASE_URL = "https://signal-api.virya.music/v1/"
 const MAX_UPSTREAM_BYTES = 512 * 1024
 const DEFAULT_TIMEOUT_MS = 5_000
@@ -104,7 +105,7 @@ export class CrowdRelayCommerceError extends Error {
 }
 
 const baseUrl = () => {
-  const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL
+  const configured = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)
   const value =
     typeof configured === "string" && configured.trim()
       ? configured.trim()
@@ -120,7 +121,7 @@ const baseUrl = () => {
 }
 
 const commerceKey = () => {
-  const value = import.meta.env.CROWDRELAY_COMMERCE_API_KEY
+  const value = readServerEnv("CROWDRELAY_COMMERCE_API_KEY", import.meta.env.CROWDRELAY_COMMERCE_API_KEY)
   return typeof value === "string" && value.length >= 24 && value.length <= 512
     ? value
     : null

@@ -1,3 +1,4 @@
+import { readServerEnv } from "./runtimeEnv.ts"
 import { createHmac } from "node:crypto"
 import { getStore } from "@netlify/blobs"
 
@@ -14,9 +15,9 @@ const memoryRates = new Map<string, RateRecord>()
 const store = () => getStore({ name: STORE_NAME, consistency: "strong" })
 
 const rateSecret = () => {
-  const dedicated = import.meta.env.SIGNAL_FEEDBACK_RATE_SECRET
+  const dedicated = readServerEnv("SIGNAL_FEEDBACK_RATE_SECRET", import.meta.env.SIGNAL_FEEDBACK_RATE_SECRET)
   if (typeof dedicated === "string" && dedicated.length >= 32) return dedicated
-  const existing = import.meta.env.AREA_AUTH_SECRET
+  const existing = readServerEnv("AREA_AUTH_SECRET", import.meta.env.AREA_AUTH_SECRET)
   return typeof existing === "string" && existing.length >= 32 ? existing : null
 }
 

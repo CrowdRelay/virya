@@ -1,3 +1,4 @@
+import { readServerEnv } from "../../server/runtimeEnv.ts"
 import { timingSafeEqual } from "node:crypto"
 import type { APIRoute } from "astro"
 import { VIRYA_SITE_ORIGIN } from "../../config"
@@ -182,7 +183,7 @@ const sendTickets = async (payload: TicketPayload) => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const configuredKey = import.meta.env.VIRYA_TICKET_MAILER_API_KEY?.trim()
+  const configuredKey = readServerEnv("VIRYA_TICKET_MAILER_API_KEY", import.meta.env.VIRYA_TICKET_MAILER_API_KEY)?.trim()
   const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? ""
   if (!configuredKey || configuredKey.length < 24 || !safeEqual(provided, configuredKey)) {
     return json({ error: "unauthorized" }, 401)

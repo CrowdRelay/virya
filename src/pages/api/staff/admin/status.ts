@@ -1,3 +1,4 @@
+import { readServerEnv } from "../../../../server/runtimeEnv.ts"
 import type { APIRoute } from "astro"
 import { areaJson } from "../../../../server/areaHttp"
 import {
@@ -19,15 +20,15 @@ export const GET: APIRoute = async ({ cookies }) => {
     configured: isStaffQrConfigured() && isStaffApiConfigured(),
     capabilities: authenticated
       ? {
-          crowdrelayAdmin: configured(import.meta.env.CROWDRELAY_ADMIN_API_KEY, 24),
-          crowdrelayCommerce: configured(import.meta.env.CROWDRELAY_COMMERCE_API_KEY, 24),
-          crowdrelayWebhook: configured(import.meta.env.CROWDRELAY_WEBHOOK_SECRET, 24),
-          crowdrelayMailer: configured(import.meta.env.CROWDRELAY_MAILER_API_KEY, 24),
-          ticketMailer: configured(import.meta.env.VIRYA_TICKET_MAILER_API_KEY, 24),
+          crowdrelayAdmin: configured(readServerEnv("CROWDRELAY_ADMIN_API_KEY", import.meta.env.CROWDRELAY_ADMIN_API_KEY), 24),
+          crowdrelayCommerce: configured(readServerEnv("CROWDRELAY_COMMERCE_API_KEY", import.meta.env.CROWDRELAY_COMMERCE_API_KEY), 24),
+          crowdrelayWebhook: configured(readServerEnv("CROWDRELAY_WEBHOOK_SECRET", import.meta.env.CROWDRELAY_WEBHOOK_SECRET), 24),
+          crowdrelayMailer: configured(readServerEnv("CROWDRELAY_MAILER_API_KEY", import.meta.env.CROWDRELAY_MAILER_API_KEY), 24),
+          ticketMailer: configured(readServerEnv("VIRYA_TICKET_MAILER_API_KEY", import.meta.env.VIRYA_TICKET_MAILER_API_KEY), 24),
           gmail:
             configured(VIRYA_OPERATIONS_EMAIL) &&
-            configured(import.meta.env.GMAIL_APP_PASSWORD, 8),
-          stripe: configured(import.meta.env.STRIPE_SECRET_KEY, 16),
+            configured(readServerEnv("GMAIL_APP_PASSWORD", import.meta.env.GMAIL_APP_PASSWORD), 8),
+          stripe: configured(readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY), 16),
         }
       : undefined,
   })

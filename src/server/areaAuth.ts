@@ -7,7 +7,7 @@ import {
 } from "node:crypto"
 import { getStore } from "@netlify/blobs"
 import type { AreaCookieJar } from "./areaHttp"
-import { readServerEnv } from "./runtimeEnv"
+import { readServerEnv } from "./runtimeEnv.ts"
 import { linkAreaPlayer } from "./crowdrelayArea"
 
 const STORE_NAME = "virya-area-auth"

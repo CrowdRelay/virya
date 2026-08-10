@@ -1,3 +1,4 @@
+import { readServerEnv } from "../../../../server/runtimeEnv.ts"
 import type { APIRoute } from "astro"
 import { areaJson } from "../../../../server/areaHttp"
 import { resolvePublicDrawProof } from "../../../../data/drawProofs"
@@ -10,7 +11,7 @@ export const GET: APIRoute = async ({ params }) => {
   const slug = params.slug ?? ""
   if (!SLUG.test(slug)) return areaJson({ error: "Invalid draw" }, 400)
   const drawRef = resolvePublicDrawProof(slug)
-  const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL?.trim() || DEFAULT_BASE_URL
+  const configured = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)?.trim() || DEFAULT_BASE_URL
   const base = configured.endsWith("/") ? configured : `${configured}/`
   try {
     const response = await fetch(`${base}public/proofs/draws/${encodeURIComponent(drawRef.drawSlug)}`, {

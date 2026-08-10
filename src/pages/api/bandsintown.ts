@@ -1,7 +1,8 @@
+import { readServerEnv } from "../../server/runtimeEnv.ts"
 import type { APIRoute } from "astro"
 
 const ARTIST = "virya"
-const APP_ID = import.meta.env.BANDSINTOWN_APP_ID || "virya-website"
+const APP_ID = readServerEnv("BANDSINTOWN_APP_ID", import.meta.env.BANDSINTOWN_APP_ID) || "virya-website"
 const REQUEST_TIMEOUT_MS = 8_000
 const MAX_RESPONSE_BYTES = 512 * 1024
 const MAX_EVENTS = 100

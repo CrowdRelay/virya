@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import type { AreaDrop } from "../data/area"
-import { readServerEnv } from "./runtimeEnv"
+import { readServerEnv } from "./runtimeEnv.ts"
 
 const DEFAULT_API_BASE = "https://signal-api.virya.music/v1/"
 const MAX_RESPONSE_BYTES = 256 * 1024

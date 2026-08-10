@@ -4,7 +4,7 @@ import {
   randomBytes,
   timingSafeEqual,
 } from "node:crypto"
-import { readServerEnv } from "./runtimeEnv"
+import { readServerEnv } from "./runtimeEnv.ts"
 
 export const AREA_CHALLENGE_LIFETIME_MS = 90_000
 export const AREA_CHALLENGE_MIN_DURATION_MS = 6_000
