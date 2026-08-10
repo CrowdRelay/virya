@@ -152,6 +152,8 @@ const description = "Official music videos and live performance footage from Vir
 
   document.addEventListener("astro:page-load", () => {
     const modal = document.getElementById("video-modal")
+    if (!modal || modal.dataset.initialized === "true") return
+    modal.dataset.initialized = "true"
     const iframe = document.getElementById("video-iframe") as HTMLIFrameElement
     const modalTitle = document.getElementById("modal-title")
     const modalLink = document.getElementById("modal-yt-link") as HTMLAnchorElement
@@ -185,7 +187,7 @@ const description = "Official music videos and live performance footage from Vir
     })
 
     const ac = new AbortController()
-    document.addEventListener("astro:before-preparation", () => ac.abort(), { once: true })
+    document.addEventListener("astro:before-preparation", () => { closeModal(); ac.abort() }, { once: true })
 
     closeBtn?.addEventListener("click", closeModal)
     modal?.addEventListener("click", (e) => { if (e.target === modal) closeModal() })

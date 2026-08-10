@@ -122,9 +122,11 @@ const hasLyrics = (lyricsData as Array<{slug: string}>).some(l => l.slug === slu
     role="dialog"
     aria-modal="true"
     aria-label="Image viewer"
+    tabindex="-1"
   >
     <button
       id="lightbox-close"
+      data-dialog-initial-focus
       class="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors"
       aria-label="Close"
     >
@@ -141,28 +143,35 @@ const hasLyrics = (lyricsData as Array<{slug: string}>).some(l => l.slug === slu
   </div>
 
   <script>
+    import { createDialogFocus } from "../../../utils/dialogFocus"
+
     document.addEventListener("astro:page-load", () => {
       const lightbox = document.getElementById("lightbox")
       const openBtn = document.getElementById("open-lightbox")
-      if (!lightbox || !openBtn) return
+      if (!lightbox || !openBtn || lightbox.dataset.initialized === "true") return
+      lightbox.dataset.initialized = "true"
 
+      const ac = new AbortController()
+      const dialogFocus = createDialogFocus(lightbox)
+      const close = () => {
+        lightbox.classList.add("hidden")
+        lightbox.classList.remove("flex")
+        document.body.style.overflow = ""
+        dialogFocus.deactivate()
+      }
       const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close() }
       const open = () => {
         lightbox.classList.remove("hidden")
         lightbox.classList.add("flex")
         document.body.style.overflow = "hidden"
-        document.addEventListener("keydown", onKey)
-      }
-      const close = () => {
-        lightbox.classList.add("hidden")
-        lightbox.classList.remove("flex")
-        document.body.style.overflow = ""
-        document.removeEventListener("keydown", onKey)
+        dialogFocus.activate(openBtn)
       }
 
-      openBtn.addEventListener("click", open)
-      document.getElementById("lightbox-close")?.addEventListener("click", close)
-      lightbox.addEventListener("click", (e) => { if (e.target === lightbox) close() })
+      document.addEventListener("astro:before-preparation", () => { close(); ac.abort() }, { once: true })
+      document.addEventListener("keydown", onKey, { signal: ac.signal })
+      openBtn.addEventListener("click", open, { signal: ac.signal })
+      document.getElementById("lightbox-close")?.addEventListener("click", close, { signal: ac.signal })
+      lightbox.addEventListener("click", (e) => { if (e.target === lightbox) close() }, { signal: ac.signal })
     })
   </script>
 </Layout>

@@ -215,7 +215,7 @@ const dims = rawDims as Record<string, { w: number; h: number }>
 
     buttons.forEach((btn, i) => btn.addEventListener("click", () => openAt(i)))
     const ac = new AbortController()
-    document.addEventListener("astro:before-preparation", () => ac.abort(), { once: true })
+    document.addEventListener("astro:before-preparation", () => { closeModal(); ac.abort() }, { once: true })
 
     closeBtn?.addEventListener("click", closeModal)
     prevBtn?.addEventListener("click", prev)
