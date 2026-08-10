@@ -3,7 +3,12 @@ import { readFileSync } from "node:fs"
 import test from "node:test"
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
-const consoleUi = read("src/components/preact/staff/AdminConsole.tsx")
+const consoleUi = [
+  "src/components/preact/staff/AdminConsole.tsx",
+  "src/components/preact/staff/AdminConsoleTabs.tsx",
+  "src/components/preact/staff/AdminTicketingTab.tsx",
+  "src/components/preact/staff/adminConsoleShared.ts",
+].map(read).join("\n")
 const audienceUi = read("src/components/preact/staff/AudienceIntelligence.tsx")
 const dashboard = read("src/pages/api/staff/admin/audience/dashboard.ts")
 const fanTags = read("src/pages/api/staff/admin/audience/fans/[id]/tags/index.ts")

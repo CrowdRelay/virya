@@ -36,7 +36,7 @@ The browser never receives Stripe secrets, CrowdRelay admin keys or staff creden
 
 Public content does not wait for email or automation delivery. AREA and Signal have separate state boundaries so a CrowdRelay outage cannot invalidate an already committed AREA reward.
 
-More detail: [architecture](docs/ARCHITECTURE.md), [staff QR](docs/STAFF_QR.md), [staff pairing](docs/STAFF_PAIRING.md), [ticketing ecosystem](docs/ECOSYSTEM_TICKETING.md) and [reliability](docs/RELIABILITY.md).
+More detail: [architecture](docs/ARCHITECTURE.md).
 
 ## Local development
 
@@ -83,7 +83,7 @@ The deployed site is kept at 100 across the Lighthouse audits tracked for perfor
 
 The global runtime guard loads before Astro navigation, records bounded privacy-safe diagnostics, and surfaces uncaught client failures instead of leaving a blank page. Middleware converts uncaught server failures into correlated no-store responses. The service worker always returns a concrete fallback response and never caches ticket capabilities or staff pages.
 
-See [reliability](docs/RELIABILITY.md) and run `npm run quality` before release.
+Run `npm run quality` before release.
 
 ## Security
 

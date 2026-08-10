@@ -5,11 +5,19 @@ type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type ApiError = Error & { status?: number }
 
 type PairingEnvelope = {
-  version: 1
+  version: 2
   role: "staff"
   displayName: string
   expiresAt: number
   uri: string
+}
+
+type DeviceSession = {
+  id: string
+  displayName: string
+  expiresAt: string
+  revokedAt: string | null
+  createdAt: string
 }
 
 type ApiOptions = {
@@ -53,6 +61,7 @@ export default function StaffPairingManager() {
   const [qr, setQr] = useState<GeneratedQr | null>(null)
   const [secondsLeft, setSecondsLeft] = useState(0)
   const [busy, setBusy] = useState(false)
+  const [sessions, setSessions] = useState<DeviceSession[]>([])
   const [message, setMessage] = useState("")
   const passwordRef = useRef<HTMLInputElement>(null)
 
@@ -110,10 +119,39 @@ export default function StaffPairingManager() {
         return
       }
       setState("ready")
+      void loadSessions()
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
         setState("error")
       }
+    }
+  }
+
+
+  async function loadSessions() {
+    try {
+      const result = await api<{ sessions: DeviceSession[] }>("/api/staff/pairing/sessions")
+      setSessions(result.sessions)
+    } catch {
+      setSessions([])
+    }
+  }
+
+  async function revokeSession(sessionId: string) {
+    if (busy) return
+    setBusy(true)
+    setMessage("")
+    try {
+      await api("/api/staff/pairing/sessions", {
+        method: "POST",
+        body: { sessionId },
+      })
+      await loadSessions()
+      setMessage("Dostęp urządzenia został odwołany.")
+    } catch {
+      setMessage("Nie udało się odwołać dostępu urządzenia.")
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -191,7 +229,7 @@ export default function StaffPairingManager() {
     return (
       <StatusCard
         title="Parowanie nie jest skonfigurowane"
-        body="Ustaw w Netlify server-only klucz operatora staff oraz istniejące zmienne logowania panelu. Klucz musi odpowiadać konfiguracji staff po stronie CrowdRelay."
+        body="Ustaw istniejące zmienne logowania staff, adres CrowdRelay i serwerowy klucz administratora. QR zawiera tylko jednorazowy kod parowania."
       />
     )
   }
@@ -306,9 +344,9 @@ export default function StaffPairingManager() {
             </button>
           </div>
           <div class="mt-6 rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4 text-xs leading-5 text-amber-100/80">
-            QR zawiera prywatny klucz roli staff wymagany przez obecną wersję
-            Virya Signal. Nie wysyłaj zrzutu ekranu i nie pokazuj kodu poza
-            zaufanym urządzeniem. Odebranie dostępu wymaga rotacji klucza staff.
+            QR zawiera wyłącznie jednorazowy kod ważny przez kilka minut — nie
+            zawiera klucza administratora ani trwałego tokena staff. Po wymianie
+            CrowdRelay wydaje osobną, odwoływalną sesję dla tego urządzenia.
           </div>
         </form>
 
@@ -354,6 +392,29 @@ export default function StaffPairingManager() {
           )}
         </section>
       </div>
+      <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-black text-white">Sparowane urządzenia</h2>
+            <p class="mt-1 text-sm text-zinc-500">Każdą sesję można odwołać niezależnie, bez rotacji wspólnego klucza.</p>
+          </div>
+          <button type="button" onClick={() => void loadSessions()} disabled={busy} class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-zinc-200 disabled:opacity-50">Odśwież</button>
+        </div>
+        <div class="mt-4 grid gap-2">
+          {sessions.length === 0 ? <p class="text-sm text-zinc-500">Brak aktywności urządzeń do pokazania.</p> : sessions.map(session => {
+            const active = !session.revokedAt && Date.parse(session.expiresAt) > Date.now()
+            return (
+              <div key={session.id} class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
+                <div>
+                  <strong class="text-sm text-white">{session.displayName}</strong>
+                  <p class="mt-1 text-xs text-zinc-500">{active ? `ważna do ${new Date(session.expiresAt).toLocaleString("pl-PL")}` : "wygasła lub odwołana"}</p>
+                </div>
+                {active ? <button type="button" onClick={() => void revokeSession(session.id)} disabled={busy} class="rounded-xl border border-rose-400/30 px-3 py-2 text-xs font-black text-rose-200 disabled:opacity-50">ODWOŁAJ</button> : null}
+              </div>
+            )
+          })}
+        </div>
+      </section>
       {message ? <Message>{message}</Message> : null}
     </div>
   )
