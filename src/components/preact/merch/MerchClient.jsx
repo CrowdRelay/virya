@@ -39,11 +39,13 @@ const CartDrawerFallback = () => (
 const MerchInner = () => {
   const { t, lang, lp } = useI18n()
   const { open: cartOpen, count: cartCount } = useCart()
+  const { setPriceOverrides } = useCartActions()
   const images = useMerchImages()
   const [isWide, setIsWide] = useState(true)
   const [inventory, setInventory] = useState({
     status: "loading",
     variants: null,
+    prices: {},
   })
   const saleActive = discountActive()
 
@@ -71,12 +73,15 @@ const MerchInner = () => {
           throw new Error("invalid inventory payload")
         }
         if (active) {
-          setInventory({ status: "ready", variants: payload.variants })
+          const prices = payload.prices && typeof payload.prices === "object" ? payload.prices : {}
+          setPriceOverrides(prices)
+          setInventory({ status: "ready", variants: payload.variants, prices })
         }
       })
       .catch(() => {
         if (active) {
-          setInventory({ status: "unavailable", variants: null })
+          setPriceOverrides({})
+          setInventory({ status: "unavailable", variants: null, prices: {} })
         }
       })
       .finally(() => window.clearTimeout(timeout))
@@ -85,7 +90,7 @@ const MerchInner = () => {
       window.clearTimeout(timeout)
       controller.abort()
     }
-  }, [])
+  }, [setPriceOverrides])
   useEffect(() => {
     const product = new URLSearchParams(window.location.search).get("product")
     if (!product || !/^[a-z0-9_-]{1,128}$/.test(product)) return

@@ -32,6 +32,27 @@ const imageUrl = (path: unknown) => {
   return `${STORE_ORIGIN}/images/${encoded}`
 }
 
+
+const priceCatalog = (catalog: Awaited<ReturnType<typeof fetchPublicMerchCatalog>>) => {
+  const prices: Record<string, { price_gross_minor: number; currency: string }> = {}
+  for (const bundle of BUNDLES) {
+    prices[bundle.id] = {
+      price_gross_minor: toMinorUnits(discountedPrice(bundle)),
+      currency: "PLN",
+    }
+  }
+  for (const product of catalog.products) {
+    if (!product.active || !product.public) continue
+    const currency = String(product.currency || "").trim().toUpperCase()
+    if (currency !== "PLN" || !Number.isInteger(product.price_gross_minor) || product.price_gross_minor < 0) continue
+    prices[product.slug] = {
+      price_gross_minor: product.price_gross_minor,
+      currency,
+    }
+  }
+  return prices
+}
+
 const availabilityLabel = (state: { available: boolean; lowStock: boolean } | null) => {
   if (!state?.available) return "sold_out"
   return state.lowStock ? "low_stock" : "available"
@@ -92,10 +113,11 @@ export const GET: APIRoute = async () => {
         status: "ready",
         generatedAt: catalog.generated_at,
         variants,
+        prices: priceCatalog(catalog),
         bundles: bundleCatalog(variants),
       },
       200,
-      "public, max-age=15, stale-while-revalidate=60",
+      "public, max-age=5, stale-while-revalidate=15",
     )
   } catch (error) {
     console.warn("[merch-inventory] CrowdRelay availability unavailable", error)
