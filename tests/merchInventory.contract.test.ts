@@ -51,3 +51,23 @@ test("mobile bundle catalog is sourced from the same canonical bundle list", asy
   assert.match(source, /inventoryAvailability\(bundle, size, inventoryBySku\)/)
   assert.match(source, /source=signal-app&product=/)
 })
+
+test("adaptive merch pricing is CrowdRelay-authoritative from storefront through Stripe checkout", async () => {
+  const fs = await import("node:fs/promises")
+  const [inventoryApi, cartContext, productCard, cartDrawer, checkout] = await Promise.all([
+    fs.readFile(new URL("../src/pages/api/merch/inventory.ts", import.meta.url), "utf8"),
+    fs.readFile(new URL("../src/components/preact/merch/cartContext.jsx", import.meta.url), "utf8"),
+    fs.readFile(new URL("../src/components/preact/merch/productCard.jsx", import.meta.url), "utf8"),
+    fs.readFile(new URL("../src/components/preact/merch/cartDrawer.jsx", import.meta.url), "utf8"),
+    fs.readFile(new URL("../src/pages/api/checkout.ts", import.meta.url), "utf8"),
+  ])
+
+  assert.match(inventoryApi, /prices:\s*priceCatalog\(catalog\)/)
+  assert.match(inventoryApi, /product\.price_gross_minor/)
+  assert.match(cartContext, /priceOverrides/)
+  assert.match(productCard, /inventory\?\.prices\?\.\[product\.id\]/)
+  assert.match(cartDrawer, /expectedPriceGrossMinor/)
+  assert.match(checkout, /fetchPublicMerchCatalog\(3_000\)/)
+  assert.match(checkout, /code:\s*"PRICE_CHANGED"/)
+  assert.match(checkout, /unitPrice:\s*authoritativePriceMinor \/ 100/)
+})

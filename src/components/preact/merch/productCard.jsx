@@ -9,8 +9,6 @@ import {
   productLowStock,
   sizeLowStock,
   isBundle,
-  discountActive,
-  discountPct,
   SIZE_CHART,
   inventoryAvailability,
 } from "../../../data/products"
@@ -49,8 +47,16 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
     inventory?.status === "ready" ? inventory.variants : null,
   )
   const available = inventoryState?.available ?? productInStock(product)
-  const price = discountedPrice(product)
-  const onSale = discountActive() && price < product.price
+  const priceOverride = inventory?.prices?.[product.id]
+  const price =
+    Number.isInteger(priceOverride?.price_gross_minor) &&
+    String(priceOverride?.currency || "PLN").toUpperCase() === "PLN"
+      ? priceOverride.price_gross_minor / 100
+      : discountedPrice(product)
+  const onSale = price < product.price
+  const priceDiscountPct = onSale && product.price > 0
+    ? Math.max(1, Math.round((1 - price / product.price) * 100))
+    : 0
   const lowStock = inventoryState?.lowStock ?? productLowStock(product)
   const selectedInventoryState = needsSize && size
     ? inventoryAvailability(
@@ -215,7 +221,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
         )}
         <div class="absolute top-2 left-2 flex flex-col items-start gap-1">
           {bundle && <span class="text-[10px] font-black uppercase tracking-widest text-black bg-zinc-100 px-2 py-1">{t("product.bundle")}</span>}
-          {onSale && <span class="text-[10px] font-black uppercase tracking-widest text-black bg-amber-400 px-2 py-1">−{discountPct(product)}%</span>}
+          {onSale && <span class="text-[10px] font-black uppercase tracking-widest text-black bg-amber-400 px-2 py-1">−{priceDiscountPct}%</span>}
         </div>
         {available && lowStock && (
           <span class="absolute bottom-2 left-2 text-[10px] font-bold uppercase tracking-widest text-amber-300 bg-black/70 px-2 py-1 backdrop-blur-sm">{t("product.lowStock")}</span>
@@ -339,7 +345,7 @@ const ProductCard = ({ product, images, index = 0, isWide = true, inventory }) =
           )}
           {inventory?.status === "unavailable" && (
             <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
-              {lang === "pl" ? "Stan potwierdzimy przy zakupie" : "Stock confirmed at checkout"}
+              {lang === "pl" ? "Cenę i stan potwierdzimy przy zakupie" : "Price and stock confirmed at checkout"}
             </span>
           )}
         </div>

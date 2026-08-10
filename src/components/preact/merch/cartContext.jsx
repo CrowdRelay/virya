@@ -34,6 +34,7 @@ export const CartProvider = ({ children }) => {
   const [lines, setLines] = useState([])
   const [open, setOpen] = useState(false)
   const [hydrated, setHydrated] = useState(false)
+  const [priceOverrides, setPriceOverrides] = useState({})
 
   useEffect(() => {
     setLines(readStored())
@@ -76,10 +77,15 @@ export const CartProvider = ({ children }) => {
       lines.map((l) => {
         const product = getProduct(l.id)
         if (!product) return null
-        const unitPrice = discountedPrice(product)
+        const override = priceOverrides?.[product.id]
+        const unitPrice =
+          Number.isInteger(override?.price_gross_minor) &&
+          String(override?.currency || "PLN").toUpperCase() === "PLN"
+            ? override.price_gross_minor / 100
+            : discountedPrice(product)
         return { ...l, product, unitPrice, lineTotal: unitPrice * l.qty }
       }).filter(Boolean),
-    [lines]
+    [lines, priceOverrides]
   )
 
   const count = useMemo(() => detailed.reduce((n, l) => n + l.qty, 0), [detailed])
@@ -88,7 +94,7 @@ export const CartProvider = ({ children }) => {
   const shipping = needsShipping ? SHIPPING_PLN : 0
   const total = subtotal + shipping
 
-  const actions = useMemo(() => ({ setOpen, add, setQty, remove, clear }), [setOpen, add, setQty, remove, clear])
+  const actions = useMemo(() => ({ setOpen, add, setQty, remove, clear, setPriceOverrides }), [setOpen, add, setQty, remove, clear, setPriceOverrides])
   const state = useMemo(
     () => ({ lines: detailed, count, subtotal, shipping, needsShipping, total, open, hydrated }),
     [detailed, count, subtotal, shipping, needsShipping, total, open, hydrated],

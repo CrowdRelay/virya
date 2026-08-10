@@ -66,7 +66,7 @@ const QtyButton = ({ children, onClick, label }) => (
 const CartDrawer = () => {
   const { t, lang, lp } = useI18n()
   const getProductName = (product) => lang === "pl" && product.name_pl ? product.name_pl : product.name
-  const { lines, open, setOpen, subtotal, shipping, needsShipping, total, setQty, remove, hydrated } = useCart()
+  const { lines, open, setOpen, subtotal, shipping, needsShipping, total, setQty, remove, hydrated, setPriceOverrides } = useCart()
   const images = useMerchImages()
   const [point, setPoint] = useState(null)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -256,7 +256,7 @@ const CartDrawer = () => {
     try {
       const checkoutPayload = {
         lang,
-        items: lines.map((l) => ({ id: l.id, size: l.size, qty: l.qty })),
+        items: lines.map((l) => ({ id: l.id, size: l.size, qty: l.qty, expectedPriceGrossMinor: Math.round(l.unitPrice * 100) })),
         point: needsShipping ? point : null,
         invoice: { name, surname, email, address, nip: invoice.nip.trim(), company: invoice.company.trim() },
         rewardCode: rewardApplied ? rewardCode.trim().toUpperCase() : "",
@@ -278,6 +278,17 @@ const CartDrawer = () => {
       })
       const data = await res.json()
       if (!res.ok || !data.url) {
+        if (data.code === "PRICE_CHANGED") {
+          try {
+            const pricingResponse = await fetch("/api/merch/inventory", {
+              headers: { Accept: "application/json" },
+              cache: "no-store",
+              signal: AbortSignal.timeout(5_000),
+            })
+            const pricing = await pricingResponse.json()
+            if (pricingResponse.ok && pricing?.prices) setPriceOverrides(pricing.prices)
+          } catch {}
+        }
         if (!data.retrySameRequest) clearRewardCheckout()
         throw new Error(data.error || "Checkout failed")
       }
@@ -285,7 +296,7 @@ const CartDrawer = () => {
       // player cancels Stripe Checkout, the same reservation can resume.
       window.location.href = data.url
     } catch (e) { setError(e.message || t("cart.errGeneric")); setLoading(false) }
-  }, [lines, point, needsShipping, invoice, t, lang, rewardCode, rewardApplied])
+  }, [lines, point, needsShipping, invoice, t, lang, rewardCode, rewardApplied, setPriceOverrides])
 
   return (
     <>

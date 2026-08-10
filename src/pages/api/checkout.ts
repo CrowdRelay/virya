@@ -12,6 +12,7 @@ import {
   productInStock,
   isAreaRewardEligible,
   inventoryItemsForCartEntry,
+  isBundle,
 } from "../../data/products"
 import {
   AREA_REWARD_CHECKOUT_SECONDS,
@@ -24,6 +25,7 @@ import {
   merchInventoryWritesReady,
   releaseMerchInventory,
   reserveMerchInventory,
+  fetchPublicMerchCatalog,
 } from "../../server/crowdrelayCommerce"
 
 const MAX_QTY = 20
@@ -225,6 +227,32 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: "Invalid customer details" }, 400)
     }
 
+    let authoritativePrices: Map<string, number>
+    try {
+      const catalog = await fetchPublicMerchCatalog(3_000)
+      authoritativePrices = new Map(
+        catalog.products
+          .filter(
+            product =>
+              product.active &&
+              product.public &&
+              String(product.currency || "").trim().toUpperCase() === "PLN" &&
+              Number.isInteger(product.price_gross_minor) &&
+              product.price_gross_minor >= 0,
+          )
+          .map(product => [product.slug, product.price_gross_minor]),
+      )
+    } catch (error) {
+      if (inventoryWrites) {
+        console.error("[checkout-merch-pricing]", error)
+        return json({ error: "Store pricing is temporarily unavailable" }, 503)
+      }
+      // Compatibility during inventory/autopilot rollout. Before CrowdRelay
+      // becomes the activated commerce source of truth, retain the local
+      // catalog pricing used by the previous deployment.
+      authoritativePrices = new Map()
+    }
+
     const cart: CartEntry[] = []
     let totalQuantity = 0
     for (const rawItem of items) {
@@ -258,6 +286,38 @@ export const POST: APIRoute = async ({ request }) => {
         return json({ error: "Invalid or out-of-stock size" }, 400)
       }
 
+      const authoritativePriceMinor = isBundle(product)
+        ? toMinorUnits(discountedPrice(product))
+        : authoritativePrices.get(product.id) ??
+          (!inventoryWrites ? toMinorUnits(discountedPrice(product)) : undefined)
+      if (
+        typeof authoritativePriceMinor !== "number" ||
+        !Number.isInteger(authoritativePriceMinor) ||
+        authoritativePriceMinor < 0
+      ) {
+        console.error("[checkout-merch-pricing-missing]", { productId: product.id })
+        return json({ error: "Store pricing is temporarily unavailable" }, 503)
+      }
+      const expectedPriceGrossMinor = Number(item.expectedPriceGrossMinor)
+      if (
+        item.expectedPriceGrossMinor !== undefined &&
+        (!Number.isInteger(expectedPriceGrossMinor) ||
+          expectedPriceGrossMinor < 0 ||
+          expectedPriceGrossMinor !== authoritativePriceMinor)
+      ) {
+        return json(
+          {
+            error: lang === "pl"
+              ? "Cena produktu zmieniła się. Koszyk został odświeżony — sprawdź cenę i spróbuj ponownie."
+              : "The product price changed. Your cart has been refreshed — review the price and try again.",
+            code: "PRICE_CHANGED",
+            productId: product.id,
+            currentPriceGrossMinor: authoritativePriceMinor,
+          },
+          409,
+        )
+      }
+
       const productName =
         lang === "pl" && product.name_pl ? product.name_pl : product.name
       const label = itemSize ? `${productName} (${itemSize})` : productName
@@ -266,7 +326,7 @@ export const POST: APIRoute = async ({ request }) => {
         size: itemSize,
         qty,
         product,
-        unitPrice: discountedPrice(product),
+        unitPrice: authoritativePriceMinor / 100,
         label,
         requiresShipping: productRequiresShipping(product),
       })
