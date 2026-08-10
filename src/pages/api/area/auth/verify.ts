@@ -13,10 +13,7 @@ import {
   isSameOriginRequest,
   readSmallJsonObject,
 } from "../../../../server/areaHttp"
-import {
-  AreaWalletMigrationConflictError,
-  migrateAreaWallet,
-} from "../../../../server/areaLedger"
+import { ensureLegacyAreaImported } from "../../../../server/areaMigration"
 
 export const prerender = false
 
@@ -74,16 +71,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     const account = await upsertAreaAccount(payload.accountId, payload.email)
-    try {
-      await migrateAreaWallet(
-        payload.walletId,
+    if (account.backendPlayerId) {
+      await ensureLegacyAreaImported(
+        account.backendPlayerId,
         areaAccountWalletId(payload.accountId),
+        payload.walletId,
       )
-    } catch (error) {
-      // A browser wallet is intentionally transferable only once. Reusing the
-      // same browser for another account must not block that account's login;
-      // it simply signs in without copying the already-bound legacy wallet.
-      if (!(error instanceof AreaWalletMigrationConflictError)) throw error
     }
     await completeAreaMagicUse(payload.nonce, leaseId)
     setAreaSession(cookies, payload.accountId)

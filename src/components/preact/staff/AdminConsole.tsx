@@ -3,11 +3,11 @@ import TicketInventoryBar from "../tickets/TicketInventoryBar"
 import EcosystemControl from "./EcosystemControl"
 import BackendLoader from "./BackendLoader"
 import AudienceIntelligence from "./AudienceIntelligence"
+import OpsTimelinePanel from "./OpsTimelinePanel"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type Tab = "overview" | "signal" | "audience" | "ops" | "ticketing" | "admission" | "mailer" | "system"
 type ApiError = Error & { status?: number; payload?: { error?: string } }
-
 type Capabilities = {
   crowdrelayAdmin: boolean
   crowdrelayCommerce: boolean
@@ -17,7 +17,6 @@ type Capabilities = {
   gmail: boolean
   stripe: boolean
 }
-
 type EventItem = {
   id: string
   slug: string
@@ -1272,7 +1271,7 @@ function OrderStatusBadge({ status }: { status: string }) {
 
   return (
     <span
-      class={`inline-flex min-h-7 items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${tone}`}
+      class={`inline-flex min-h-7 items-center rounded-full border px-2.5 py-1 text-xs font-black uppercase tracking-wider ${tone}`}
     >
       {display.label}
     </span>
@@ -1840,6 +1839,7 @@ function OpsTab() {
   return (
     <div class="grid gap-5">
       <EcosystemControl />
+      <OpsTimelinePanel />
       <section class="relative rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6" aria-busy={loading}>
         {loading && <BackendLoader overlay label="Pobieram kolejki CrowdRelay…" />}
         <div class="flex flex-wrap items-start justify-between gap-4">
@@ -1915,7 +1915,7 @@ function OpsTab() {
                   <OrderStatusBadge
                     status={item.target === "delivery" ? "webhook_failed" : "outbox_failed"}
                   />
-                  <span class="text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                  <span class="text-xs font-black uppercase tracking-wider text-zinc-500">
                     {item.target === "delivery"
                       ? "webhook delivery"
                       : "outbox event"}
@@ -1924,7 +1924,7 @@ function OpsTab() {
                 <strong class="mt-3 block break-words text-white">
                   {item.event_type}
                 </strong>
-                <p class="mt-1 break-all font-mono text-[11px] text-zinc-500">
+                <p class="mt-1 break-all font-mono text-xs text-zinc-500">
                   {item.id}
                 </p>
                 <p class="mt-2 text-xs text-zinc-400">
@@ -2135,7 +2135,7 @@ function Capability({ label, ok }: { label: string; ok: boolean }) {
 function Badge({ ok, text }: { ok: boolean; text: string }) {
   return (
     <span
-      class={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${ok ? "bg-emerald-300 text-emerald-950" : "bg-rose-300 text-rose-950"}`}
+      class={`rounded-full px-2.5 py-1 text-xs font-black uppercase tracking-wider ${ok ? "bg-emerald-300 text-emerald-950" : "bg-rose-300 text-rose-950"}`}
     >
       {text}
     </span>

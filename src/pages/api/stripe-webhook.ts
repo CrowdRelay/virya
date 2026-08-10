@@ -9,7 +9,6 @@ import {
   completeFulfillmentLease,
   releaseFulfillmentLease,
 } from "../../server/fulfillmentLedger"
-import { mutateAreaWallet } from "../../server/areaLedger"
 import {
   redeemAreaRewardCode,
   releaseAreaRewardCode,
@@ -78,28 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
           reservationId,
           checkoutSessionId: session.id,
         })
-        if (released) {
-          await mutateAreaWallet(released.ownerId, wallet => ({
-            wallet: {
-              ...wallet,
-              vouchers: wallet.vouchers.map(item =>
-                item.requestId === released.requestId &&
-                item.status === "reserved"
-                  ? {
-                      ...item,
-                      status: "issued" as const,
-                      reservationId: undefined,
-                      reservedUntil: undefined,
-                      checkoutSessionId: undefined,
-                      freeProductId: undefined,
-                      freeProductLabel: undefined,
-                    }
-                  : item,
-              ),
-            },
-            result: null,
-          }))
-        }
+        void released
       } catch (error) {
         console.error("[stripe-webhook] reward release failed:", error)
         return new Response("Reward release temporarily failed", { status: 500 })
@@ -184,24 +162,6 @@ export const POST: APIRoute = async ({ request }) => {
         if (!reward) {
           throw new Error("VIRYA Area reward could not be reconciled")
         }
-        await mutateAreaWallet(reward.ownerId, wallet => ({
-          wallet: {
-            ...wallet,
-            vouchers: wallet.vouchers.map(item =>
-              item.requestId === reward.requestId
-                ? {
-                    ...item,
-                    status: "redeemed" as const,
-                    checkoutSessionId: session.id,
-                    freeProductId: reward.freeProductId,
-                    freeProductLabel: reward.freeProductLabel,
-                    redeemedAt: reward.redeemedAt,
-                  }
-                : item,
-            ),
-          },
-          result: null,
-        }))
       }
 
       if (session.metadata?.virya_processed === "1") {

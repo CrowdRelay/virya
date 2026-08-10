@@ -20,7 +20,6 @@ import {
   attachAreaRewardCheckout,
   reserveAreaRewardCode,
 } from "../../server/areaReward"
-import { mutateAreaWallet } from "../../server/areaLedger"
 import {
   CrowdRelayCommerceError,
   merchInventoryWritesReady,
@@ -77,51 +76,6 @@ type CartEntry = {
   requiresShipping: boolean
 }
 
-
-const syncRewardWalletReservation = async ({
-  ownerId,
-  requestId,
-  reservationId,
-  reservedUntil,
-  checkoutSessionId,
-  freeProductId,
-  freeProductLabel,
-}: {
-  ownerId: string
-  requestId: string
-  reservationId: string
-  reservedUntil: number
-  checkoutSessionId?: string
-  freeProductId?: string
-  freeProductLabel?: string
-}) => {
-  try {
-    await mutateAreaWallet(ownerId, (wallet) => ({
-      wallet: {
-        ...wallet,
-        vouchers: wallet.vouchers.map((reward) =>
-          reward.requestId === requestId && reward.status !== "redeemed"
-            ? {
-                ...reward,
-                status: "reserved" as const,
-                reservationId,
-                reservedUntil,
-                checkoutSessionId:
-                  checkoutSessionId ?? reward.checkoutSessionId,
-                freeProductId: freeProductId ?? reward.freeProductId,
-                freeProductLabel: freeProductLabel ?? reward.freeProductLabel,
-              }
-            : reward,
-        ),
-      },
-      result: null,
-    }))
-  } catch (error) {
-    // The global reward record is the redemption source of truth. A wallet UI
-    // status refresh may lag without weakening the single-use guarantee.
-    console.error("[checkout:reward-wallet-sync]", error)
-  }
-}
 
 const stripeLine = (
   name: string,
@@ -374,16 +328,6 @@ export const POST: APIRoute = async ({ request }) => {
         )
       }
 
-      await syncRewardWalletReservation({
-        ownerId: rewardReservation.record.ownerId,
-        requestId: rewardReservation.record.requestId,
-        reservationId: checkoutRequestId,
-        reservedUntil: checkoutExpiresAt * 1000,
-        checkoutSessionId: rewardReservation.record.checkoutSessionId,
-        freeProductId: rewardReservation.record.freeProductId,
-        freeProductLabel: rewardReservation.record.freeProductLabel,
-      })
-
       if (rewardReservation.record.checkoutSessionId) {
         try {
           const existing = await stripe.checkout.sessions.retrieve(
@@ -552,18 +496,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (rewardCode && rewardReservation?.ok && freeEntry) {
       try {
-        const attachedReward = await attachAreaRewardCheckout({
+        await attachAreaRewardCheckout({
           codeHash: rewardReservation.record.codeHash,
           reservationId: checkoutRequestId,
-          checkoutSessionId: session.id,
-          freeProductId: freeEntry.id,
-          freeProductLabel: freeEntry.label,
-        })
-        await syncRewardWalletReservation({
-          ownerId: attachedReward.ownerId,
-          requestId: attachedReward.requestId,
-          reservationId: checkoutRequestId,
-          reservedUntil: checkoutExpiresAt * 1000,
           checkoutSessionId: session.id,
           freeProductId: freeEntry.id,
           freeProductLabel: freeEntry.label,

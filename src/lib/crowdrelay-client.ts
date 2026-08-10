@@ -1,3 +1,4 @@
+// @generated-contract openapi-sha256:e8cb4ee07f70239649e781ed3d6eafc0905a65d1ec39ecaac7180247cf61345b
 export interface EventCity {
   id: string
   slug: string
@@ -5,6 +6,14 @@ export interface EventCity {
   country_code: string
   region: string | null
 }
+
+export type TicketSaleState =
+  | "upcoming"
+  | "open"
+  | "closed"
+  | "sold_out"
+  | "inactive"
+  | "event_unavailable"
 
 export interface TicketSaleSummary {
   currency: string
@@ -87,6 +96,52 @@ export interface TicketSaleOffer {
     | "inactive"
     | "event_unavailable"
   ticket_types: TicketTypeOffer[]
+}
+
+
+export interface ConfigureTicketTypeInput {
+  slug: string
+  name: string
+  description?: string | null
+  price_gross_minor: number
+  capacity?: number | null
+  sort_order: number
+  active: boolean
+}
+
+export interface ConfigureTicketSaleInput {
+  currency: string
+  vat_rate_basis_points: number
+  capacity: number
+  max_per_order: number
+  hold_seconds: number
+  sales_open_at: string
+  sales_close_at: string
+  active: boolean
+  ticket_types: ConfigureTicketTypeInput[]
+}
+
+export interface TicketOrderSummary {
+  order_id: string
+  public_reference: string
+  status: string
+  buyer_email_masked: string
+  amount_gross_minor: number
+  amount_refunded_minor: number
+  currency: string
+  paid_at: string | null
+}
+
+export interface AdminTicketingOverview {
+  sale: TicketSaleOffer
+  reserved_orders: number
+  checkout_created_orders: number
+  reserved_tickets: number
+  paid_orders: number
+  paid_tickets: number
+  gross_sales_minor: number
+  refunded_minor: number
+  recent_orders: TicketOrderSummary[]
 }
 
 export interface TicketOrderItem {
@@ -172,6 +227,11 @@ export interface CitySignal {
   fan_count: number
 }
 
+export interface ConsentInput {
+  marketing: true
+  policy_version: string
+}
+
 export interface FanSignupInput {
   email: string
   city_slug: string
@@ -179,10 +239,7 @@ export interface FanSignupInput {
   locale?: string
   referral_code?: string
   campaign_id?: string
-  consent: {
-    marketing: true
-    policy_version: string
-  }
+  consent: ConsentInput
 }
 
 export interface FanSignupResult {
@@ -210,6 +267,11 @@ export interface FanUnsubscribeResult {
   status: "unsubscribed" | "suppressed"
 }
 
+export interface EventInterestInput {
+  campaign_id?: string
+  source?: string
+}
+
 export interface EventInterestResult {
   event_id: string
   fan_id: string
@@ -223,6 +285,46 @@ export interface ConcertCheckinResult {
   campaign_id: string
   created: boolean
   checked_in_at: string
+}
+
+
+export interface CreateConcertQrCampaignInput {
+  event_slug: string
+  label: string
+  valid_from: string
+  valid_until: string
+  max_checkins?: number
+}
+
+export interface StaffConcertEvent {
+  id: string
+  slug: string
+  title: string
+  venue: string | null
+  starts_at: string
+}
+
+export interface ConcertQrCampaign {
+  id: string
+  event_id: string
+  event_slug: string
+  event_title: string
+  venue: string | null
+  starts_at: string
+  label: string
+  valid_from: string
+  valid_until: string
+  max_checkins: number | null
+  checkin_count: number
+  active: boolean
+  revoked_at: string | null
+  created_at: string
+  token: string | null
+}
+
+export interface ConcertQrOverview {
+  events: StaffConcertEvent[]
+  campaigns: ConcertQrCampaign[]
 }
 
 export interface FanEventInterest {
@@ -298,6 +400,34 @@ export interface AdmissionPass {
   public_reference: string
   status: AdmissionPassStatus
   session_expires_at: string
+  redeemed_at: string | null
+}
+
+
+export interface AdmissionPassIssued {
+  pass_id: string
+  event_id: string
+  fan_id: string
+  public_reference: string
+  claim_token: string
+  claim_expires_at: string
+  created: boolean
+}
+
+export type AdmissionRedemptionStatus =
+  | "redeemed"
+  | "already_redeemed"
+  | "revoked"
+  | "expired"
+  | "not_claimed"
+
+export interface AdmissionRedemptionResult {
+  pass_id: string
+  event_id: string
+  public_reference: string
+  holder_name: string | null
+  holder_email_masked: string
+  status: AdmissionRedemptionStatus
   redeemed_at: string | null
 }
 
@@ -454,19 +584,33 @@ interface RequestOptions {
   bearerToken?: string
 }
 
+export interface CrowdRelayClientOptions {
+  baseUrl: string
+  timeoutMs?: number
+  fetch?: typeof globalThis.fetch
+}
+
 export class CrowdRelayClient {
   readonly #baseUrl: URL
   readonly #timeoutMs: number
   readonly #fetch: typeof globalThis.fetch
 
-  constructor(options: {
-    baseUrl: string
-    timeoutMs?: number
-    fetch?: typeof globalThis.fetch
-  }) {
-    this.#baseUrl = new URL(ensureTrailingSlash(options.baseUrl))
-    this.#timeoutMs = options.timeoutMs ?? 2_500
-    this.#fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
+  constructor(options: CrowdRelayClientOptions) {
+    const baseUrl = new URL(ensureTrailingSlash(options.baseUrl))
+    if (!["http:", "https:"].includes(baseUrl.protocol) || baseUrl.username || baseUrl.password) {
+      throw new TypeError("CrowdRelay baseUrl must be an HTTP(S) URL without credentials")
+    }
+    const timeoutMs = options.timeoutMs ?? 2_500
+    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+      throw new RangeError("CrowdRelay timeoutMs must be a positive finite number")
+    }
+    const fetchImplementation = options.fetch ?? globalThis.fetch
+    if (typeof fetchImplementation !== "function") {
+      throw new TypeError("CrowdRelay requires a fetch implementation")
+    }
+    this.#baseUrl = baseUrl
+    this.#timeoutMs = timeoutMs
+    this.#fetch = fetchImplementation.bind(globalThis)
   }
 
   async listCities(limit = 100): Promise<CitySignal[]> {
@@ -495,6 +639,38 @@ export class CrowdRelayClient {
   getTicketSale(slug: string): Promise<TicketSaleOffer> {
     return this.#request(`public/events/${encodeURIComponent(slug)}/tickets`, {
       timeoutMs: 2_500,
+    })
+  }
+
+  getAdminTicketingOverview(
+    slug: string,
+    adminApiKey: string,
+  ): Promise<AdminTicketingOverview> {
+    return this.#request(`admin/events/${encodeURIComponent(slug)}/ticketing`, {
+      bearerToken: adminApiKey,
+    })
+  }
+
+  getStaffTicketingOverview(
+    slug: string,
+    staffApiKey: string,
+  ): Promise<AdminTicketingOverview> {
+    return this.#request(`staff/events/${encodeURIComponent(slug)}/ticketing`, {
+      bearerToken: staffApiKey,
+    })
+  }
+
+  configureTicketSale(
+    slug: string,
+    input: ConfigureTicketSaleInput,
+    adminApiKey: string,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<TicketSaleOffer> {
+    return this.#request(`admin/events/${encodeURIComponent(slug)}/ticketing`, {
+      method: "POST",
+      body: input,
+      idempotencyKey,
+      bearerToken: adminApiKey,
     })
   }
 
@@ -573,7 +749,7 @@ export class CrowdRelayClient {
 
   registerEventInterest(
     slug: string,
-    input: { campaign_id?: string; source?: string } = {},
+    input: EventInterestInput = {},
     idempotencyKey = newIdempotencyKey(),
   ): Promise<EventInterestResult> {
     return this.#request(`events/${encodeURIComponent(slug)}/interest`, {
@@ -593,6 +769,38 @@ export class CrowdRelayClient {
       body: { token },
       idempotencyKey,
       timeoutMs: 5_000,
+    })
+  }
+
+  getConcertQrOverview(adminApiKey: string): Promise<ConcertQrOverview> {
+    return this.#request("admin/event-qr/overview", { bearerToken: adminApiKey })
+  }
+
+  createConcertQrCampaign(
+    input: CreateConcertQrCampaignInput,
+    adminApiKey: string,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<ConcertQrCampaign> {
+    return this.#request("admin/event-qr/campaigns", {
+      method: "POST", body: input, idempotencyKey, bearerToken: adminApiKey,
+    })
+  }
+
+  async listConcertQrCampaigns(adminApiKey: string, limit = 50): Promise<ConcertQrCampaign[]> {
+    const response = await this.#request<{ campaigns: ConcertQrCampaign[] }>(
+      `admin/event-qr/campaigns?limit=${limit}`,
+      { bearerToken: adminApiKey },
+    )
+    return response.campaigns
+  }
+
+  async revokeConcertQrCampaign(
+    campaignId: string,
+    adminApiKey: string,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<void> {
+    await this.#request<void>(`admin/event-qr/campaigns/${encodeURIComponent(campaignId)}/revoke`, {
+      method: "POST", idempotencyKey, bearerToken: adminApiKey, expectEmpty: true,
     })
   }
 
@@ -625,6 +833,16 @@ export class CrowdRelayClient {
     })
   }
 
+  issueAdmissionPass(
+    input: { event_slug: string; pool_slug: string; fan_email: string; claim_expires_hours?: number },
+    adminApiKey: string,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<AdmissionPassIssued> {
+    return this.#request("admin/admission/passes", {
+      method: "POST", body: input, idempotencyKey, bearerToken: adminApiKey,
+    })
+  }
+
   claimAdmissionPass(token: string): Promise<AdmissionPass> {
     return this.#request("passes/claim", {
       method: "POST",
@@ -639,6 +857,26 @@ export class CrowdRelayClient {
 
   getAdmissionQr(): Promise<AdmissionQr> {
     return this.#request("me/pass/qr")
+  }
+
+  redeemAdmissionPass(
+    input: { event_slug: string; qr_token?: string; public_reference?: string },
+    staffApiKey: string,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<AdmissionRedemptionResult> {
+    return this.#request("staff/admission/redeem", {
+      method: "POST", body: input, idempotencyKey, bearerToken: staffApiKey,
+    })
+  }
+
+  revokeAdmissionPass(
+    publicReference: string,
+    adminApiKey: string,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<AdmissionPass> {
+    return this.#request(`admin/admission/passes/${encodeURIComponent(publicReference)}/revoke`, {
+      method: "POST", idempotencyKey, bearerToken: adminApiKey,
+    })
   }
 
   async trackView(slug: string, campaignId?: string): Promise<void> {

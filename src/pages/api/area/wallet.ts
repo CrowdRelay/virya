@@ -2,43 +2,13 @@ import type { APIRoute } from "astro"
 import { getAreaReadActor } from "../../../server/areaActor"
 import {
   CrowdRelayAreaError,
-  getAreaBackendWallet,
   getPublicAreaSnapshot,
-  importLegacyAreaClaims,
   proxyMobileArea,
 } from "../../../server/crowdrelayArea"
-import { syncBackendClaimsToLegacyWallet } from "../../../server/areaLegacySync"
-import { getAreaWallet } from "../../../server/areaLedger"
+import { ensureLegacyAreaImported } from "../../../server/areaMigration"
 import { areaJson } from "../../../server/areaHttp"
 
 export const prerender = false
-
-const serializeVouchers = (wallet: Awaited<ReturnType<typeof getAreaWallet>>) =>
-  wallet.vouchers
-    .filter(reward => ["issued", "reserved", "redeemed"].includes(reward.status))
-    .map(
-      ({
-        code,
-        tokens,
-        benefit,
-        createdAt,
-        expiresAt,
-        status,
-        freeProductId,
-        freeProductLabel,
-        redeemedAt,
-      }) => ({
-        code,
-        tokens,
-        benefit,
-        createdAt,
-        expiresAt,
-        status,
-        freeProductId,
-        freeProductLabel,
-        redeemedAt,
-      }),
-    )
 
 const anonymousWallet = async (authenticated: boolean, emailMasked = "") => {
   const snapshot = await getPublicAreaSnapshot()
@@ -81,34 +51,14 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       )
     }
 
-    const legacy = await getAreaWallet(actor.actorId)
-    let backend = await getAreaBackendWallet(actor.backendPlayerId)
-    const backendDropIds = new Set(backend.claims.map(claim => claim.dropId))
-    const missingLegacyClaims = legacy.claims
-      .filter(claim => !backendDropIds.has(claim.dropId))
-      .map(claim => ({
-        dropId: claim.dropId,
-        claimedAt: claim.claimedAt,
-        editionNumber: claim.editionNumber,
-      }))
-    if (missingLegacyClaims.length > 0) {
-      backend = await importLegacyAreaClaims(
-        actor.backendPlayerId,
-        missingLegacyClaims,
-      )
-    }
-
-    const synchronized = await syncBackendClaimsToLegacyWallet(
+    const backend = await ensureLegacyAreaImported(
+      actor.backendPlayerId,
       actor.actorId,
-      backend.claims,
+      actor.browserWalletId,
     )
     return areaJson({
       ...backend,
       profile: { emailMasked: actor.emailMasked ?? "" },
-      // Reward spending remains in the existing Netlify ledger during migration.
-      tokenBalance: synchronized.tokenBalance,
-      rewardCredits: synchronized.tokenBalance,
-      vouchers: serializeVouchers(synchronized),
     })
   } catch (error) {
     if (error instanceof CrowdRelayAreaError) {

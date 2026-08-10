@@ -1,0 +1,8 @@
+{
+  "policy": "ratchet-not-hard-cap",
+  "reviewThresholdLines": 1200,
+  "maxLines": {
+    "src/components/AreaExperience.astro": 1739,
+    "src/components/preact/staff/AdminConsole.tsx": 2175
+  }
+}

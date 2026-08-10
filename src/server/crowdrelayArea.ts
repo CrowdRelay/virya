@@ -37,16 +37,40 @@ export type BackendAreaCommunity = {
   percent: number
 }
 
+export type BackendAreaVoucher = {
+  requestId: string
+  code: string
+  tokens: number
+  benefit: "free-item-and-shipping"
+  createdAt: string
+  expiresAt: number
+  status: "issued" | "reserved" | "redeemed"
+  freeProductId?: string | null
+  freeProductLabel?: string | null
+  redeemedAt?: string | null
+}
+
+export type BackendAreaTicketReward = {
+  requestId: string
+  eventSlug: string
+  credits: number
+  status: "reserved" | "issued" | "failed"
+  publicReference?: string | null
+  issuedAt?: string | null
+}
+
 export type BackendAreaWallet = {
   authenticated: boolean
   migrationRequired: boolean
+  legacyMigrationApplied: boolean
   tokenBalance: number
   rewardCredits: number
   reward: { creditsPerCode: number; benefit: string }
   collectionSize: number
   community: BackendAreaCommunity
   claims: BackendAreaClaim[]
-  vouchers: unknown[]
+  vouchers: BackendAreaVoucher[]
+  ticketRewards: BackendAreaTicketReward[]
   liveDrops: Array<{ id: string }>
   drops: BackendAreaDrop[]
 }
@@ -169,6 +193,37 @@ const internalMutationHeaders = () => ({
   "Idempotency-Key": randomUUID(),
 })
 
+export const callAreaInternal = async (
+  path: string,
+  options: {
+    method?: "GET" | "POST"
+    body?: unknown
+    idempotencyKey?: string
+  } = {},
+): Promise<unknown> => {
+  const method = options.method ?? "POST"
+  return (
+    await call(
+      path,
+      {
+        method,
+        headers:
+          method === "POST"
+            ? {
+                ...internalHeaders(),
+                "Idempotency-Key": options.idempotencyKey ?? randomUUID(),
+              }
+            : internalHeaders(),
+        body:
+          method === "POST" && options.body !== undefined
+            ? JSON.stringify(options.body)
+            : undefined,
+      },
+      INTERNAL_REQUEST_TIMEOUT_MS,
+    )
+  ).body
+}
+
 const finiteNumber = (value: unknown, fallback = 0) =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback
 
@@ -230,6 +285,34 @@ const isBackendClaim = (value: unknown): value is BackendAreaClaim => {
   )
 }
 
+const isBackendVoucher = (value: unknown): value is BackendAreaVoucher => {
+  if (!value || typeof value !== "object") return false
+  const voucher = value as Partial<BackendAreaVoucher>
+  return (
+    typeof voucher.requestId === "string" &&
+    typeof voucher.code === "string" &&
+    /^VIRYA-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){5}$/.test(voucher.code) &&
+    voucher.tokens === 1 &&
+    voucher.benefit === "free-item-and-shipping" &&
+    typeof voucher.createdAt === "string" &&
+    Number.isFinite(Date.parse(voucher.createdAt)) &&
+    Number.isInteger(voucher.expiresAt) &&
+    ["issued", "reserved", "redeemed"].includes(voucher.status ?? "")
+  )
+}
+
+const isBackendTicketReward = (value: unknown): value is BackendAreaTicketReward => {
+  if (!value || typeof value !== "object") return false
+  const reward = value as Partial<BackendAreaTicketReward>
+  return (
+    typeof reward.requestId === "string" &&
+    typeof reward.eventSlug === "string" &&
+    Number.isInteger(reward.credits) &&
+    Number(reward.credits) > 0 &&
+    ["reserved", "issued", "failed"].includes(reward.status ?? "")
+  )
+}
+
 const parseBackendWallet = (body: unknown): BackendAreaWallet => {
   if (!body || typeof body !== "object") {
     throw new Error("CrowdRelay returned an invalid AREA wallet")
@@ -237,10 +320,15 @@ const parseBackendWallet = (body: unknown): BackendAreaWallet => {
   const wallet = body as Partial<BackendAreaWallet>
   if (
     typeof wallet.authenticated !== "boolean" ||
+    typeof wallet.legacyMigrationApplied !== "boolean" ||
     !Array.isArray(wallet.claims) ||
     !wallet.claims.every(isBackendClaim) ||
     !Array.isArray(wallet.drops) ||
     !wallet.drops.every(isBackendDrop) ||
+    !Array.isArray(wallet.vouchers) ||
+    !wallet.vouchers.every(isBackendVoucher) ||
+    !Array.isArray(wallet.ticketRewards) ||
+    !wallet.ticketRewards.every(isBackendTicketReward) ||
     !Array.isArray(wallet.liveDrops) ||
     !wallet.liveDrops.every(
       drop =>
@@ -356,6 +444,79 @@ export const importLegacyAreaClaims = async (
     INTERNAL_REQUEST_TIMEOUT_MS,
   )
   return parseBackendWallet(body)
+}
+
+export const importLegacyAreaWallet = async (
+  playerId: string,
+  payload: Record<string, unknown>,
+): Promise<BackendAreaWallet> => {
+  requirePlayerId(playerId)
+  return parseBackendWallet(
+    await callAreaInternal(
+      `internal/area/players/${encodeURIComponent(playerId)}/wallet/import`,
+      { body: payload },
+    ),
+  )
+}
+
+export const createAreaBackendVoucher = async (
+  playerId: string,
+  requestId: string,
+) => {
+  requirePlayerId(playerId)
+  const body = await callAreaInternal(
+    `internal/area/players/${encodeURIComponent(playerId)}/vouchers`,
+    { body: { requestId, tokens: 1 }, idempotencyKey: requestId },
+  )
+  if (!isBackendVoucher(body)) {
+    throw new Error("CrowdRelay returned an invalid AREA voucher")
+  }
+  return body
+}
+
+export const listAreaBackendTicketRewards = async (playerId: string) => {
+  requirePlayerId(playerId)
+  const body = await callAreaInternal(
+    `internal/area/players/${encodeURIComponent(playerId)}/ticket-rewards`,
+    { method: "GET" },
+  )
+  if (!Array.isArray(body) || !body.every(isBackendTicketReward)) {
+    throw new Error("CrowdRelay returned invalid AREA ticket rewards")
+  }
+  return body
+}
+
+export const reserveAreaBackendTicketReward = async (
+  playerId: string,
+  payload: Record<string, unknown> & { requestId: string },
+) => {
+  requirePlayerId(playerId)
+  return callAreaInternal(
+    `internal/area/players/${encodeURIComponent(playerId)}/ticket-rewards/reserve`,
+    { body: payload, idempotencyKey: payload.requestId },
+  )
+}
+
+export const finalizeAreaBackendTicketReward = async (
+  playerId: string,
+  payload: Record<string, unknown> & { requestId: string },
+) => {
+  requirePlayerId(playerId)
+  return callAreaInternal(
+    `internal/area/players/${encodeURIComponent(playerId)}/ticket-rewards/finalize`,
+    { body: payload, idempotencyKey: payload.requestId },
+  )
+}
+
+export const failAreaBackendTicketReward = async (
+  playerId: string,
+  payload: Record<string, unknown> & { requestId: string },
+) => {
+  requirePlayerId(playerId)
+  return callAreaInternal(
+    `internal/area/players/${encodeURIComponent(playerId)}/ticket-rewards/fail`,
+    { body: payload, idempotencyKey: payload.requestId },
+  )
 }
 
 export const issueAreaBackendChallenge = async (
