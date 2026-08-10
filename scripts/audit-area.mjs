@@ -17,7 +17,8 @@ const experience = read("src/components/AreaExperience.astro")
 const publicDrops = read("src/data/area.ts")
 const actor = read("src/server/areaActor.ts")
 const auth = read("src/server/areaAuth.ts")
-const legacySync = read("src/server/areaLegacySync.ts")
+const migration = read("src/server/areaMigration.ts")
+const legacyLedger = read("src/server/areaLedger.ts")
 const envExample = read(".env.example")
 
 assert(
@@ -68,17 +69,18 @@ assert(
   "Nearest-point lookup must not request GPS when no signal is active.",
 )
 assert(
-  wallet.includes("getAreaBackendWallet") &&
-    wallet.includes("missingLegacyClaims") &&
-    wallet.includes("claimedAt: claim.claimedAt") &&
-    wallet.includes("editionNumber: claim.editionNumber") &&
-    wallet.includes("syncBackendClaimsToLegacyWallet"),
-  "Wallet migration must preserve legacy claim timestamps and editions.",
+  wallet.includes("ensureLegacyAreaImported") &&
+    migration.includes("missingClaims") &&
+    migration.includes("claimedAt: claim.claimedAt") &&
+    migration.includes("editionNumber: claim.editionNumber") &&
+    migration.includes("importLegacyAreaWallet"),
+  "One-way wallet migration must preserve legacy claim timestamps, editions and rewards.",
 )
 assert(
-  legacySync.includes("claim.distanceMeters") &&
-    legacySync.includes("wallet.tokenBalance + additions.length"),
-  "Backend claims must be mirrored exactly once into the reward ledger.",
+  legacyLedger.includes("Read-only compatibility view") &&
+    legacyLedger.includes("getAreaWallet") &&
+    !legacyLedger.includes(".set("),
+  "Legacy Netlify Blob wallet must be read-only after Postgres becomes authoritative.",
 )
 assert(
   auth.match(/linkAreaPlayer\(email\)/g)?.length === 1 &&

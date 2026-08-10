@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { getStore } from "@netlify/blobs"
+import { callAreaInternal } from "./crowdrelayArea"
 
 export const AREA_REWARD_BENEFIT = "free-item-and-shipping" as const
 export const AREA_REWARD_LIFETIME_SECONDS = 60 * 60 * 24 * 365
@@ -20,21 +20,13 @@ export type AreaRewardRecord = {
   status: AreaRewardStatus
   issuedAt: string
   expiresAt: number
-  reservationId?: string
-  reservedUntil?: number
-  checkoutSessionId?: string
-  freeProductId?: string
-  freeProductLabel?: string
-  redeemedAt?: string
+  reservationId?: string | null
+  reservedUntil?: number | null
+  checkoutSessionId?: string | null
+  freeProductId?: string | null
+  freeProductLabel?: string | null
+  redeemedAt?: string | null
   updatedAt: string
-}
-
-type RegisterInput = {
-  code: string
-  ownerId: string
-  requestId: string
-  issuedAt: string
-  expiresAt: number
 }
 
 type ReserveResult =
@@ -43,12 +35,6 @@ type ReserveResult =
       ok: false
       reason: "invalid" | "expired" | "redeemed" | "busy" | "mismatch"
     }
-
-const STORE_NAME = "virya-area-rewards"
-const MAX_CAS_ATTEMPTS = 6
-const memoryRewards = new Map<string, AreaRewardRecord>()
-
-const store = () => getStore({ name: STORE_NAME, consistency: "strong" })
 
 export const normalizeAreaRewardCode = (value: unknown) => {
   if (typeof value !== "string") return null
@@ -59,197 +45,23 @@ export const normalizeAreaRewardCode = (value: unknown) => {
 export const areaRewardCodeHash = (code: string) =>
   createHash("sha256").update(`virya-area-reward\0${code}`).digest("hex")
 
-const ownerHash = (ownerId: string) =>
-  createHash("sha256").update(`virya-area-owner\0${ownerId}`).digest("hex")
-
-const keyForHash = (hash: string) => `codes/${hash}`
-
-const normalizeRecord = (input: unknown): AreaRewardRecord | null => {
-  if (!input || typeof input !== "object") return null
-  const value = input as Partial<AreaRewardRecord>
-  if (
-    value.version !== 1 ||
-    typeof value.codeHash !== "string" ||
-    !/^[a-f0-9]{64}$/.test(value.codeHash) ||
-    typeof value.codeSuffix !== "string" ||
-    typeof value.ownerId !== "string" ||
-    value.ownerId.length < 8 ||
-    value.ownerId.length > 128 ||
-    typeof value.ownerHash !== "string" ||
-    !/^[a-f0-9]{64}$/.test(value.ownerHash) ||
-    typeof value.requestId !== "string" ||
-    value.benefit !== AREA_REWARD_BENEFIT ||
-    !["issued", "reserved", "redeemed"].includes(value.status ?? "") ||
-    typeof value.issuedAt !== "string" ||
-    !Number.isInteger(value.expiresAt)
-  ) {
-    return null
-  }
-
-  return {
-    version: 1,
-    codeHash: value.codeHash,
-    codeSuffix: value.codeSuffix,
-    ownerId: value.ownerId,
-    ownerHash: value.ownerHash,
-    requestId: value.requestId,
-    benefit: AREA_REWARD_BENEFIT,
-    status: value.status as AreaRewardStatus,
-    issuedAt: value.issuedAt,
-    expiresAt: Number(value.expiresAt),
-    reservationId:
-      typeof value.reservationId === "string" ? value.reservationId : undefined,
-    reservedUntil: Number.isInteger(value.reservedUntil)
-      ? Number(value.reservedUntil)
-      : undefined,
-    checkoutSessionId:
-      typeof value.checkoutSessionId === "string"
-        ? value.checkoutSessionId
-        : undefined,
-    freeProductId:
-      typeof value.freeProductId === "string" ? value.freeProductId : undefined,
-    freeProductLabel:
-      typeof value.freeProductLabel === "string"
-        ? value.freeProductLabel
-        : undefined,
-    redeemedAt:
-      typeof value.redeemedAt === "string" ? value.redeemedAt : undefined,
-    updatedAt:
-      typeof value.updatedAt === "string"
-        ? value.updatedAt
-        : new Date(0).toISOString(),
-  }
-}
-
-const readRecord = async (hash: string) => {
-  try {
-    const record = await store().getWithMetadata(keyForHash(hash), {
-      type: "json",
-      consistency: "strong",
-    })
-    return {
-      record: normalizeRecord(record?.data),
-      etag: record?.etag,
-      exists: !!record,
-      memory: false as const,
-    }
-  } catch (error) {
-    if (!import.meta.env.DEV) throw error
-    return {
-      record: memoryRewards.get(hash) ?? null,
-      etag: undefined,
-      exists: memoryRewards.has(hash),
-      memory: true as const,
-    }
-  }
-}
-
-const writeRecord = async (
-  hash: string,
-  next: AreaRewardRecord,
-  current: Awaited<ReturnType<typeof readRecord>>,
-) => {
-  if (current.memory) {
-    memoryRewards.set(hash, next)
-    return true
-  }
-  const write = await store().setJSON(
-    keyForHash(hash),
-    next,
-    current.exists ? { onlyIfMatch: current.etag } : { onlyIfNew: true },
+const isRecord = (value: unknown): value is AreaRewardRecord => {
+  if (!value || typeof value !== "object") return false
+  const record = value as Partial<AreaRewardRecord>
+  return (
+    record.version === 1 &&
+    typeof record.codeHash === "string" &&
+    /^[a-f0-9]{64}$/.test(record.codeHash) &&
+    typeof record.codeSuffix === "string" &&
+    typeof record.ownerId === "string" &&
+    typeof record.ownerHash === "string" &&
+    typeof record.requestId === "string" &&
+    record.benefit === AREA_REWARD_BENEFIT &&
+    ["issued", "reserved", "redeemed"].includes(record.status ?? "") &&
+    typeof record.issuedAt === "string" &&
+    Number.isInteger(record.expiresAt) &&
+    typeof record.updatedAt === "string"
   )
-  return write.modified
-}
-
-export const registerAreaRewardCode = async (input: RegisterInput) => {
-  const code = normalizeAreaRewardCode(input.code)
-  if (!code) throw new Error("Invalid Area reward code")
-  const hash = areaRewardCodeHash(code)
-  const expectedOwnerHash = ownerHash(input.ownerId)
-
-  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
-    const current = await readRecord(hash)
-    if (current.record) {
-      if (
-        current.record.ownerHash !== expectedOwnerHash ||
-        current.record.requestId !== input.requestId
-      ) {
-        throw new Error("Area reward code collision")
-      }
-      return current.record
-    }
-
-    const next: AreaRewardRecord = {
-      version: 1,
-      codeHash: hash,
-      codeSuffix: code.slice(-4),
-      ownerId: input.ownerId,
-      ownerHash: expectedOwnerHash,
-      requestId: input.requestId,
-      benefit: AREA_REWARD_BENEFIT,
-      status: "issued",
-      issuedAt: input.issuedAt,
-      expiresAt: input.expiresAt,
-      updatedAt: new Date().toISOString(),
-    }
-    if (await writeRecord(hash, next, current)) return next
-  }
-
-  throw new Error("Area reward registration is busy; retry")
-}
-
-export const getAreaRewardRecord = async (rawCode: unknown) => {
-  const code = normalizeAreaRewardCode(rawCode)
-  if (!code) return null
-  return (await readRecord(areaRewardCodeHash(code))).record
-}
-
-/**
- * Rebind a legacy reward to the account wallet selected by the one-time
- * migration. Ownership is changed with CAS, so Stripe webhooks and checkout
- * status updates always resolve to exactly one wallet.
- */
-export const transferAreaRewardCodeOwner = async ({
-  code: rawCode,
-  requestId,
-  sourceOwnerId,
-  targetOwnerId,
-}: {
-  code: unknown
-  requestId: string
-  sourceOwnerId: string
-  targetOwnerId: string
-}) => {
-  const code = normalizeAreaRewardCode(rawCode)
-  if (!code) return null
-  const hash = areaRewardCodeHash(code)
-  const sourceHash = ownerHash(sourceOwnerId)
-  const targetHash = ownerHash(targetOwnerId)
-
-  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
-    const current = await readRecord(hash)
-    const record = current.record
-    if (!record) return null
-    if (record.requestId !== requestId) {
-      throw new Error("Area reward migration request mismatch")
-    }
-    if (record.ownerHash === targetHash && record.ownerId === targetOwnerId) {
-      return record
-    }
-    if (record.ownerHash !== sourceHash || record.ownerId !== sourceOwnerId) {
-      throw new Error("Area reward is owned by another wallet")
-    }
-
-    const next: AreaRewardRecord = {
-      ...record,
-      ownerId: targetOwnerId,
-      ownerHash: targetHash,
-      updatedAt: new Date().toISOString(),
-    }
-    if (await writeRecord(hash, next, current)) return next
-  }
-
-  throw new Error("Area reward ownership transfer is busy; retry")
 }
 
 export const previewAreaRewardCode = async (
@@ -258,32 +70,36 @@ export const previewAreaRewardCode = async (
 ) => {
   const code = normalizeAreaRewardCode(rawCode)
   if (!code) return { valid: false as const, reason: "invalid" as const }
-  const hash = areaRewardCodeHash(code)
-  const { record } = await readRecord(hash)
-  if (!record) return { valid: false as const, reason: "invalid" as const }
-  const now = Math.floor(Date.now() / 1000)
-  if (record.expiresAt <= now) {
-    return { valid: false as const, reason: "expired" as const }
+  const body = await callAreaInternal("internal/area/rewards/preview", {
+    body: { code, reservationId },
+  })
+  if (!body || typeof body !== "object") {
+    throw new Error("CrowdRelay returned an invalid reward preview")
   }
-  if (record.status === "redeemed") {
-    return { valid: false as const, reason: "redeemed" as const }
+  const preview = body as Record<string, unknown>
+  if (preview.valid !== true) {
+    const reason = ["invalid", "expired", "redeemed", "busy"].includes(
+      String(preview.reason),
+    )
+      ? (preview.reason as "invalid" | "expired" | "redeemed" | "busy")
+      : "invalid"
+    return { valid: false as const, reason }
   }
   if (
-    record.status === "reserved" &&
-    Number(record.reservedUntil) > Date.now()
+    typeof preview.code !== "string" ||
+    typeof preview.codeHash !== "string" ||
+    preview.benefit !== AREA_REWARD_BENEFIT ||
+    !Number.isInteger(preview.expiresAt)
   ) {
-    if (!reservationId || record.reservationId !== reservationId) {
-      return { valid: false as const, reason: "busy" as const }
-    }
+    throw new Error("CrowdRelay returned a malformed reward preview")
   }
   return {
     valid: true as const,
-    code,
-    codeHash: hash,
-    benefit: record.benefit,
-    expiresAt: record.expiresAt,
-    resumed:
-      record.status === "reserved" && record.reservationId === reservationId,
+    code: preview.code,
+    codeHash: preview.codeHash,
+    benefit: AREA_REWARD_BENEFIT,
+    expiresAt: Number(preview.expiresAt),
+    resumed: preview.resumed === true,
   }
 }
 
@@ -294,169 +110,70 @@ export const reserveAreaRewardCode = async (
 ): Promise<ReserveResult> => {
   const code = normalizeAreaRewardCode(rawCode)
   if (!code) return { ok: false, reason: "invalid" }
-  const hash = areaRewardCodeHash(code)
-
-  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
-    const current = await readRecord(hash)
-    const record = current.record
-    if (!record) return { ok: false, reason: "invalid" }
-    if (record.expiresAt <= Math.floor(Date.now() / 1000)) {
-      return { ok: false, reason: "expired" }
-    }
-    if (record.status === "redeemed") {
-      return { ok: false, reason: "redeemed" }
-    }
-    if (
-      record.status === "reserved" &&
-      record.reservationId !== reservationId &&
-      Number(record.reservedUntil) > Date.now()
-    ) {
-      return { ok: false, reason: "busy" }
-    }
-    if (
-      record.status === "reserved" &&
-      record.reservationId === reservationId
-    ) {
-      return { ok: true, record, resumed: true }
-    }
-
-    const next: AreaRewardRecord = {
-      ...record,
-      status: "reserved",
-      reservationId,
-      reservedUntil,
-      checkoutSessionId: undefined,
-      freeProductId: undefined,
-      freeProductLabel: undefined,
-      updatedAt: new Date().toISOString(),
-    }
-    if (await writeRecord(hash, next, current)) {
-      return { ok: true, record: next, resumed: false }
-    }
+  const body = await callAreaInternal("internal/area/rewards/reserve", {
+    body: { code, reservationId, reservedUntil },
+  })
+  if (!body || typeof body !== "object") {
+    throw new Error("CrowdRelay returned an invalid reward reservation")
   }
-
-  throw new Error("Area reward reservation is busy; retry")
+  const result = body as {
+    ok?: unknown
+    reason?: unknown
+    record?: unknown
+    resumed?: unknown
+  }
+  if (result.ok !== true) {
+    const reason = ["invalid", "expired", "redeemed", "busy", "mismatch"].includes(
+      String(result.reason),
+    )
+      ? (result.reason as ReserveResult extends { ok: false; reason: infer R }
+          ? R
+          : never)
+      : "invalid"
+    return { ok: false, reason }
+  }
+  if (!isRecord(result.record)) {
+    throw new Error("CrowdRelay returned a malformed reward reservation")
+  }
+  return { ok: true, record: result.record, resumed: result.resumed === true }
 }
 
-export const attachAreaRewardCheckout = async ({
-  codeHash,
-  reservationId,
-  checkoutSessionId,
-  freeProductId,
-  freeProductLabel,
-}: {
+export const attachAreaRewardCheckout = async (input: {
   codeHash: string
   reservationId: string
   checkoutSessionId: string
   freeProductId: string
   freeProductLabel: string
 }) => {
-  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
-    const current = await readRecord(codeHash)
-    const record = current.record
-    if (
-      !record ||
-      record.status !== "reserved" ||
-      record.reservationId !== reservationId
-    ) {
-      throw new Error("Area reward reservation ownership was lost")
-    }
-    if (record.checkoutSessionId === checkoutSessionId) return record
-    if (
-      record.checkoutSessionId &&
-      record.checkoutSessionId !== checkoutSessionId
-    ) {
-      throw new Error("Area reward is already attached to another checkout")
-    }
-
-    const next: AreaRewardRecord = {
-      ...record,
-      checkoutSessionId,
-      freeProductId,
-      freeProductLabel,
-      updatedAt: new Date().toISOString(),
-    }
-    if (await writeRecord(codeHash, next, current)) return next
-  }
-  throw new Error("Area reward checkout attachment is busy; retry")
+  const body = await callAreaInternal("internal/area/rewards/attach", {
+    body: input,
+  })
+  if (!isRecord(body)) throw new Error("Invalid reward checkout attachment")
+  return body
 }
 
-export const redeemAreaRewardCode = async ({
-  codeHash,
-  reservationId,
-  checkoutSessionId,
-}: {
+export const redeemAreaRewardCode = async (input: {
   codeHash: string
   reservationId: string
   checkoutSessionId: string
 }) => {
-  if (!/^[a-f0-9]{64}$/.test(codeHash)) return null
-
-  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
-    const current = await readRecord(codeHash)
-    const record = current.record
-    if (!record) return null
-    if (
-      record.status === "redeemed" &&
-      record.checkoutSessionId === checkoutSessionId
-    ) {
-      return record
-    }
-    if (
-      record.status !== "reserved" ||
-      record.reservationId !== reservationId ||
-      record.checkoutSessionId !== checkoutSessionId
-    ) {
-      return null
-    }
-
-    const next: AreaRewardRecord = {
-      ...record,
-      status: "redeemed",
-      redeemedAt: new Date().toISOString(),
-      reservedUntil: undefined,
-      updatedAt: new Date().toISOString(),
-    }
-    if (await writeRecord(codeHash, next, current)) return next
-  }
-  throw new Error("Area reward redemption is busy; retry")
+  const body = await callAreaInternal("internal/area/rewards/redeem", {
+    body: input,
+  })
+  if (body === null) return null
+  if (!isRecord(body)) throw new Error("Invalid reward redemption")
+  return body
 }
 
-export const releaseAreaRewardCode = async ({
-  codeHash,
-  reservationId,
-  checkoutSessionId,
-}: {
+export const releaseAreaRewardCode = async (input: {
   codeHash: string
   reservationId: string
   checkoutSessionId?: string
 }) => {
-  if (!/^[a-f0-9]{64}$/.test(codeHash)) return null
-
-  for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
-    const current = await readRecord(codeHash)
-    const record = current.record
-    if (!record || record.status !== "reserved") return null
-    if (record.reservationId !== reservationId) return null
-    if (
-      checkoutSessionId &&
-      record.checkoutSessionId &&
-      record.checkoutSessionId !== checkoutSessionId
-    ) {
-      return null
-    }
-
-    const next: AreaRewardRecord = {
-      ...record,
-      status: "issued",
-      reservationId: undefined,
-      reservedUntil: undefined,
-      checkoutSessionId: undefined,
-      freeProductId: undefined,
-      freeProductLabel: undefined,
-      updatedAt: new Date().toISOString(),
-    }
-    if (await writeRecord(codeHash, next, current)) return next
-  }
-  throw new Error("Area reward release is busy; retry")
+  const body = await callAreaInternal("internal/area/rewards/release", {
+    body: input,
+  })
+  if (body === null) return null
+  if (!isRecord(body)) throw new Error("Invalid reward release")
+  return body
 }

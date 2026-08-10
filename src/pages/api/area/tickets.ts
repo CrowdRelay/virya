@@ -2,10 +2,12 @@ import { randomBytes } from "node:crypto"
 import type { APIRoute } from "astro"
 import { getAreaActor } from "../../../server/areaActor"
 import {
-  getAreaWallet,
-  mutateAreaWallet,
-  type AreaTicketReward,
-} from "../../../server/areaLedger"
+  CrowdRelayAreaError,
+  failAreaBackendTicketReward,
+  finalizeAreaBackendTicketReward,
+  reserveAreaBackendTicketReward,
+} from "../../../server/crowdrelayArea"
+import { ensureLegacyAreaImported } from "../../../server/areaMigration"
 import {
   AreaTicketIssueError,
   areaTicketRewardConfigs,
@@ -26,9 +28,36 @@ const REQUEST_ID_PATTERN =
 const EVENT_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]{0,127}$/
 const PROCESSING_LEASE_MS = 2 * 60 * 1_000
 
-type Reservation = {
-  reward: AreaTicketReward | null
+type ReservationResponse = {
   state: "acquired" | "busy" | "issued" | "failed" | "insufficient"
+  reward?: {
+    requestId: string
+    eventSlug: string
+    credits: number
+    fanEmail: string
+    status: "reserved" | "issued" | "failed"
+    reservationId: string
+    reservationExpiresAt: number
+    publicReference?: string | null
+    issuedAt?: string | null
+  } | null
+}
+
+const reservationResponse = (value: unknown): ReservationResponse => {
+  if (!value || typeof value !== "object") {
+    throw new Error("Invalid AREA ticket reservation response")
+  }
+  const result = value as Partial<ReservationResponse>
+  if (![
+    "acquired",
+    "busy",
+    "issued",
+    "failed",
+    "insufficient",
+  ].includes(result.state ?? "")) {
+    throw new Error("Invalid AREA ticket reservation state")
+  }
+  return result as ReservationResponse
 }
 
 const publicRewards = () =>
@@ -42,10 +71,14 @@ const publicRewards = () =>
 export const GET: APIRoute = async ({ cookies }) => {
   try {
     const actor = await getAreaActor(cookies)
-    if (!actor.authenticated) {
+    if (!actor.authenticated || !actor.backendPlayerId) {
       return areaJson({ authenticated: false, rewards: publicRewards(), claims: [] })
     }
-    const wallet = await getAreaWallet(actor.actorId)
+    const wallet = await ensureLegacyAreaImported(
+      actor.backendPlayerId,
+      actor.actorId,
+      actor.browserWalletId,
+    )
     const claims = wallet.ticketRewards
       .filter(reward => reward.status === "issued")
       .map(reward => ({
@@ -70,12 +103,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   } catch {
     return areaJson({ error: "Invalid request" }, 400)
   }
-  const requestId = typeof body.requestId === "string"
-    ? body.requestId.toLowerCase()
-    : ""
-  const eventSlug = typeof body.eventSlug === "string"
-    ? body.eventSlug.trim().toLowerCase()
-    : ""
+  const requestId =
+    typeof body.requestId === "string" ? body.requestId.toLowerCase() : ""
+  const eventSlug =
+    typeof body.eventSlug === "string" ? body.eventSlug.trim().toLowerCase() : ""
   const email = normalizeAreaEmail(body.email)
   const lang = body.lang === "pl" ? "pl" : "en"
   if (
@@ -90,104 +121,46 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     const actor = await getAreaActor(cookies)
-    if (!actor.authenticated) {
-      return areaJson({ error: "Player profile required", code: "AUTH_REQUIRED" }, 401)
+    if (!actor.authenticated || !actor.backendPlayerId) {
+      return areaJson(
+        { error: "Player profile required", code: "AUTH_REQUIRED" },
+        401,
+      )
     }
-    const processingId = randomBytes(16).toString("hex")
-    const reservation = await mutateAreaWallet<Reservation>(
+    await ensureLegacyAreaImported(
+      actor.backendPlayerId,
       actor.actorId,
-      wallet => {
-        const existingIssued = wallet.ticketRewards.find(
-          reward => reward.eventSlug === eventSlug && reward.status === "issued",
-        )
-        if (existingIssued) {
-          return { wallet, result: { reward: existingIssued, state: "issued" } }
-        }
-        const existingIndex = wallet.ticketRewards.findIndex(
-          reward => reward.requestId === requestId,
-        )
-        const existing = existingIndex >= 0
-          ? wallet.ticketRewards[existingIndex]
-          : undefined
-        if (existing?.status === "failed") {
-          return { wallet, result: { reward: existing, state: "failed" } }
-        }
-        if (existing?.status === "pending") {
-          if (Number(existing.processingExpiresAt) > Date.now()) {
-            return { wallet, result: { reward: existing, state: "busy" } }
-          }
-          const resumed: AreaTicketReward = {
-            ...existing,
-            processingId,
-            processingExpiresAt: Date.now() + PROCESSING_LEASE_MS,
-          }
-          const ticketRewards = [...wallet.ticketRewards]
-          ticketRewards[existingIndex] = resumed
-          return {
-            wallet: { ...wallet, ticketRewards },
-            result: { reward: resumed, state: "acquired" },
-          }
-        }
-        const anotherPendingIndex = wallet.ticketRewards.findIndex(
-          reward => reward.eventSlug === eventSlug && reward.status === "pending",
-        )
-        if (anotherPendingIndex >= 0) {
-          const anotherPending = wallet.ticketRewards[anotherPendingIndex]
-          if (
-            anotherPending &&
-            Number(anotherPending.processingExpiresAt) > Date.now()
-          ) {
-            return { wallet, result: { reward: anotherPending, state: "busy" } }
-          }
-          if (anotherPending) {
-            const resumed: AreaTicketReward = {
-              ...anotherPending,
-              requestId,
-              fanEmail: email,
-              processingId,
-              processingExpiresAt: Date.now() + PROCESSING_LEASE_MS,
-              failureCode: undefined,
-            }
-            const ticketRewards = [...wallet.ticketRewards]
-            ticketRewards[anotherPendingIndex] = resumed
-            return {
-              wallet: { ...wallet, ticketRewards },
-              result: { reward: resumed, state: "acquired" },
-            }
-          }
-        }
-        if (wallet.tokenBalance < configured.credits) {
-          return { wallet, result: { reward: null, state: "insufficient" } }
-        }
-        const reward: AreaTicketReward = {
-          requestId,
-          eventSlug,
-          credits: configured.credits,
-          fanEmail: email,
-          status: "pending",
-          createdAt: new Date().toISOString(),
-          processingId,
-          processingExpiresAt: Date.now() + PROCESSING_LEASE_MS,
-        }
-        return {
-          wallet: {
-            ...wallet,
-            tokenBalance: wallet.tokenBalance - configured.credits,
-            ticketRewards: [...wallet.ticketRewards, reward],
-          },
-          result: { reward, state: "acquired" },
-        }
-      },
+      actor.browserWalletId,
     )
 
+    const reservationId = randomBytes(16).toString("hex")
+    const reservation = reservationResponse(
+      await reserveAreaBackendTicketReward(actor.backendPlayerId, {
+        requestId,
+        eventSlug,
+        credits: configured.credits,
+        fanEmail: email,
+        reservationId,
+        reservationExpiresAt: Date.now() + PROCESSING_LEASE_MS,
+      }),
+    )
     if (reservation.state === "insufficient") {
-      return areaJson({ error: "Not enough VIRYA Credits", code: "INSUFFICIENT_CREDITS" }, 409)
+      return areaJson(
+        { error: "Not enough VIRYA Credits", code: "INSUFFICIENT_CREDITS" },
+        409,
+      )
     }
     if (reservation.state === "busy") {
-      return areaJson({ error: "Ticket reward is still processing", code: "REWARD_PENDING" }, 409)
+      return areaJson(
+        { error: "Ticket reward is still processing", code: "REWARD_PENDING" },
+        409,
+      )
     }
     if (reservation.state === "failed") {
-      return areaJson({ error: "Create a new ticket reward request", code: "REWARD_FAILED" }, 409)
+      return areaJson(
+        { error: "Create a new ticket reward request", code: "REWARD_FAILED" },
+        409,
+      )
     }
     if (!reservation.reward) throw new Error("Missing ticket reward reservation")
 
@@ -202,64 +175,39 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     } catch (error) {
       const status = error instanceof AreaTicketIssueError ? error.status : 503
       const permanent = [400, 404, 409, 422].includes(status)
-      if (reservation.state === "acquired") await mutateAreaWallet(actor.actorId, wallet => {
-        let refund = 0
-        const ticketRewards = wallet.ticketRewards.map(reward => {
-          if (
-            reward.requestId !== requestId ||
-            reward.status !== "pending" ||
-            reward.processingId !== processingId
-          ) return reward
-          if (permanent) refund = reward.credits
-          return {
-            ...reward,
-            status: permanent ? "failed" as const : "pending" as const,
-            processingId: undefined,
-            processingExpiresAt: undefined,
-            failureCode: permanent ? `crowdrelay_${status}` : undefined,
-          }
+      if (reservation.state === "acquired") {
+        await failAreaBackendTicketReward(actor.backendPlayerId, {
+          requestId,
+          reservationId: reservation.reward.reservationId,
+          permanent,
+          failureCode: permanent ? `crowdrelay_${status}` : undefined,
         })
-        return {
-          wallet: {
-            ...wallet,
-            tokenBalance: wallet.tokenBalance + refund,
-            ticketRewards,
-          },
-          result: null,
-        }
-      })
+      }
       if (permanent) {
         return areaJson(
           {
-            error: status === 404
-              ? "Join Virya Signal with this e-mail before claiming the ticket"
-              : "This ticket reward is no longer available",
+            error:
+              status === 404
+                ? "Join Virya Signal with this e-mail before claiming the ticket"
+                : "This ticket reward is no longer available",
             code: status === 404 ? "SIGNAL_REQUIRED" : "TICKET_UNAVAILABLE",
           },
           status === 404 ? 422 : 409,
         )
       }
-      return areaJson({ error: "Ticket reward temporarily unavailable", code: "REWARD_RETRY" }, 503)
+      return areaJson(
+        { error: "Ticket reward temporarily unavailable", code: "REWARD_RETRY" },
+        503,
+      )
     }
 
-    if (reservation.state === "acquired") await mutateAreaWallet(actor.actorId, wallet => {
-      const ticketRewards = wallet.ticketRewards.map(reward =>
-        reward.requestId === requestId &&
-        reward.status === "pending" &&
-        reward.processingId === processingId
-          ? {
-              ...reward,
-              status: "issued" as const,
-              processingId: undefined,
-              processingExpiresAt: undefined,
-              publicReference: issued.publicReference,
-              issuedAt: new Date().toISOString(),
-              failureCode: undefined,
-            }
-          : reward,
-      )
-      return { wallet: { ...wallet, ticketRewards }, result: null }
-    })
+    if (reservation.state === "acquired") {
+      await finalizeAreaBackendTicketReward(actor.backendPlayerId, {
+        requestId,
+        reservationId: reservation.reward.reservationId,
+        publicReference: issued.publicReference,
+      })
+    }
 
     const prefix = lang === "pl" ? "/pl" : ""
     return areaJson({
@@ -269,6 +217,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       claimExpiresAt: issued.claimExpiresAt,
     })
   } catch (error) {
+    if (error instanceof CrowdRelayAreaError) {
+      return areaJson(error.body, error.status)
+    }
     console.error("[area-tickets:claim]", error)
     return areaJson({ error: "Ticket reward temporarily unavailable" }, 503)
   }

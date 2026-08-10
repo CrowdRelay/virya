@@ -4,13 +4,20 @@
 @source "../pages/**/*.{astro,jsx,tsx}";
 
 @theme {
-  --color-amber-400: oklch(0.828 0.189 84.429);
-  --color-amber-300: oklch(0.879 0.169 91.605);
+  --color-amber-400: #f3c51a;
+  --color-amber-300: #ffe16a;
 }
 
 :root {
   color-scheme: dark;
   overflow-x: hidden;
+  --virya-bg: #080808;
+  --virya-surface: #11110f;
+  --virya-signal: #f3c51a;
+  --virya-danger: #e73535;
+  --virya-success: #70db91;
+  --virya-sensory-cyan: #71dcff;
+  --virya-touch-min: 44px;
 }
 
 @layer base {
@@ -46,7 +53,7 @@
   select:focus-visible,
   summary:focus-visible,
   [tabindex]:focus-visible {
-    outline: 2px solid #fbbf24;
+    outline: 2px solid var(--virya-signal);
     outline-offset: 2px;
     border-radius: 2px;
   }
