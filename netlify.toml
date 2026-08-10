@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
+  # Production is built and deployed by GitHub Actions. Netlify must never
+  # spend build minutes on Git-triggered source builds. Keep Build status
+  # set to "Stopped builds" in Netlify; this ignore rule is defense in depth.
+  ignore = "exit 0"
+
 [build.environment]
   NODE_VERSION = "22"
 
