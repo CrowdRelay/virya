@@ -1,3 +1,4 @@
+import { readServerEnv } from "../../../../server/runtimeEnv.ts"
 import type { APIRoute } from "astro"
 import nodemailer from "nodemailer"
 import { VIRYA_OPERATIONS_EMAIL, siteOriginForRequest } from "../../../../config"
@@ -51,7 +52,7 @@ const sendMagicLink = async (
   token: string,
 ) => {
   const user = VIRYA_OPERATIONS_EMAIL
-  const pass = import.meta.env.GMAIL_APP_PASSWORD
+  const pass = readServerEnv("GMAIL_APP_PASSWORD", import.meta.env.GMAIL_APP_PASSWORD)
   const base = publicSiteUrl(request)
   if (!user || !pass || !base) {
     throw new Error("Magic-link delivery is not configured")

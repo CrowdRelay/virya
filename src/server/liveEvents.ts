@@ -1,3 +1,4 @@
+import { readServerEnv } from "./runtimeEnv.ts"
 import { CURATED_LIVE_EVENTS } from "../data/liveEvents"
 import type {
   PublicEvent,
@@ -41,7 +42,7 @@ type EventPayload = {
 }
 
 const safeBaseUrl = () => {
-  const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL
+  const configured = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)
   const value =
     typeof configured === "string" && configured.trim()
       ? configured.trim()
@@ -324,7 +325,7 @@ const loadCrowdRelayEvents = async (): Promise<PublicEvent[]> => {
 }
 
 const loadBandsintownEvents = async (): Promise<PublicEvent[]> => {
-  const configured = import.meta.env.BANDSINTOWN_APP_ID
+  const configured = readServerEnv("BANDSINTOWN_APP_ID", import.meta.env.BANDSINTOWN_APP_ID)
   const appId =
     typeof configured === "string" && configured.trim()
       ? configured.trim()

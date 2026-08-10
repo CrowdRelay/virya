@@ -1,3 +1,4 @@
+import { readServerEnv } from "../../server/runtimeEnv.ts"
 import { createHmac, timingSafeEqual } from "node:crypto"
 import { getStore } from "@netlify/blobs"
 import type { APIRoute } from "astro"
@@ -26,7 +27,7 @@ const safeEqual = (left: string, right: string) => {
 }
 
 const verifySignature = (rawBody: string, timestamp: string, signature: string) => {
-  const secret = import.meta.env.CROWDRELAY_WEBHOOK_SECRET
+  const secret = readServerEnv("CROWDRELAY_WEBHOOK_SECRET", import.meta.env.CROWDRELAY_WEBHOOK_SECRET)
   if (!secret || secret.length < 24) return false
   if (!/^\d{10,13}$/.test(timestamp)) return false
 

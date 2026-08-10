@@ -1,3 +1,4 @@
+import { readServerEnv } from "../../server/runtimeEnv.ts"
 import type { APIRoute } from "astro"
 import { siteOriginForRequest } from "../../config"
 import Stripe from "stripe"
@@ -237,7 +238,7 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: "Ticket checkout temporarily unavailable" }, 503)
   }
 
-  const stripeKey = import.meta.env.STRIPE_SECRET_KEY?.trim()
+  const stripeKey = readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY)?.trim()
   if (!stripeKey) {
     return json({ error: "Ticket checkout temporarily unavailable" }, 503)
   }

@@ -1,3 +1,4 @@
+import { readServerEnv } from "./runtimeEnv.ts"
 import { createHash } from "node:crypto"
 
 const EVENT_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]{0,127}$/
@@ -60,7 +61,7 @@ const parseEntry = (
 }
 
 export const areaTicketRewardConfigs = (): AreaTicketRewardConfig[] => {
-  const raw = import.meta.env.AREA_TICKET_REWARDS_JSON
+  const raw = readServerEnv("AREA_TICKET_REWARDS_JSON", import.meta.env.AREA_TICKET_REWARDS_JSON)
   if (typeof raw !== "string" || !raw.trim()) return []
   try {
     const parsed = JSON.parse(raw) as unknown
@@ -91,7 +92,7 @@ export const findAreaTicketReward = (eventSlug: string) =>
   areaTicketRewardConfigs().find(entry => entry.eventSlug === eventSlug) ?? null
 
 const crowdRelayBaseUrl = () => {
-  const value = import.meta.env.PUBLIC_CROWDRELAY_API_URL?.trim() ||
+  const value = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)?.trim() ||
     "https://signal-api.virya.music/v1/"
   const url = new URL(value)
   if (!/^https?:$/.test(url.protocol) || url.username || url.password) {
@@ -135,7 +136,7 @@ export const issueAreaTicket = async (args: {
   email: string
   requestId: string
 }): Promise<IssuedAreaTicket> => {
-  const adminKey = import.meta.env.CROWDRELAY_ADMIN_API_KEY
+  const adminKey = readServerEnv("CROWDRELAY_ADMIN_API_KEY", import.meta.env.CROWDRELAY_ADMIN_API_KEY)
   if (typeof adminKey !== "string" || adminKey.length < 24) {
     throw new AreaTicketIssueError(503)
   }

@@ -1,3 +1,4 @@
+import { readServerEnv } from "../../server/runtimeEnv.ts"
 import type { APIRoute } from "astro"
 import Stripe from "stripe"
 import { sendOrderEmail } from "../../utils/orderEmail"
@@ -21,8 +22,8 @@ import {
 } from "../../server/crowdrelayCommerce"
 
 export const POST: APIRoute = async ({ request }) => {
-  const stripeKey = import.meta.env.STRIPE_SECRET_KEY?.trim()
-  const webhookSecret = import.meta.env.STRIPE_WEBHOOK_SECRET?.trim()
+  const stripeKey = readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY)?.trim()
+  const webhookSecret = readServerEnv("STRIPE_WEBHOOK_SECRET", import.meta.env.STRIPE_WEBHOOK_SECRET)?.trim()
 
   if (!stripeKey) {
     return new Response("Stripe not configured", { status: 500 })

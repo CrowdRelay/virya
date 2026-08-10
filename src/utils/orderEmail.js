@@ -1,10 +1,11 @@
+import { readServerEnv } from "../server/runtimeEnv.ts"
 import nodemailer from "nodemailer"
 import { VAT_RATE, vatBreakdown } from "../data/products"
 import { VIRYA_OPERATIONS_EMAIL } from "../config"
 
 export const sendOrderEmail = async ({ session, lineItems }) => {
   const user = VIRYA_OPERATIONS_EMAIL
-  const pass = import.meta.env.GMAIL_APP_PASSWORD
+  const pass = readServerEnv("GMAIL_APP_PASSWORD", import.meta.env.GMAIL_APP_PASSWORD)
   const to = VIRYA_OPERATIONS_EMAIL
 
   if (!user || !pass) {

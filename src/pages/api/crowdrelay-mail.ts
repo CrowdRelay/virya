@@ -1,3 +1,4 @@
+import { readServerEnv } from "../../server/runtimeEnv.ts"
 import { timingSafeEqual } from "node:crypto"
 import type { APIRoute } from "astro"
 import { qrGifBuffer } from "../../server/ticketQr"
@@ -517,7 +518,7 @@ const parsePayload = (raw: unknown): MailPayload | null => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const configuredKey = import.meta.env.CROWDRELAY_MAILER_API_KEY?.trim()
+  const configuredKey = readServerEnv("CROWDRELAY_MAILER_API_KEY", import.meta.env.CROWDRELAY_MAILER_API_KEY)?.trim()
   const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? ""
   if (!configuredKey || configuredKey.length < 24 || !safeEqual(provided, configuredKey)) {
     return json({ error: "unauthorized" }, 401)

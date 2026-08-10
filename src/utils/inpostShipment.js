@@ -1,3 +1,4 @@
+import { readServerEnv } from "../server/runtimeEnv.ts"
 const BASE_URLS = {
   production: "https://api.shipx-pl.easypack24.net",
   sandbox: "https://sandbox-api-shipx-pl.easypack24.net",
@@ -82,8 +83,8 @@ export const createInpostShipment = async ({ session }) => {
     return { skipped: true, reason: "no paczkomat (non-shipping order)" }
   }
 
-  const token = import.meta.env.INPOST_SHIPX_TOKEN
-  const orgId = import.meta.env.INPOST_ORGANIZATION_ID
+  const token = readServerEnv("INPOST_SHIPX_TOKEN", import.meta.env.INPOST_SHIPX_TOKEN)
+  const orgId = readServerEnv("INPOST_ORGANIZATION_ID", import.meta.env.INPOST_ORGANIZATION_ID)
   if (!token || !orgId) {
     throw new Error(
       "INPOST_ORGANIZATION_ID / INPOST_SHIPX_TOKEN must be configured for shipping orders.",

@@ -1,3 +1,4 @@
+import { readServerEnv } from "./runtimeEnv.ts"
 import nodemailer from "nodemailer"
 import type SMTPTransport from "nodemailer/lib/smtp-transport"
 import { VIRYA_OPERATIONS_EMAIL } from "../config"
@@ -73,11 +74,11 @@ const boundedIdempotencyKey = (value: unknown) => {
 }
 
 const resendMailer = (): SiteMailer | null => {
-  const apiKey = envString(import.meta.env.RESEND_API_KEY)
-  const from = email(import.meta.env.SIGNAL_MAIL_FROM)
+  const apiKey = envString(readServerEnv("RESEND_API_KEY", import.meta.env.RESEND_API_KEY))
+  const from = email(readServerEnv("SIGNAL_MAIL_FROM", import.meta.env.SIGNAL_MAIL_FROM))
   if (!apiKey || !from) return null
 
-  const defaultReplyTo = email(import.meta.env.SIGNAL_MAIL_REPLY_TO) ?? from
+  const defaultReplyTo = email(readServerEnv("SIGNAL_MAIL_REPLY_TO", import.meta.env.SIGNAL_MAIL_REPLY_TO)) ?? from
   const operationsTo = VIRYA_OPERATIONS_EMAIL
 
   return {
@@ -133,10 +134,10 @@ const resendMailer = (): SiteMailer | null => {
 
 const gmailMailer = (): SiteMailer | null => {
   const user = VIRYA_OPERATIONS_EMAIL
-  const pass = envString(import.meta.env.GMAIL_APP_PASSWORD)
+  const pass = envString(readServerEnv("GMAIL_APP_PASSWORD", import.meta.env.GMAIL_APP_PASSWORD))
   if (!user || !pass) return null
 
-  const defaultReplyTo = email(import.meta.env.SIGNAL_MAIL_REPLY_TO) ?? user
+  const defaultReplyTo = email(readServerEnv("SIGNAL_MAIL_REPLY_TO", import.meta.env.SIGNAL_MAIL_REPLY_TO)) ?? user
   const operationsTo = VIRYA_OPERATIONS_EMAIL
 
   if (!cachedGmailSender) {
@@ -190,7 +191,7 @@ const gmailMailer = (): SiteMailer | null => {
 }
 
 export const getSiteMailer = (): SiteMailer | null => {
-  const preferred = envString(import.meta.env.MAIL_PROVIDER)?.toLowerCase()
+  const preferred = envString(readServerEnv("MAIL_PROVIDER", import.meta.env.MAIL_PROVIDER))?.toLowerCase()
   if (preferred === "resend") return resendMailer()
   if (preferred === "gmail") return gmailMailer()
   return resendMailer() ?? gmailMailer()

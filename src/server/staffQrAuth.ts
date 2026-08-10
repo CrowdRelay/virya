@@ -1,3 +1,4 @@
+import { readServerEnv } from "./runtimeEnv.ts"
 import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto"
 import { getStore } from "@netlify/blobs"
 import type { AreaCookieJar } from "./areaHttp"
@@ -27,12 +28,12 @@ const memoryRates = new Map<string, RateRecord>()
 const store = () => getStore({ name: STORE_NAME, consistency: "strong" })
 
 const sessionSecret = () => {
-  const value = import.meta.env.STAFF_QR_SESSION_SECRET
+  const value = readServerEnv("STAFF_QR_SESSION_SECRET", import.meta.env.STAFF_QR_SESSION_SECRET)
   return typeof value === "string" && value.length >= 32 ? value : null
 }
 
 const passwordDigest = () => {
-  const value = import.meta.env.STAFF_QR_PASSWORD_SHA256
+  const value = readServerEnv("STAFF_QR_PASSWORD_SHA256", import.meta.env.STAFF_QR_PASSWORD_SHA256)
   return typeof value === "string" && /^[a-f0-9]{64}$/i.test(value)
     ? Buffer.from(value, "hex")
     : null

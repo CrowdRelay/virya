@@ -103,10 +103,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [[ -d .netlify/functions-internal ]]; then
+            functions_dir=.netlify/functions-internal
+          elif [[ -d .netlify/v1/functions ]]; then
+            functions_dir=.netlify/v1/functions
+          else
+            echo "Netlify function artifacts are missing; refusing static-only deploy." >&2
+            exit 1
+          fi
+
           npx --yes netlify-cli@26.2.0 deploy \
             --prod \
             --no-build \
             --dir=dist \
+            --functions="${functions_dir}" \
             --site="${NETLIFY_SITE_ID}" \
             --auth="${NETLIFY_AUTH_TOKEN}" \
             --message="GitHub Actions ${GITHUB_SHA}"

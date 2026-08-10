@@ -1,3 +1,4 @@
+import { readServerEnv } from "./runtimeEnv.ts"
 import { resolvePublicDrawProof } from "../data/drawProofs"
 
 const DEFAULT_BASE_URL = "https://signal-api.virya.music/v1/"
@@ -21,7 +22,7 @@ export type PublicDrawProofState =
   | { kind: "ready"; status: PublicDrawStatus; proof: Record<string, any> }
 
 function apiBase() {
-  const configured = import.meta.env.PUBLIC_CROWDRELAY_API_URL?.trim() || DEFAULT_BASE_URL
+  const configured = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)?.trim() || DEFAULT_BASE_URL
   return configured.endsWith("/") ? configured : `${configured}/`
 }
 
