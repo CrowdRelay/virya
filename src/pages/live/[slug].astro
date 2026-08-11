@@ -1,6 +1,11 @@
 ---
 export const prerender = false
 import SignalEventPage from "../../components/SignalEventPage.astro"
+import { canonicalLiveEventSlug } from "../../data/liveEventAliases"
 const { slug = "" } = Astro.params
+const canonicalSlug = canonicalLiveEventSlug(slug)
+if (canonicalSlug !== slug) {
+  return Astro.redirect(`/live/${encodeURIComponent(canonicalSlug)}/`, 301)
+}
 ---
 <SignalEventPage lang="en" slug={slug} />
