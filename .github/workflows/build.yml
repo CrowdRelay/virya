@@ -80,6 +80,9 @@ jobs:
             deploy-artifact
             deploy-artifact-manifest.json
             scripts/artifact_manifest.py
+          # Astro's Netlify SSR bundle contains required files below
+          # functions/ssr/.netlify; upload-artifact excludes them by default.
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 14
 

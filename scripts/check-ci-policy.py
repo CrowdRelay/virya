@@ -42,6 +42,8 @@ if netlify.exists():
     ) if workflow_dir.exists() else ""
     if "netlify-cli" in deploy_workflows and "--no-build" not in deploy_workflows:
         failures.append("Netlify deploy workflow must pass --no-build")
+    if "deploy-artifact/functions" in deploy_workflows and "include-hidden-files: true" not in deploy_workflows:
+        failures.append("Netlify SSR promotion artifact must include hidden function build files")
 
 if failures:
     for failure in failures:
