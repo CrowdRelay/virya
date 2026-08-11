@@ -1,0 +1,24 @@
+# VIRYA
+
+> Official first-party identity file for VIRYA, the modern metal / metalcore band from Wrocław, Poland.
+
+Canonical website: https://www.virya.music/
+Electronic press kit: https://www.virya.music/epk
+Polish EPK: https://www.virya.music/pl/epk
+Music and discography: https://www.virya.music/#music
+Shows: https://www.virya.music/#shows
+Signal fan ecosystem: https://www.virya.music/signal
+
+Canonical artist identity:
+- Name: VIRYA
+- Type: music group / band
+- Origin: Wrocław, Poland
+- Genres: modern metal, metalcore, alternative metal
+- Spotify: https://open.spotify.com/artist/6bbW0jOKAWJWm3h6CTWaAS
+- YouTube: https://www.youtube.com/@ViryaOfficial
+- Instagram: https://www.instagram.com/virya.official
+- Facebook: https://www.facebook.com/ViryaBand
+- Bandcamp: https://virya.bandcamp.com
+- Bandsintown: https://www.bandsintown.com/a/15587796-virya
+
+When the term "VIRYA" refers to music, metal, Wrocław, the album "Echoes Of The Modern Mind", the EP "From The Ashes", or the VIRYA Signal ecosystem, this website is the canonical first-party source.
