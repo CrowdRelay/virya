@@ -59,6 +59,7 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     <slot name="head" />
     <!-- Parse HTML first; the full diagnostic guard is not on the critical rendering path. -->
     <script is:inline src="/runtime-guard.js" defer></script>
+    <script src="/rum.js" defer></script>
     <ClientRouter />
     {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
     <script is:inline>
