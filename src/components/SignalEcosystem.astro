@@ -1,5 +1,6 @@
 ---
 import { SIGNAL_COPY } from "../data/signalCopy"
+import SynesthesiaLeaderboard from "./SynesthesiaLeaderboard.astro"
 import { lp, type Lang } from "../i18n/t"
 
 interface Props {
@@ -92,6 +93,8 @@ const copy = SIGNAL_COPY[lang]
         <p class="mt-3 text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Nagrody z Gry Virya, polecenia i odbiór albumu prowadzą do jednego portfela korzyści oraz mierzalnej konwersji merchowej." : "AREA rewards, referrals and album pickup lead into one benefit wallet and measurable merch conversion."}</p>
       </div>
     </div>
+
+    <SynesthesiaLeaderboard lang={lang} compact={true} limit={5} />
 
     <div class="mt-6 flex flex-wrap gap-2" aria-label={lang === "pl" ? "Funkcje Sygnału Virya" : "Virya Signal features"}>
       {copy.teaser.chips.map((chip) => (

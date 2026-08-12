@@ -641,6 +641,7 @@ export function OpsTab() {
 
   const outbox = overview?.summary.outbox
   const deliveries = overview?.summary.deliveries
+  const watchdog = overview?.summary.watchdog
   const items = [
     ...(overview?.deadDeliveries ?? []).map(item => ({
       ...item,
@@ -681,6 +682,22 @@ export function OpsTab() {
             Odśwież kolejki
           </button>
         </div>
+        {(watchdog?.active_alerts ?? 0) > 0 && (
+          <div
+            class="mt-5 rounded-2xl border border-amber-300/25 bg-amber-300/[.07] p-4"
+            role="status"
+          >
+            <strong class="text-sm font-black text-amber-100">
+              Autopilot pilnuje {watchdog?.active_alerts ?? 0} aktywnych incydentów
+            </strong>
+            <p class="mt-1 text-xs leading-5 text-zinc-400">
+              {watchdog?.critical_alerts
+                ? `${watchdog.critical_alerts} krytyczne · `
+                : ""}
+              Stan jest trwały w CrowdRelay; n8n jest tylko kanałem powiadomienia.
+            </p>
+          </div>
+        )}
         <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Metric
             label="Outbox pending"

@@ -122,7 +122,15 @@ export type OpsItem = {
 }
 
 export type OpsOverview = {
-  summary: { outbox: QueueSummary; deliveries: QueueSummary }
+  summary: {
+    outbox: QueueSummary
+    deliveries: QueueSummary
+    watchdog?: {
+      active_alerts: number
+      critical_alerts: number
+      last_observed_at?: string | null
+    }
+  }
   deadDeliveries: OpsItem[]
   deadOutbox: OpsItem[]
 }

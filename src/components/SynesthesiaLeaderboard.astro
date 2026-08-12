@@ -1,0 +1,185 @@
+---
+import type { Lang } from "../i18n/t"
+
+interface Props {
+  lang?: Lang
+  compact?: boolean
+  limit?: number
+}
+
+const { lang = "en", compact = false, limit = compact ? 5 : 10 } = Astro.props
+const safeLimit = Math.max(1, Math.min(25, Math.trunc(limit)))
+const text = lang === "pl"
+  ? {
+      eyebrow: "SYNESTHESIA // LIVE",
+      heading: compact ? "Najszybsze przebiegi" : "Tablica najlepszych przebiegów",
+      body: compact
+        ? "Najlepsze czasy ukończonej podróży. Tożsamość pozostaje ukryta."
+        : "Publiczne TOP 10 pokazuje wyłącznie zamaskowany alias i najlepszy czas gracza. Publikacja jest dobrowolna i nie wpływa na losowanie nagród.",
+      loading: "Ładowanie wyników…",
+      empty: "Pierwsze miejsca nadal czekają na graczy.",
+      error: "Ranking jest chwilowo niedostępny. Gra działa niezależnie.",
+      cta: "Zagraj i pobij czas",
+      rank: "Miejsce",
+      player: "Gracz",
+      time: "Czas",
+    }
+  : {
+      eyebrow: "SYNESTHESIA // LIVE",
+      heading: compact ? "Fastest runs" : "Fastest completed journeys",
+      body: compact
+        ? "Best completed journey times. Player identity stays masked."
+        : "The public TOP 10 shows only a masked alias and each player’s best time. Publishing is opt-in and never changes reward draw eligibility.",
+      loading: "Loading runs…",
+      empty: "The first leaderboard spots are still waiting for players.",
+      error: "The leaderboard is temporarily unavailable. The game still works independently.",
+      cta: "Play and beat the time",
+      rank: "Rank",
+      player: "Player",
+      time: "Time",
+    }
+---
+
+<section
+  class:list={[
+    "synesthesia-leaderboard relative overflow-hidden border-y border-cyan-300/15 bg-cyan-300/[.018]",
+    compact ? "mt-8 p-5 sm:p-6" : "virya-section signal-deferred",
+  ]}
+  data-synesthesia-leaderboard
+  data-limit={safeLimit}
+  data-loading={text.loading}
+  data-empty={text.empty}
+  data-error={text.error}
+  aria-labelledby={`synesthesia-leaderboard-heading-${compact ? "compact" : "full"}`}
+>
+  <div class:list={[compact ? "" : "virya-section__inner", "relative"]}>
+    <div class="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-cyan-300/[.07] blur-[100px]" aria-hidden="true"></div>
+    <div class:list={["relative grid gap-7", compact ? "" : "lg:grid-cols-[minmax(0,.8fr)_minmax(360px,1.2fr)] lg:items-start"]}>
+      <div>
+        <p class="text-[9px] font-black uppercase tracking-[.28em] text-cyan-300">{text.eyebrow}</p>
+        <h2
+          id={`synesthesia-leaderboard-heading-${compact ? "compact" : "full"}`}
+          class:list={["mt-4 font-black uppercase leading-[.95] tracking-[-.035em] text-white", compact ? "text-2xl" : "text-[clamp(2rem,7vw,4rem)]"]}
+        >
+          {text.heading}
+        </h2>
+        <p class:list={["mt-4 max-w-2xl leading-relaxed text-zinc-400", compact ? "text-xs" : "text-sm sm:text-base"]}>
+          {text.body}
+        </p>
+        {!compact && (
+          <a
+            href="https://synesthesia.virya.music/?source=virya-leaderboard"
+            class="virya-button virya-button--secondary mt-7 min-h-[48px] border-cyan-300/30 px-6 text-cyan-200 hover:border-cyan-200 hover:text-white"
+          >
+            {text.cta} <span class="ml-2" aria-hidden="true">↗</span>
+          </a>
+        )}
+      </div>
+
+      <div class="min-w-0 border border-zinc-800/90 bg-black/45" aria-live="polite" aria-busy="true" data-leaderboard-shell>
+        <div class="grid grid-cols-[3.25rem_minmax(0,1fr)_auto] gap-3 border-b border-zinc-800 px-4 py-3 text-[8px] font-black uppercase tracking-[.2em] text-zinc-600 sm:px-5">
+          <span>{text.rank}</span>
+          <span>{text.player}</span>
+          <span class="text-right">{text.time}</span>
+        </div>
+        <ol class="divide-y divide-zinc-900" data-leaderboard-list></ol>
+        <p class="px-4 py-7 text-center text-xs leading-relaxed text-zinc-500 sm:px-5" data-leaderboard-status>{text.loading}</p>
+      </div>
+
+      {compact && (
+        <a
+          href="https://synesthesia.virya.music/?source=virya-home-leaderboard"
+          class="inline-flex min-h-[44px] items-center justify-center border border-cyan-300/25 px-5 py-3 text-[9px] font-black uppercase tracking-[.17em] text-cyan-200 transition-colors hover:border-cyan-200 hover:text-white"
+        >
+          {text.cta} <span class="ml-2" aria-hidden="true">↗</span>
+        </a>
+      )}
+    </div>
+  </div>
+</section>
+
+<script>
+  type LeaderboardItem = { rank?: number; display_name?: string; elapsed_ms?: number }
+
+  const formatTime = (value: number): string => {
+    const ms = Math.max(0, Math.trunc(value))
+    const totalSeconds = Math.floor(ms / 1000)
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    const millis = ms % 1000
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(millis).padStart(3, "0")}`
+  }
+
+  const renderLeaderboard = async (root: HTMLElement): Promise<void> => {
+    if (root.dataset.loaded === "1") return
+    root.dataset.loaded = "1"
+    const shell = root.querySelector<HTMLElement>("[data-leaderboard-shell]")
+    const list = root.querySelector<HTMLOListElement>("[data-leaderboard-list]")
+    const status = root.querySelector<HTMLElement>("[data-leaderboard-status]")
+    if (!shell || !list || !status) return
+
+    try {
+      const limit = Math.max(1, Math.min(25, Number(root.dataset.limit) || 10))
+      const response = await fetch(`https://signal-api.virya.music/v1/public/synesthesia/leaderboard?limit=${limit}`)
+      if (!response.ok) throw new Error(`leaderboard ${response.status}`)
+      const payload = await response.json() as { items?: LeaderboardItem[] }
+      const items = Array.isArray(payload.items) ? payload.items : []
+      list.replaceChildren()
+      if (items.length === 0) {
+        status.textContent = root.dataset.empty || ""
+        shell.setAttribute("aria-busy", "false")
+        return
+      }
+
+      const fragment = document.createDocumentFragment()
+      for (const [index, item] of items.entries()) {
+        const row = document.createElement("li")
+        row.className = "grid min-h-[46px] grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 sm:px-5"
+        const rank = document.createElement("span")
+        rank.className = "font-mono text-[10px] font-black text-cyan-300"
+        rank.textContent = `#${Math.max(1, Math.trunc(Number(item.rank) || index + 1))}`
+        const player = document.createElement("span")
+        player.className = "min-w-0 truncate text-[10px] font-black uppercase tracking-[.12em] text-zinc-300"
+        player.textContent = String(item.display_name || "••••")
+        const time = document.createElement("span")
+        time.className = "font-mono text-[11px] font-black tabular-nums text-white"
+        time.textContent = formatTime(Number(item.elapsed_ms) || 0)
+        row.append(rank, player, time)
+        fragment.append(row)
+      }
+      list.append(fragment)
+      status.hidden = true
+      shell.setAttribute("aria-busy", "false")
+    } catch {
+      status.textContent = root.dataset.error || ""
+      shell.setAttribute("aria-busy", "false")
+      root.dataset.loaded = "0"
+    }
+  }
+
+  const roots = document.querySelectorAll<HTMLElement>("[data-synesthesia-leaderboard]:not([data-observed])")
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue
+        observer.unobserve(entry.target)
+        void renderLeaderboard(entry.target as HTMLElement)
+      }
+    }, { rootMargin: "240px 0px" })
+    roots.forEach((root) => {
+      root.dataset.observed = "1"
+      observer.observe(root)
+    })
+  } else {
+    roots.forEach((root) => void renderLeaderboard(root))
+  }
+</script>
+
+<style>
+  @supports (content-visibility: auto) {
+    .synesthesia-leaderboard {
+      content-visibility: auto;
+      contain-intrinsic-size: 620px;
+    }
+  }
+</style>
