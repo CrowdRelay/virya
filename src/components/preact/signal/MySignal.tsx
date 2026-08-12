@@ -300,6 +300,15 @@ export default function MySignal({ lang }: Props) {
                   : "Journey completed and linked"
                 : `${Math.max(0, synesthesia.rooms_completed)}/11 ${lang === "pl" ? "pokojów" : "rooms"}`}
             </p>
+            {synesthesia.best_elapsed_ms !== null && (
+              <p class="mt-1 text-[10px] font-bold uppercase tracking-widest text-cyan-200/80">
+                {lang === "pl" ? "Najlepszy czas" : "Best time"}{" "}
+                {formatElapsed(synesthesia.best_elapsed_ms)}
+                {synesthesia.leaderboard_published &&
+                  synesthesia.leaderboard_rank !== null &&
+                  ` · #${synesthesia.leaderboard_rank}`}
+              </p>
+            )}
             <a
               href="https://synesthesia.virya.music/"
               class="mt-3 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-cyan-300"
@@ -691,6 +700,13 @@ export default function MySignal({ lang }: Props) {
 
 function pagePath(lang: Lang, path: string): string {
   return lang === "pl" ? `/pl${path}` : path
+}
+
+function formatElapsed(elapsedMs: number): string {
+  const totalSeconds = Math.max(0, Math.round(elapsedMs / 1000))
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`
 }
 
 function formatDate(value: string, locale: string): string {

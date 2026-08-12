@@ -464,6 +464,10 @@ export interface FanHomeSnapshot {
     completed: boolean
     rooms_completed: number
     client_total_elapsed_ms: number | null
+    best_elapsed_ms: number | null
+    completed_runs: number
+    leaderboard_published: boolean
+    leaderboard_rank: number | null
     linked_at: string | null
     reward_entered: boolean
   }
