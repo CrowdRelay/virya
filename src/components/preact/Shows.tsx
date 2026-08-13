@@ -9,11 +9,12 @@ import LiveEventCard, { LiveEventNotice, LiveEventSkeleton } from "./LiveEventCa
 type Props = {
   lang: Lang
   messages: Record<string, string>
+  initialEvents?: PublicEvent[]
 }
 
-const ShowsInner = ({ lang }: { lang: Lang }) => {
+const ShowsInner = ({ lang, initialEvents = [] }: { lang: Lang; initialEvents?: PublicEvent[] }) => {
   const { t } = useIslandI18n() as unknown as { t: (key: string) => string; lang: string; lp: (path: string) => string }
-  const [events, setEvents] = useState<PublicEvent[] | null>(null)
+  const [events, setEvents] = useState<PublicEvent[] | null>(initialEvents)
   const [unavailable, setUnavailable] = useState(false)
   const campaignId = useMemo(() => campaignIdFromLocation(), [])
 
@@ -22,17 +23,21 @@ const ShowsInner = ({ lang }: { lang: Lang }) => {
 
     void loadLiveEvents(controller.signal)
       .then(items => {
-        setEvents(items)
+        // Never replace a useful prerendered snapshot with an empty transient
+        // response. A later successful deploy/hydration can refresh it.
+        if (items.length > 0 || initialEvents.length === 0) setEvents(items)
         setUnavailable(false)
       })
       .catch(() => {
         if (controller.signal.aborted) return
-        setEvents([])
-        setUnavailable(true)
+        // The build-time snapshot is intentionally a public availability
+        // fallback. Network/BFF failure must not erase visible show cards.
+        if (initialEvents.length === 0) setEvents([])
+        setUnavailable(initialEvents.length === 0)
       })
 
     return () => controller.abort()
-  }, [])
+  }, [initialEvents])
 
   const upcoming = useMemo(() => upcomingLiveEvents(events ?? []), [events])
   const unavailableMessage =
@@ -87,10 +92,10 @@ const ShowsInner = ({ lang }: { lang: Lang }) => {
   )
 }
 
-export default function Shows({ lang, messages }: Props) {
+export default function Shows({ lang, messages, initialEvents = [] }: Props) {
   return (
     <IslandI18nProvider lang={lang} messages={messages}>
-      <ShowsInner lang={lang} />
+      <ShowsInner lang={lang} initialEvents={initialEvents} />
     </IslandI18nProvider>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks"
 import EcosystemControl from "./EcosystemControl"
 import BackendLoader from "./BackendLoader"
 import OpsTimelinePanel from "./OpsTimelinePanel"
+import AutopilotHandoffs from "./AutopilotHandoffs"
 import { OrderStatusBadge } from "./AdminTicketingTab"
 import { Field, Metric } from "./AdminConsoleUi"
 import {
@@ -45,6 +46,7 @@ export function OverviewTab({
           Pozostałe dane są nadal aktualizowane niezależnie.
         </div>
       )}
+      <AutopilotHandoffs />
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
           label="CrowdRelay API"

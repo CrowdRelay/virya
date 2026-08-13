@@ -108,11 +108,6 @@
     Cache-Control = "public, s-maxage=31536000, max-age=0, must-revalidate"
 
 [[headers]]
-  for = "/api/bandsintown"
-  [headers.values]
-    Cache-Control = "public, max-age=1800, stale-while-revalidate=3600"
-
-[[headers]]
   for = "/covers/*"
   [headers.values]
     Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"

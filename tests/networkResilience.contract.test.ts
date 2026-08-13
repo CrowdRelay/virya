@@ -46,12 +46,12 @@ test('interactive public request paths are bounded', () => {
   assert.match(staffApi, /cache:\s*"no-store"/)
 })
 
-test("Bandsintown proxy bounds upstream response bytes", () => {
-  const bandsintown = read('src/pages/api/bandsintown.ts')
-  assert.match(bandsintown, /MAX_RESPONSE_BYTES = 512 \* 1024/)
-  assert.match(bandsintown, /AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/)
-  assert.match(bandsintown, /Buffer\.byteLength\(text, "utf8"\) > MAX_RESPONSE_BYTES/)
-  assert.match(bandsintown, /data\.slice\(0, MAX_EVENTS\)/)
+test("Bandsintown fallback stays server-only and bounds upstream response bytes", () => {
+  const live = read('src/server/liveEvents.ts')
+  assert.match(live, /MAX_RESPONSE_BYTES = 512 \* 1024/)
+  assert.match(live, /AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/)
+  assert.match(live, /received > MAX_RESPONSE_BYTES/)
+  assert.match(live, /rest\.bandsintown\.com\/artists\/virya\/events/)
 })
 
 test("healthy live-event snapshots survive short upstream outages", () => {

@@ -19,9 +19,11 @@ import ScrollToTop from "../../components/ScrollToTop.astro"
 import { getSeoTags } from "../../utils/seo"
 import { getHomepageMessages } from "../../i18n/homepageMessages"
 import { serializeViryaIdentity } from "../../data/viryaIdentity"
+import { loadLiveEvents } from "../../server/liveEvents"
 
 const lang = "pl"
 const messages = getHomepageMessages(lang)
+const { events: initialLiveEvents } = await loadLiveEvents()
 const { canonicalUrl, hreflangLinks } = getSeoTags("/", lang)
 const title = "Virya — Nowoczesny Metalcore z Polski"
 const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z Polski. Słuchaj nowej muzyki, sprawdź koncerty i zamów oficjalny merch."
@@ -78,7 +80,7 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
         </section>
 
         <section id="shows" class="scroll-mt-20">
-          <Shows client:visible lang={lang} messages={messages.shows} />
+          <Shows client:visible lang={lang} messages={messages.shows} initialEvents={initialLiveEvents} />
         </section>
 
         <section id="endorsements" class="scroll-mt-20">

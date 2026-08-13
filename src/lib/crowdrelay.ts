@@ -146,20 +146,89 @@ export function readFragmentToken(): string | null {
 }
 
 const SYNESTHESIA_HANDOFF_PATTERN = /^[0-9a-f]{64}$/i
+const SYNESTHESIA_HANDOFF_STORE_KEY = "virya-synesthesia-handoff-v1"
+const SYNESTHESIA_HANDOFF_CONTINUITY_MS = 14 * 60 * 1000
+
+type StoredSynesthesiaHandoff = { code: string; capturedAt: number }
+
+const synesthesiaHandoffStorage = (): Storage[] => {
+  if (typeof window === "undefined") return []
+  // Confirmation links are commonly opened from a mail app in a fresh browser
+  // tab. sessionStorage is tab-scoped, so a Signal handoff kept only there is
+  // lost exactly when a new fan confirms their address. localStorage gives the
+  // short-lived (14 minute) handoff same-origin continuity across tabs; the
+  // session copy remains a best-effort fallback for privacy-restricted browsers.
+  return [window.localStorage, window.sessionStorage]
+}
+
+const rememberSynesthesiaHandoff = (code: string): void => {
+  const serialized = JSON.stringify({
+    code,
+    capturedAt: Date.now(),
+  } satisfies StoredSynesthesiaHandoff)
+  for (const storage of synesthesiaHandoffStorage()) {
+    try {
+      storage.setItem(SYNESTHESIA_HANDOFF_STORE_KEY, serialized)
+    } catch {
+      // Storage is continuity only; the URL fragment remains the fallback.
+    }
+  }
+}
+
+const storedSynesthesiaHandoff = (): string | null => {
+  for (const storage of synesthesiaHandoffStorage()) {
+    try {
+      const raw = storage.getItem(SYNESTHESIA_HANDOFF_STORE_KEY)
+      if (!raw) continue
+      const value = JSON.parse(raw) as Partial<StoredSynesthesiaHandoff>
+      if (
+        typeof value.code !== "string" ||
+        !SYNESTHESIA_HANDOFF_PATTERN.test(value.code) ||
+        typeof value.capturedAt !== "number" ||
+        !Number.isFinite(value.capturedAt) ||
+        Date.now() - value.capturedAt > SYNESTHESIA_HANDOFF_CONTINUITY_MS
+      ) {
+        storage.removeItem(SYNESTHESIA_HANDOFF_STORE_KEY)
+        continue
+      }
+      return value.code.toLowerCase()
+    } catch {
+      // Try the next storage surface.
+    }
+  }
+  return null
+}
 
 export function synesthesiaHandoffFromLocation(): string | null {
   if (typeof window === "undefined") return null
   const value = new URLSearchParams(window.location.hash.slice(1)).get(
     "handoff",
   )
-  return value && SYNESTHESIA_HANDOFF_PATTERN.test(value)
-    ? value.toLowerCase()
-    : null
+  if (value && SYNESTHESIA_HANDOFF_PATTERN.test(value)) {
+    const normalized = value.toLowerCase()
+    rememberSynesthesiaHandoff(normalized)
+    return normalized
+  }
+  return storedSynesthesiaHandoff()
 }
 
 export function clearSynesthesiaHandoff(): void {
   if (typeof window === "undefined") return
-  history.replaceState(null, "", `${location.pathname}${location.search}`)
+  for (const storage of synesthesiaHandoffStorage()) {
+    try {
+      storage.removeItem(SYNESTHESIA_HANDOFF_STORE_KEY)
+    } catch {
+      // Optional continuity storage only.
+    }
+  }
+  const params = new URLSearchParams(location.hash.slice(1))
+  params.delete("handoff")
+  const hash = params.toString()
+  history.replaceState(
+    null,
+    "",
+    `${location.pathname}${location.search}${hash ? `#${hash}` : ""}`,
+  )
 }
 
 export function bestEffort(task: Promise<unknown>): void {
