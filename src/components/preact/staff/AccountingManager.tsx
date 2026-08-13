@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { safeFormatDate } from "../../../lib/safeDateFormat"
 import BackendLoader from "./BackendLoader"
+import { staffApi, type StaffApiError } from "./staffApi"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
-type ApiError = Error & { status?: number }
+type ApiError = StaffApiError
 
 type Profile = {
   seller_name: string
@@ -113,42 +114,8 @@ type InvoiceRequest = {
 const nowMonth = () => new Date().toISOString().slice(0, 7)
 const REQUEST_TIMEOUT_MS = 15_000
 
-const api = async <T,>(path: string, options: { method?: "GET" | "POST"; body?: unknown; signal?: AbortSignal } = {}): Promise<T> => {
-  const controller = new AbortController()
-  let timedOut = false
-  const timeout = window.setTimeout(() => { timedOut = true; controller.abort() }, REQUEST_TIMEOUT_MS)
-  const forwardAbort = () => controller.abort(options.signal?.reason)
-  if (options.signal?.aborted) forwardAbort()
-  else options.signal?.addEventListener("abort", forwardAbort, { once: true })
-  try {
-    const headers = new Headers({ Accept: "application/json" })
-    if (options.body !== undefined) headers.set("Content-Type", "application/json")
-    const response = await fetch(path, {
-      method: options.method ?? "GET",
-      headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      credentials: "same-origin",
-      cache: "no-store",
-      signal: controller.signal,
-    })
-    if (!response.ok) {
-      const error = new Error("Request failed") as ApiError
-      error.status = response.status
-      throw error
-    }
-    return await response.json() as T
-  } catch (error) {
-    if (timedOut) {
-      const timeoutError = new Error("Request timed out") as ApiError
-      timeoutError.status = 408
-      throw timeoutError
-    }
-    throw error
-  } finally {
-    window.clearTimeout(timeout)
-    options.signal?.removeEventListener("abort", forwardAbort)
-  }
-}
+const api = <T,>(path: string, options: { method?: "GET" | "POST"; body?: unknown; signal?: AbortSignal } = {}) =>
+  staffApi<T>(path, { ...options, timeoutMs: REQUEST_TIMEOUT_MS })
 
 const money = (minor: number, currency = "PLN") =>
   new Intl.NumberFormat("pl-PL", { style: "currency", currency }).format(minor / 100)

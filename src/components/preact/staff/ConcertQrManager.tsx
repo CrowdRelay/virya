@@ -10,11 +10,12 @@ import type {
   StaffQrEvent,
   StaffQrOverview,
 } from "../../../server/staffQrApi"
+import { staffApi, type StaffApiError } from "./staffApi"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type Language = "pl" | "en"
 
-type ApiError = Error & { status?: number }
+type ApiError = StaffApiError
 
 type ApiOptions = {
   method?: "GET" | "POST"
@@ -25,50 +26,8 @@ type ApiOptions = {
 const REQUEST_TIMEOUT_MS = 10_000
 const dateFormatters = new Map<string, Intl.DateTimeFormat>()
 
-const api = async <T,>(path: string, options: ApiOptions = {}): Promise<T> => {
-  const headers = new Headers({ Accept: "application/json" })
-  if (options.body !== undefined) headers.set("Content-Type", "application/json")
-
-  const controller = new AbortController()
-  let timedOut = false
-  const timeoutId = window.setTimeout(() => {
-    timedOut = true
-    controller.abort()
-  }, REQUEST_TIMEOUT_MS)
-  const forwardAbort = () => controller.abort(options.signal?.reason)
-  if (options.signal?.aborted) {
-    forwardAbort()
-  } else {
-    options.signal?.addEventListener("abort", forwardAbort, { once: true })
-  }
-
-  try {
-    const response = await fetch(path, {
-      method: options.method ?? "GET",
-      headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      credentials: "same-origin",
-      cache: "no-store",
-      signal: controller.signal,
-    })
-    if (!response.ok) {
-      const error = new Error("Request failed") as ApiError
-      error.status = response.status
-      throw error
-    }
-    return (await response.json()) as T
-  } catch (error) {
-    if (timedOut) {
-      const timeoutError = new Error("Request timed out") as ApiError
-      timeoutError.status = 408
-      throw timeoutError
-    }
-    throw error
-  } finally {
-    window.clearTimeout(timeoutId)
-    options.signal?.removeEventListener("abort", forwardAbort)
-  }
-}
+const api = <T,>(path: string, options: ApiOptions = {}) =>
+  staffApi<T>(path, { ...options, timeoutMs: REQUEST_TIMEOUT_MS })
 
 const isAbortError = (error: unknown) =>
   error instanceof DOMException && error.name === "AbortError"

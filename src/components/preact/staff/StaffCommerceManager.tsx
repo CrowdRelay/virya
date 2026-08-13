@@ -1,12 +1,13 @@
 import type { ComponentChildren } from "preact"
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
+import { staffApi, type StaffApiError } from "./staffApi"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type EligibilityKind = "all_active" | "event_interest" | "synesthesia_completion"
 
 const SYNESTHESIA_CAMPAIGN = "virya-synesthesia-album-v1"
-type ApiError = Error & { status?: number }
+type ApiError = StaffApiError
 
 type Variant = {
   id: string
@@ -213,48 +214,10 @@ const initialCampaign = (): CampaignForm => {
   }
 }
 
-const api = async <T,>(
+const api = <T,>(
   path: string,
   options: { method?: "GET" | "POST"; body?: unknown; signal?: AbortSignal } = {},
-): Promise<T> => {
-  const controller = new AbortController()
-  let timedOut = false
-  const timer = window.setTimeout(() => {
-    timedOut = true
-    controller.abort()
-  }, REQUEST_TIMEOUT_MS)
-  const forwardAbort = () => controller.abort(options.signal?.reason)
-  if (options.signal?.aborted) forwardAbort()
-  else options.signal?.addEventListener("abort", forwardAbort, { once: true })
-  try {
-    const headers = new Headers({ Accept: "application/json" })
-    if (options.body !== undefined) headers.set("Content-Type", "application/json")
-    const response = await fetch(path, {
-      method: options.method ?? "GET",
-      headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      credentials: "same-origin",
-      cache: "no-store",
-      signal: controller.signal,
-    })
-    if (!response.ok) {
-      const error = new Error("Request failed") as ApiError
-      error.status = response.status
-      throw error
-    }
-    return await response.json() as T
-  } catch (error) {
-    if (timedOut) {
-      const timeout = new Error("Request timed out") as ApiError
-      timeout.status = 408
-      throw timeout
-    }
-    throw error
-  } finally {
-    window.clearTimeout(timer)
-    options.signal?.removeEventListener("abort", forwardAbort)
-  }
-}
+) => staffApi<T>(path, { ...options, timeoutMs: REQUEST_TIMEOUT_MS })
 
 const slugify = (value: string) => value
   .normalize("NFKD")

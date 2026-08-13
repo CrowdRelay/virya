@@ -9,45 +9,17 @@ import type {
   CommunicationCampaign,
   SegmentPreview,
 } from "../../../types/audience"
+import { staffApi, type StaffApiError } from "./staffApi"
 
 type Pane = "fans" | "segments" | "campaigns" | "analytics"
-type RequestError = Error & { status?: number }
+type RequestError = StaffApiError
 
 const REQUEST_TIMEOUT_MS = 12_000
 
-const request = async <T,>(
+const request = <T,>(
   path: string,
   options: { method?: "GET" | "POST"; body?: unknown; signal?: AbortSignal } = {},
-): Promise<T> => {
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
-  const abort = () => controller.abort(options.signal?.reason)
-  if (options.signal?.aborted) abort()
-  else options.signal?.addEventListener("abort", abort, { once: true })
-  try {
-    const headers = new Headers({ Accept: "application/json" })
-    if (options.body !== undefined) headers.set("Content-Type", "application/json")
-    const response = await fetch(path, {
-      method: options.method ?? "GET",
-      headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      credentials: "same-origin",
-      cache: "no-store",
-      signal: controller.signal,
-    })
-    if (response.status === 204) return undefined as T
-    const payload = (await response.json().catch(() => ({}))) as T & { error?: string }
-    if (!response.ok) {
-      const error = new Error(payload.error || "Request failed") as RequestError
-      error.status = response.status
-      throw error
-    }
-    return payload
-  } finally {
-    window.clearTimeout(timeout)
-    options.signal?.removeEventListener("abort", abort)
-  }
-}
+) => staffApi<T>(path, { ...options, timeoutMs: REQUEST_TIMEOUT_MS })
 
 const money = (minor: number, currency: string) => {
   try {

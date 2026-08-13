@@ -57,7 +57,10 @@ test("all staff commerce mutations reuse staff session and same-origin protectio
 
 test("staff commerce browser never receives CrowdRelay credentials", () => {
   const manager = read("src/components/preact/staff/StaffCommerceManager.tsx")
+  const transport = read("src/components/preact/staff/staffApi.ts")
   assert.doesNotMatch(manager, /CROWDRELAY_(ADMIN|COMMERCE)_API_KEY/)
   assert.doesNotMatch(manager, /Authorization/)
-  assert.match(manager, /credentials: "same-origin"/)
+  assert.match(manager, /staffApi<T>/)
+  assert.match(transport, /credentials: "same-origin"/)
+  assert.match(transport, /cache: "no-store"/)
 })

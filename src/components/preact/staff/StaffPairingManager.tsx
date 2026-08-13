@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { generateQr, type GeneratedQr } from "../../../lib/qrCode"
+import { staffApi, type StaffApiError } from "./staffApi"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
-type ApiError = Error & { status?: number }
+type ApiError = StaffApiError
 
 type PairingEnvelope = {
   version: 2
@@ -26,24 +27,10 @@ type ApiOptions = {
   signal?: AbortSignal
 }
 
-const api = async <T,>(path: string, options: ApiOptions = {}): Promise<T> => {
-  const response = await fetch(path, {
-    method: options.method ?? "GET",
-    credentials: "same-origin",
-    cache: "no-store",
-    signal: options.signal ?? AbortSignal.timeout(10_000),
-    headers: options.body === undefined
-      ? { Accept: "application/json" }
-      : { Accept: "application/json", "Content-Type": "application/json" },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  })
-  if (!response.ok) {
-    const error = new Error("Request failed") as ApiError
-    error.status = response.status
-    throw error
-  }
-  return await response.json() as T
-}
+const REQUEST_TIMEOUT_MS = 10_000
+
+const api = <T,>(path: string, options: ApiOptions = {}) =>
+  staffApi<T>(path, { ...options, timeoutMs: REQUEST_TIMEOUT_MS })
 
 const formatCountdown = (seconds: number) => {
   const safe = Math.max(0, seconds)

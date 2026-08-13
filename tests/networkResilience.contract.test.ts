@@ -35,9 +35,15 @@ test('interactive public request paths are bounded', () => {
     ['src/components/preact/merch/cartDrawer.jsx', /AbortSignal\.timeout\((?:10|15)_000\)/],
     ['src/components/preact/tickets/TicketCheckout.tsx', /AbortSignal\.timeout\(15_000\)/],
     ['src/components/preact/staff/EcosystemControl.tsx', /AbortSignal\.timeout\(10_000\)/],
-    ['src/components/preact/staff/StaffPairingManager.tsx', /AbortSignal\.timeout\(10_000\)/],
+    ['src/components/preact/staff/StaffPairingManager.tsx', /timeoutMs:\s*REQUEST_TIMEOUT_MS/],
   ]
   for (const [path, pattern] of bounded) assert.match(read(path), pattern, `${path} has no bounded request`)
+
+  const staffApi = read('src/components/preact/staff/staffApi.ts')
+  assert.match(staffApi, /new AbortController\(\)/)
+  assert.match(staffApi, /options\.timeoutMs \?\? DEFAULT_TIMEOUT_MS/)
+  assert.match(staffApi, /credentials:\s*"same-origin"/)
+  assert.match(staffApi, /cache:\s*"no-store"/)
 })
 
 test("Bandsintown proxy bounds upstream response bytes", () => {

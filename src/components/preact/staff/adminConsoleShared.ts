@@ -1,8 +1,10 @@
+import { staffApi, type StaffApiError } from "./staffApi"
+
 // Shared types and bounded browser helpers for the staff control center.
 
 export type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 export type Tab = "overview" | "signal" | "audience" | "ops" | "ticketing" | "admission" | "mailer" | "system"
-export type ApiError = Error & { status?: number; payload?: { error?: string } }
+export type ApiError = StaffApiError
 export type Capabilities = {
   crowdrelayAdmin: boolean
   crowdrelayCommerce: boolean
@@ -213,50 +215,14 @@ export const localInput = (value: string) => {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16)
 }
 
-export const api = async <T,>(
+export const api = <T,>(
   path: string,
   options: {
     method?: "GET" | "POST"
     body?: unknown
     signal?: AbortSignal
   } = {},
-) => {
-  const headers = new Headers({ Accept: "application/json" })
-  if (options.body !== undefined)
-    headers.set("Content-Type", "application/json")
-  const controller = new AbortController()
-  const timeout = window.setTimeout(
-    () => controller.abort(),
-    REQUEST_TIMEOUT_MS,
-  )
-  const forwardAbort = () => controller.abort(options.signal?.reason)
-  if (options.signal?.aborted) forwardAbort()
-  else options.signal?.addEventListener("abort", forwardAbort, { once: true })
-  try {
-    const response = await fetch(path, {
-      method: options.method ?? "GET",
-      headers,
-      body:
-        options.body === undefined ? undefined : JSON.stringify(options.body),
-      credentials: "same-origin",
-      cache: "no-store",
-      signal: controller.signal,
-    })
-    const payload = (await response.json().catch(() => ({}))) as {
-      error?: string
-    }
-    if (!response.ok) {
-      const error = new Error(payload.error || "Request failed") as ApiError
-      error.status = response.status
-      error.payload = payload
-      throw error
-    }
-    return payload as T
-  } finally {
-    window.clearTimeout(timeout)
-    options.signal?.removeEventListener("abort", forwardAbort)
-  }
-}
+) => staffApi<T>(path, { ...options, timeoutMs: REQUEST_TIMEOUT_MS })
 
 export const blankTicketForm = (event?: EventItem): TicketForm => {
   const start = event?.starts_at
