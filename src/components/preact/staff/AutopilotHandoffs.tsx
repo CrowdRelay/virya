@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks"
 import { staffApi } from "./staffApi"
+import BookingPolicyPanel, { type BookingPolicySummary } from "./BookingPolicyPanel"
 
 const REQUEST_TIMEOUT_MS = 10_000
 
@@ -40,6 +41,7 @@ type Overview = {
   needs_you: PendingAction[]
   available_assignees?: TeamAssignee[]
   recent_actions?: RecentAction[]
+  booking_policy?: BookingPolicySummary | null
 }
 
 const date = (value: string | null | undefined) => {
@@ -90,6 +92,7 @@ export default function AutopilotHandoffs() {
   const [items, setItems] = useState<PendingAction[]>([])
   const [assignees, setAssignees] = useState<TeamAssignee[]>([])
   const [manualActions, setManualActions] = useState<RecentAction[]>([])
+  const [bookingPolicy, setBookingPolicy] = useState<BookingPolicySummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState("")
@@ -104,6 +107,7 @@ export default function AutopilotHandoffs() {
       setItems(overview.needs_you ?? [])
       setAssignees(overview.available_assignees ?? [])
       setManualActions((overview.recent_actions ?? []).filter(action => (action.manual_steps?.length ?? 0) > 0))
+      setBookingPolicy(overview.booking_policy ?? null)
       setError("")
     } catch (value) {
       if (!(value instanceof DOMException && value.name === "AbortError"))
@@ -207,6 +211,8 @@ export default function AutopilotHandoffs() {
         ))}
         {!loading && items.length === 0 && <p class="rounded-2xl bg-black/20 p-4 text-sm text-zinc-500">Nic nie wymaga teraz ręcznej decyzji.</p>}
       </div>
+
+      <BookingPolicyPanel summary={bookingPolicy} onSaved={() => load()} />
 
       {manualActions.length > 0 && (
         <div class="mt-6 border-t border-white/10 pt-5">

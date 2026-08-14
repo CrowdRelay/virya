@@ -20,10 +20,42 @@ const memberKey = (value: unknown): string | null => {
   return /^[a-z0-9_-]{2,48}$/.test(key) ? key : null
 }
 
+const boundedInteger = (value: unknown, min: number, max: number): number | null =>
+  typeof value === "number" && Number.isInteger(value) && value >= min && value <= max ? value : null
+
+const bookingPolicy = (value: unknown) => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null
+  const input = value as Record<string, unknown>
+  const annualTarget = boundedInteger(input.annual_target, 1, 60)
+  const annualStretch = boundedInteger(input.annual_stretch, 1, 60)
+  const stretchScore = boundedInteger(input.stretch_minimum_score_basis_points, 0, 10_000)
+  const farShotScore = boundedInteger(input.far_shot_minimum_score_basis_points, 0, 10_000)
+  const markets = Array.isArray(input.priority_markets)
+    ? input.priority_markets.filter((market): market is string => typeof market === "string")
+    : []
+  if (
+    annualTarget === null || annualStretch === null || annualStretch < annualTarget ||
+    stretchScore === null || farShotScore === null || typeof input.prefer_weekend_one_shots !== "boolean" ||
+    markets.length < 1 || markets.length > 12 || markets.some(market => !/^[A-Z0-9-]{1,24}$/.test(market))
+  ) return null
+  return {
+    annual_target: annualTarget,
+    annual_stretch: annualStretch,
+    stretch_minimum_score_basis_points: stretchScore,
+    prefer_weekend_one_shots: input.prefer_weekend_one_shots,
+    priority_markets: [...new Set(markets)],
+    far_shot_minimum_score_basis_points: farShotScore,
+  }
+}
+
 export const GET: APIRoute = async ({ cookies }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
   try {
-    return areaJson(await staffApiRequest("admin/autopilot/overview", { timeoutMs: 8_000 }))
+    const [overview, policy] = await Promise.all([
+      staffApiRequest<Record<string, unknown>>("admin/autopilot/overview", { timeoutMs: 8_000 }),
+      staffApiRequest<Record<string, unknown>>("admin/autopilot/manager-config/booking-policy", { timeoutMs: 8_000 }),
+    ])
+    return areaJson({ ...overview, booking_policy: policy })
   } catch (error) {
     return areaJson({ error: "Autopilot overview unavailable" }, statusFor(error))
   }
@@ -38,6 +70,27 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     body = candidate as Record<string, unknown>
   } catch {
     return areaJson({ error: "Invalid body" }, 422)
+  }
+
+  if (body.operation === "set_booking_policy") {
+    const policy = bookingPolicy(body.policy)
+    const expectedVersion = boundedInteger(body.expected_version, 0, Number.MAX_SAFE_INTEGER)
+    if (!policy || expectedVersion === null) return areaJson({ error: "Invalid booking policy" }, 422)
+    try {
+      return areaJson(await staffApiRequest("admin/autopilot/manager-config/booking-policy", {
+        method: "POST",
+        body: {
+          policy,
+          source: "operator",
+          source_revision: "virya-web-control-v1",
+          expected_version: expectedVersion,
+        },
+        idempotencyKey: crypto.randomUUID(),
+        timeoutMs: 8_000,
+      }))
+    } catch (error) {
+      return areaJson({ error: "Booking policy update unavailable" }, statusFor(error))
+    }
   }
 
   const id = actionId(body.action_id)
