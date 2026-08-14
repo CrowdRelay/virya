@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "expiresOn": "2026-09-14",
+  "entries": [
+    {
+      "package": "image-size",
+      "version": "2.0.2",
+      "advisory": "GHSA-5p2g-fcmc-qvqq",
+      "reason": "Upstream has no patched release. The dependency is transitive through Netlify dev-utils; Virya never imports image-size directly and CI is time-bounded.",
+      "compensatingControls": [
+        "locked dependency graph",
+        "no direct source import",
+        "20 minute CI timeout",
+        "immutable Netlify artifact promotion"
+      ]
+    },
+    {
+      "package": "image-size",
+      "version": "2.0.2",
+      "advisory": "GHSA-w3rx-r6r6-pgpr",
+      "reason": "Upstream has no patched release. The vulnerable parser is not a Virya request/upload surface.",
+      "compensatingControls": [
+        "locked dependency graph",
+        "no direct source import",
+        "20 minute CI timeout",
+        "immutable Netlify artifact promotion"
+      ]
+    },
+    {
+      "package": "extract-zip",
+      "version": "2.0.1",
+      "advisory": "GHSA-jmr9-qjv8-65gv",
+      "reason": "Upstream has no patched release. The package is transitive through Netlify functions-dev and Virya does not extract user-controlled archives.",
+      "compensatingControls": [
+        "locked dependency graph",
+        "no direct source import",
+        "20 minute CI timeout",
+        "Netlify source builds disabled"
+      ]
+    }
+  ]
+}

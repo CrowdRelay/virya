@@ -35,6 +35,8 @@ jobs:
             images-${{ runner.os }}-
       - name: Install locked dependencies
         run: npm ci --prefer-offline --no-audit --fund=false
+      - name: Audit high and critical dependency advisories
+        run: npm run security:audit
       - name: Unit, contract, asset and type gates
         run: npm test
       - name: Build production output

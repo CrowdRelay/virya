@@ -50,15 +50,20 @@ const bookingPolicy = (value: unknown) => {
 
 export const GET: APIRoute = async ({ cookies }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
-  try {
-    const [overview, policy] = await Promise.all([
-      staffApiRequest<Record<string, unknown>>("admin/autopilot/overview", { timeoutMs: 8_000 }),
-      staffApiRequest<Record<string, unknown>>("admin/autopilot/manager-config/booking-policy", { timeoutMs: 8_000 }),
-    ])
-    return areaJson({ ...overview, booking_policy: policy })
-  } catch (error) {
-    return areaJson({ error: "Autopilot overview unavailable" }, statusFor(error))
+  const [overviewResult, policyResult] = await Promise.allSettled([
+    staffApiRequest<Record<string, unknown>>("admin/autopilot/overview", { timeoutMs: 8_000 }),
+    staffApiRequest<Record<string, unknown>>(
+      "admin/autopilot/manager-config/booking-policy",
+      { timeoutMs: 2_000 },
+    ),
+  ])
+  if (overviewResult.status === "rejected") {
+    return areaJson({ error: "Autopilot overview unavailable" }, statusFor(overviewResult.reason))
   }
+  return areaJson({
+    ...overviewResult.value,
+    booking_policy: policyResult.status === "fulfilled" ? policyResult.value : null,
+  })
 }
 
 export const POST: APIRoute = async ({ cookies, request }) => {
