@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest } from "../../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../../../server/mutationSafety"
 
 export const prerender = false
 const KEY = /^[a-z][a-z0-9_.-]{2,63}$/
@@ -20,11 +21,12 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
   if (typeof body.enabled !== "boolean" || (body.reason != null && (typeof body.reason !== "string" || body.reason.length > 500))) {
     return areaJson({ error: "Invalid request" }, 400)
   }
-  const idempotencyKey = request.headers.get("idempotency-key") ?? `flag-${key}-${crypto.randomUUID()}`
+  const flagIntent = { enabled: body.enabled, reason: typeof body.reason === "string" ? body.reason : null }
+  const idempotencyKey = forwardedMutationKey(request, "ecosystem-flag")
   try {
     return areaJson(await staffApiRequest(`admin/ecosystem/flags/${encodeURIComponent(key)}`, {
       method: "POST",
-      body: { enabled: body.enabled, reason: typeof body.reason === "string" ? body.reason : null },
+      body: flagIntent,
       idempotencyKey,
       correlationId: idempotencyKey,
       timeoutMs: 8_000,

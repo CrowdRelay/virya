@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: build-${{ github.workflow }}-${{ github.ref }}
@@ -45,6 +46,31 @@ jobs:
           CI: "true"
       - name: Enforce production code budget
         run: npm run budget:build
+      - name: Record and compare production build metrics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/previous
+          python3 scripts/build_metrics.py dist artifacts/build-metrics.json
+          previous_run="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/build.yml/runs?branch=main&status=success&per_page=10" --jq '.workflow_runs[0].id // empty' 2>/dev/null || true)"
+          if [[ -n "${previous_run}" ]]; then
+            gh run download "${previous_run}" --repo "${GITHUB_REPOSITORY}" -n virya-build-metrics -D artifacts/previous >/dev/null 2>&1 || true
+          fi
+          if [[ -s artifacts/previous/build-metrics.json ]]; then
+            python3 scripts/compare_build_metrics.py artifacts/build-metrics.json artifacts/previous/build-metrics.json
+          else
+            echo "VIRYA_BUILD_REGRESSION=BASELINE_PENDING"
+          fi
+      - name: Upload build metrics baseline
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: virya-build-metrics
+          path: artifacts/build-metrics.json
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Assemble immutable Netlify promotion artifact
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -71,6 +97,11 @@ jobs:
           cp -a "$functions_dir"/. deploy-artifact/functions/
           python3 scripts/artifact_manifest.py create deploy-artifact deploy-artifact-manifest.json --source-sha "${GITHUB_SHA}"
           python3 scripts/artifact_manifest.py verify deploy-artifact deploy-artifact-manifest.json --source-sha "${GITHUB_SHA}"
+          python3 scripts/write_release_provenance.py \
+            --source-sha "${GITHUB_SHA}" \
+            --lockfile package-lock.json \
+            --artifact-manifest deploy-artifact-manifest.json \
+            --output release-provenance.json
           echo "VIRYA_NETLIFY_ARTIFACT=PASS static=$(find deploy-artifact/site -type f | wc -l | tr -d ' ') functions=$(find deploy-artifact/functions -type f | wc -l | tr -d ' ')"
 
       - name: Upload immutable Netlify promotion artifact
@@ -81,7 +112,9 @@ jobs:
           path: |
             deploy-artifact
             deploy-artifact-manifest.json
+            release-provenance.json
             scripts/artifact_manifest.py
+            scripts/write_release_provenance.py
           # Astro's Netlify SSR bundle contains required files below
           # functions/ssr/.netlify; upload-artifact excludes them by default.
           include-hidden-files: true
@@ -114,7 +147,15 @@ jobs:
             promoted/deploy-artifact \
             promoted/deploy-artifact-manifest.json \
             --source-sha "${GITHUB_SHA}"
-          echo "VIRYA_DEPLOY_PROVENANCE=PASS source=${GITHUB_SHA} rebuild=false"
+          python3 - promoted/release-provenance.json "${GITHUB_SHA}" <<'PY'
+          import json, re, sys
+          data = json.load(open(sys.argv[1]))
+          if data.get("sourceSha") != sys.argv[2]: raise SystemExit("release provenance source mismatch")
+          for key in ("dependencyLockSha256", "artifactManifestSha256"):
+              if not re.fullmatch(r"[0-9a-f]{64}", str(data.get(key, ""))):
+                  raise SystemExit(f"invalid {key}")
+          print("VIRYA_DEPLOY_PROVENANCE=PASS source=" + data["sourceSha"] + " rebuild=false")
+          PY
 
       - name: Verify Netlify source builds are stopped
         env:
@@ -199,7 +240,11 @@ jobs:
             echo "VIRYA_RELEASE_LEDGER=SKIP reason=not-configured"
             exit 0
           fi
-          jq -n --arg sha "${GITHUB_SHA}" --arg ref "${GITHUB_RUN_ID}" '{component_key:"virya-www",environment:"production",source_sha:$sha,artifact_digest:null,deploy_ref:$ref,version:null,manifest_sha:null,metadata:{reporter:"github-actions"},observed_at:(now|todateiso8601)}' | \
+          lock_sha="$(jq -r '.dependencyLockSha256' promoted/release-provenance.json)"
+          manifest_sha="$(jq -r '.artifactManifestSha256' promoted/release-provenance.json)"
+          [[ "${lock_sha}" =~ ^[0-9a-f]{64}$ ]]
+          [[ "${manifest_sha}" =~ ^[0-9a-f]{64}$ ]]
+          jq -n --arg sha "${GITHUB_SHA}" --arg ref "${GITHUB_RUN_ID}" --arg lock "${lock_sha}" --arg artifact_manifest "${manifest_sha}" '{component_key:"virya-www",environment:"production",source_sha:$sha,artifact_digest:("sha256:"+$artifact_manifest),deploy_ref:$ref,version:null,manifest_sha:null,metadata:{reporter:"github-actions",dependency_lock_sha256:$lock,artifact_manifest_sha256:$artifact_manifest},observed_at:(now|todateiso8601)}' | \
             curl --fail-with-body --silent --show-error --max-time 15 \
               -H 'content-type: application/json' \
               -H "Authorization: Bearer ${CROWDRELAY_COMMERCE_API_KEY}" \

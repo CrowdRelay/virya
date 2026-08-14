@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest, readSmallJson } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../server/mutationSafety"
 
 export const prerender = false
 const status = (error: unknown) =>
@@ -15,7 +16,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   let body: unknown
   try { body = await readSmallJson(request) } catch { return areaJson({ error: "Invalid request" }, 400) }
   try {
-    return areaJson(await staffApiRequest("admin/merch/catalog", { method: "POST", body }))
+    return areaJson(await staffApiRequest("admin/merch/catalog", { method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post"), body }))
   } catch (error) {
     console.error("[staff-commerce-catalog]", error)
     return areaJson({ error: "Could not save catalog" }, status(error))

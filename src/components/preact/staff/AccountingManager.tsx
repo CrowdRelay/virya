@@ -131,9 +131,11 @@ export default function AccountingManager() {
   const [state, setState] = useState<LoadState>("checking")
   const [password, setPassword] = useState("")
   const [month, setMonth] = useState(nowMonth())
+  const [loadedMonth, setLoadedMonth] = useState<string | null>(null)
   const [currency] = useState("PLN")
   const [preview, setPreview] = useState<Preview | null>(null)
   const [invoices, setInvoices] = useState<InvoiceRequest[]>([])
+  const [invoiceListAvailable, setInvoiceListAvailable] = useState<boolean | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [documentNumber, setDocumentNumber] = useState("")
   const [busy, setBusy] = useState(false)
@@ -178,15 +180,26 @@ export default function AccountingManager() {
     setLoading(true)
     setMessage("")
     try {
-      const [nextPreview, invoiceResult] = await Promise.all([
+      const [previewResult, invoiceResult] = await Promise.allSettled([
         api<Preview>(`/api/staff/accounting/preview?month=${encodeURIComponent(nextMonth)}&currency=${currency}`, { signal: controller.signal }),
         api<{ items: InvoiceRequest[] }>(`/api/staff/accounting/invoice-requests?month=${encodeURIComponent(nextMonth)}&currency=${currency}`, { signal: controller.signal }),
       ])
       if (controller.signal.aborted) return
+      if (previewResult.status === "rejected") throw previewResult.reason
+
+      const nextPreview = previewResult.value
       setPreview(nextPreview)
+      setLoadedMonth(nextMonth)
       setProfile(nextPreview.profile)
-      setInvoices(invoiceResult.items)
       setDocumentNumber(nextPreview.finalized_document?.document_number ?? nextPreview.suggested_document_number)
+      if (invoiceResult.status === "fulfilled") {
+        setInvoices(invoiceResult.value.items)
+        setInvoiceListAvailable(true)
+      } else {
+        setInvoices([])
+        setInvoiceListAvailable(false)
+        setMessage("Zestawienie miesiąca jest gotowe, ale lista żądań faktury jest chwilowo niedostępna.")
+      }
     } catch (error) {
       if ((error as ApiError).status === 401) setState("login")
       else setMessage("Nie udało się przygotować zestawienia. Sprawdź migracje i połączenie z CrowdRelay.")
@@ -211,6 +224,9 @@ export default function AccountingManager() {
 
   async function finalize() {
     if (!preview || preview.finalized_document || busy) return
+    if (loadedMonth !== month) {
+      return setMessage("Wybrany miesiąc zmienił się. Najpierw kliknij Przelicz, aby potwierdzić dane tego okresu.")
+    }
     if (!documentNumber.trim()) return setMessage("Wpisz numer dokumentu WEW.")
     if (!window.confirm(`Zamknąć ${month} jako ${documentNumber.trim()}? Snapshotu nie można później edytować.`)) return
     setBusy(true); setMessage("")
@@ -219,7 +235,14 @@ export default function AccountingManager() {
       await loadMonth(month)
       setMessage("Dokument został zamknięty. CSV jest gotowy do pobrania.")
     } catch (error) {
-      setMessage((error as ApiError).status === 409 ? "Ten miesiąc lub numer dokumentu jest już zamknięty." : "Nie udało się zamknąć dokumentu.")
+      const apiError = error as ApiError
+      setMessage(
+        apiError.ambiguous
+          ? "Nie udało się potwierdzić wyniku zamknięcia. Nie zmieniaj miesiąca ani numeru: odśwież podgląd lub ponów — system zachowa to samo ID operacji."
+          : apiError.status === 409
+            ? "Ten miesiąc lub numer dokumentu jest już zamknięty."
+            : "Nie udało się zamknąć dokumentu.",
+      )
     } finally { setBusy(false) }
   }
 
@@ -259,6 +282,11 @@ export default function AccountingManager() {
       </header>
 
       {message && <div role="status" class="rounded-2xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">{message}</div>}
+      {preview && loadedMonth !== month && (
+        <div role="alert" class="rounded-2xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
+          Widok pokazuje jeszcze dane za {loadedMonth}. Przelicz {month}, zanim zamkniesz dokument.
+        </div>
+      )}
 
       {preview && <>
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -274,7 +302,7 @@ export default function AccountingManager() {
 
         <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5">
           <div class="flex flex-wrap items-start justify-between gap-4"><div><h2 class="text-xl font-black text-white">Dokument miesięczny</h2><p class="mt-1 text-sm text-zinc-400">{date(preview.period_start)} – {date(preview.period_end)} · {preview.totals.sale_entry_count} płatności · {preview.totals.refund_entry_count} refundów</p></div><button onClick={() => setProfileOpen(value => !value)} class="text-sm font-bold text-amber-300 hover:text-amber-200">{profileOpen ? "Ukryj dane firmy" : "Dane firmy"}</button></div>
-          {preview.finalized_document ? <div class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4"><div><p class="font-black text-emerald-200">Zamknięty: {preview.finalized_document.document_number}</p><p class="mt-1 text-xs text-zinc-400">Snapshot z {dateTime(preview.finalized_document.finalized_at)}</p></div><a class="rounded-xl bg-emerald-300 px-4 py-3 font-black text-zinc-950" href={`/api/staff/accounting/documents/${preview.finalized_document.id}/csv`}>Pobierz CSV do Saldeo</a></div> : <div class="mt-5 grid gap-3 md:grid-cols-[1fr_auto]"><label class="text-sm font-semibold text-zinc-200">Numer dokumentu<input value={documentNumber} onInput={event => setDocumentNumber(event.currentTarget.value)} maxlength={100} class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" /></label><button disabled={busy || (preview.sales.length === 0 && preview.adjustments.length === 0)} onClick={() => void finalize()} class="self-end rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40">Zamknij miesiąc</button></div>}
+          {preview.finalized_document ? <div class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-4"><div><p class="font-black text-emerald-200">Zamknięty: {preview.finalized_document.document_number}</p><p class="mt-1 text-xs text-zinc-400">Snapshot z {dateTime(preview.finalized_document.finalized_at)}</p></div><a class="rounded-xl bg-emerald-300 px-4 py-3 font-black text-zinc-950" href={`/api/staff/accounting/documents/${preview.finalized_document.id}/csv`}>Pobierz CSV do Saldeo</a></div> : <div class="mt-5 grid gap-3 md:grid-cols-[1fr_auto]"><label class="text-sm font-semibold text-zinc-200">Numer dokumentu<input value={documentNumber} onInput={event => setDocumentNumber(event.currentTarget.value)} maxlength={100} class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" /></label><button disabled={busy || loadedMonth !== month || (preview.sales.length === 0 && preview.adjustments.length === 0)} onClick={() => void finalize()} class="self-end rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40">Zamknij miesiąc</button></div>}
         </section>
 
         {profileOpen && profile && <ProfileForm profile={profile} setProfile={setProfile} onSubmit={saveProfile} busy={busy} />}
@@ -283,7 +311,7 @@ export default function AccountingManager() {
 
         {preview.adjustments.length > 0 && <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5"><h2 class="text-xl font-black text-white">Zwroty i korekty</h2><div class="mt-4 grid gap-3">{preview.adjustments.map(line => <div key={`${line.event_id}:${line.vat_rate_basis_points}`} class="grid gap-2 rounded-2xl bg-black/35 p-4 sm:grid-cols-[1fr_auto_auto]"><div><strong class="text-white">{line.event_title}</strong><p class="text-xs text-zinc-500">{line.entry_count} zdarzeń · VAT {line.vat_rate_basis_points / 100}%</p></div><span class="font-bold text-rose-300">{money(line.amount_gross_minor, line.currency)}</span><span class="text-zinc-400">Stripe {money(line.stripe_net_minor, line.currency)}</span></div>)}</div></section>}
 
-        <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5"><div class="flex flex-wrap items-end justify-between gap-3"><div><h2 class="text-xl font-black text-white">Żądania faktury</h2><p class="mt-1 text-sm text-zinc-400">{preview.invoice_request_count} zamówień wymaga osobnego dokumentu dla kupującego i jest wyłączonych ze zbiorczego WEW.</p></div></div>{invoices.length > 0 ? <div class="mt-4 grid gap-3">{invoices.map(item => <article key={item.order_id} class="rounded-2xl border border-white/5 bg-black/30 p-4"><div class="flex flex-wrap justify-between gap-3"><div><strong class="text-white">{item.company_name || item.full_name || item.buyer_email}</strong><p class="mt-1 text-xs text-zinc-500">{item.event_title} · {item.order_reference} · {dateTime(item.paid_at)}</p></div><div class="text-right"><strong class="text-amber-200">{money(item.amount_gross_minor, item.currency)}</strong><p class="mt-1 text-xs text-zinc-500">{item.status === "paid" ? "opłacone" : item.status === "partially_refunded" ? `częściowy zwrot ${money(item.amount_refunded_minor, item.currency)}` : `pełny zwrot ${money(item.amount_refunded_minor, item.currency)}`}</p></div></div><p class="mt-3 text-sm text-zinc-300">{item.tax_id ? `NIP ${item.tax_id} · ` : ""}{item.address_line1}, {item.postal_code} {item.city} · {item.buyer_email}</p>{item.status !== "paid" ? <p class="mt-2 text-xs font-bold text-rose-300">Wymaga uwzględnienia zwrotu lub korekty przed wystawieniem dokumentu.</p> : null}</article>)}</div> : <p class="mt-4 text-sm text-zinc-500">Brak żądań faktury w tym miesiącu.</p>}</section>
+        <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5"><div class="flex flex-wrap items-end justify-between gap-3"><div><h2 class="text-xl font-black text-white">Żądania faktury</h2><p class="mt-1 text-sm text-zinc-400">{preview.invoice_request_count} zamówień wymaga osobnego dokumentu dla kupującego i jest wyłączonych ze zbiorczego WEW.</p></div></div>{invoiceListAvailable === false ? <p class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">Nie potwierdzam pustej listy — endpoint żądań faktury jest chwilowo niedostępny. Pozostałe wyliczenia miesiąca są nadal ważne.</p> : invoices.length > 0 ? <div class="mt-4 grid gap-3">{invoices.map(item => <article key={item.order_id} class="rounded-2xl border border-white/5 bg-black/30 p-4"><div class="flex flex-wrap justify-between gap-3"><div><strong class="text-white">{item.company_name || item.full_name || item.buyer_email}</strong><p class="mt-1 text-xs text-zinc-500">{item.event_title} · {item.order_reference} · {dateTime(item.paid_at)}</p></div><div class="text-right"><strong class="text-amber-200">{money(item.amount_gross_minor, item.currency)}</strong><p class="mt-1 text-xs text-zinc-500">{item.status === "paid" ? "opłacone" : item.status === "partially_refunded" ? `częściowy zwrot ${money(item.amount_refunded_minor, item.currency)}` : `pełny zwrot ${money(item.amount_refunded_minor, item.currency)}`}</p></div></div><p class="mt-3 text-sm text-zinc-300">{item.tax_id ? `NIP ${item.tax_id} · ` : ""}{item.address_line1}, {item.postal_code} {item.city} · {item.buyer_email}</p>{item.status !== "paid" ? <p class="mt-2 text-xs font-bold text-rose-300">Wymaga uwzględnienia zwrotu lub korekty przed wystawieniem dokumentu.</p> : null}</article>)}</div> : <p class="mt-4 text-sm text-zinc-500">Brak żądań faktury w tym miesiącu.</p>}</section>
       </>}
     </section>
   )

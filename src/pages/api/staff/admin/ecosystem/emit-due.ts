@@ -11,6 +11,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   try {
     return areaJson(await staffApiRequest("admin/ecosystem/checklists/emit-due", {
       method: "POST",
+      idempotencyKey: `checklist-due-${crypto.randomUUID()}`,
       correlationId: `checklist-due:${crypto.randomUUID()}`,
       timeoutMs: 10_000,
     }))

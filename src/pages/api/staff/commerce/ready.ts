@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest, readSmallJson } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../server/mutationSafety"
 
 export const prerender = false
 
@@ -23,7 +24,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     return areaJson(await staffApiRequest("admin/merch/inventory/ready", {
-      method: "POST",
+      method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post"),
       body,
       timeoutMs: 15_000,
     }))

@@ -59,6 +59,8 @@ export default function AudienceIntelligence() {
   const [search, setSearch] = useState("")
   const [city, setCity] = useState("")
   const [loading, setLoading] = useState(true)
+  const [dashboardAvailable, setDashboardAvailable] = useState<boolean | null>(null)
+  const [fansAvailable, setFansAvailable] = useState<boolean | null>(null)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
 
@@ -77,15 +79,20 @@ export default function AudienceIntelligence() {
   useEffect(() => {
     const controller = new AbortController()
     setLoading(true)
-    Promise.all([loadDashboard(controller.signal), loadFans(controller.signal, "", "")])
-      .catch(error => {
-        if (!(error instanceof DOMException && error.name === "AbortError")) {
-          setMessage(error instanceof Error ? error.message : "Audience Intelligence niedostępne")
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false)
-      })
+    void Promise.allSettled([
+      loadDashboard(controller.signal),
+      loadFans(controller.signal, "", ""),
+    ]).then(([dashboardResult, fansResult]) => {
+      if (controller.signal.aborted) return
+      setDashboardAvailable(dashboardResult.status === "fulfilled")
+      setFansAvailable(fansResult.status === "fulfilled")
+      const unavailable = [
+        dashboardResult.status === "rejected" ? "dashboard" : null,
+        fansResult.status === "rejected" ? "lista fanów" : null,
+      ].filter((value): value is string => value !== null)
+      setMessage(unavailable.length ? `Tryb częściowy: niedostępne — ${unavailable.join(", ")}.` : "")
+      setLoading(false)
+    })
     return () => controller.abort()
   }, [])
 
@@ -93,12 +100,21 @@ export default function AudienceIntelligence() {
     setBusy(true)
     setMessage("")
     try {
-      await Promise.all([loadDashboard(), loadFans()])
+      const requests: Promise<unknown>[] = [loadDashboard(), loadFans()]
       if (selected) {
-        setSelected(await request<AudienceFanDetail>(`/api/staff/admin/audience/fans/${selected.fan.id}`))
+        requests.push(
+          request<AudienceFanDetail>(`/api/staff/admin/audience/fans/${selected.fan.id}`).then(detail => setSelected(detail)),
+        )
       }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Odświeżenie nie powiodło się")
+      const [dashboardResult, fansResult, selectedResult] = await Promise.allSettled(requests)
+      setDashboardAvailable(dashboardResult?.status === "fulfilled")
+      setFansAvailable(fansResult?.status === "fulfilled")
+      const unavailable = [
+        dashboardResult?.status === "rejected" ? "dashboard" : null,
+        fansResult?.status === "rejected" ? "lista fanów" : null,
+        selected && selectedResult?.status === "rejected" ? "Fan 360" : null,
+      ].filter((value): value is string => value !== null)
+      if (unavailable.length) setMessage(`Tryb częściowy: niedostępne — ${unavailable.join(", ")}.`)
     } finally {
       setBusy(false)
     }
@@ -143,7 +159,13 @@ export default function AudienceIntelligence() {
       {dashboard?.degraded.active && (
         <Notice tone="warn">Tryb częściowy: {dashboard.degraded.unavailable.join(", ")}. Pozostałe źródła nadal działają.</Notice>
       )}
-      {!dashboard?.features.communication_campaigns_enabled && (
+      {dashboardAvailable === false && (
+        <Notice tone="warn">Dashboard metryk jest chwilowo niedostępny. Lista fanów i Fan 360 pozostają niezależne.</Notice>
+      )}
+      {fansAvailable === false && (
+        <Notice tone="warn">Lista fanów jest chwilowo niedostępna. Metryki, segmenty i kampanie nadal mogą działać.</Notice>
+      )}
+      {dashboard && !dashboard.features.communication_campaigns_enabled && (
         <Notice tone="safe">
           Campaign delivery jest bezpiecznie wyłączone. Możesz budować segmenty i drafty; wysyłka nie ruszy, dopóki nie włączysz <code>communication_campaigns_enabled</code> po podpięciu adaptera.
         </Notice>

@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest } from "../../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../../../server/mutationSafety"
 
 export const prerender = false
 
@@ -18,7 +19,7 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
   if (!UUID.test(id)) return areaJson({ error: "Invalid draw id" }, 400)
   try {
     return areaJson(await staffApiRequest(`admin/reward-draws/${encodeURIComponent(id)}/delete`, {
-      method: "POST",
+      method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post"),
     }))
   } catch (error) {
     console.error("[staff-commerce-draw-delete]", error)

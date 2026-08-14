@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro"
-import { areaJson } from "../../../../server/areaHttp"
+import { areaJson, isSameOriginRequest } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
+import { mutationKeyForRequest } from "../../../../server/mutationSafety"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../server/staffQrApi"
 
 export const prerender = false
@@ -67,6 +68,7 @@ export const GET: APIRoute = async ({ cookies }) => {
 }
 
 export const POST: APIRoute = async ({ cookies, request }) => {
+  if (!isSameOriginRequest(request)) return areaJson({ error: "Invalid request origin" }, 403)
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
   let body: Record<string, unknown>
   try {
@@ -90,7 +92,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
           source_revision: "virya-web-control-v1",
           expected_version: expectedVersion,
         },
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: mutationKeyForRequest(request, "booking-policy", { policy, expectedVersion }),
         timeoutMs: 8_000,
       }))
     } catch (error) {
@@ -116,7 +118,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     return areaJson(await staffApiRequest(path, {
       method: "POST",
       body: upstreamBody,
-      idempotencyKey: crypto.randomUUID(),
+      idempotencyKey: mutationKeyForRequest(request, "autopilot-action", { id, operation, body: upstreamBody ?? null }),
       timeoutMs: 8_000,
     }))
   } catch (error) {

@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest, readSmallJson } from "../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../../server/mutationSafety"
 
 export const prerender = false
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -18,7 +19,7 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
   let body: unknown
   try { body = await readSmallJson(request) } catch { return areaJson({ error: "Invalid request" }, 400) }
   try {
-    return areaJson(await staffApiRequest(`admin/reward-fulfillments/${encodeURIComponent(winnerId)}`, { method: "POST", body }))
+    return areaJson(await staffApiRequest(`admin/reward-fulfillments/${encodeURIComponent(winnerId)}`, { method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post"), body }))
   } catch (error) {
     console.error("[staff-commerce-fulfillment]", error)
     return areaJson({ error: "Could not update reward fulfillment" }, status(error))

@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest } from "../../../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../../../server/staffQrAuth"
 import { staffApiRequest } from "../../../../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../../../../server/mutationSafety"
 import { isUuid, staffAudienceStatus } from "../../../../../../../server/staffAudienceProxy"
 
 export const prerender = false
@@ -10,6 +11,6 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
   const id = params.id?.trim() ?? ""
   if (!isUuid(id)) return areaJson({ error: "Invalid campaign id" }, 400)
-  try { return areaJson(await staffApiRequest(`admin/communications/campaigns/${encodeURIComponent(id)}/cancel`, { method: "POST" })) }
+  try { return areaJson(await staffApiRequest(`admin/communications/campaigns/${encodeURIComponent(id)}/cancel`, { method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post") })) }
   catch (error) { return areaJson({ error: "Could not cancel campaign" }, staffAudienceStatus(error)) }
 }

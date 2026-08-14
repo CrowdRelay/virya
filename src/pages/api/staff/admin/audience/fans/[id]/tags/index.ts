@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest, readSmallJson } from "../../../../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../../../../server/staffQrAuth"
 import { staffApiRequest } from "../../../../../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../../../../../server/mutationSafety"
 import { isAudienceTag, isUuid, staffAudienceStatus } from "../../../../../../../../server/staffAudienceProxy"
 
 export const prerender = false
@@ -15,7 +16,7 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
   const tag = typeof body.tag === "string" ? body.tag.trim().toLowerCase() : ""
   if (!isAudienceTag(tag)) return areaJson({ error: "Invalid tag" }, 400)
   try {
-    return areaJson(await staffApiRequest(`admin/audience/fans/${encodeURIComponent(id)}/tags`, { method: "POST", body: { tag } }), 201)
+    return areaJson(await staffApiRequest(`admin/audience/fans/${encodeURIComponent(id)}/tags`, { method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post"), body: { tag } }), 201)
   } catch (error) {
     return areaJson({ error: "Could not add tag" }, staffAudienceStatus(error))
   }

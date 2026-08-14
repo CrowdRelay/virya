@@ -394,10 +394,13 @@ export default function StaffCommerceManager() {
       await refresh()
       return true
     } catch (error) {
-      const status = (error as ApiError).status
+      const apiError = error as ApiError
+      const status = apiError.status
       if (status === 401) setState("login")
       setMessage(
-        status === 409
+        apiError.ambiguous
+          ? "Nie udało się potwierdzić wyniku operacji. Nie zmieniaj danych: odśwież stan albo ponów — retry użyje tego samego ID operacji i nie powinien wykonać jej drugi raz."
+          : status === 409
           ? path.includes("/draws/")
             ? "Tego losowania nie można już usunąć: istnieje run, zwycięzca, Proof of Fair albo stan nie pozwala na usunięcie."
             : "Operacja koliduje z aktualnym stanem lub dostępnym magazynem."

@@ -684,6 +684,15 @@ export function OpsTab() {
             Odśwież kolejki
           </button>
         </div>
+        {(overview?.degraded?.length ?? 0) > 0 && (
+          <div class="mt-5 rounded-2xl border border-amber-300/25 bg-amber-300/[.07] p-4" role="status">
+            <strong class="text-sm font-black text-amber-100">Częściowa diagnostyka kolejek</strong>
+            <p class="mt-1 text-xs leading-5 text-zinc-400">
+              Podsumowanie działa, ale nie udało się pobrać: {overview?.degraded?.join(", ")}.
+              Retry i licznik kolejki pozostają dostępne; odśwież, aby ponowić diagnostykę.
+            </p>
+          </div>
+        )}
         {(watchdog?.active_alerts ?? 0) > 0 && (
           <div
             class="mt-5 rounded-2xl border border-amber-300/25 bg-amber-300/[.07] p-4"

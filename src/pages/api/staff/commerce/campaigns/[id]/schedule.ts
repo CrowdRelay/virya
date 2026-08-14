@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest } from "../../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../../../server/mutationSafety"
 
 export const prerender = false
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -16,7 +17,7 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
   const id = params.id?.trim() ?? ""
   if (!UUID.test(id)) return areaJson({ error: "Invalid campaign id" }, 400)
   try {
-    return areaJson(await staffApiRequest(`admin/reward-campaigns/${encodeURIComponent(id)}/schedule`, { method: "POST" }))
+    return areaJson(await staffApiRequest(`admin/reward-campaigns/${encodeURIComponent(id)}/schedule`, { method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post") }))
   } catch (error) {
     console.error("[staff-commerce-campaign-schedule]", error)
     return areaJson({ error: "Could not schedule reward campaign" }, status(error))

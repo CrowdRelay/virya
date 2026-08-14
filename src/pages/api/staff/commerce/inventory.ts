@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest, readSmallJson } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../server/mutationSafety"
 
 export const prerender = false
 const status = (error: unknown) =>
@@ -16,9 +17,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   try { body = await readSmallJson(request) } catch { return areaJson({ error: "Invalid request" }, 400) }
   try {
     return areaJson(await staffApiRequest("admin/merch/inventory/adjustments", {
-      method: "POST",
+      method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post"),
       body,
-      idempotencyKey: crypto.randomUUID(),
     }))
   } catch (error) {
     console.error("[staff-commerce-inventory]", error)

@@ -1,7 +1,7 @@
-import { randomUUID } from "node:crypto"
 import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest } from "../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../server/staffQrAuth"
+import { mutationKeyForRequest } from "../../../../../server/mutationSafety"
 import {
   StaffQrUpstreamError,
   staffApiRequest,
@@ -130,24 +130,26 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
       active: type.active === true,
     })
   }
+  const ticketingIntent = {
+    slug,
+    currency,
+    vat_rate_basis_points: vat,
+    capacity,
+    max_per_order: maxPerOrder,
+    hold_seconds: holdSeconds,
+    sales_open_at: salesOpenAt,
+    sales_close_at: salesCloseAt,
+    active,
+    ticket_types: ticketTypes,
+  }
   let savedSale: unknown
   try {
     savedSale = await staffApiRequest(
       `admin/events/${encodeURIComponent(slug)}/ticketing`,
       {
         method: "POST",
-        body: {
-          currency,
-          vat_rate_basis_points: vat,
-          capacity,
-          max_per_order: maxPerOrder,
-          hold_seconds: holdSeconds,
-          sales_open_at: salesOpenAt,
-          sales_close_at: salesCloseAt,
-          active,
-          ticket_types: ticketTypes,
-        },
-        idempotencyKey: `staff-ticketing-${randomUUID()}`,
+        body: ticketingIntent,
+        idempotencyKey: mutationKeyForRequest(request, "staff-ticketing", ticketingIntent),
         timeoutMs: 15_000,
       },
     )

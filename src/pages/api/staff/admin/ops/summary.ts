@@ -19,17 +19,31 @@ export const GET: APIRoute = async ({ cookies }) => {
     return areaJson({ error: "Unauthorized" }, 401)
 
   try {
-    const [summary, deadDeliveries, deadOutbox] = await Promise.all([
+    const [summaryResult, deliveriesResult, outboxResult] = await Promise.allSettled([
       staffApiRequest("admin/ops/summary", { timeoutMs: 8_000 }),
       staffApiRequest("admin/ops/deliveries?status=dead&limit=50", {
-        timeoutMs: 8_000,
+        timeoutMs: 5_000,
       }),
       staffApiRequest("admin/ops/outbox?status=dead&limit=50", {
-        timeoutMs: 8_000,
+        timeoutMs: 5_000,
       }),
     ])
 
-    return areaJson({ summary, deadDeliveries, deadOutbox })
+    // Queue summary is the primary control-plane read. Dead-item lists are
+    // secondary diagnostics and must not blank the whole Ops tab.
+    if (summaryResult.status === "rejected") throw summaryResult.reason
+
+    const degraded = [
+      deliveriesResult.status === "rejected" ? "dead_deliveries" : null,
+      outboxResult.status === "rejected" ? "dead_outbox" : null,
+    ].filter((value): value is string => value !== null)
+
+    return areaJson({
+      summary: summaryResult.value,
+      deadDeliveries: deliveriesResult.status === "fulfilled" ? deliveriesResult.value : [],
+      deadOutbox: outboxResult.status === "fulfilled" ? outboxResult.value : [],
+      degraded,
+    })
   } catch (error) {
     console.error("[staff-admin-ops-summary]", error)
     return areaJson(

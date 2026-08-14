@@ -135,6 +135,7 @@ export type OpsOverview = {
   }
   deadDeliveries: OpsItem[]
   deadOutbox: OpsItem[]
+  degraded?: Array<"dead_deliveries" | "dead_outbox">
 }
 
 export type SignalOverview = {

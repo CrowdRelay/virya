@@ -77,3 +77,22 @@ test("Gorzów friendly proof alias resolves to the canonical CrowdRelay draw slu
   const refs = read("src/data/drawProofs.ts")
   assert.match(refs, /gorzow-guest-list-2026/)
 })
+
+
+test("accounting keeps monthly totals usable when invoice diagnostics fail", () => {
+  const accounting = read("src/components/preact/staff/AccountingManager.tsx")
+  assert.match(accounting, /Promise\.allSettled/)
+  assert.match(accounting, /if \(previewResult\.status === "rejected"\) throw previewResult\.reason/)
+  assert.match(accounting, /setInvoiceListAvailable\(false\)/)
+  assert.match(accounting, /Nie potwierdzam pustej listy/)
+})
+
+
+test("accounting cannot finalize a stale month preview", () => {
+  const source = read("src/components/preact/staff/AccountingManager.tsx")
+  assert.match(source, /const \[loadedMonth, setLoadedMonth\]/)
+  assert.match(source, /setLoadedMonth\(nextMonth\)/)
+  assert.match(source, /if \(loadedMonth !== month\)/)
+  assert.match(source, /disabled=\{busy \|\| loadedMonth !== month/)
+  assert.match(source, /Widok pokazuje jeszcze dane za \{loadedMonth\}/)
+})

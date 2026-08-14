@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest } from "../../../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../../../../server/mutationSafety"
 
 export const prerender = false
 const SLUG = /^[a-z0-9][a-z0-9_-]{0,127}$/
@@ -23,11 +24,12 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
   if (typeof body.status !== "string" || !STATUSES.has(body.status) || (body.note != null && (typeof body.note !== "string" || body.note.length > 1000))) {
     return areaJson({ error: "Invalid request" }, 400)
   }
-  const idempotencyKey = request.headers.get("idempotency-key") ?? `checklist-${slug}-${item}-${crypto.randomUUID()}`
+  const checklistIntent = { status: body.status, note: typeof body.note === "string" ? body.note : null }
+  const idempotencyKey = forwardedMutationKey(request, "checklist-item")
   try {
     return areaJson(await staffApiRequest(`admin/ecosystem/checklists/${encodeURIComponent(slug)}/${encodeURIComponent(item)}`, {
       method: "POST",
-      body: { status: body.status, note: typeof body.note === "string" ? body.note : null },
+      body: checklistIntent,
       idempotencyKey,
       correlationId: idempotencyKey,
       timeoutMs: 8_000,

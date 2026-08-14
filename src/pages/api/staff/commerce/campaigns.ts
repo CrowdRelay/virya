@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest, readSmallJson } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../server/staffQrApi"
+import { forwardedMutationKey } from "../../../../server/mutationSafety"
 
 export const prerender = false
 const status = (error: unknown) =>
@@ -15,7 +16,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   let body: unknown
   try { body = await readSmallJson(request) } catch { return areaJson({ error: "Invalid request" }, 400) }
   try {
-    return areaJson(await staffApiRequest("admin/reward-campaigns", { method: "POST", body }), 201)
+    return areaJson(await staffApiRequest("admin/reward-campaigns", { method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post"), body }), 201)
   } catch (error) {
     console.error("[staff-commerce-campaign-create]", error)
     return areaJson({ error: "Could not create reward campaign" }, status(error))

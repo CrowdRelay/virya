@@ -139,14 +139,16 @@ export const staffQrRequest = async <T>(
       Authorization: `Bearer ${key}`,
     })
     if (options.body !== undefined) headers.set("Content-Type", "application/json")
-    if (options.idempotencyKey) headers.set("Idempotency-Key", options.idempotencyKey)
+    const method = options.method ?? "GET"
+    const idempotencyKey = options.idempotencyKey
+    if (idempotencyKey) headers.set("Idempotency-Key", idempotencyKey)
     headers.set(
       "X-CrowdRelay-Correlation-Id",
       options.correlationId ?? crypto.randomUUID(),
     )
 
     const response = await fetch(new URL(path.replace(/^\/+/, ""), baseUrl()), {
-      method: options.method ?? "GET",
+      method,
       headers,
       body:
         options.body === undefined ? undefined : JSON.stringify(options.body),

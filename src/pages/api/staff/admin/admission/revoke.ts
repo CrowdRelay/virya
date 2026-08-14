@@ -1,7 +1,7 @@
-import { randomUUID } from "node:crypto"
 import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest, readSmallJsonObject } from "../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../server/staffQrAuth"
+import { mutationKeyForRequest } from "../../../../../server/mutationSafety"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../server/staffQrApi"
 
 export const prerender = false
@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     return areaJson(await staffApiRequest(`admin/admission/passes/${encodeURIComponent(publicReference)}/revoke`, {
       method: "POST",
-      idempotencyKey: `staff-revoke-${randomUUID()}`,
+      idempotencyKey: mutationKeyForRequest(request, "staff-revoke", { publicReference }),
       timeoutMs: 12_000,
     }))
   } catch (error) {

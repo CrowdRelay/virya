@@ -1,7 +1,7 @@
-import { randomUUID } from "node:crypto"
 import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest, readSmallJsonObject } from "../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../server/staffQrAuth"
+import { mutationKeyForRequest } from "../../../../../server/mutationSafety"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../server/staffQrApi"
 
 export const prerender = false
@@ -29,7 +29,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         fan_email: fanEmail,
         claim_expires_hours: claimExpiresHours,
       },
-      idempotencyKey: `staff-pass-${randomUUID()}`,
+      idempotencyKey: mutationKeyForRequest(request, "staff-pass", {
+        eventSlug, poolSlug, fanEmail, claimExpiresHours,
+      }),
       timeoutMs: 12_000,
     }))
   } catch (error) {

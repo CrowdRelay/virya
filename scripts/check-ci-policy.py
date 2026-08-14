@@ -45,6 +45,24 @@ if netlify.exists():
     if "deploy-artifact/functions" in deploy_workflows and "include-hidden-files: true" not in deploy_workflows:
         failures.append("Netlify SSR promotion artifact must include hidden function build files")
 
+# A scheduled security workflow is useful only if dependency changes also exercise it.
+security_workflow = workflow_dir / "security.yml"
+if not security_workflow.exists():
+    failures.append(".github/workflows/security.yml: standalone dependency-security workflow is required")
+else:
+    security_text = security_workflow.read_text()
+    for trigger in ("push", "pull_request", "schedule", "workflow_dispatch"):
+        if not re.search(rf"(?m)^  {re.escape(trigger)}:\s*$", security_text):
+            failures.append(f".github/workflows/security.yml: missing {trigger} trigger")
+    if "package-lock.json" not in security_text:
+        failures.append(".github/workflows/security.yml: dependency lockfile must trigger the audit")
+    if "npm run security:audit" not in security_text:
+        failures.append(".github/workflows/security.yml: pinned/controlled dependency audit command is required")
+    if "continue-on-error: true" in security_text:
+        failures.append(".github/workflows/security.yml: dependency audit must fail closed")
+    if "github.ref" not in security_text and "concurrency:" in security_text:
+        failures.append(".github/workflows/security.yml: concurrency must not collapse unrelated refs")
+
 if failures:
     for failure in failures:
         print(f"CI_POLICY=FAIL {failure}", file=sys.stderr)

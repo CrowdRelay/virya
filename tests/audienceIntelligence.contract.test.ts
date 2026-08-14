@@ -52,3 +52,13 @@ test("Fan 360 renders Synesthesia alongside acquisition, attendance and tickets"
     assert.ok(audienceUi.includes(marker), marker)
   }
 })
+
+
+test("Audience UI degrades dashboard and fan list independently", () => {
+  assert.match(audienceUi, /Promise\.allSettled/)
+  assert.match(audienceUi, /dashboardAvailable/)
+  assert.match(audienceUi, /fansAvailable/)
+  assert.match(audienceUi, /Dashboard metryk jest chwilowo niedostępny/)
+  assert.match(audienceUi, /Lista fanów jest chwilowo niedostępna/)
+  assert.match(audienceUi, /dashboard && !dashboard\.features\.communication_campaigns_enabled/)
+})
