@@ -38,6 +38,7 @@ export type QrCampaign = {
 
 export type Overview = {
   services: { live: string; ready: string }
+  push?: { enabled: boolean; android_fcm: boolean; web_push: boolean }
   operations: { events: EventItem[]; campaigns: QrCampaign[] }
   publicEvents: EventItem[]
   cities: Array<{ slug: string; name: string; fan_count: number }>
@@ -127,6 +128,7 @@ export type OpsOverview = {
   summary: {
     outbox: QueueSummary
     deliveries: QueueSummary
+    push?: QueueSummary
     watchdog?: {
       active_alerts: number
       critical_alerts: number

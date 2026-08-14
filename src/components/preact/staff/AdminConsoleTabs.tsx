@@ -643,6 +643,7 @@ export function OpsTab() {
 
   const outbox = overview?.summary.outbox
   const deliveries = overview?.summary.deliveries
+  const push = overview?.summary.push
   const watchdog = overview?.summary.watchdog
   const items = [
     ...(overview?.deadDeliveries ?? []).map(item => ({
@@ -730,8 +731,28 @@ export function OpsTab() {
             value={deliveries ? String(deliveries.dead) : "…"}
             ok={!deliveries || deliveries.dead === 0}
           />
+          <Metric
+            label="Push pending"
+            value={push ? String(push.pending) : "…"}
+            ok={!push || push.dead === 0}
+          />
+          <Metric
+            label="Push in-flight"
+            value={push ? String(push.processing) : "…"}
+            ok={!push || push.dead === 0}
+          />
+          <Metric
+            label="Push failed"
+            value={push ? String(push.dead) : "…"}
+            ok={!push || push.dead === 0}
+          />
+          <Metric
+            label="Push 24 h"
+            value={push ? String(push.delivered_24h) : "…"}
+            ok={!push || push.dead === 0}
+          />
         </div>
-        {(outbox || deliveries) && (
+        {(outbox || deliveries || push) && (
           <p class="mt-4 text-xs text-zinc-500">
             Najstarszy gotowy element:{" "}
             {Math.max(
@@ -852,6 +873,13 @@ export function SystemTab({
     ],
     ["Stripe", capabilities?.stripe, "Sprzedaż i refundy"],
     ["Gmail", capabilities?.gmail, "Wysyłka wszystkich wiadomości"],
+    [
+      "Push runtime",
+      overview?.push?.enabled,
+      overview?.push
+        ? `Android ${overview.push.android_fcm ? "OK" : "OFF"} · Web ${overview.push.web_push ? "OK" : "OFF"}`
+        : "Stan providerów push niedostępny",
+    ],
   ] as Array<[string, boolean | undefined, string]>
   return (
     <div class="relative grid gap-5" aria-busy={loading}>
@@ -900,11 +928,10 @@ export function SystemTab({
       <section class="rounded-3xl border border-amber-300/20 bg-amber-300/5 p-5">
         <h2 class="text-lg font-black text-amber-100">Granica obecnego API</h2>
         <p class="mt-2 text-sm leading-6 text-amber-50/70">
-          Panel zarządza wszystkim, co CrowdRelay wystawia dziś jako bezpieczne
-          endpointy admina: ticketingiem, wejściówkami, QR i księgowością. CRUD
-          zwykłych kampanii marketingowych, webhooków oraz fanów wymaga osobnych
-          endpointów w backendzie Rust — celowo nie obchodzimy tego bezpośrednim
-          dostępem do bazy.
+          Panel obejmuje dziś ticketing, wejściówki/QR, audience i kampanie komunikacyjne,
+          księgowość, Autopilot/booking, proofy, kolejki, push oraz kill-switche ekosystemu.
+          Rzeczy bez bezpiecznego endpointu operatora nadal nie są obchodzone bezpośrednim
+          dostępem do bazy — najpierw kontrakt Rust, potem kontrolka w tym panelu.
         </p>
       </section>
     </div>

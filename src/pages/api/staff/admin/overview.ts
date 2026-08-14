@@ -12,7 +12,8 @@ export const prerender = false
 type Health = { status: string }
 type PublicEvents = { events: unknown[] }
 type Cities = { items: unknown[] }
-type SourceName = "live" | "ready" | "operations" | "events" | "cities"
+type PushConfig = { enabled: boolean; android_fcm: boolean; web_push: boolean }
+type SourceName = "live" | "ready" | "operations" | "events" | "cities" | "push"
 
 const statusFor = (error: unknown) => {
   if (!(error instanceof StaffQrUpstreamError)) return 502
@@ -49,9 +50,10 @@ export const GET: APIRoute = async ({ cookies }) => {
       timeoutMs: 8_000,
     }),
     staffApiRequest<Cities>("public/cities?limit=100", { timeoutMs: 8_000 }),
+    staffApiRequest<PushConfig>("public/push/config", { timeoutMs: 4_000 }),
   ] as const)
 
-  const names: SourceName[] = ["live", "ready", "operations", "events", "cities"]
+  const names: SourceName[] = ["live", "ready", "operations", "events", "cities", "push"]
   const unavailableSources = results.flatMap((result, index) =>
     result.status === "rejected" ? [names[index]] : [],
   )
@@ -75,15 +77,17 @@ export const GET: APIRoute = async ({ cookies }) => {
     }
   }
 
-  const [liveResult, readyResult, operationsResult, eventsResult, citiesResult] = results
+  const [liveResult, readyResult, operationsResult, eventsResult, citiesResult, pushResult] = results
   const live = valueOr(liveResult, { status: "unavailable" })
   const ready = valueOr(readyResult, { status: "unavailable" })
   const operations = valueOr(operationsResult, { events: [], campaigns: [] })
   const events = valueOr(eventsResult, { events: [] })
   const cities = valueOr(citiesResult, { items: [] })
+  const push = valueOr(pushResult, { enabled: false, android_fcm: false, web_push: false })
 
   return areaJson({
     services: { live: live.status, ready: ready.status },
+    push,
     operations,
     publicEvents: events.events,
     cities: cities.items,

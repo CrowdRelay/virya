@@ -81,6 +81,7 @@ const labels: Record<string, string> = {
   meta_publish_enabled: "Publikacja Meta",
   bandsintown_sync_enabled: "Synchronizacja Bandsintown",
   n8n_ingress_enabled: "Ingress automatyzacji",
+  push_delivery_enabled: "Push notifications",
   automatic_retry_enabled: "Ręczny retry kolejek",
   draw_proofs_enabled: "Dowody losowań",
   external_proof_anchoring_enabled: "Kotwiczenie w Sigstore Rekor",
