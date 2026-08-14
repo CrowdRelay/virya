@@ -1,5 +1,5 @@
-const CACHE_NAME = 'virya-v15'
-const STATIC_CACHE = 'virya-static-v15'
+const CACHE_NAME = 'virya-v16'
+const STATIC_CACHE = 'virya-static-v16'
 const STATIC_ASSET_PATTERN = /\.(webp|png|jpg|jpeg|svg|css|js|woff2?|ttf|otf)$/
 const MAX_PAGE_CACHE_ENTRIES = 32
 const MAX_STATIC_CACHE_ENTRIES = 160
@@ -80,6 +80,109 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
+})
+
+
+
+const PUSH_ACK_BASE = 'https://signal-api.virya.music/v1/public/push/deliveries/'
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const ACK_TOKEN_PATTERN = /^[A-Za-z0-9_-]{40,200}$/
+
+function validPushPayload(value) {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      typeof value.delivery_id === 'string' &&
+      UUID_PATTERN.test(value.delivery_id) &&
+      typeof value.ack_token === 'string' &&
+      ACK_TOKEN_PATTERN.test(value.ack_token) &&
+      typeof value.title === 'string' &&
+      value.title.length > 0 &&
+      value.title.length <= 160 &&
+      typeof value.body === 'string' &&
+      value.body.length > 0 &&
+      value.body.length <= 1200 &&
+      typeof value.target_path === 'string' &&
+      value.target_path.startsWith('/') &&
+      !value.target_path.startsWith('//') &&
+      value.target_path.length <= 512
+  )
+}
+
+const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
+
+async function acknowledgeDisplayedPush(deliveryId, ackToken) {
+  const url = `${PUSH_ACK_BASE}${encodeURIComponent(deliveryId)}/ack`
+  for (const waitMs of [0, 500, 2000]) {
+    if (waitMs > 0) await delay(waitMs)
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ack_token: ackToken }),
+      })
+      if (response.ok) return true
+      if (response.status >= 400 && response.status < 500 && response.status !== 408 && response.status !== 429) {
+        return false
+      }
+    } catch {
+      // Retry only the acknowledgement; never display a second notification.
+    }
+  }
+  return false
+}
+
+self.addEventListener('push', (event) => {
+  event.waitUntil(
+    (async () => {
+      let payload
+      try {
+        payload = event.data?.json()
+      } catch {
+        return
+      }
+      if (!validPushPayload(payload)) return
+      const tag =
+        typeof payload.collapse_key === 'string' && payload.collapse_key.length <= 160
+          ? payload.collapse_key
+          : `virya-${payload.delivery_id}`
+      await self.registration.showNotification(payload.title, {
+        body: payload.body,
+        tag,
+        renotify: false,
+        data: {
+          deliveryId: payload.delivery_id,
+          targetPath: payload.target_path,
+        },
+      })
+      await acknowledgeDisplayedPush(payload.delivery_id, payload.ack_token)
+    })()
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const path = event.notification?.data?.targetPath
+  const targetPath =
+    typeof path === 'string' && path.startsWith('/') && !path.startsWith('//') && path.length <= 512
+      ? path
+      : '/pl/my-signal/'
+  const targetUrl = new URL(targetPath, self.location.origin).toString()
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      for (const client of windows) {
+        if (new URL(client.url).origin !== self.location.origin) continue
+        if ('navigate' in client) await client.navigate(targetUrl)
+        if ('focus' in client) await client.focus()
+        return
+      }
+      await self.clients.openWindow(targetUrl)
+    })()
+  )
 })
 
 self.addEventListener('fetch', (event) => {

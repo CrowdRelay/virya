@@ -5,7 +5,7 @@ import { qrGifBuffer } from "../../server/ticketQr"
 import {
   acquireCrowdRelayMailLease,
   completeCrowdRelayMailLease,
-  releaseCrowdRelayMailLease,
+  markCrowdRelayMailAmbiguous,
   type CrowdRelayMailLease,
 } from "../../server/crowdrelayMailLedger"
 import { getSiteMailer } from "../../server/siteMailer"
@@ -564,14 +564,15 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: "delivery_busy" }, 503)
   }
 
-  if (lease.status === "done") return json({ ok: true, duplicate: true })
+  if (lease.status === "done") return json({ ok: true, duplicate: true, ...(lease.providerReference ? { provider_reference: lease.providerReference } : {}) })
+  if (lease.status === "ambiguous") return json({ error: "delivery_outcome_unknown" }, 409)
   if (lease.status === "busy") return json({ error: "delivery_in_progress" }, 409)
 
   if (lease.status !== "acquired") return json({ error: "delivery_busy" }, 503)
   const { leaseId } = lease
 
   try {
-    await mailer.send({
+    const result = await mailer.send({
       fromName: "Virya Signal",
       to: recipient,
       replyTo: mailer.to,
@@ -581,15 +582,15 @@ export const POST: APIRoute = async ({ request }) => {
       attachments: rendered.attachments,
       idempotencyKey: payload.idempotencyKey,
     })
-    await completeCrowdRelayMailLease(payload.idempotencyKey, leaseId)
-    return json({ ok: true })
+    await completeCrowdRelayMailLease(payload.idempotencyKey, leaseId, result.messageId)
+    return json({ ok: true, provider: mailer.provider, provider_reference: result.messageId })
   } catch (error) {
     try {
-      await releaseCrowdRelayMailLease(payload.idempotencyKey, leaseId)
-    } catch (releaseError) {
-      console.error("[crowdrelay-mail-release]", payload.template, releaseError)
+      await markCrowdRelayMailAmbiguous(payload.idempotencyKey, leaseId)
+    } catch (transitionError) {
+      console.error("[crowdrelay-mail-ambiguous]", payload.template, transitionError)
     }
     console.error("[crowdrelay-mail]", payload.template, error)
-    return json({ error: "delivery_failed" }, 503)
+    return json({ error: "delivery_outcome_unknown" }, 503)
   }
 }

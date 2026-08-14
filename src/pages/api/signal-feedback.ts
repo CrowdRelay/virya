@@ -2,7 +2,7 @@ import type { APIRoute } from "astro"
 import {
   acquireCrowdRelayMailLease,
   completeCrowdRelayMailLease,
-  releaseCrowdRelayMailLease,
+  markCrowdRelayMailAmbiguous,
 } from "../../server/crowdrelayMailLedger"
 import { getSiteMailer } from "../../server/siteMailer"
 import {
@@ -120,11 +120,12 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: "feedback_unavailable" }, 503)
   }
   if (lease.status === "done") return json({ ok: true, duplicate: true })
+  if (lease.status === "ambiguous") return json({ error: "feedback_delivery_unknown" }, 503)
   if (lease.status === "busy") return json({ ok: true, accepted: true }, 202)
   if (lease.status !== "acquired") return json({ error: "feedback_unavailable" }, 503)
 
   try {
-    await mailer.send({
+    const result = await mailer.send({
       fromName: "Virya Signal Feedback",
       to: mailer.to,
       subject: `Anonimowy feedback z Virya Signal — ${categoryLabel}`,
@@ -138,11 +139,11 @@ export const POST: APIRoute = async ({ request }) => {
         "Aplikacja nie dołączyła e-maila, nazwy, tokenu sesji ani identyfikatora fana/operatora.",
       ].join("\n"),
     })
-    await completeCrowdRelayMailLease(idempotencyKey, lease.leaseId)
+    await completeCrowdRelayMailLease(idempotencyKey, lease.leaseId, result.messageId)
     return json({ ok: true })
   } catch (error) {
-    await releaseCrowdRelayMailLease(idempotencyKey, lease.leaseId).catch(() => undefined)
-    console.error("[signal-feedback] delivery failed", error)
+    await markCrowdRelayMailAmbiguous(idempotencyKey, lease.leaseId).catch(() => undefined)
+    console.error("[signal-feedback] delivery outcome unknown", error)
     return json({ error: "feedback_unavailable" }, 503)
   }
 }

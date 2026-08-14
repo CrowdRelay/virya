@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks"
 import AdmissionPassCard from "./AdmissionPassCard"
+import PushNotificationControl from "./PushNotificationControl"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
 import type {
@@ -243,6 +244,21 @@ export default function MySignal({ lang }: Props) {
 
   return (
     <div class="grid gap-6">
+      <section class="virya-panel border-amber-400/20 bg-amber-400/[.025] p-5 sm:p-6">
+        <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
+          {lang === "pl" ? "VIRYA SIGNAL / POWIADOMIENIA" : "VIRYA SIGNAL / NOTIFICATIONS"}
+        </p>
+        <h2 class="mt-2 text-lg font-black uppercase text-white">
+          {lang === "pl" ? "Dostań sygnał na telefon" : "Get the signal on your phone"}
+        </h2>
+        <p class="mt-2 max-w-2xl text-xs leading-relaxed text-zinc-400">
+          {lang === "pl"
+            ? "Koncerty w pobliżu i najważniejsze aktualizacje mogą trafić bezpośrednio na to urządzenie. Zgoda jest opcjonalna i możesz ją wyłączyć w każdej chwili."
+            : "Nearby shows and important updates can reach this device directly. Push is optional and can be disabled at any time."}
+        </p>
+        <PushNotificationControl lang={lang} />
+      </section>
+
       <section class="virya-panel overflow-hidden border-cyan-300/20 bg-cyan-300/[.025] p-5 sm:p-7">
         <div class="flex flex-wrap items-start justify-between gap-5">
           <div>

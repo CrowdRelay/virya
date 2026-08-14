@@ -1,4 +1,4 @@
-// @generated-contract openapi-sha256: cb982aff33b4661ef5013c0982815b23c75cfc0b9e73d1a62b8352503dedc44b
+// @generated-contract openapi-sha256: 43061ae94e6b7875ef11f2e073381dd937ab20a5c3188996b968d5270f28d4f4
 export interface EventCity {
   id: string
   slug: string
@@ -588,6 +588,26 @@ interface RequestOptions {
   bearerToken?: string
 }
 
+
+export interface PushConfig {
+  enabled: boolean
+  android_fcm: boolean
+  web_push: boolean
+  vapid_public_key: string | null
+}
+
+export interface PushEndpointInput {
+  installation_id: string
+  transport: "android_fcm" | "web_push"
+  endpoint: string
+  p256dh?: string
+  auth?: string
+}
+
+export interface PushEndpointMutationResult {
+  registered: boolean
+}
+
 export interface CrowdRelayClientOptions {
   baseUrl: string
   timeoutMs?: number
@@ -818,6 +838,35 @@ export class CrowdRelayClient {
 
   getFanHome(): Promise<FanHomeSnapshot> {
     return this.#request("me/home", { timeoutMs: 3_000 })
+  }
+
+  getPushConfig(): Promise<PushConfig> {
+    return this.#request("public/push/config", { timeoutMs: 2_000 })
+  }
+
+  registerPushEndpoint(
+    input: PushEndpointInput,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<PushEndpointMutationResult> {
+    return this.#request("me/push/endpoints", {
+      method: "POST",
+      body: input,
+      idempotencyKey,
+      timeoutMs: 4_000,
+    })
+  }
+
+  disablePushEndpoint(
+    installationId: string,
+    transport: PushEndpointInput["transport"],
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<PushEndpointMutationResult> {
+    return this.#request("me/push/endpoints/disable", {
+      method: "POST",
+      body: { installation_id: installationId, transport },
+      idempotencyKey,
+      timeoutMs: 4_000,
+    })
   }
 
   getFanEventContext(slug: string): Promise<FanEventContextSnapshot> {

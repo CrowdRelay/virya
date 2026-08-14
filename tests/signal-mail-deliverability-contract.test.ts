@@ -83,3 +83,13 @@ test("confirmation mail embeds a CID QR attachment for the mobile flow", () => {
   assert.match(endpoint, /src="cid:virya-signal-confirmation-qr"/)
   assert.match(endpoint, /attachments:\s*rendered\.attachments/)
 })
+
+
+test("CrowdRelay mail bridge treats unknown provider outcomes as terminal instead of retryable", () => {
+  assert.match(ledger, /status:\s*"processing"\s*\|\s*"done"\s*\|\s*"ambiguous"/)
+  assert.match(ledger, /markCrowdRelayMailAmbiguous/)
+  assert.match(endpoint, /delivery_outcome_unknown/)
+  assert.match(endpoint, /markCrowdRelayMailAmbiguous/)
+  assert.match(endpoint, /provider_reference:\s*result\.messageId/)
+  assert.doesNotMatch(endpoint, /releaseCrowdRelayMailLease/)
+})
