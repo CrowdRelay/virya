@@ -1,4 +1,6 @@
 import { readServerEnv } from "./runtimeEnv.ts"
+import { readLimitedJson } from "./readLimitedJson.ts"
+import { readLimitedBytes } from "./readLimitedBody.ts"
 const DEFAULT_BASE_URL = "https://signal-api.virya.music/v1/"
 const MAX_UPSTREAM_BYTES = 256 * 1024
 
@@ -78,47 +80,6 @@ const safeProblemDetail = (value: unknown): string | null => {
     : null
 }
 
-const readLimitedJson = async <T>(response: Response): Promise<T> => {
-  const declaredLength = Number(response.headers.get("content-length") ?? "0")
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_UPSTREAM_BYTES) {
-    throw new StaffQrUpstreamError(502)
-  }
-
-  if (!response.body) {
-    throw new StaffQrUpstreamError(502)
-  }
-
-  const reader = response.body.getReader()
-  const chunks: Uint8Array[] = []
-  let totalBytes = 0
-  try {
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      totalBytes += value.byteLength
-      if (totalBytes > MAX_UPSTREAM_BYTES) {
-        await reader.cancel("CrowdRelay response too large")
-        throw new StaffQrUpstreamError(502)
-      }
-      chunks.push(value)
-    }
-  } finally {
-    reader.releaseLock()
-  }
-
-  const merged = new Uint8Array(totalBytes)
-  let offset = 0
-  for (const chunk of chunks) {
-    merged.set(chunk, offset)
-    offset += chunk.byteLength
-  }
-
-  try {
-    return JSON.parse(new TextDecoder().decode(merged)) as T
-  } catch {
-    throw new StaffQrUpstreamError(502)
-  }
-}
 
 export const staffQrRequest = async <T>(
   path: string,
@@ -158,7 +119,7 @@ export const staffQrRequest = async <T>(
     if (!response.ok) {
       let detail: string | null = null
       try {
-        const problem = await readLimitedJson<Record<string, unknown>>(response)
+        const problem = await readLimitedJson<Record<string, unknown>>(response, MAX_UPSTREAM_BYTES, () => new StaffQrUpstreamError(response.status))
         detail = safeProblemDetail(problem.detail) ?? safeProblemDetail(problem.title)
       } catch {
         // Preserve the upstream status even when its error body is absent or malformed.
@@ -167,7 +128,7 @@ export const staffQrRequest = async <T>(
     }
     if (response.status === 204) return undefined as T
 
-    return await readLimitedJson<T>(response)
+    return await readLimitedJson<T>(response, MAX_UPSTREAM_BYTES, () => new StaffQrUpstreamError(502))
   } catch (error) {
     if (error instanceof StaffQrUpstreamError) throw error
     throw new StaffQrUpstreamError(502)
@@ -182,7 +143,11 @@ const MAX_STAFF_DOWNLOAD_BYTES = 5 * 1024 * 1024
 export const staffApiRequest = staffQrRequest
 export const isStaffApiConfigured = isStaffQrApiConfigured
 
-export const staffApiDownload = async (path: string) => {
+export const staffApiDownload = async (path: string): Promise<{
+  body: ArrayBuffer
+  contentType: string
+  contentDisposition: string
+}> => {
   const key = adminKey()
   if (!key) throw new StaffQrUpstreamError(503)
   const controller = new AbortController()
@@ -197,16 +162,14 @@ export const staffApiDownload = async (path: string) => {
       signal: controller.signal,
     })
     if (!response.ok) throw new StaffQrUpstreamError(response.status)
-    const declared = Number(response.headers.get("content-length") ?? "0")
-    if (Number.isFinite(declared) && declared > MAX_STAFF_DOWNLOAD_BYTES) {
-      throw new StaffQrUpstreamError(502)
-    }
-    const body = new Uint8Array(await response.arrayBuffer())
-    if (body.byteLength > MAX_STAFF_DOWNLOAD_BYTES) {
-      throw new StaffQrUpstreamError(502)
-    }
+    const body = await readLimitedBytes(
+      response,
+      MAX_STAFF_DOWNLOAD_BYTES,
+      () => new StaffQrUpstreamError(502),
+    )
+    const buffer = body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) as ArrayBuffer
     return {
-      body,
+      body: buffer,
       contentType: response.headers.get("content-type") ?? "text/csv; charset=utf-8",
       contentDisposition:
         response.headers.get("content-disposition") ??
