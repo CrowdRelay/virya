@@ -1,0 +1,340 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import ScrollToTop from "./ScrollToTop.astro"
+import { getSeoTags } from "../utils/seo"
+
+interface Props {
+  lang: "pl" | "en"
+}
+
+const { lang } = Astro.props
+const isPl = lang === "pl"
+const { canonicalUrl, hreflangLinks } = getSeoTags("/latarnik/", lang)
+const apiBase =
+  (import.meta.env.PUBLIC_CROWDRELAY_API_URL as string | undefined)?.replace(/\/+$/, "") ||
+  "https://signal-api.virya.music/v1"
+const title = isPl ? "Latarnik | Virya Signal" : "Beacon | Virya Signal"
+const description = isPl
+  ? "Mniej maili. Więcej konkretów. Lokalny dostęp do koncertów Viryi, materiałów prasowych i bezpośredniego kontaktu."
+  : "Fewer emails. More signal. Local Virya show alerts, press materials and direct access in one place."
+---
+
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+  <Fragment slot="head">
+    {hreflangLinks.map(link => <link rel={link.rel} hreflang={link.hreflang} href={link.href} />)}
+    <meta name="robots" content="noindex, noarchive" />
+  </Fragment>
+
+  <div class="min-h-screen bg-zinc-950 text-zinc-100" data-latarnik-root data-api-base={apiBase} data-lang={lang}>
+    <Navbar lang={lang} displayLinks={true} />
+    <ScrollToTop />
+
+    <main id="main-content" class="mx-auto max-w-6xl px-5 pb-24 pt-28 sm:px-8 lg:px-12">
+      <section class="relative overflow-hidden border border-zinc-800 bg-zinc-950/80 px-6 py-10 sm:px-10 sm:py-14">
+        <div aria-hidden="true" class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-amber-400/10 blur-3xl"></div>
+        <p class="mb-4 text-[11px] font-black uppercase tracking-[0.32em] text-amber-400">Virya Signal · {isPl ? "Latarnik" : "Beacon"}</p>
+        <h1 class="max-w-4xl text-4xl font-black leading-[0.95] tracking-tight sm:text-6xl">
+          {isPl ? "Mniej maili. Więcej konkretów." : "Fewer emails. More signal."}
+        </h1>
+        <p class="mt-6 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">
+          {isPl
+            ? "Dajemy Ci znać tylko wtedy, kiedy Virya ma coś naprawdę istotnego w Twoim regionie. Zdjęcia, bio, muzyka, szczegóły koncertu i bezpośredni kontakt są od razu pod ręką."
+            : "We only reach out when Virya has something genuinely relevant in your region. Photos, bio, music, show details and direct contact are immediately at hand."}
+        </p>
+        <p class="mt-4 max-w-2xl text-sm leading-6 text-zinc-500">
+          {isPl
+            ? "Latarnik nie jest newsletterem ani programem ambasadorskim. To wygodny kanał dla mediów, radia, fotografów, promotorów, twórców i lokalnych partnerów."
+            : "Beacon is not a newsletter or ambassador programme. It is a low-friction channel for media, radio, photographers, promoters, creators and local partners."}
+        </p>
+      </section>
+
+      <section class="mt-8" aria-live="polite">
+        <div data-state="loading" class="border border-zinc-800 bg-zinc-900/50 p-6">
+          <p class="text-sm text-zinc-400">{isPl ? "Sprawdzam dostęp Latarnika…" : "Checking Beacon access…"}</p>
+        </div>
+
+        <div data-state="invite" class="hidden border border-zinc-800 bg-zinc-900/50 p-6 sm:p-8">
+          <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-400">{isPl ? "Prywatne zaproszenie" : "Private invitation"}</p>
+          <h2 class="mt-3 text-2xl font-black">{isPl ? "Aktywuj swój dostęp" : "Activate your access"}</h2>
+          <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+            {isPl
+              ? "Jedno kliknięcie wystarczy. Zaproszenie jest jednorazowe; po aktywacji ten adres zostanie oczyszczony z tokena."
+              : "One click is enough. The invitation is single-use; after activation the token is removed from the address."}
+          </p>
+          <button data-action="activate" type="button" class="mt-6 inline-flex min-h-12 items-center justify-center border border-amber-400 bg-amber-400 px-6 text-sm font-black uppercase tracking-wider text-zinc-950 transition hover:bg-amber-300">
+            {isPl ? "Dołącz jako Latarnik" : "Join as a Beacon"}
+          </button>
+          <p data-error class="mt-4 hidden text-sm text-red-300"></p>
+        </div>
+
+        <div data-state="guest" class="hidden border border-zinc-800 bg-zinc-900/50 p-6 sm:p-8">
+          <h2 class="text-2xl font-black">{isPl ? "Dostęp przez zaproszenie" : "Invite-only access"}</h2>
+          <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+            {isPl
+              ? "Latarnicy są dodawani przez zespół z naszej zweryfikowanej sieci mediów i partnerów. Jeśli dostałeś zaproszenie, otwórz jego osobisty link."
+              : "Beacons are invited by the band from our verified media and partner network. If you received an invitation, open its personal link."}
+          </p>
+          <a href={`mailto:virya.crew@gmail.com?subject=${encodeURIComponent(isPl ? "Virya Signal — Latarnik" : "Virya Signal — Beacon")}`} class="mt-6 inline-flex min-h-11 items-center border border-zinc-700 px-5 text-xs font-bold uppercase tracking-wider text-zinc-200 hover:border-amber-400 hover:text-amber-400">
+            {isPl ? "Zapytaj o dostęp" : "Ask for access"}
+          </a>
+        </div>
+
+        <div data-state="member" class="hidden space-y-8">
+          <section class="grid gap-5 lg:grid-cols-[1.4fr_0.8fr]">
+            <div class="border border-zinc-800 bg-zinc-900/50 p-6 sm:p-8">
+              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">{isPl ? "Twój lokalny radar" : "Your local radar"}</p>
+              <h2 class="mt-2 text-3xl font-black"><span data-member-name></span></h2>
+              <p class="mt-2 text-sm text-zinc-500"><span data-member-kind></span><span data-member-city-wrap class="hidden"> · <span data-member-city></span></span></p>
+              <div class="mt-7 flex flex-wrap gap-3">
+                <label class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {isPl ? "Promień" : "Radius"}
+                  <select data-radius class="ml-2 min-h-10 border border-zinc-700 bg-zinc-950 px-3 text-zinc-100">
+                    <option value="25">25 km</option>
+                    <option value="50">50 km</option>
+                    <option value="100">100 km</option>
+                    <option value="200">200 km</option>
+                    <option value="300">300 km</option>
+                  </select>
+                </label>
+                <label class="inline-flex min-h-10 items-center gap-2 border border-zinc-800 px-3 text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <input data-nearby type="checkbox" class="accent-amber-400" />
+                  {isPl ? "Powiadomienia lokalne" : "Local alerts"}
+                </label>
+              </div>
+              <p data-preferences-status class="mt-3 min-h-5 text-xs text-zinc-500"></p>
+            </div>
+            <div class="border border-amber-400/30 bg-amber-400/[0.05] p-6 sm:p-8">
+              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">Press room</p>
+              <p class="mt-3 text-sm leading-6 text-zinc-300">
+                {isPl ? "Bez szukania po mailach i Drive. Najważniejsze materiały są zawsze tutaj." : "No digging through email or Drive. The important materials stay here."}
+              </p>
+              <div data-press-links class="mt-5 grid grid-cols-2 gap-2"></div>
+            </div>
+          </section>
+
+          <section class="border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
+            <div class="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">{isPl ? "W Twoim regionie" : "In your region"}</p>
+                <h2 class="mt-2 text-2xl font-black">{isPl ? "Najbliższe koncerty" : "Nearby shows"}</h2>
+              </div>
+              <p class="text-xs text-zinc-500">{isPl ? "maks. 20 · tylko opublikowane" : "max 20 · published only"}</p>
+            </div>
+            <div data-events class="mt-6 grid gap-3"></div>
+          </section>
+
+          <section class="grid gap-5 lg:grid-cols-2">
+            <div class="border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
+              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">{isPl ? "Potrzebujesz czegoś innego?" : "Need something else?"}</p>
+              <h2 class="mt-2 text-2xl font-black">{isPl ? "Jedno kliknięcie do zespołu" : "One click to the band"}</h2>
+              <div data-request-kinds class="mt-5 flex flex-wrap gap-2"></div>
+              <textarea data-request-details maxlength="1500" rows="3" class="mt-4 w-full resize-y border border-zinc-700 bg-zinc-950 p-3 text-sm text-zinc-100 placeholder:text-zinc-600" placeholder={isPl ? "Opcjonalnie dopisz szczegóły…" : "Optional details…"}></textarea>
+              <button data-action="request" type="button" class="mt-3 min-h-11 border border-zinc-700 px-5 text-xs font-black uppercase tracking-wider text-zinc-200 hover:border-amber-400 hover:text-amber-400">
+                {isPl ? "Wyślij prośbę" : "Send request"}
+              </button>
+              <p data-request-status class="mt-3 min-h-5 text-xs text-zinc-500"></p>
+            </div>
+            <div class="border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
+              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">{isPl ? "Zasada" : "The rule"}</p>
+              <blockquote class="mt-4 text-xl font-bold leading-8 text-zinc-200">
+                {isPl
+                  ? "Nie chcemy zabierać Ci czasu. Chcemy skrócić drogę od „może coś z tego będzie” do materiału, który możesz od razu wykorzystać."
+                  : "We do not want to take your time. We want to shorten the path from ‘maybe there is a story here’ to material you can use immediately."}
+              </blockquote>
+              <button data-action="logout" type="button" class="mt-7 text-xs font-bold uppercase tracking-wider text-zinc-500 underline decoration-zinc-700 underline-offset-4 hover:text-zinc-300">
+                {isPl ? "Wyloguj to urządzenie" : "Sign out this device"}
+              </button>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <Footer lang={lang} />
+  </div>
+</Layout>
+
+<script>
+  const root = document.querySelector("[data-latarnik-root]")
+  if (root instanceof HTMLElement) {
+    const apiBase = root.dataset.apiBase || "https://signal-api.virya.music/v1"
+    const lang = root.dataset.lang === "pl" ? "pl" : "en"
+    const storageKey = "virya-beacon-session-v1"
+    const invite = new URLSearchParams(location.search).get("invite")?.trim() || ""
+    const states = [...root.querySelectorAll("[data-state]")]
+    const show = name => states.forEach(node => node.classList.toggle("hidden", node.getAttribute("data-state") !== name))
+    const text = (selector, value) => {
+      const node = root.querySelector(selector)
+      if (node) node.textContent = value || ""
+    }
+    const token = () => {
+      try { return localStorage.getItem(storageKey) || "" } catch { return "" }
+    }
+    const saveToken = value => {
+      try { localStorage.setItem(storageKey, value); return true } catch { return false }
+    }
+    const clearToken = () => { try { localStorage.removeItem(storageKey) } catch {} }
+    const api = async (path, init = {}, bearer = token()) => {
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 6500)
+      try {
+        const headers = new Headers(init.headers || {})
+        headers.set("Accept", "application/json")
+        if (bearer) headers.set("Authorization", `Bearer ${bearer}`)
+        if (init.body) headers.set("Content-Type", "application/json")
+        return await fetch(`${apiBase}/${path.replace(/^\/+/, "")}`, { ...init, headers, signal: controller.signal, cache: "no-store" })
+      } finally { clearTimeout(timer) }
+    }
+    const safeUrl = value => {
+      try {
+        const url = new URL(value)
+        return url.protocol === "https:" ? url.toString() : "#"
+      } catch { return "#" }
+    }
+    const cleanInviteUrl = () => {
+      const url = new URL(location.href)
+      url.searchParams.delete("invite")
+      history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`)
+    }
+    const pressLabels = lang === "pl"
+      ? { epkUrl: "EPK", galleryUrl: "Zdjęcia", riderUrl: "Rider", spotifyUrl: "Spotify", youtubeUrl: "YouTube", homeUrl: "Latarnik" }
+      : { epkUrl: "EPK", galleryUrl: "Photos", riderUrl: "Rider", spotifyUrl: "Spotify", youtubeUrl: "YouTube", homeUrl: "Beacon" }
+    const requestLabels = lang === "pl"
+      ? { press_photo: "Zdjęcia prasowe", wav: "WAV", clean_version: "Clean version", interview: "Wywiad", accreditation: "Akredytacja", custom: "Inne" }
+      : { press_photo: "Press photos", wav: "WAV", clean_version: "Clean version", interview: "Interview", accreditation: "Accreditation", custom: "Other" }
+    let selectedRequestKind = "press_photo"
+
+    const renderMember = data => {
+      text("[data-member-name]", data.displayName)
+      text("[data-member-kind]", String(data.beaconKind || "").replaceAll("_", " "))
+      const cityWrap = root.querySelector("[data-member-city-wrap]")
+      if (data.city) { text("[data-member-city]", data.city); cityWrap?.classList.remove("hidden") }
+      const radius = root.querySelector("[data-radius]")
+      if (radius instanceof HTMLSelectElement) {
+        if (![...radius.options].some(option => Number(option.value) === data.preferences.radiusKm)) {
+          radius.add(new Option(`${data.preferences.radiusKm} km`, String(data.preferences.radiusKm)))
+        }
+        radius.value = String(data.preferences.radiusKm)
+      }
+      const nearby = root.querySelector("[data-nearby]")
+      if (nearby instanceof HTMLInputElement) nearby.checked = Boolean(data.preferences.nearbyGigsEnabled)
+
+      const links = root.querySelector("[data-press-links]")
+      if (links) {
+        links.replaceChildren(...Object.entries(pressLabels).map(([key, label]) => {
+          const a = document.createElement("a")
+          a.href = safeUrl(data.pressRoom?.[key])
+          a.target = "_blank"
+          a.rel = "noreferrer"
+          a.className = "border border-zinc-700 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-300 hover:border-amber-400 hover:text-amber-400"
+          a.textContent = label
+          return a
+        }))
+      }
+
+      const events = root.querySelector("[data-events]")
+      if (events) {
+        const rows = Array.isArray(data.nearbyEvents) ? data.nearbyEvents : []
+        if (!rows.length) {
+          const empty = document.createElement("p")
+          empty.className = "py-4 text-sm text-zinc-500"
+          empty.textContent = lang === "pl" ? "Na razie cisza w ustawionym promieniu." : "Nothing in your radius right now."
+          events.replaceChildren(empty)
+        } else {
+          events.replaceChildren(...rows.map(event => {
+            const card = document.createElement("article")
+            card.className = "grid gap-3 border border-zinc-800 bg-zinc-950/70 p-4 sm:grid-cols-[1fr_auto] sm:items-center"
+            const info = document.createElement("div")
+            const h = document.createElement("h3"); h.className = "font-black text-zinc-100"; h.textContent = event.title
+            const meta = document.createElement("p"); meta.className = "mt-1 text-xs text-zinc-500"
+            const date = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.startsAt))
+            meta.textContent = `${date} · ${event.city}${event.venue ? ` · ${event.venue}` : ""} · ~${event.distanceKm} km`
+            info.append(h, meta); card.append(info)
+            if (event.ticketUrl) {
+              const a = document.createElement("a"); a.href = safeUrl(event.ticketUrl); a.target = "_blank"; a.rel = "noreferrer"
+              a.className = "text-xs font-black uppercase tracking-wider text-amber-400 hover:text-amber-300"
+              a.textContent = lang === "pl" ? "Szczegóły ↗" : "Details ↗"; card.append(a)
+            }
+            return card
+          }))
+        }
+      }
+
+      const kinds = root.querySelector("[data-request-kinds]")
+      if (kinds) {
+        kinds.replaceChildren(...Object.entries(requestLabels).map(([value, label]) => {
+          const button = document.createElement("button")
+          button.type = "button"; button.dataset.kind = value; button.textContent = label
+          button.className = "min-h-9 border px-3 text-[11px] font-bold uppercase tracking-wider transition"
+          const paint = () => button.className = `min-h-9 border px-3 text-[11px] font-bold uppercase tracking-wider transition ${selectedRequestKind === value ? "border-amber-400 bg-amber-400 text-zinc-950" : "border-zinc-700 text-zinc-400 hover:border-zinc-500"}`
+          button.addEventListener("click", () => { selectedRequestKind = value; kinds.querySelectorAll("button").forEach(node => node.dispatchEvent(new Event("paint"))) })
+          button.addEventListener("paint", paint); paint(); return button
+        }))
+      }
+      show("member")
+    }
+
+    const loadMe = async bearer => {
+      const response = await api("beacon/me", {}, bearer)
+      if (response.status === 401) { clearToken(); return false }
+      if (!response.ok) throw new Error(`beacon_me_${response.status}`)
+      renderMember(await response.json()); return true
+    }
+
+    root.querySelector('[data-action="activate"]')?.addEventListener("click", async () => {
+      const error = root.querySelector("[data-error]")
+      error?.classList.add("hidden")
+      try {
+        const response = await api("beacon/invitations/exchange", { method: "POST", body: JSON.stringify({ inviteToken: invite }) }, "")
+        if (!response.ok) throw new Error(`exchange_${response.status}`)
+        const data = await response.json()
+        cleanInviteUrl()
+        if (!saveToken(data.bearerToken)) throw new Error("storage_unavailable")
+        await loadMe(data.bearerToken)
+      } catch {
+        if (error) { error.textContent = lang === "pl" ? "Zaproszenie jest nieprawidłowe, wygasło albo zostało już użyte." : "This invitation is invalid, expired or already used."; error.classList.remove("hidden") }
+      }
+    })
+
+    const savePreferences = async () => {
+      const radius = root.querySelector("[data-radius]")
+      const nearby = root.querySelector("[data-nearby]")
+      if (!(radius instanceof HTMLSelectElement) || !(nearby instanceof HTMLInputElement)) return
+      text("[data-preferences-status]", lang === "pl" ? "Zapisuję…" : "Saving…")
+      try {
+        const response = await api("beacon/me/preferences", { method: "POST", body: JSON.stringify({ radiusKm: Number(radius.value), nearbyGigsEnabled: nearby.checked }) })
+        if (!response.ok) throw new Error("preferences")
+        text("[data-preferences-status]", lang === "pl" ? "Zapisane." : "Saved.")
+      } catch { text("[data-preferences-status]", lang === "pl" ? "Nie udało się zapisać. Spróbuj ponownie." : "Could not save. Try again.") }
+    }
+    root.querySelector("[data-radius]")?.addEventListener("change", savePreferences)
+    root.querySelector("[data-nearby]")?.addEventListener("change", savePreferences)
+
+    root.querySelector('[data-action="request"]')?.addEventListener("click", async () => {
+      const details = root.querySelector("[data-request-details]")
+      const value = details instanceof HTMLTextAreaElement ? details.value.trim() : ""
+      text("[data-request-status]", lang === "pl" ? "Wysyłam…" : "Sending…")
+      try {
+        const response = await api("beacon/me/press-requests", { method: "POST", body: JSON.stringify({ requestKind: selectedRequestKind, details: value || null }) })
+        if (!response.ok) throw new Error("request")
+        if (details instanceof HTMLTextAreaElement) details.value = ""
+        text("[data-request-status]", lang === "pl" ? "Gotowe. Zespół dostał prośbę." : "Done. The band has your request.")
+      } catch { text("[data-request-status]", lang === "pl" ? "Nie udało się wysłać. Spróbuj ponownie." : "Could not send. Try again.") }
+    })
+
+    root.querySelector('[data-action="logout"]')?.addEventListener("click", async () => {
+      try { await api("beacon/me/logout", { method: "POST" }) } catch {}
+      clearToken(); location.assign(lang === "pl" ? "/pl/latarnik/" : "/latarnik/")
+    })
+
+    ;(async () => {
+      const existing = token()
+      try {
+        if (existing && await loadMe(existing)) return
+      } catch { show("guest"); return }
+      if (invite && /^[A-Za-z0-9_-]{24,128}$/.test(invite)) show("invite")
+      else show("guest")
+    })()
+  }
+</script>
