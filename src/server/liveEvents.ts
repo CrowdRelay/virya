@@ -1,4 +1,5 @@
 import { readServerEnv } from "./runtimeEnv.ts"
+import { readLimitedJson } from "./readLimitedJson.ts"
 import { CURATED_LIVE_EVENTS } from "../data/liveEvents"
 import type {
   PublicEvent,
@@ -57,30 +58,8 @@ const safeBaseUrl = () => {
   return url
 }
 
-const readJson = async (response: Response): Promise<unknown> => {
-  const declared = Number(response.headers.get("content-length") ?? "0")
-  if (Number.isFinite(declared) && declared > MAX_RESPONSE_BYTES) {
-    throw new Error("Response too large")
-  }
-  if (!response.body) return JSON.parse(await response.text())
-
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let received = 0
-  let text = ""
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    received += value.byteLength
-    if (received > MAX_RESPONSE_BYTES) {
-      void reader.cancel()
-      throw new Error("Response too large")
-    }
-    text += decoder.decode(value, { stream: true })
-  }
-  text += decoder.decode()
-  return JSON.parse(text)
-}
+const readJson = async (response: Response): Promise<unknown> =>
+  readLimitedJson<unknown>(response, MAX_RESPONSE_BYTES)
 
 const fetchJson = async (url: URL): Promise<unknown> => {
   const response = await fetch(url, {
