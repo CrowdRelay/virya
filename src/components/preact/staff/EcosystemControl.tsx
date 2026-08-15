@@ -41,6 +41,8 @@ type Overview = {
 }
 type ChecklistItem = {
   item_key: string
+  section: "show_files" | "gear" | "media" | "logistics" | "gate" | "post_show"
+  sort_order: number
   status: "pending" | "done" | "blocked" | "skipped"
   note: string | null
   updated_at: string
@@ -87,16 +89,36 @@ const labels: Record<string, string> = {
   external_proof_anchoring_enabled: "Kotwiczenie w Sigstore Rekor",
 }
 const checklistLabels: Record<string, string> = {
+  laptop_charged_packed: "Naładowany laptop + zasilacz spakowane",
+  setlist_ready: "Setlista gotowa i sprawdzona",
+  show_files_backup_ready: "Backup setu / playbacku offline gotowy",
+  merch_packed: "Merch spakowany + cennik / płatności",
+  rack_cables_instruments_packed: "Rack, własne kable i instrumenty spakowane",
+  instrument_spares_packed: "Zapas strun, kostek, baterii i narzędzia",
+  stage_outfit_packed: "Strój koncertowy spakowany",
+  wireless_checked: "Wireless: częstotliwości, baterie i backup sprawdzone",
+  power_and_chargers_packed: "Zasilacze, przedłużacze i powerbank spakowane",
+  camera_handoff_ready: "Madzia: dobra kamera + baterie + karta pamięci",
+  venue_schedule_confirmed: "Adres, load-in, soundcheck, doors i stage time potwierdzone",
+  tech_rider_confirmed: "Rider / stage plot / input list potwierdzone",
   announcement_published: "Zapowiedź opublikowana",
   ticketing_verified: "Sprzedaż i limity sprawdzone",
-  staff_assigned: "Obsada bramki przypisana",
+  staff_assigned: "Obsada koncertu / bramki przypisana",
+  guestlist_checked: "Guestlista sprawdzona",
   offline_snapshot_ready: "Snapshot offline pobrany",
   gate_device_charged: "Telefon bramkowy naładowany",
   backup_device_ready: "Urządzenie zapasowe gotowe",
-  network_tested: "Sieć sprawdzona",
-  guestlist_checked: "Guestlista sprawdzona",
+  network_tested: "Sieć / hotspot sprawdzone",
   post_show_reconciliation: "Reconciliation po koncercie",
   post_show_report: "Raport po wydarzeniu",
+}
+const checklistSectionLabels: Record<string, string> = {
+  show_files: "SET / PLIKI",
+  gear: "SPRZĘT",
+  media: "MEDIA",
+  logistics: "LOGISTYKA",
+  gate: "BRAMKA / OFFLINE",
+  post_show: "PO KONCERCIE",
 }
 
 const request = async <T,>(path: string, init?: RequestInit): Promise<T> => {
@@ -294,6 +316,23 @@ export default function EcosystemControl() {
         <div class="rounded-2xl border border-white/10 bg-white/[.03] p-4"><span class="text-xs text-zinc-500">Ostatni przebieg</span><strong class="mt-2 block text-sm text-white">{formatDate(overview?.last_reconciliation?.finished_at)}</strong></div>
       </div>
 
+      {checklist && (
+        <div>
+          <div class="flex flex-wrap items-end justify-between gap-2">
+            <div><h3 class="text-sm font-black uppercase tracking-wider text-zinc-300">Checklista pre-gig · najbliższy koncert</h3><p class="mt-1 text-sm text-zinc-500">{checklist.event_title} · {formatDate(checklist.starts_at)}</p></div>
+            <span class="text-xs text-zinc-500">{checklist.items.filter(item => item.status === "done").length}/{checklist.items.length}</span>
+          </div>
+          <div class="mt-3 grid gap-2 md:grid-cols-2">
+            {checklist.items.map(item => (
+              <button type="button" key={item.item_key} disabled={!!busy} onClick={() => void updateChecklist(item)} class={`flex min-h-12 items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left ${item.status === "done" ? "border-emerald-400/25 bg-emerald-400/5" : item.status === "blocked" ? "border-rose-400/25 bg-rose-400/5" : "border-white/10 bg-white/[.025]"}`}>
+                <span><small class="block text-[9px] font-black uppercase tracking-wider text-zinc-600">{checklistSectionLabels[item.section] ?? "CHECKLISTA"}</small><span class="mt-1 block text-sm font-bold text-white">{checklistLabels[item.item_key] ?? item.item_key}</span></span>
+                <span class="text-[10px] font-black uppercase text-zinc-500">{busy === `checklist:${item.item_key}` ? "…" : item.status}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         <h3 class="text-sm font-black uppercase tracking-wider text-zinc-300">Kill switche</h3>
         <div class="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
@@ -343,22 +382,7 @@ export default function EcosystemControl() {
         </div>}
       </div>
 
-      {checklist && (
-        <div>
-          <div class="flex flex-wrap items-end justify-between gap-2">
-            <div><h3 class="text-sm font-black uppercase tracking-wider text-zinc-300">Najbliższy koncert</h3><p class="mt-1 text-sm text-zinc-500">{checklist.event_title} · {formatDate(checklist.starts_at)}</p></div>
-            <span class="text-xs text-zinc-500">{checklist.items.filter(item => item.status === "done").length}/{checklist.items.length}</span>
-          </div>
-          <div class="mt-3 grid gap-2 md:grid-cols-2">
-            {checklist.items.map(item => (
-              <button type="button" key={item.item_key} disabled={!!busy} onClick={() => void updateChecklist(item)} class={`flex min-h-12 items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left ${item.status === "done" ? "border-emerald-400/25 bg-emerald-400/5" : item.status === "blocked" ? "border-rose-400/25 bg-rose-400/5" : "border-white/10 bg-white/[.025]"}`}>
-                <span class="text-sm font-bold text-white">{checklistLabels[item.item_key] ?? item.item_key}</span>
-                <span class="text-[10px] font-black uppercase text-zinc-500">{busy === `checklist:${item.item_key}` ? "…" : item.status}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {findings.length > 0 && (
         <div>

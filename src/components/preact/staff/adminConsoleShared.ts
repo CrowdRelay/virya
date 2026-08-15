@@ -286,7 +286,7 @@ export const tabs: Array<{ key: Tab; label: string; hint: string }> = [
   { key: "overview", label: "Stan", hint: "system i koncerty" },
   { key: "signal", label: "Sygnał", hint: "fani, miasta i wzrost" },
   { key: "audience", label: "Audience", hint: "Fan 360 i kampanie" },
-  { key: "ops", label: "Operacje", hint: "kolejki i retry" },
+  { key: "ops", label: "Operacje", hint: "checklista, kolejki i retry" },
   { key: "ticketing", label: "Bilety", hint: "ceny i pule" },
   { key: "admission", label: "Wejściówki", hint: "wydaj i unieważnij" },
   { key: "mailer", label: "Mailer", hint: "konfiguracja i test" },
