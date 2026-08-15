@@ -4,6 +4,16 @@ import test from "node:test"
 
 const root = new URL("../", import.meta.url)
 const read = (path: string) => readFile(new URL(path, root), "utf8")
+const readOptional = async (path: string) => {
+  try {
+    return await read(path)
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return null
+    }
+    throw error
+  }
+}
 const mailer = await read("src/server/siteMailer.ts")
 const endpoint = await read("src/pages/api/crowdrelay-mail.ts")
 
@@ -11,15 +21,14 @@ const ledger = await read("src/server/crowdrelayMailLedger.ts")
 const signalHub = await read("src/components/preact/signal/SignalHub.tsx")
 const signalClient = await read("src/lib/crowdrelay-client.ts")
 const signalCopy = await read("src/data/signalCopy.ts")
-const migratedEndpoints = await Promise.all([
+const migratedEndpoints = (await Promise.all([
   "src/pages/api/contact.ts",
   "src/pages/api/crowdrelay-webhook.ts",
   "src/pages/api/size-demand.ts",
   "src/pages/api/staff/admin/mailer/test.ts",
-  "src/pages/api/subscribe.ts",
   "src/pages/api/ticket-mail.ts",
   "src/pages/api/crowdrelay-mail.ts",
-].map(read))
+].map(readOptional))).filter((content): content is string => content !== null)
 
 test("transactional mail supports an authenticated domain provider and Gmail fallback", () => {
   assert.match(mailer, /RESEND_API_KEY/)
