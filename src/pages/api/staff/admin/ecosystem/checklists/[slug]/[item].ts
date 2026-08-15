@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro"
-import { areaJson, isSameOriginRequest } from "../../../../../../../server/areaHttp"
+import { areaJson, isSameOriginRequest, readSmallJsonObject } from "../../../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../../../server/staffQrApi"
 import { forwardedMutationKey } from "../../../../../../../server/mutationSafety"
@@ -19,8 +19,8 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
   const slug = params.slug ?? ""
   const item = params.item ?? ""
   if (!SLUG.test(slug) || !ITEM.test(item)) return areaJson({ error: "Invalid checklist item" }, 400)
-  let body: { status?: unknown; note?: unknown }
-  try { body = await request.json() } catch { return areaJson({ error: "Invalid request" }, 400) }
+  let body: Record<string, unknown>
+  try { body = await readSmallJsonObject(request) } catch { return areaJson({ error: "Invalid request" }, 400) }
   if (typeof body.status !== "string" || !STATUSES.has(body.status) || (body.note != null && (typeof body.note !== "string" || body.note.length > 1000))) {
     return areaJson({ error: "Invalid request" }, 400)
   }

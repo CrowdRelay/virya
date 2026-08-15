@@ -9,6 +9,7 @@ import {
   type CrowdRelayMailLease,
 } from "../../server/crowdrelayMailLedger"
 import { getSiteMailer } from "../../server/siteMailer"
+import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 
 export const prerender = false
 
@@ -529,9 +530,12 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: "unsupported_media_type" }, 415)
   }
 
-  const rawBody = await request.text()
-  if (Buffer.byteLength(rawBody, "utf8") > MAX_BODY_BYTES) {
-    return json({ error: "request_too_large" }, 413)
+  let rawBody: string
+  try {
+    rawBody = await readLimitedText(request, MAX_BODY_BYTES)
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) return json({ error: "request_too_large" }, 413)
+    throw error
   }
 
   let raw: unknown

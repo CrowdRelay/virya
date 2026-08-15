@@ -1,9 +1,11 @@
 import { readServerEnv } from "../../../../server/runtimeEnv.ts"
+import { readLimitedJson } from "../../../../server/readLimitedJson.ts"
 import type { APIRoute } from "astro"
 import { areaJson } from "../../../../server/areaHttp"
 import { resolvePublicDrawProof } from "../../../../data/drawProofs"
 
 export const prerender = false
+const MAX_RESPONSE_BYTES = 1024 * 1024
 const SLUG = /^[a-z0-9][a-z0-9_-]{0,127}$/
 const DEFAULT_BASE_URL = "https://signal-api.virya.music/v1/"
 
@@ -18,7 +20,12 @@ export const GET: APIRoute = async ({ params }) => {
       headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(8_000),
     })
-    const payload = await response.json().catch(() => ({ error: "Invalid proof response" }))
+    let payload: unknown
+    try {
+      payload = await readLimitedJson<unknown>(response, MAX_RESPONSE_BYTES)
+    } catch {
+      return areaJson({ error: "Invalid proof response" }, 502)
+    }
     return new Response(JSON.stringify(payload), {
       status: response.status,
       headers: {

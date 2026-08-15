@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import type { AreaDrop } from "../data/area"
 import { readServerEnv } from "./runtimeEnv.ts"
+import { readLimitedJson } from "./readLimitedJson.ts"
 
 const DEFAULT_API_BASE = "https://signal-api.virya.music/v1/"
 const MAX_RESPONSE_BYTES = 256 * 1024
@@ -133,21 +134,12 @@ const commerceKey = () => {
     : null
 }
 
-const readBoundedJson = async (response: Response) => {
-  const declared = Number(response.headers.get("content-length") ?? "0")
-  if (Number.isFinite(declared) && declared > MAX_RESPONSE_BYTES) {
-    throw new Error("CrowdRelay AREA response is too large")
-  }
-  const text = await response.text()
-  if (new TextEncoder().encode(text).byteLength > MAX_RESPONSE_BYTES) {
-    throw new Error("CrowdRelay AREA response is too large")
-  }
-  try {
-    return text ? (JSON.parse(text) as unknown) : null
-  } catch {
-    throw new Error("CrowdRelay AREA returned invalid JSON")
-  }
-}
+const readBoundedJson = async (response: Response) =>
+  readLimitedJson<unknown>(
+    response,
+    MAX_RESPONSE_BYTES,
+    () => new Error("CrowdRelay AREA returned invalid or oversized JSON"),
+  )
 
 const call = async (
   path: string,

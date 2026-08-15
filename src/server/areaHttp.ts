@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto"
+import { readLimitedText } from "./readLimitedBody.ts"
 
 export const AREA_WALLET_COOKIE_NAME = "virya-area-wallet"
 const YEAR_SECONDS = 60 * 60 * 24 * 365
 const MAX_JSON_BYTES = 4096
-const encoder = new TextEncoder()
 
 export type AreaCookieJar = {
   get(name: string): { value: string } | undefined
@@ -52,17 +52,9 @@ export const readSmallJson = async (request: Request) => {
     throw new Error("Unsupported content type")
   }
 
-  const contentLength = Number(request.headers.get("content-length") ?? "0")
-  if (Number.isFinite(contentLength) && contentLength > MAX_JSON_BYTES) {
-    throw new Error("Request too large")
-  }
-
-  const raw = await request.text()
-  if (encoder.encode(raw).byteLength > MAX_JSON_BYTES) {
-    throw new Error("Request too large")
-  }
-
-  return JSON.parse(raw) as unknown
+  const rawBody = await readLimitedText(request, MAX_JSON_BYTES)
+  if (!rawBody) throw new Error("Empty request body")
+  return JSON.parse(rawBody) as unknown
 }
 
 export const readSmallJsonObject = async (

@@ -2,7 +2,7 @@ import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../src/pages/api/", import.meta.url));
-const baseline = 80;
+const baseline = 79;
 let count = 0;
 function walk(dir) { for (const name of readdirSync(dir)) { const path = join(dir, name); const st = statSync(path); if (st.isDirectory()) walk(path); else if (/\.(ts|js)$/.test(name)) count++; } }
 walk(root);

@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro"
-import { areaJson, isSameOriginRequest } from "../../../../server/areaHttp"
+import { areaJson, isSameOriginRequest, readSmallJsonObject } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
 import { mutationKeyForRequest } from "../../../../server/mutationSafety"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../server/staffQrApi"
@@ -72,9 +72,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
   let body: Record<string, unknown>
   try {
-    const candidate = await request.json()
-    if (typeof candidate !== "object" || candidate === null || Array.isArray(candidate)) throw new Error()
-    body = candidate as Record<string, unknown>
+    body = await readSmallJsonObject(request)
   } catch {
     return areaJson({ error: "Invalid body" }, 422)
   }

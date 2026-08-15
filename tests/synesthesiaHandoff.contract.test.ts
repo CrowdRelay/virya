@@ -23,6 +23,13 @@ test("Synesthesia handoff survives transient failures and retries", () => {
   assert.match(account, /Keep transient\/network failures in the fragment/)
 })
 
+test("My Signal continuation preserves Synesthesia resume intent and attribution", () => {
+  assert.match(
+    account,
+    /https:\/\/synesthesia\.virya\.music\/\?source=signal-web&resume=1/,
+  )
+})
+
 test("handoff is removed only after success or a terminal response", () => {
   assert.match(
     hub,

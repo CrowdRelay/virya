@@ -5,6 +5,7 @@ import { VIRYA_SITE_ORIGIN } from "../../config"
 import { safeTimeZone } from "../../lib/safeDateFormat"
 import { qrGifBuffer } from "../../server/ticketQr"
 import { getSiteMailer } from "../../server/siteMailer"
+import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 import {
   acquireTicketMailLease,
   completeTicketMailLease,
@@ -190,8 +191,13 @@ export const POST: APIRoute = async ({ request }) => {
   }
   const contentType = request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase()
   if (contentType !== "application/json") return json({ error: "unsupported_media_type" }, 415)
-  const rawBody = await request.text()
-  if (Buffer.byteLength(rawBody, "utf8") > MAX_BODY_BYTES) return json({ error: "request_too_large" }, 413)
+  let rawBody: string
+  try {
+    rawBody = await readLimitedText(request, MAX_BODY_BYTES)
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) return json({ error: "request_too_large" }, 413)
+    throw error
+  }
 
   let parsed: unknown
   try { parsed = JSON.parse(rawBody) as unknown } catch { return json({ error: "invalid_json" }, 400) }

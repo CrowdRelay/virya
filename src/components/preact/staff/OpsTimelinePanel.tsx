@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks"
+import { staffApi, type StaffApiError } from "./staffApi"
 
 type OperationEvent = {
   occurred_at: string
@@ -12,6 +13,40 @@ type OperationEvent = {
 type OperationTimeline = {
   request_id: string
   events: OperationEvent[]
+}
+
+
+const OPERATION_SOURCES = new Set<OperationEvent["source"]>(["audit", "outbox", "delivery", "operator"])
+
+const boundedOptionalString = (value: unknown, max: number): string | null | undefined => {
+  if (value === null) return null
+  if (typeof value !== "string" || value.length > max) return undefined
+  return value
+}
+
+const parseTimeline = (value: unknown): OperationTimeline | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null
+  const record = value as Record<string, unknown>
+  if (typeof record.request_id !== "string" || !record.request_id || record.request_id.length > 128) return null
+  if (!Array.isArray(record.events) || record.events.length > 500) return null
+  const events: OperationEvent[] = []
+  for (const candidate of record.events) {
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return null
+    const item = candidate as Record<string, unknown>
+    const occurredAt = typeof item.occurred_at === "string" && item.occurred_at.length <= 64 && !Number.isNaN(Date.parse(item.occurred_at))
+      ? item.occurred_at
+      : null
+    const source = typeof item.source === "string" && OPERATION_SOURCES.has(item.source as OperationEvent["source"])
+      ? item.source as OperationEvent["source"]
+      : null
+    const kind = typeof item.kind === "string" && item.kind.length > 0 && item.kind.length <= 160 ? item.kind : null
+    const status = boundedOptionalString(item.status, 96)
+    const targetType = boundedOptionalString(item.target_type, 96)
+    const targetId = boundedOptionalString(item.target_id, 160)
+    if (!occurredAt || !source || !kind || status === undefined || targetType === undefined || targetId === undefined) return null
+    events.push({ occurred_at: occurredAt, source, kind, status, target_type: targetType, target_id: targetId })
+  }
+  return { request_id: record.request_id, events }
 }
 
 const formatTimestamp = (value: string) => {
@@ -40,26 +75,18 @@ export default function OpsTimelinePanel() {
     setMessage("")
     setTimeline(null)
     try {
-      const response = await fetch(
+      const payload = await staffApi<unknown>(
         `/api/staff/admin/ops/operations/${encodeURIComponent(value)}`,
-        { headers: { accept: "application/json" }, cache: "no-store" },
+        { timeoutMs: 10_000 },
       )
-      const body = (await response.json().catch(() => null)) as
-        | OperationTimeline
-        | { error?: string }
-        | null
-      if (!response.ok) {
-        throw new Error(
-          response.status === 404
-            ? "Brak zdarzeń dla tego request ID."
-            : body && "error" in body && body.error
-              ? body.error
-              : "Nie udało się pobrać osi operacji.",
-        )
-      }
-      setTimeline(body as OperationTimeline)
+      const parsed = parseTimeline(payload)
+      if (!parsed) throw new Error("Nieprawidłowa odpowiedź osi operacji.")
+      setTimeline(parsed)
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Nie udało się pobrać osi operacji.")
+      const status = (error as StaffApiError | null)?.status
+      setMessage(status === 404
+        ? "Brak zdarzeń dla tego request ID."
+        : error instanceof Error ? error.message : "Nie udało się pobrać osi operacji.")
     } finally {
       setLoading(false)
     }

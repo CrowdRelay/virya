@@ -9,6 +9,7 @@ import {
   reserveTicketOrder,
 } from "../../server/crowdrelayTicketing"
 import { staffApiRequest } from "../../server/staffQrApi"
+import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 
 export const prerender = false
 
@@ -162,13 +163,12 @@ export const POST: APIRoute = async ({ request }) => {
   if (contentType !== "application/json") {
     return json({ error: "Unsupported content type" }, 415)
   }
-  const declaredLength = Number(request.headers.get("content-length") ?? "0")
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
-    return json({ error: "Request too large" }, 413)
-  }
-  const rawBody = await request.text()
-  if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
-    return json({ error: "Request too large" }, 413)
+  let rawBody: string
+  try {
+    rawBody = await readLimitedText(request, MAX_BODY_BYTES)
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) return json({ error: "Request too large" }, 413)
+    throw error
   }
 
   let parsed: unknown

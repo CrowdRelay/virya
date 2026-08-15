@@ -6,6 +6,7 @@ const ContactInner = () => {
   const [form, setForm] = useState({ name: "", email: "", message: "", website: "" })
   const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [submissionId, setSubmissionId] = useState("")
 
   const set = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
@@ -13,15 +14,18 @@ const ContactInner = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    const currentSubmissionId = submissionId || crypto.randomUUID()
+    if (!submissionId) setSubmissionId(currentSubmissionId)
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         signal: AbortSignal.timeout(12_000),
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, submission_id: currentSubmissionId }),
       })
       if (res.ok) {
         setStatus("success")
+        setSubmissionId("")
         setForm({ name: "", email: "", message: "", website: "" })
       } else {
         setStatus("error")

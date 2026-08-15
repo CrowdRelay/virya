@@ -1,4 +1,5 @@
 import { readServerEnv } from "./runtimeEnv.ts"
+import { readLimitedJson } from "./readLimitedJson.ts"
 
 const DEFAULT_API_BASE_URL = "https://signal-api.virya.music/v1/"
 const MIN_SECRET_LENGTH = 24
@@ -9,6 +10,7 @@ const MIN_TTL_MINUTES = 1
 const MAX_TTL_MINUTES = 10
 const MAX_QR_PAYLOAD_BYTES = 400
 const BROKER_TIMEOUT_MS = 10_000
+const MAX_BROKER_RESPONSE_BYTES = 64 * 1024
 
 export type StaffPairingEnvelope = {
   version: 2
@@ -201,8 +203,19 @@ export const createStaffPairingEnvelope = async (
     throw new Error(`CrowdRelay pairing broker failed (${response.status})`)
   }
 
-  const broker = await response.json() as StaffPairingCode
-  return buildStaffPairingEnvelope(apiBaseUrl, broker, config.allowInsecureHttp)
+  const broker = await readLimitedJson<unknown>(
+    response,
+    MAX_BROKER_RESPONSE_BYTES,
+    () => new TypeError("Invalid staff pairing broker response"),
+  )
+  if (!broker || typeof broker !== "object" || Array.isArray(broker)) {
+    throw new TypeError("Invalid staff pairing broker response")
+  }
+  return buildStaffPairingEnvelope(
+    apiBaseUrl,
+    broker as StaffPairingCode,
+    config.allowInsecureHttp,
+  )
 }
 
 export type StaffDeviceSession = {
@@ -218,6 +231,28 @@ const cleanSessionId = (value: unknown) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.trim())
     ? value.trim()
     : null
+
+const RFC3339 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/
+
+const cleanRfc3339 = (value: unknown) => {
+  if (typeof value !== "string" || value.length > 64) return null
+  const timestamp = value.trim()
+  return RFC3339.test(timestamp) && Number.isFinite(Date.parse(timestamp)) ? timestamp : null
+}
+
+export const parseStaffDeviceSession = (value: unknown): StaffDeviceSession | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null
+  const record = value as Record<string, unknown>
+  const id = cleanSessionId(record.id)
+  const displayName = cleanDisplayName(record.displayName)
+  const expiresAt = cleanRfc3339(record.expiresAt)
+  const createdAt = cleanRfc3339(record.createdAt)
+  const revokedAt = record.revokedAt === null ? null : cleanRfc3339(record.revokedAt)
+  if (!id || !displayName || !expiresAt || !createdAt || (record.revokedAt !== null && !revokedAt)) {
+    return null
+  }
+  return { id, displayName, expiresAt, revokedAt, createdAt }
+}
 
 const staffAdminRequest = async (path: string, init: RequestInit = {}) => {
   const config = runtimeConfig()
@@ -239,9 +274,23 @@ const staffAdminRequest = async (path: string, init: RequestInit = {}) => {
 export const listStaffDeviceSessions = async (): Promise<StaffDeviceSession[]> => {
   const response = await staffAdminRequest("admin/staff/sessions")
   if (!response.ok) throw new Error(`CrowdRelay staff sessions failed (${response.status})`)
-  const payload = await response.json() as { sessions?: StaffDeviceSession[] }
-  if (!Array.isArray(payload.sessions)) throw new TypeError("Invalid staff session response")
-  return payload.sessions.slice(0, 100)
+  const payload = await readLimitedJson<unknown>(
+    response,
+    MAX_BROKER_RESPONSE_BYTES,
+    () => new TypeError("Invalid staff session response"),
+  )
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new TypeError("Invalid staff session response")
+  }
+  const sessions = (payload as Record<string, unknown>).sessions
+  if (!Array.isArray(sessions) || sessions.length > 100) {
+    throw new TypeError("Invalid staff session response")
+  }
+  const parsed = sessions.map(parseStaffDeviceSession)
+  if (parsed.some((session) => session === null)) {
+    throw new TypeError("Invalid staff session response")
+  }
+  return parsed as StaffDeviceSession[]
 }
 
 export const revokeStaffDeviceSession = async (sessionIdValue: unknown): Promise<void> => {

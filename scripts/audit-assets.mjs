@@ -30,4 +30,4 @@ for (const path of files) {
 let duplicatedBytes = 0
 for (const group of groups.values()) if (group.length > 1) duplicatedBytes += group[0].size * (group.length - 1)
 console.log(`[assets] ${files.length} files; exact duplicate overhead ${(duplicatedBytes / 1024).toFixed(1)} KiB`)
-if (duplicatedBytes > 1024 * 1024) throw new Error("exact duplicate public assets exceed 1 MiB budget")
+if (duplicatedBytes > 0) throw new Error("exact duplicate public source assets are not allowed")

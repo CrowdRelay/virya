@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import test from "node:test"
 import { generateQr } from "../src/lib/qrCode.ts"
-import { buildStaffPairingEnvelope } from "../src/server/staffPairing.ts"
+import { buildStaffPairingEnvelope, parseStaffDeviceSession } from "../src/server/staffPairing.ts"
 
 const read = (path: string) =>
   readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
@@ -82,6 +82,20 @@ test("pairing rejects unsafe broker responses", () => {
     () => buildStaffPairingEnvelope("https://signal-api.virya.music/v1/", { ...valid, displayName: "X".repeat(65) }),
     /Invalid staff pairing broker response/,
   )
+})
+
+test("staff session wire records are strictly validated before reaching the browser", () => {
+  const valid = {
+    id: "018f47d2-2f3b-7a1c-8a55-a0b1c2d3e4f5",
+    displayName: "Kuba — bramka",
+    expiresAt: "2026-08-22T10:00:00Z",
+    revokedAt: null,
+    createdAt: "2026-08-15T10:00:00.123456Z",
+  }
+  assert.deepEqual(parseStaffDeviceSession(valid), valid)
+  assert.equal(parseStaffDeviceSession({ ...valid, expiresAt: [2026, 8, 22] }), null)
+  assert.equal(parseStaffDeviceSession({ ...valid, createdAt: "2026-08-15" }), null)
+  assert.equal(parseStaffDeviceSession({ ...valid, displayName: "X".repeat(65) }), null)
 })
 
 test("server brokers one-time codes without exposing either administrator or device bearer", () => {

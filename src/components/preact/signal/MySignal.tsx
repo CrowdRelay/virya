@@ -158,10 +158,27 @@ export default function MySignal({ lang }: Props) {
   async function copyReferral() {
     if (!referralUrl) return
     try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({
+          title: "VIRYA Signal",
+          text: lang === "pl"
+            ? "Jeśli ciężka muzyka i lokalna scena są też Twoim światem, złap ten sygnał."
+            : "If heavy music and the local scene are your world too, catch this signal.",
+          url: referralUrl,
+        })
+        setCopied(true)
+        return
+      }
       await navigator.clipboard.writeText(referralUrl)
       setCopied(true)
-    } catch {
-      setCopied(false)
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return
+      try {
+        await navigator.clipboard.writeText(referralUrl)
+        setCopied(true)
+      } catch {
+        setCopied(false)
+      }
     }
   }
 
@@ -326,7 +343,7 @@ export default function MySignal({ lang }: Props) {
               </p>
             )}
             <a
-              href="https://synesthesia.virya.music/"
+              href="https://synesthesia.virya.music/?source=signal-web&resume=1"
               class="mt-3 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-cyan-300"
             >
               {synesthesia.completed

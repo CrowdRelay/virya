@@ -2,6 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest } from "../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../server/staffQrAuth"
 import { mutationKeyForRequest } from "../../../../../server/mutationSafety"
+import { BodyTooLargeError, readLimitedText } from "../../../../../server/readLimitedBody"
 import {
   StaffQrUpstreamError,
   staffApiRequest,
@@ -63,9 +64,12 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
   const slug = params.slug ?? ""
   if (!SLUG.test(slug)) return areaJson({ error: "Invalid event" }, 400)
 
-  const raw = await request.text()
-  if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) {
-    return areaJson({ error: "Request too large" }, 413)
+  let raw: string
+  try {
+    raw = await readLimitedText(request, MAX_BODY_BYTES)
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) return areaJson({ error: "Request too large" }, 413)
+    throw error
   }
   let parsed: unknown
   try {

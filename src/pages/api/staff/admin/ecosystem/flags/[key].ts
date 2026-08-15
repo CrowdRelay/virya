@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro"
-import { areaJson, isSameOriginRequest } from "../../../../../../server/areaHttp"
+import { areaJson, isSameOriginRequest, readSmallJsonObject } from "../../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../../server/staffQrApi"
 import { forwardedMutationKey } from "../../../../../../server/mutationSafety"
@@ -16,8 +16,8 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
   if (!isSameOriginRequest(request)) return areaJson({ error: "Invalid request origin" }, 403)
   const key = params.key ?? ""
   if (!KEY.test(key)) return areaJson({ error: "Invalid flag" }, 400)
-  let body: { enabled?: unknown; reason?: unknown }
-  try { body = await request.json() } catch { return areaJson({ error: "Invalid request" }, 400) }
+  let body: Record<string, unknown>
+  try { body = await readSmallJsonObject(request) } catch { return areaJson({ error: "Invalid request" }, 400) }
   if (typeof body.enabled !== "boolean" || (body.reason != null && (typeof body.reason !== "string" || body.reason.length > 500))) {
     return areaJson({ error: "Invalid request" }, 400)
   }

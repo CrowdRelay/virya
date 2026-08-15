@@ -4,6 +4,7 @@ import { getStore } from "@netlify/blobs"
 import type { APIRoute } from "astro"
 import { VIRYA_SITE_ORIGIN } from "../../config"
 import { getSiteMailer } from "../../server/siteMailer"
+import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 
 const MAX_BODY_BYTES = 16 * 1024
 const MAX_CLOCK_SKEW_SECONDS = 5 * 60
@@ -164,9 +165,12 @@ const handleEnvelope = async (envelope: Envelope) => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const rawBody = await request.text()
-  if (Buffer.byteLength(rawBody, "utf8") > MAX_BODY_BYTES) {
-    return json({ error: "request_too_large" }, 413)
+  let rawBody: string
+  try {
+    rawBody = await readLimitedText(request, MAX_BODY_BYTES)
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) return json({ error: "request_too_large" }, 413)
+    throw error
   }
 
   const timestamp = request.headers.get("crowdrelay-timestamp") ?? ""

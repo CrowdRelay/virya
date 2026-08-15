@@ -31,9 +31,13 @@ test("feedback network abuse protection persists only a keyed fingerprint", asyn
     new URL("../src/server/signalFeedbackRate.ts", import.meta.url),
     "utf8",
   )
-  assert.match(rateSource, /createHmac\("sha256"/)
+  const sharedRateSource = await readFile(
+    new URL("../src/server/publicFormRate.ts", import.meta.url),
+    "utf8",
+  )
+  assert.match(sharedRateSource, /createHmac\("sha256"/)
   assert.match(rateSource, /SIGNAL_FEEDBACK_RATE_SECRET/)
   assert.match(rateSource, /AREA_AUTH_SECRET/)
-  assert.match(rateSource, /never logged or persisted/)
-  assert.doesNotMatch(rateSource, /console\.(log|error).*network/)
+  assert.match(sharedRateSource, /never persisted\/logged/)
+  assert.doesNotMatch(sharedRateSource, /console\.(log|error).*network/)
 })

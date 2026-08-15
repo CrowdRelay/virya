@@ -27,6 +27,7 @@ import {
   reserveMerchInventory,
   fetchPublicMerchCatalog,
 } from "../../server/crowdrelayCommerce"
+import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 
 const MAX_QTY = 20
 const MAX_LINES = 50
@@ -109,13 +110,12 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: "Unsupported content type" }, 415)
     }
 
-    const declaredLength = Number(request.headers.get("content-length") ?? 0)
-    if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
-      return json({ error: "Request too large" }, 413)
-    }
-    const rawBody = await request.text()
-    if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
-      return json({ error: "Request too large" }, 413)
+    let rawBody: string
+    try {
+      rawBody = await readLimitedText(request, MAX_BODY_BYTES)
+    } catch (error) {
+      if (error instanceof BodyTooLargeError) return json({ error: "Request too large" }, 413)
+      throw error
     }
 
     let parsedBody: unknown

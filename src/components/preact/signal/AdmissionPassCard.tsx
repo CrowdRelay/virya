@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks"
 import type { Lang } from "../../../i18n/t"
 import type { AdmissionPass, AdmissionQr } from "../../../lib/crowdrelay-client"
 import { crowdrelay } from "../../../lib/crowdrelay"
+import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import { qrDataUrl } from "../../../lib/qr"
 import { safeFormatDate } from "../../../lib/safeDateFormat"
 
@@ -47,16 +48,26 @@ export default function AdmissionPassCard({ lang, pass }: Props) {
     if (pass.status !== "claimed") return
     let cancelled = false
     let timer: number | undefined
+    let transientFailures = 0
 
     const load = async () => {
       try {
         const qr = await crowdrelay.getAdmissionQr()
         if (cancelled) return
+        transientFailures = 0
         setQrState({ kind: "ready", qr })
         const delay = Math.max(5_000, Date.parse(qr.expires_at) - Date.now() - 12_000)
         timer = window.setTimeout(load, delay)
-      } catch {
-        if (!cancelled) setQrState({ kind: "unavailable" })
+      } catch (error) {
+        if (cancelled) return
+        const transient = !(error instanceof CrowdRelayError) || error.status === 0 || error.status >= 500
+        if (transient && transientFailures < 4) {
+          transientFailures += 1
+          const delay = Math.min(8_000, 1_000 * 2 ** (transientFailures - 1))
+          timer = window.setTimeout(load, delay)
+          return
+        }
+        setQrState({ kind: "unavailable" })
       }
     }
     void load()

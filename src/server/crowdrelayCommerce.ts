@@ -1,4 +1,5 @@
 import { readServerEnv } from "./runtimeEnv.ts"
+import { readLimitedJson } from "./readLimitedJson.ts"
 const DEFAULT_BASE_URL = "https://signal-api.virya.music/v1/"
 const MAX_UPSTREAM_BYTES = 512 * 1024
 const DEFAULT_TIMEOUT_MS = 5_000
@@ -129,21 +130,6 @@ const commerceKey = () => {
 
 export const merchInventoryConfigured = () => commerceKey() !== null
 
-const readLimitedJson = async <T>(response: Response): Promise<T> => {
-  const declaredLength = Number(response.headers.get("content-length") ?? "0")
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_UPSTREAM_BYTES) {
-    throw new CrowdRelayCommerceError(502)
-  }
-  const text = await response.text()
-  if (new TextEncoder().encode(text).byteLength > MAX_UPSTREAM_BYTES) {
-    throw new CrowdRelayCommerceError(502)
-  }
-  try {
-    return JSON.parse(text) as T
-  } catch {
-    throw new CrowdRelayCommerceError(502)
-  }
-}
 
 type RequestOptions = {
   method?: "GET" | "POST"
@@ -188,7 +174,7 @@ const commerceRequest = async <T>(
     })
     if (!response.ok) throw new CrowdRelayCommerceError(response.status)
     if (response.status === 204) return undefined as T
-    return await readLimitedJson<T>(response)
+    return await readLimitedJson<T>(response, MAX_UPSTREAM_BYTES, () => new CrowdRelayCommerceError(502))
   } catch (error) {
     if (error instanceof CrowdRelayCommerceError) throw error
     throw new CrowdRelayCommerceError(502)

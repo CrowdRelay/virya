@@ -94,13 +94,19 @@ const MerchInner = () => {
   useEffect(() => {
     const product = new URLSearchParams(window.location.search).get("product")
     if (!product || !/^[a-z0-9_-]{1,128}$/.test(product)) return
+    let focusTimer
     const frame = window.requestAnimationFrame(() => {
       const card = document.getElementById(`merch-${product}`)
       if (!card) return
       card.scrollIntoView({ behavior: "smooth", block: "center" })
-      window.setTimeout(() => card.focus({ preventScroll: true }), 450)
+      focusTimer = window.setTimeout(() => {
+        if (card.isConnected) card.focus({ preventScroll: true })
+      }, 450)
     })
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      if (focusTimer !== undefined) window.clearTimeout(focusTimer)
+    }
   }, [])
   const saleLabel = saleActive ? discountEndsLabel(lang === "pl" ? "pl-PL" : "en-GB") : null
 

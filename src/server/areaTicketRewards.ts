@@ -1,5 +1,6 @@
 import { readServerEnv } from "./runtimeEnv.ts"
 import { createHash } from "node:crypto"
+import { readLimitedJson } from "./readLimitedJson.ts"
 
 const EVENT_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]{0,127}$/
 const POOL_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]{0,127}$/
@@ -104,17 +105,6 @@ const crowdRelayBaseUrl = () => {
   return url
 }
 
-const readLimitedJson = async (response: Response) => {
-  const declared = Number(response.headers.get("content-length") ?? 0)
-  if (Number.isFinite(declared) && declared > MAX_RESPONSE_BYTES) {
-    throw new Error("CrowdRelay response too large")
-  }
-  const text = await response.text()
-  if (Buffer.byteLength(text, "utf8") > MAX_RESPONSE_BYTES) {
-    throw new Error("CrowdRelay response too large")
-  }
-  return JSON.parse(text) as Record<string, unknown>
-}
 
 export class AreaTicketIssueError extends Error {
   readonly status: number
@@ -166,7 +156,7 @@ export const issueAreaTicket = async (args: {
     signal: AbortSignal.timeout(10_000),
   })
   if (!response.ok) throw new AreaTicketIssueError(response.status)
-  const result = await readLimitedJson(response)
+  const result = await readLimitedJson<Record<string, unknown>>(response, MAX_RESPONSE_BYTES)
   const passId = clean(result.pass_id, 64)
   const publicReference = clean(result.public_reference, 80)
   const claimToken = clean(result.claim_token, 128)

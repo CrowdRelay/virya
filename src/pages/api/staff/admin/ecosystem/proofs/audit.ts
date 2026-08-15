@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro"
-import { areaJson, isSameOriginRequest } from "../../../../../../server/areaHttp"
+import { areaJson, isSameOriginRequest, readSmallJsonObject } from "../../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../../server/staffQrApi"
 
@@ -12,8 +12,8 @@ const statusFor = (error: unknown) =>
 export const POST: APIRoute = async ({ cookies, request }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
   if (!isSameOriginRequest(request)) return areaJson({ error: "Invalid request origin" }, 403)
-  let body: { limit?: unknown } = {}
-  try { body = await request.json() } catch { return areaJson({ error: "Invalid request" }, 400) }
+  let body: Record<string, unknown> = {}
+  try { body = await readSmallJsonObject(request) } catch { return areaJson({ error: "Invalid request" }, 400) }
   const limit = Number(body.limit ?? 1024)
   if (!Number.isInteger(limit) || limit < 1 || limit > 4096) return areaJson({ error: "Invalid limit" }, 400)
   const idempotencyKey = request.headers.get("idempotency-key") ?? `audit-proof-${new Date().toISOString().slice(0, 13)}-${crypto.randomUUID()}`

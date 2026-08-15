@@ -1,4 +1,6 @@
 import { readServerEnv } from "./runtimeEnv.ts"
+import { readLimitedJson } from "./readLimitedJson.ts"
+import { readLimitedBytes } from "./readLimitedBody.ts"
 import nodemailer from "nodemailer"
 import type SMTPTransport from "nodemailer/lib/smtp-transport"
 import { VIRYA_OPERATIONS_EMAIL } from "../config"
@@ -6,6 +8,7 @@ import { VIRYA_OPERATIONS_EMAIL } from "../config"
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const RESEND_ENDPOINT = "https://api.resend.com/emails"
 const MAX_PROVIDER_ERROR = 2_048
+const MAX_PROVIDER_SUCCESS = 32 * 1024
 const MAX_DISPLAY_NAME = 80
 
 type SiteMailAttachment = {
@@ -58,7 +61,14 @@ const friendlyFrom = (address: string, name?: string) =>
   `${displayName(name)} <${address}>`
 
 const providerError = async (response: Response) => {
-  const body = (await response.text()).slice(0, MAX_PROVIDER_ERROR)
+  let body = ""
+  try {
+    body = new TextDecoder().decode(
+      await readLimitedBytes(response, MAX_PROVIDER_ERROR),
+    )
+  } catch {
+    body = "provider error body exceeded limit"
+  }
   return new Error(`Resend rejected the message (${response.status}): ${body || response.statusText}`)
 }
 
@@ -124,7 +134,13 @@ const resendMailer = (): SiteMailer | null => {
         signal: AbortSignal.timeout(35_000),
       })
       if (!response.ok) throw await providerError(response)
-      const result = await response.json().catch(() => null) as { id?: unknown } | null
+      let result: { id?: unknown } | null = null
+      try {
+        result = await readLimitedJson<{ id?: unknown }>(response, MAX_PROVIDER_SUCCESS)
+      } catch {
+        // A 2xx from the provider is the delivery acknowledgement; a malformed
+        // optional response id must not turn that accepted send into a retry.
+      }
       return {
         messageId: typeof result?.id === "string" ? result.id : "resend-accepted",
       }

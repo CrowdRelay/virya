@@ -19,6 +19,9 @@ import {
   commitMerchInventory,
   releaseMerchInventory,
 } from "../../server/crowdrelayCommerce"
+import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
+
+const MAX_BODY_BYTES = 1024 * 1024
 
 export const POST: APIRoute = async ({ request }) => {
   const stripeKey = readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY)?.trim()
@@ -33,7 +36,13 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const stripe = new Stripe(stripeKey)
-  const rawBody = await request.text()
+  let rawBody: string
+  try {
+    rawBody = await readLimitedText(request, MAX_BODY_BYTES)
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) return new Response("Webhook payload too large", { status: 413 })
+    throw error
+  }
   const sig = request.headers.get("stripe-signature")
 
   if (!sig) {

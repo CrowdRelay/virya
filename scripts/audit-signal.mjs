@@ -21,7 +21,6 @@ const envExample = read(".env.example")
 const signalCopy = read("src/data/signalCopy.ts")
 const webhook = read("src/pages/api/crowdrelay-webhook.ts")
 const crowdrelayMailer = read("src/pages/api/crowdrelay-mail.ts")
-const subscribe = read("src/pages/api/subscribe.ts")
 const staffAuth = read("src/server/staffQrAuth.ts")
 const staffApi = read("src/server/staffQrApi.ts")
 const staffPage = read("src/pages/staff/qr.astro")
@@ -102,8 +101,9 @@ assert(
   "Signed CrowdRelay confirmation delivery ingress is incomplete.",
 )
 assert(
-  subscribe.includes('return json({ error: "Delivery unavailable" }, 503)'),
-  "Newsletter must fail closed when the mailer is unavailable.",
+  !existsSync(resolve(root, "src/pages/api/subscribe.ts")) &&
+    !existsSync(resolve(root, "src/components/preact/Newsletter.jsx")),
+  "Legacy newsletter-to-email shim must stay retired; Signal owns fan signup.",
 )
 assert(
   signalCopy.includes("one global draw for three physical albums") &&
