@@ -102,6 +102,26 @@ const description = isPl
                   <input data-nearby type="checkbox" class="accent-amber-400" />
                   {isPl ? "Powiadomienia lokalne" : "Local alerts"}
                 </label>
+                <label class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {isPl ? "Język" : "Language"}
+                  <select data-locale class="ml-2 min-h-10 border border-zinc-700 bg-zinc-950 px-3 text-zinc-100">
+                    <option value="pl">PL</option>
+                    <option value="en">EN</option>
+                  </select>
+                </label>
+              </div>
+              <div class="mt-4 flex flex-wrap gap-2" data-topics>
+                {[
+                  ["shows", isPl ? "Koncerty" : "Shows"],
+                  ["press_materials", isPl ? "Materiały prasowe" : "Press assets"],
+                  ["releases", isPl ? "Premiery" : "Releases"],
+                  ["interviews", isPl ? "Wywiady" : "Interviews"],
+                  ["accreditation", isPl ? "Akredytacje" : "Accreditation"],
+                ].map(([value, label]) => (
+                  <label class="inline-flex min-h-9 items-center gap-2 border border-zinc-800 px-3 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                    <input data-topic={value} type="checkbox" class="accent-amber-400" />{label}
+                  </label>
+                ))}
               </div>
               <p data-preferences-status class="mt-3 min-h-5 text-xs text-zinc-500"></p>
             </div>
@@ -110,6 +130,11 @@ const description = isPl
               <p class="mt-3 text-sm leading-6 text-zinc-300">
                 {isPl ? "Bez szukania po mailach i Drive. Najważniejsze materiały są zawsze tutaj." : "No digging through email or Drive. The important materials stay here."}
               </p>
+              <p data-press-context class="mt-4 text-xs text-zinc-500"></p>
+              <p data-press-description class="mt-3 hidden text-xs leading-5 text-zinc-400"></p>
+              <button data-action="press-general" type="button" class="mt-4 hidden min-h-9 border border-zinc-700 px-3 text-[10px] font-black uppercase tracking-wider text-zinc-400 hover:border-amber-400 hover:text-amber-400">
+                {isPl ? "Pokaż materiały ogólne" : "Show general assets"}
+              </button>
               <div data-press-links class="mt-5 grid grid-cols-2 gap-2"></div>
             </div>
           </section>
@@ -135,6 +160,10 @@ const description = isPl
                 {isPl ? "Wyślij prośbę" : "Send request"}
               </button>
               <p data-request-status class="mt-3 min-h-5 text-xs text-zinc-500"></p>
+              <div class="mt-6 border-t border-zinc-800 pt-5">
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{isPl ? "Twoje prośby" : "Your requests"}</p>
+                <div data-request-history class="mt-3 grid gap-2"></div>
+              </div>
             </div>
             <div class="border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
               <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">{isPl ? "Zasada" : "The rule"}</p>
@@ -143,9 +172,18 @@ const description = isPl
                   ? "Nie chcemy zabierać Ci czasu. Chcemy skrócić drogę od „może coś z tego będzie” do materiału, który możesz od razu wykorzystać."
                   : "We do not want to take your time. We want to shorten the path from ‘maybe there is a story here’ to material you can use immediately."}
               </blockquote>
-              <button data-action="logout" type="button" class="mt-7 text-xs font-bold uppercase tracking-wider text-zinc-500 underline decoration-zinc-700 underline-offset-4 hover:text-zinc-300">
-                {isPl ? "Wyloguj to urządzenie" : "Sign out this device"}
-              </button>
+              <div class="mt-7 flex flex-wrap gap-x-5 gap-y-3">
+                <button data-action="logout" type="button" class="text-xs font-bold uppercase tracking-wider text-zinc-500 underline decoration-zinc-700 underline-offset-4 hover:text-zinc-300">
+                  {isPl ? "Wyloguj to urządzenie" : "Sign out this device"}
+                </button>
+                <button data-action="leave" type="button" class="text-xs font-bold uppercase tracking-wider text-zinc-500 underline decoration-zinc-700 underline-offset-4 hover:text-zinc-300">
+                  {isPl ? "Wyłącz Latarnika" : "Leave Beacon"}
+                </button>
+                <button data-action="leave-dnc" type="button" class="text-xs font-bold uppercase tracking-wider text-red-400/70 underline decoration-red-950 underline-offset-4 hover:text-red-300">
+                  {isPl ? "Nie kontaktujcie się ze mną" : "Do not contact me"}
+                </button>
+              </div>
+              <p data-leave-status class="mt-3 min-h-5 text-xs text-zinc-500"></p>
             </div>
           </section>
         </div>
@@ -161,7 +199,9 @@ const description = isPl
     const apiBase = root.dataset.apiBase || "https://signal-api.virya.music/v1"
     const lang = root.dataset.lang === "pl" ? "pl" : "en"
     const storageKey = "virya-beacon-session-v1"
-    const invite = new URLSearchParams(location.search).get("invite")?.trim() || ""
+    const initialParams = new URLSearchParams(location.search)
+    const invite = initialParams.get("invite")?.trim() || ""
+    const deepLinkEventId = initialParams.get("event_id")?.trim() || ""
     const states = [...root.querySelectorAll("[data-state]")]
     const show = name => states.forEach(node => node.classList.toggle("hidden", node.getAttribute("data-state") !== name))
     const text = (selector, value) => {
@@ -192,18 +232,118 @@ const description = isPl
         return url.protocol === "https:" ? url.toString() : "#"
       } catch { return "#" }
     }
+    const safePressUrl = value => {
+      try {
+        const url = new URL(value)
+        return url.protocol === "https:" || url.protocol === "mailto:" ? url.toString() : "#"
+      } catch { return "#" }
+    }
     const cleanInviteUrl = () => {
       const url = new URL(location.href)
       url.searchParams.delete("invite")
       history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`)
     }
-    const pressLabels = lang === "pl"
-      ? { epkUrl: "EPK", galleryUrl: "Zdjęcia", riderUrl: "Rider", spotifyUrl: "Spotify", youtubeUrl: "YouTube", homeUrl: "Latarnik" }
-      : { epkUrl: "EPK", galleryUrl: "Photos", riderUrl: "Rider", spotifyUrl: "Spotify", youtubeUrl: "YouTube", homeUrl: "Beacon" }
+    const setPressEventParam = eventId => {
+      const url = new URL(location.href)
+      if (eventId) url.searchParams.set("event_id", eventId)
+      else url.searchParams.delete("event_id")
+      history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`)
+    }
     const requestLabels = lang === "pl"
       ? { press_photo: "Zdjęcia prasowe", wav: "WAV", clean_version: "Clean version", interview: "Wywiad", accreditation: "Akredytacja", custom: "Inne" }
       : { press_photo: "Press photos", wav: "WAV", clean_version: "Clean version", interview: "Interview", accreditation: "Accreditation", custom: "Other" }
+    const helpLabels = lang === "pl"
+      ? { article: "Artykuł", radio: "Radio", podcast: "Podcast", photos: "Zdjęcia", share: "Udostępnienie", contact: "Kontakt", other: "Inne" }
+      : { article: "Article", radio: "Radio", podcast: "Podcast", photos: "Photos", share: "Share", contact: "Contact", other: "Other" }
+    const coverageLabels = lang === "pl"
+      ? { article: "Artykuł", radio: "Radio", video: "Wideo", photo: "Zdjęcia", social: "Social", podcast: "Podcast", other: "Inne" }
+      : { article: "Article", radio: "Radio", video: "Video", photo: "Photo", social: "Social", podcast: "Podcast", other: "Other" }
     let selectedRequestKind = "press_photo"
+    let selectedPressEventId = null
+
+    const renderPressRoom = (data, eventTitle = "") => {
+      selectedPressEventId = data?.eventId || null
+      const event = data?.event || null
+      const context = (() => {
+        if (!selectedPressEventId) return lang === "pl" ? "Materiały ogólne Viryi" : "General Virya materials"
+        if (!event) return lang === "pl" ? `Materiały do: ${eventTitle || "wybranego koncertu"}` : `Assets for: ${eventTitle || "selected show"}`
+        const date = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.startsAt))
+        return [event.title, date, event.city, event.venue].filter(Boolean).join(" · ")
+      })()
+      text("[data-press-context]", context)
+      const description = root.querySelector("[data-press-description]")
+      if (description instanceof HTMLElement) {
+        const value = typeof event?.description === "string" ? event.description.trim() : ""
+        description.textContent = value
+        description.classList.toggle("hidden", !value)
+      }
+      const general = root.querySelector('[data-action="press-general"]')
+      general?.classList.toggle("hidden", !selectedPressEventId)
+      setPressEventParam(selectedPressEventId)
+      const links = root.querySelector("[data-press-links]")
+      if (!links) return
+      const assets = Array.isArray(data?.assets) ? [...data.assets] : []
+      if (event?.ticketUrl) assets.push({ url: event.ticketUrl, labelPl: "Bilety / wydarzenie", labelEn: "Tickets / event" })
+      if (event?.listenUrl) assets.push({ url: event.listenUrl, labelPl: "Posłuchaj", labelEn: "Listen" })
+      if (event?.trailerUrl) assets.push({ url: event.trailerUrl, labelPl: "Wideo", labelEn: "Video" })
+      links.replaceChildren(...assets.map(asset => {
+        const a = document.createElement("a")
+        a.href = safePressUrl(asset.url)
+        if (a.href !== "#" && !a.href.startsWith("mailto:")) { a.target = "_blank"; a.rel = "noreferrer" }
+        a.className = "border border-zinc-700 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-300 hover:border-amber-400 hover:text-amber-400"
+        a.textContent = lang === "pl" ? asset.labelPl : asset.labelEn
+        return a
+      }))
+    }
+
+    const loadPressRoom = async (eventId = null, eventTitle = "") => {
+      const suffix = eventId ? `?event_id=${encodeURIComponent(eventId)}` : ""
+      const response = await api(`beacon/me/press-room${suffix}`)
+      if (!response.ok) throw new Error(`press_room_${response.status}`)
+      renderPressRoom(await response.json(), eventTitle)
+    }
+
+    const renderRequests = data => {
+      const holder = root.querySelector("[data-request-history]")
+      if (!holder) return
+      const rows = Array.isArray(data?.requests) ? data.requests : []
+      if (!rows.length) {
+        const empty = document.createElement("p")
+        empty.className = "text-xs text-zinc-600"
+        empty.textContent = lang === "pl" ? "Brak próśb." : "No requests yet."
+        holder.replaceChildren(empty)
+        return
+      }
+      holder.replaceChildren(...rows.slice(0, 8).map(item => {
+        const row = document.createElement("div")
+        row.className = "border border-zinc-800 bg-zinc-950/50 p-3 text-xs"
+        const title = document.createElement("p")
+        title.className = "font-bold text-zinc-300"
+        title.textContent = `${requestLabels[item.requestKind] || item.requestKind}${item.eventTitle ? ` · ${item.eventTitle}` : ""}`
+        const status = document.createElement("p")
+        status.className = item.status === "open" ? "mt-1 text-amber-400" : "mt-1 text-zinc-500"
+        status.textContent = item.status === "open"
+          ? (lang === "pl" ? "W toku" : "Open")
+          : (item.resolutionNote || (lang === "pl" ? "Zamknięte" : "Closed"))
+        row.append(title, status)
+        return row
+      }))
+    }
+
+    const loadRequests = async () => {
+      const response = await api("beacon/me/press-requests")
+      if (!response.ok) throw new Error(`press_requests_${response.status}`)
+      renderRequests(await response.json())
+    }
+
+    const recordEngagement = async (eventId, action, helpKind = null, helpDetails = null) => {
+      const response = await api(`beacon/me/events/${encodeURIComponent(eventId)}/engagement`, {
+        method: "POST",
+        body: JSON.stringify({ action, helpKind, helpDetails }),
+      })
+      if (!response.ok) throw new Error(`engagement_${response.status}`)
+      return response.json()
+    }
 
     const renderMember = data => {
       text("[data-member-name]", data.displayName)
@@ -219,19 +359,12 @@ const description = isPl
       }
       const nearby = root.querySelector("[data-nearby]")
       if (nearby instanceof HTMLInputElement) nearby.checked = Boolean(data.preferences.nearbyGigsEnabled)
-
-      const links = root.querySelector("[data-press-links]")
-      if (links) {
-        links.replaceChildren(...Object.entries(pressLabels).map(([key, label]) => {
-          const a = document.createElement("a")
-          a.href = safeUrl(data.pressRoom?.[key])
-          a.target = "_blank"
-          a.rel = "noreferrer"
-          a.className = "border border-zinc-700 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-300 hover:border-amber-400 hover:text-amber-400"
-          a.textContent = label
-          return a
-        }))
-      }
+      const locale = root.querySelector("[data-locale]")
+      if (locale instanceof HTMLSelectElement) locale.value = String(data.preferences.locale || lang).split("-")[0]
+      const topics = new Set(Array.isArray(data.preferences.topics) ? data.preferences.topics : [])
+      root.querySelectorAll("[data-topic]").forEach(node => {
+        if (node instanceof HTMLInputElement) node.checked = topics.has(node.dataset.topic || "")
+      })
 
       const events = root.querySelector("[data-events]")
       if (events) {
@@ -244,18 +377,60 @@ const description = isPl
         } else {
           events.replaceChildren(...rows.map(event => {
             const card = document.createElement("article")
-            card.className = "grid gap-3 border border-zinc-800 bg-zinc-950/70 p-4 sm:grid-cols-[1fr_auto] sm:items-center"
+            card.className = "border border-zinc-800 bg-zinc-950/70 p-4"
+            const top = document.createElement("div")
+            top.className = "grid gap-3 sm:grid-cols-[1fr_auto] sm:items-start"
             const info = document.createElement("div")
             const h = document.createElement("h3"); h.className = "font-black text-zinc-100"; h.textContent = event.title
             const meta = document.createElement("p"); meta.className = "mt-1 text-xs text-zinc-500"
             const date = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.startsAt))
             meta.textContent = `${date} · ${event.city}${event.venue ? ` · ${event.venue}` : ""} · ~${event.distanceKm} km`
-            info.append(h, meta); card.append(info)
+            const state = document.createElement("p"); state.className = "mt-2 text-[11px] font-bold uppercase tracking-wider text-zinc-600"
+            state.textContent = event.engagementStatus ? `${lang === "pl" ? "Status" : "Status"}: ${event.engagementStatus}` : ""
+            info.append(h, meta, state); top.append(info)
+            const details = document.createElement("div"); details.className = "flex flex-wrap gap-2 sm:justify-end"
+            const press = document.createElement("button"); press.type = "button"; press.className = "min-h-9 border border-amber-400/50 px-3 text-[11px] font-black uppercase tracking-wider text-amber-400 hover:bg-amber-400 hover:text-zinc-950"; press.textContent = "Press room"
+            press.addEventListener("click", async () => {
+              try {
+                const result = await recordEngagement(event.id, "opened")
+                state.textContent = `Status: ${result.status}`
+              } catch { state.textContent = lang === "pl" ? "Nie udało się zapisać otwarcia." : "Could not record opening." }
+              try { await loadPressRoom(event.id, event.title) } catch { state.textContent = lang === "pl" ? "Press Room chwilowo niedostępny." : "Press Room temporarily unavailable." }
+            })
+            details.append(press)
             if (event.ticketUrl) {
               const a = document.createElement("a"); a.href = safeUrl(event.ticketUrl); a.target = "_blank"; a.rel = "noreferrer"
-              a.className = "text-xs font-black uppercase tracking-wider text-amber-400 hover:text-amber-300"
-              a.textContent = lang === "pl" ? "Szczegóły ↗" : "Details ↗"; card.append(a)
+              a.className = "inline-flex min-h-9 items-center text-[11px] font-black uppercase tracking-wider text-zinc-400 hover:text-amber-400"
+              a.textContent = lang === "pl" ? "Szczegóły ↗" : "Details ↗"; details.append(a)
             }
+            top.append(details); card.append(top)
+
+            const actions = document.createElement("div"); actions.className = "mt-4 grid gap-3 border-t border-zinc-800 pt-4 lg:grid-cols-2"
+            const helpBox = document.createElement("div"); helpBox.className = "flex flex-wrap gap-2"
+            const helpSelect = document.createElement("select"); helpSelect.className = "min-h-9 border border-zinc-700 bg-zinc-950 px-2 text-xs text-zinc-300"
+            Object.entries(helpLabels).forEach(([value, label]) => { const option = new Option(label, value); helpSelect.add(option) })
+            const helpButton = document.createElement("button"); helpButton.type = "button"; helpButton.className = "min-h-9 border border-zinc-700 px-3 text-[11px] font-black uppercase tracking-wider text-zinc-300 hover:border-amber-400 hover:text-amber-400"; helpButton.textContent = lang === "pl" ? "Mogę pomóc" : "I can help"
+            const decline = document.createElement("button"); decline.type = "button"; decline.className = "min-h-9 px-2 text-[11px] font-bold uppercase tracking-wider text-zinc-600 hover:text-zinc-300"; decline.textContent = lang === "pl" ? "Nie tym razem" : "Not this time"
+            helpButton.addEventListener("click", async () => { try { const result = await recordEngagement(event.id, "helping", helpSelect.value); state.textContent = `Status: ${result.status}` } catch { state.textContent = lang === "pl" ? "Nie udało się zapisać odpowiedzi." : "Could not save response." } })
+            decline.addEventListener("click", async () => { try { const result = await recordEngagement(event.id, "declined"); state.textContent = `Status: ${result.status}` } catch { state.textContent = lang === "pl" ? "Nie udało się zapisać odpowiedzi." : "Could not save response." } })
+            helpBox.append(helpSelect, helpButton, decline)
+
+            const coverageBox = document.createElement("div"); coverageBox.className = "grid gap-2 sm:grid-cols-[auto_1fr_auto]"
+            const coverageKind = document.createElement("select"); coverageKind.className = "min-h-9 border border-zinc-700 bg-zinc-950 px-2 text-xs text-zinc-300"
+            Object.entries(coverageLabels).forEach(([value, label]) => coverageKind.add(new Option(label, value)))
+            const coverageUrl = document.createElement("input"); coverageUrl.type = "url"; coverageUrl.placeholder = "https://…"; coverageUrl.className = "min-h-9 min-w-0 border border-zinc-700 bg-zinc-950 px-3 text-xs text-zinc-200 placeholder:text-zinc-700"
+            const coverageButton = document.createElement("button"); coverageButton.type = "button"; coverageButton.className = "min-h-9 border border-zinc-700 px-3 text-[11px] font-black uppercase tracking-wider text-zinc-300 hover:border-amber-400 hover:text-amber-400"; coverageButton.textContent = lang === "pl" ? "Dodaj publikację" : "Add coverage"
+            coverageButton.addEventListener("click", async () => {
+              const url = coverageUrl.value.trim()
+              if (!url.startsWith("https://")) return
+              try {
+                const response = await api(`beacon/me/events/${encodeURIComponent(event.id)}/coverage`, { method: "POST", body: JSON.stringify({ coverageKind: coverageKind.value, url, title: null }) })
+                if (!response.ok) throw new Error("coverage")
+                coverageUrl.value = ""; state.textContent = "Status: completed"
+              } catch { state.textContent = lang === "pl" ? "Nie udało się dodać publikacji." : "Could not add coverage." }
+            })
+            coverageBox.append(coverageKind, coverageUrl, coverageButton)
+            actions.append(helpBox, coverageBox); card.append(actions)
             return card
           }))
         }
@@ -279,7 +454,16 @@ const description = isPl
       const response = await api("beacon/me", {}, bearer)
       if (response.status === 401) { clearToken(); return false }
       if (!response.ok) throw new Error(`beacon_me_${response.status}`)
-      renderMember(await response.json()); return true
+      const data = await response.json()
+      renderMember(data)
+      const requestedEvent = /^[0-9a-fA-F-]{36}$/.test(deepLinkEventId)
+        ? (Array.isArray(data.nearbyEvents) ? data.nearbyEvents.find(event => event.id === deepLinkEventId) : null)
+        : null
+      await Promise.allSettled([
+        requestedEvent ? loadPressRoom(requestedEvent.id, requestedEvent.title) : loadPressRoom(),
+        loadRequests(),
+      ])
+      return true
     }
 
     root.querySelector('[data-action="activate"]')?.addEventListener("click", async () => {
@@ -300,28 +484,61 @@ const description = isPl
     const savePreferences = async () => {
       const radius = root.querySelector("[data-radius]")
       const nearby = root.querySelector("[data-nearby]")
-      if (!(radius instanceof HTMLSelectElement) || !(nearby instanceof HTMLInputElement)) return
+      const locale = root.querySelector("[data-locale]")
+      if (!(radius instanceof HTMLSelectElement) || !(nearby instanceof HTMLInputElement) || !(locale instanceof HTMLSelectElement)) return
+      const topics = [...root.querySelectorAll("[data-topic]")]
+        .filter(node => node instanceof HTMLInputElement && node.checked)
+        .map(node => node.dataset.topic)
+        .filter(Boolean)
+      if (!topics.length) {
+        text("[data-preferences-status]", lang === "pl" ? "Wybierz co najmniej jeden temat." : "Choose at least one topic.")
+        return
+      }
       text("[data-preferences-status]", lang === "pl" ? "Zapisuję…" : "Saving…")
       try {
-        const response = await api("beacon/me/preferences", { method: "POST", body: JSON.stringify({ radiusKm: Number(radius.value), nearbyGigsEnabled: nearby.checked }) })
+        const response = await api("beacon/me/preferences", { method: "POST", body: JSON.stringify({
+          radiusKm: Number(radius.value), locale: locale.value, topics, nearbyGigsEnabled: nearby.checked,
+        }) })
         if (!response.ok) throw new Error("preferences")
         text("[data-preferences-status]", lang === "pl" ? "Zapisane." : "Saved.")
       } catch { text("[data-preferences-status]", lang === "pl" ? "Nie udało się zapisać. Spróbuj ponownie." : "Could not save. Try again.") }
     }
     root.querySelector("[data-radius]")?.addEventListener("change", savePreferences)
     root.querySelector("[data-nearby]")?.addEventListener("change", savePreferences)
+    root.querySelector("[data-locale]")?.addEventListener("change", savePreferences)
+    root.querySelectorAll("[data-topic]").forEach(node => node.addEventListener("change", savePreferences))
+
+    root.querySelector('[data-action="press-general"]')?.addEventListener("click", async () => {
+      try { await loadPressRoom() } catch { text("[data-press-context]", lang === "pl" ? "Press Room chwilowo niedostępny." : "Press Room temporarily unavailable.") }
+    })
 
     root.querySelector('[data-action="request"]')?.addEventListener("click", async () => {
       const details = root.querySelector("[data-request-details]")
       const value = details instanceof HTMLTextAreaElement ? details.value.trim() : ""
       text("[data-request-status]", lang === "pl" ? "Wysyłam…" : "Sending…")
       try {
-        const response = await api("beacon/me/press-requests", { method: "POST", body: JSON.stringify({ requestKind: selectedRequestKind, details: value || null }) })
+        const response = await api("beacon/me/press-requests", { method: "POST", body: JSON.stringify({ eventId: selectedPressEventId, requestKind: selectedRequestKind, details: value || null }) })
         if (!response.ok) throw new Error("request")
         if (details instanceof HTMLTextAreaElement) details.value = ""
+        await loadRequests()
         text("[data-request-status]", lang === "pl" ? "Gotowe. Zespół dostał prośbę." : "Done. The band has your request.")
       } catch { text("[data-request-status]", lang === "pl" ? "Nie udało się wysłać. Spróbuj ponownie." : "Could not send. Try again.") }
     })
+
+    const leave = async doNotContact => {
+      const question = doNotContact
+        ? (lang === "pl" ? "Wycofać zgodę na cały dalszy kontakt od Viryi?" : "Withdraw consent for all future contact from Virya?")
+        : (lang === "pl" ? "Wyłączyć dostęp Latarnika na wszystkich urządzeniach?" : "Disable Beacon access on all devices?")
+      if (!window.confirm(question)) return
+      text("[data-leave-status]", lang === "pl" ? "Zapisuję…" : "Saving…")
+      try {
+        const response = await api("beacon/me/leave", { method: "POST", body: JSON.stringify({ doNotContact }) })
+        if (!response.ok) throw new Error("leave")
+        clearToken(); location.assign(lang === "pl" ? "/pl/latarnik/" : "/latarnik/")
+      } catch { text("[data-leave-status]", lang === "pl" ? "Nie udało się zapisać." : "Could not save.") }
+    }
+    root.querySelector('[data-action="leave"]')?.addEventListener("click", () => leave(false))
+    root.querySelector('[data-action="leave-dnc"]')?.addEventListener("click", () => leave(true))
 
     root.querySelector('[data-action="logout"]')?.addEventListener("click", async () => {
       try { await api("beacon/me/logout", { method: "POST" }) } catch {}
