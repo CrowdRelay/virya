@@ -34,35 +34,46 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   } catch {
     return areaJson({ error: "Invalid request" }, 400)
   }
+
+  const operation = body.operation
+  const clearDeadDeliveries = operation === "clear_dead_deliveries"
   const target = body.target
   const id = body.id
+
   if (
-    (target !== "outbox" && target !== "delivery") ||
-    typeof id !== "string" ||
-    !UUID.test(id)
+    !clearDeadDeliveries &&
+    ((target !== "outbox" && target !== "delivery") ||
+      typeof id !== "string" ||
+      !UUID.test(id))
   ) {
-    return areaJson({ error: "Invalid retry target" }, 400)
+    return areaJson({ error: "Invalid ops mutation" }, 400)
   }
 
   try {
-    const path =
-      target === "outbox"
+    const path = clearDeadDeliveries
+      ? "admin/ops/deliveries/dead/clear"
+      : target === "outbox"
         ? `admin/ops/outbox/${id}/retry`
         : `admin/ops/deliveries/${id}/retry`
+    const idempotencyKey = clearDeadDeliveries
+      ? `virya-ops-clear-dead-deliveries-${randomUUID()}`
+      : `virya-ops-${target}-${id}-${randomUUID()}`
     const result = await staffApiRequest(path, {
       method: "POST",
       timeoutMs: 8_000,
-      idempotencyKey: `virya-ops-${target}-${id}-${randomUUID()}`,
+      idempotencyKey,
     })
     return areaJson(result)
   } catch (error) {
-    console.error("[staff-admin-ops-retry]", error)
+    console.error("[staff-admin-ops-mutation]", error)
     return areaJson(
       {
         error:
           error instanceof StaffQrUpstreamError && error.detail
             ? error.detail
-            : "Retry failed",
+            : clearDeadDeliveries
+              ? "Clearing dead deliveries failed"
+              : "Retry failed",
       },
       statusFor(error),
     )

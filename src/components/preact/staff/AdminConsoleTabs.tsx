@@ -630,8 +630,8 @@ export function OpsTab() {
     setMessage("")
     try {
       const result = await api<{ cleared?: number; replayed?: boolean }>(
-        "/api/staff/admin/ops/clear-dead-deliveries",
-        { method: "POST" },
+        "/api/staff/admin/ops/retry",
+        { method: "POST", body: { operation: "clear_dead_deliveries" } },
       )
       const cleared = Math.max(0, Number(result.cleared ?? 0))
       setMessage(

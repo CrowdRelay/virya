@@ -9,11 +9,14 @@ const source = async (relative: string) => readFile(path.join(root, relative), "
 
 test("Control Center can explicitly clear only dead webhook deliveries", async () => {
   const ui = await source("src/components/preact/staff/AdminConsoleTabs.tsx")
-  const route = await source("src/pages/api/staff/admin/ops/clear-dead-deliveries.ts")
+  const route = await source("src/pages/api/staff/admin/ops/retry.ts")
   assert.match(ui, /Wyczyść dead dostawy/)
   assert.match(ui, /status dead zostanie oznaczony jako cancelled/)
   assert.match(ui, /window\.confirm/)
+  assert.match(ui, /\/api\/staff\/admin\/ops\/retry/)
+  assert.match(ui, /operation: "clear_dead_deliveries"/)
   assert.match(route, /isSameOriginRequest/)
+  assert.match(route, /operation === "clear_dead_deliveries"/)
   assert.match(route, /admin\/ops\/deliveries\/dead\/clear/)
   assert.match(route, /idempotencyKey/)
 })
