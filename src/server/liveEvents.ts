@@ -43,13 +43,21 @@ type EventPayload = {
 }
 
 const safeBaseUrl = () => {
-  const configured = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)
+  const configured = readServerEnv(
+    "PUBLIC_CROWDRELAY_API_URL",
+    import.meta.env.PUBLIC_CROWDRELAY_API_URL,
+  )
   const value =
     typeof configured === "string" && configured.trim()
       ? configured.trim()
       : DEFAULT_CROWDRELAY_URL
   const url = new URL(value)
-  if (!/^https?:$/.test(url.protocol) || url.username || url.password) {
+  const localHttp = import.meta.env.DEV && url.protocol === "http:"
+  if (
+    (url.protocol !== "https:" && !localHttp) ||
+    url.username ||
+    url.password
+  ) {
     throw new Error("Invalid CrowdRelay URL")
   }
   url.search = ""
@@ -104,7 +112,10 @@ const countryCode = (country?: string): string => {
     usa: "US",
     canada: "CA",
   }
-  return known[normalized] ?? (/^[a-z]{2}$/.test(normalized) ? normalized.toUpperCase() : "--")
+  return (
+    known[normalized] ??
+    (/^[a-z]{2}$/.test(normalized) ? normalized.toUpperCase() : "--")
+  )
 }
 
 const slugify = (value: string) =>
@@ -115,13 +126,16 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
 
-const normalizeBandsintownEvent = (event: BandsintownEvent): PublicEvent | null => {
+const normalizeBandsintownEvent = (
+  event: BandsintownEvent,
+): PublicEvent | null => {
   const startsAt = event.datetime
   if (!startsAt || Number.isNaN(new Date(startsAt).getTime())) return null
 
-  const externalId = event.id == null
-    ? `${startsAt}-${event.venue?.city ?? "show"}`
-    : String(event.id)
+  const externalId =
+    event.id == null
+      ? `${startsAt}-${event.venue?.city ?? "show"}`
+      : String(event.id)
   const venue = event.venue?.name?.trim() || null
   const cityName = event.venue?.city?.trim() || null
   const lineup = Array.isArray(event.lineup) ? event.lineup.filter(Boolean) : []
@@ -216,10 +230,13 @@ const sameEvent = (left: PublicEvent, right: PublicEvent): boolean => {
   const rightAddress = slugify(right.venue_address ?? "")
   const addressMatches = Boolean(
     (leftVenue && rightAddress.includes(leftVenue)) ||
-      (rightVenue && leftAddress.includes(rightVenue)),
+    (rightVenue && leftAddress.includes(rightVenue)),
   )
 
-  return sameCity && (sameVenue || addressMatches || timeDistance <= 4 * 60 * 60 * 1000)
+  return (
+    sameCity &&
+    (sameVenue || addressMatches || timeDistance <= 4 * 60 * 60 * 1000)
+  )
 }
 
 const hasFirstPartyTicketSale = (event: PublicEvent): boolean =>
@@ -233,13 +250,19 @@ const preferredDuplicate = (
   // syncs leave duplicate rows for the same gig, retaining the first row can
   // silently disconnect the public card from the configured sale. Keep the
   // sale-bearing event identity and only use the duplicate as content fallback.
-  if (!hasFirstPartyTicketSale(existing) && hasFirstPartyTicketSale(candidate)) {
+  if (
+    !hasFirstPartyTicketSale(existing) &&
+    hasFirstPartyTicketSale(candidate)
+  ) {
     return [candidate, existing]
   }
   return [existing, candidate]
 }
 
-const enrichEvent = (primary: PublicEvent, fallback: PublicEvent): PublicEvent => ({
+const enrichEvent = (
+  primary: PublicEvent,
+  fallback: PublicEvent,
+): PublicEvent => ({
   ...fallback,
   ...primary,
   description: primary.description ?? fallback.description,
@@ -262,7 +285,9 @@ const mergeEvents = (...groups: PublicEvent[][]): PublicEvent[] => {
 
   for (const group of groups) {
     for (const event of group) {
-      const existingIndex = merged.findIndex(existing => sameEvent(existing, event))
+      const existingIndex = merged.findIndex(existing =>
+        sameEvent(existing, event),
+      )
       if (existingIndex >= 0) {
         const existing = merged[existingIndex]
         if (existing) {
@@ -276,10 +301,14 @@ const mergeEvents = (...groups: PublicEvent[][]): PublicEvent[] => {
   }
 
   return merged
-    .filter(event => new Date(event.starts_at).getTime() >= Date.now() - 12 * 60 * 60 * 1000)
+    .filter(
+      event =>
+        new Date(event.starts_at).getTime() >= Date.now() - 12 * 60 * 60 * 1000,
+    )
     .sort(
       (left, right) =>
-        new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime(),
+        new Date(left.starts_at).getTime() -
+        new Date(right.starts_at).getTime(),
     )
 }
 
@@ -304,7 +333,10 @@ const loadCrowdRelayEvents = async (): Promise<PublicEvent[]> => {
 }
 
 const loadBandsintownEvents = async (): Promise<PublicEvent[]> => {
-  const configured = readServerEnv("BANDSINTOWN_APP_ID", import.meta.env.BANDSINTOWN_APP_ID)
+  const configured = readServerEnv(
+    "BANDSINTOWN_APP_ID",
+    import.meta.env.BANDSINTOWN_APP_ID,
+  )
   const appId =
     typeof configured === "string" && configured.trim()
       ? configured.trim()
@@ -383,9 +415,8 @@ const resolveLiveEvents = async (): Promise<LiveEventLoadResult> => {
       // Resolve sales before deduplication. Otherwise a duplicate event without
       // a sale can win the merge and its slug is later used to query tickets,
       // making a valid allocation appear missing on Virya.
-      const ticketedCrowdRelayEvents = await enrichEventsWithTicketSales(
-        crowdRelayEvents,
-      )
+      const ticketedCrowdRelayEvents =
+        await enrichEventsWithTicketSales(crowdRelayEvents)
       return {
         // Curated records are content-only fallbacks for address/description.
         // CrowdRelay keeps identity and ticket state whenever the same gig exists
@@ -417,11 +448,12 @@ export const loadLiveEvents = async (): Promise<LiveEventLoadResult> => {
   }
   if (pendingLiveEvents) return pendingLiveEvents
 
-  const staleHealthy = cachedLiveEvents &&
+  const staleHealthy =
+    cachedLiveEvents &&
     !cachedLiveEvents.result.degraded &&
     cachedLiveEvents.staleUntil > now
-    ? cachedLiveEvents
-    : null
+      ? cachedLiveEvents
+      : null
 
   pendingLiveEvents = resolveLiveEvents()
     .then(result => {
@@ -429,17 +461,22 @@ export const loadLiveEvents = async (): Promise<LiveEventLoadResult> => {
       // During a short CrowdRelay outage, keep the last ticket-aware event model
       // rather than replacing it immediately with a content-only provider fallback.
       // The degraded flag stays visible and the stale window is never extended.
-      const effective = result.degraded && staleHealthy
-        ? { events: staleHealthy.result.events, degraded: true }
-        : result
+      const effective =
+        result.degraded && staleHealthy
+          ? { events: staleHealthy.result.events, degraded: true }
+          : result
       cachedLiveEvents = {
         result: effective,
         expiresAt:
-          resolvedAt + (effective.degraded ? DEGRADED_CACHE_TTL_MS : HEALTHY_CACHE_TTL_MS),
+          resolvedAt +
+          (effective.degraded ? DEGRADED_CACHE_TTL_MS : HEALTHY_CACHE_TTL_MS),
         staleUntil:
           result.degraded && staleHealthy
             ? staleHealthy.staleUntil
-            : resolvedAt + (effective.degraded ? DEGRADED_CACHE_TTL_MS : HEALTHY_STALE_TTL_MS),
+            : resolvedAt +
+              (effective.degraded
+                ? DEGRADED_CACHE_TTL_MS
+                : HEALTHY_STALE_TTL_MS),
       }
       return effective
     })
@@ -450,8 +487,9 @@ export const loadLiveEvents = async (): Promise<LiveEventLoadResult> => {
   return pendingLiveEvents
 }
 
-
-export const loadLiveEvent = async (slug: string): Promise<PublicEvent | null> => {
+export const loadLiveEvent = async (
+  slug: string,
+): Promise<PublicEvent | null> => {
   if (!/^[a-z0-9][a-z0-9_-]{0,127}$/.test(slug)) return null
   const { events } = await loadLiveEvents()
   return events.find(event => event.slug === slug) ?? null
@@ -470,9 +508,11 @@ const isTicketTypeOffer = (value: unknown): boolean => {
     typeof ticketType.id === "string" &&
     typeof ticketType.slug === "string" &&
     typeof ticketType.name === "string" &&
-    (ticketType.description === null || typeof ticketType.description === "string") &&
+    (ticketType.description === null ||
+      typeof ticketType.description === "string") &&
     isNonNegativeNumber(ticketType.price_gross_minor) &&
-    (ticketType.capacity === null || isNonNegativeNumber(ticketType.capacity)) &&
+    (ticketType.capacity === null ||
+      isNonNegativeNumber(ticketType.capacity)) &&
     isOptionalNonNegativeNumber(ticketType.sold) &&
     isOptionalNonNegativeNumber(ticketType.reserved) &&
     isNonNegativeNumber(ticketType.available) &&
@@ -508,7 +548,9 @@ const isTicketSaleOffer = (value: unknown): value is TicketSaleOffer => {
   )
 }
 
-const fetchLiveTicketSale = async (slug: string): Promise<TicketSaleOffer | null> => {
+const fetchLiveTicketSale = async (
+  slug: string,
+): Promise<TicketSaleOffer | null> => {
   try {
     const url = new URL(
       `public/events/${encodeURIComponent(slug)}/tickets`,
@@ -582,10 +624,7 @@ const enrichEventsWithTicketSales = async (
   await Promise.all(
     Array.from(
       {
-        length: Math.min(
-          TICKET_SALE_ENRICHMENT_CONCURRENCY,
-          candidates.length,
-        ),
+        length: Math.min(TICKET_SALE_ENRICHMENT_CONCURRENCY, candidates.length),
       },
       worker,
     ),

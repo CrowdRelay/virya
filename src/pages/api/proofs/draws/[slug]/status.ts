@@ -1,5 +1,5 @@
-import { readServerEnv } from "../../../../../server/runtimeEnv.ts"
 import { readLimitedJson } from "../../../../../server/readLimitedJson.ts"
+import { publicDrawApiBase } from "../../../../../server/publicDrawProof.ts"
 import type { APIRoute } from "astro"
 import { areaJson } from "../../../../../server/areaHttp"
 import { resolvePublicDrawProof } from "../../../../../data/drawProofs"
@@ -7,18 +7,19 @@ import { resolvePublicDrawProof } from "../../../../../data/drawProofs"
 export const prerender = false
 const MAX_RESPONSE_BYTES = 64 * 1024
 const SLUG = /^[a-z0-9][a-z0-9_-]{0,127}$/
-const DEFAULT_BASE_URL = "https://signal-api.virya.music/v1/"
 
 export const GET: APIRoute = async ({ params }) => {
   const slug = params.slug ?? ""
   if (!SLUG.test(slug)) return areaJson({ error: "Invalid draw" }, 400)
   const drawRef = resolvePublicDrawProof(slug)
-  const configured = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)?.trim() || DEFAULT_BASE_URL
-  const base = configured.endsWith("/") ? configured : `${configured}/`
+  const base = publicDrawApiBase()
   try {
     const response = await fetch(
       `${base}public/proofs/draws/${encodeURIComponent(drawRef.drawSlug)}/status`,
-      { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8_000) },
+      {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(8_000),
+      },
     )
     let payload: unknown
     try {

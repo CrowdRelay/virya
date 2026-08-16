@@ -94,13 +94,21 @@ export class CrowdRelayTicketingError extends Error {
 }
 
 const baseUrl = () => {
-  const configured = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)
+  const configured = readServerEnv(
+    "PUBLIC_CROWDRELAY_API_URL",
+    import.meta.env.PUBLIC_CROWDRELAY_API_URL,
+  )
   const value =
     typeof configured === "string" && configured.trim()
       ? configured.trim()
       : DEFAULT_BASE_URL
   const url = new URL(value)
-  if (!/^https?:$/.test(url.protocol) || url.username || url.password) {
+  const localHttp = import.meta.env.DEV && url.protocol === "http:"
+  if (
+    (url.protocol !== "https:" && !localHttp) ||
+    url.username ||
+    url.password
+  ) {
     throw new Error("Invalid CrowdRelay base URL")
   }
   url.hash = ""
@@ -110,14 +118,16 @@ const baseUrl = () => {
 }
 
 const commerceKey = () => {
-  const value = readServerEnv("CROWDRELAY_COMMERCE_API_KEY", import.meta.env.CROWDRELAY_COMMERCE_API_KEY)
+  const value = readServerEnv(
+    "CROWDRELAY_COMMERCE_API_KEY",
+    import.meta.env.CROWDRELAY_COMMERCE_API_KEY,
+  )
   return typeof value === "string" && value.length >= 24 && value.length <= 512
     ? value
     : null
 }
 
 export const isCrowdRelayTicketingConfigured = () => commerceKey() !== null
-
 
 type TicketingRequestOptions = {
   method?: "GET" | "POST"
@@ -133,7 +143,8 @@ const ticketingRequest = async <T>(
   options: TicketingRequestOptions = {},
 ): Promise<T> => {
   const headers = new Headers({ Accept: "application/json" })
-  if (options.body !== undefined) headers.set("Content-Type", "application/json")
+  if (options.body !== undefined)
+    headers.set("Content-Type", "application/json")
   if (options.idempotencyKey) {
     headers.set("Idempotency-Key", options.idempotencyKey)
   }
@@ -165,7 +176,11 @@ const ticketingRequest = async <T>(
       throw new CrowdRelayTicketingError(response.status)
     }
     if (response.status === 204) return undefined as T
-    return await readLimitedJson<T>(response, MAX_UPSTREAM_BYTES, () => new CrowdRelayTicketingError(502))
+    return await readLimitedJson<T>(
+      response,
+      MAX_UPSTREAM_BYTES,
+      () => new CrowdRelayTicketingError(502),
+    )
   } catch (error) {
     if (error instanceof CrowdRelayTicketingError) throw error
     throw new CrowdRelayTicketingError(502)

@@ -1,8 +1,11 @@
 import { readServerEnv } from "../../server/runtimeEnv.ts"
+import { readLimitedJson } from "../../server/readLimitedJson.ts"
 import type { APIRoute } from "astro"
 
 const ARTIST = "virya"
-const APP_ID = readServerEnv("BANDSINTOWN_APP_ID", import.meta.env.BANDSINTOWN_APP_ID) || "virya-website"
+const APP_ID =
+  readServerEnv("BANDSINTOWN_APP_ID", import.meta.env.BANDSINTOWN_APP_ID) ||
+  "virya-website"
 const REQUEST_TIMEOUT_MS = 8_000
 const MAX_RESPONSE_BYTES = 512 * 1024
 const MAX_EVENTS = 100
@@ -27,15 +30,7 @@ export const GET: APIRoute = async () => {
     if (!res.ok) {
       return json([], ERROR_CACHE)
     }
-    const declared = Number(res.headers.get("content-length") ?? "0")
-    if (Number.isFinite(declared) && declared > MAX_RESPONSE_BYTES) {
-      throw new Error("Bandsintown response too large")
-    }
-    const text = await res.text()
-    if (Buffer.byteLength(text, "utf8") > MAX_RESPONSE_BYTES) {
-      throw new Error("Bandsintown response too large")
-    }
-    const data = JSON.parse(text)
+    const data = await readLimitedJson<unknown>(res, MAX_RESPONSE_BYTES)
     const events = Array.isArray(data) ? data.slice(0, MAX_EVENTS) : []
     return json(events, SUCCESS_CACHE)
   } catch (err) {

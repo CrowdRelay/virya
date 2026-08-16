@@ -106,13 +106,21 @@ export class CrowdRelayCommerceError extends Error {
 }
 
 const baseUrl = () => {
-  const configured = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)
+  const configured = readServerEnv(
+    "PUBLIC_CROWDRELAY_API_URL",
+    import.meta.env.PUBLIC_CROWDRELAY_API_URL,
+  )
   const value =
     typeof configured === "string" && configured.trim()
       ? configured.trim()
       : DEFAULT_BASE_URL
   const url = new URL(value)
-  if (!/^https?:$/.test(url.protocol) || url.username || url.password) {
+  const localHttp = import.meta.env.DEV && url.protocol === "http:"
+  if (
+    (url.protocol !== "https:" && !localHttp) ||
+    url.username ||
+    url.password
+  ) {
     throw new Error("Invalid CrowdRelay base URL")
   }
   url.hash = ""
@@ -122,14 +130,16 @@ const baseUrl = () => {
 }
 
 const commerceKey = () => {
-  const value = readServerEnv("CROWDRELAY_COMMERCE_API_KEY", import.meta.env.CROWDRELAY_COMMERCE_API_KEY)
+  const value = readServerEnv(
+    "CROWDRELAY_COMMERCE_API_KEY",
+    import.meta.env.CROWDRELAY_COMMERCE_API_KEY,
+  )
   return typeof value === "string" && value.length >= 24 && value.length <= 512
     ? value
     : null
 }
 
 export const merchInventoryConfigured = () => commerceKey() !== null
-
 
 type RequestOptions = {
   method?: "GET" | "POST"
@@ -145,7 +155,8 @@ const commerceRequest = async <T>(
   options: RequestOptions = {},
 ): Promise<T> => {
   const headers = new Headers({ Accept: "application/json" })
-  if (options.body !== undefined) headers.set("Content-Type", "application/json")
+  if (options.body !== undefined)
+    headers.set("Content-Type", "application/json")
   if (options.correlationId) {
     headers.set("X-CrowdRelay-Correlation-Id", options.correlationId)
   }
@@ -174,7 +185,11 @@ const commerceRequest = async <T>(
     })
     if (!response.ok) throw new CrowdRelayCommerceError(response.status)
     if (response.status === 204) return undefined as T
-    return await readLimitedJson<T>(response, MAX_UPSTREAM_BYTES, () => new CrowdRelayCommerceError(502))
+    return await readLimitedJson<T>(
+      response,
+      MAX_UPSTREAM_BYTES,
+      () => new CrowdRelayCommerceError(502),
+    )
   } catch (error) {
     if (error instanceof CrowdRelayCommerceError) throw error
     throw new CrowdRelayCommerceError(502)
@@ -201,7 +216,8 @@ export const merchInventoryWritesReady = async () => {
     // Compatibility with a backend deployed before inventory onboarding. Once
     // the endpoint exists, every other error fails closed rather than bypassing
     // stock reservations after staff activation.
-    if (error instanceof CrowdRelayCommerceError && error.status === 404) return false
+    if (error instanceof CrowdRelayCommerceError && error.status === 404)
+      return false
     throw error
   }
 }
@@ -232,10 +248,7 @@ export const commitMerchInventory = (reservationId: string) =>
     },
   )
 
-export const releaseMerchInventory = (
-  reservationId: string,
-  reason: string,
-) =>
+export const releaseMerchInventory = (reservationId: string, reason: string) =>
   commerceRequest<InventoryReservation>(
     `internal/merch/reservations/${encodeURIComponent(reservationId)}/release`,
     {

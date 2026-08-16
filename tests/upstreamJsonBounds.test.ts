@@ -3,7 +3,10 @@ import test from "node:test"
 import { readFileSync } from "node:fs"
 import { parsePublicDrawProof } from "../src/server/publicDrawProof.ts"
 import { readLimitedJson } from "../src/server/readLimitedJson.ts"
-import { BodyTooLargeError, readLimitedText } from "../src/server/readLimitedBody.ts"
+import {
+  BodyTooLargeError,
+  readLimitedText,
+} from "../src/server/readLimitedBody.ts"
 
 const hex = "a".repeat(64)
 const proof = () => ({
@@ -60,19 +63,23 @@ test("public draw proof rejects malformed nested data before Astro rendering", (
 
 test("upstream JSON byte limit is enforced without Content-Length", async () => {
   const encoder = new TextEncoder()
-  const response = new Response(new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(encoder.encode('{"value":"'))
-      controller.enqueue(encoder.encode("x".repeat(128)))
-      controller.enqueue(encoder.encode('"}'))
-      controller.close()
-    },
-  }), { headers: { "content-type": "application/json" } })
+  const response = new Response(
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(encoder.encode('{"value":"'))
+        controller.enqueue(encoder.encode("x".repeat(128)))
+        controller.enqueue(encoder.encode('"}'))
+        controller.close()
+      },
+    }),
+    { headers: { "content-type": "application/json" } },
+  )
 
-  await assert.rejects(() => readLimitedJson(response, 64), /invalid or too large/i)
+  await assert.rejects(
+    () => readLimitedJson(response, 64),
+    /invalid or too large/i,
+  )
 })
-
-
 
 test("request body byte limit is enforced while streaming", async () => {
   const request = new Request("https://virya.music/api/test", {
@@ -86,11 +93,17 @@ test("request body byte limit is enforced while streaming", async () => {
   )
 })
 test("upstream JSON reader rejects invalid JSON inside the byte budget", async () => {
-  const response = new Response("not-json", { headers: { "content-type": "application/json" } })
-  await assert.rejects(() => readLimitedJson(response, 64), /invalid or too large/i)
+  const response = new Response("not-json", {
+    headers: { "content-type": "application/json" },
+  })
+  await assert.rejects(
+    () => readLimitedJson(response, 64),
+    /invalid or too large/i,
+  )
 })
 
-const source = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
+const source = (path: string) =>
+  readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 
 test("server-to-server JSON boundaries share the streaming reader", () => {
   for (const path of [
@@ -100,11 +113,22 @@ test("server-to-server JSON boundaries share the streaming reader", () => {
     "src/server/crowdrelayTicketing.ts",
     "src/server/staffQrApi.ts",
     "src/server/staffPairing.ts",
+    "src/pages/api/bandsintown.ts",
   ]) {
-    assert.match(source(path), /readLimitedJson/, `${path} bypasses bounded JSON`)
+    assert.match(
+      source(path),
+      /readLimitedJson/,
+      `${path} bypasses bounded JSON`,
+    )
   }
-  assert.match(source("src/pages/api/proofs/draws/[slug].ts"), /readLimitedJson/)
-  assert.match(source("src/pages/api/proofs/draws/[slug]\/status.ts"), /readLimitedJson/)
+  assert.match(
+    source("src/pages/api/proofs/draws/[slug].ts"),
+    /readLimitedJson/,
+  )
+  assert.match(
+    source("src/pages/api/proofs/draws/[slug]\/status.ts"),
+    /readLimitedJson/,
+  )
 })
 
 test("public and staff mutation bodies never buffer unbounded request text", () => {
@@ -122,11 +146,18 @@ test("public and staff mutation bodies never buffer unbounded request text", () 
   ]
   for (const path of routes) {
     const body = source(path)
-    assert.match(body, /readLimitedText\(request, MAX_BODY_BYTES\)/, `${path} bypasses the streaming request limit`)
-    assert.doesNotMatch(body, /request\.(?:text|json|arrayBuffer)\(/, `${path} buffers an unbounded request`)
+    assert.match(
+      body,
+      /readLimitedText\(request, MAX_BODY_BYTES\)/,
+      `${path} bypasses the streaming request limit`,
+    )
+    assert.doesNotMatch(
+      body,
+      /request\.(?:text|json|arrayBuffer)\(/,
+      `${path} buffers an unbounded request`,
+    )
   }
   const areaHttp = source("src/server/areaHttp.ts")
   assert.match(areaHttp, /readLimitedText\(request, MAX_JSON_BYTES\)/)
   assert.doesNotMatch(areaHttp, /request\.(?:text|json|arrayBuffer)\(/)
 })
-

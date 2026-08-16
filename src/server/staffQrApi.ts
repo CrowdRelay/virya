@@ -36,13 +36,21 @@ export type StaffQrCampaign = {
 }
 
 const baseUrl = () => {
-  const configured = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)
+  const configured = readServerEnv(
+    "PUBLIC_CROWDRELAY_API_URL",
+    import.meta.env.PUBLIC_CROWDRELAY_API_URL,
+  )
   const value =
     typeof configured === "string" && configured.trim()
       ? configured.trim()
       : DEFAULT_BASE_URL
   const url = new URL(value)
-  if (!/^https?:$/.test(url.protocol) || url.username || url.password) {
+  const localHttp = import.meta.env.DEV && url.protocol === "http:"
+  if (
+    (url.protocol !== "https:" && !localHttp) ||
+    url.username ||
+    url.password
+  ) {
     throw new Error("Invalid CrowdRelay base URL")
   }
   url.hash = ""
@@ -52,7 +60,10 @@ const baseUrl = () => {
 }
 
 const adminKey = () => {
-  const value = readServerEnv("CROWDRELAY_ADMIN_API_KEY", import.meta.env.CROWDRELAY_ADMIN_API_KEY)
+  const value = readServerEnv(
+    "CROWDRELAY_ADMIN_API_KEY",
+    import.meta.env.CROWDRELAY_ADMIN_API_KEY,
+  )
   return typeof value === "string" && value.length >= 24 && value.length <= 512
     ? value
     : null
@@ -80,10 +91,15 @@ const safeProblemDetail = (value: unknown): string | null => {
     : null
 }
 
-
 export const staffQrRequest = async <T>(
   path: string,
-  options: { method?: "GET" | "POST"; body?: unknown; timeoutMs?: number; idempotencyKey?: string; correlationId?: string } = {},
+  options: {
+    method?: "GET" | "POST"
+    body?: unknown
+    timeoutMs?: number
+    idempotencyKey?: string
+    correlationId?: string
+  } = {},
 ): Promise<T> => {
   const key = adminKey()
   if (!key) throw new StaffQrUpstreamError(503)
@@ -99,7 +115,8 @@ export const staffQrRequest = async <T>(
       Accept: "application/json",
       Authorization: `Bearer ${key}`,
     })
-    if (options.body !== undefined) headers.set("Content-Type", "application/json")
+    if (options.body !== undefined)
+      headers.set("Content-Type", "application/json")
     const method = options.method ?? "GET"
     const idempotencyKey = options.idempotencyKey
     if (idempotencyKey) headers.set("Idempotency-Key", idempotencyKey)
@@ -119,8 +136,13 @@ export const staffQrRequest = async <T>(
     if (!response.ok) {
       let detail: string | null = null
       try {
-        const problem = await readLimitedJson<Record<string, unknown>>(response, MAX_UPSTREAM_BYTES, () => new StaffQrUpstreamError(response.status))
-        detail = safeProblemDetail(problem.detail) ?? safeProblemDetail(problem.title)
+        const problem = await readLimitedJson<Record<string, unknown>>(
+          response,
+          MAX_UPSTREAM_BYTES,
+          () => new StaffQrUpstreamError(response.status),
+        )
+        detail =
+          safeProblemDetail(problem.detail) ?? safeProblemDetail(problem.title)
       } catch {
         // Preserve the upstream status even when its error body is absent or malformed.
       }
@@ -128,7 +150,11 @@ export const staffQrRequest = async <T>(
     }
     if (response.status === 204) return undefined as T
 
-    return await readLimitedJson<T>(response, MAX_UPSTREAM_BYTES, () => new StaffQrUpstreamError(502))
+    return await readLimitedJson<T>(
+      response,
+      MAX_UPSTREAM_BYTES,
+      () => new StaffQrUpstreamError(502),
+    )
   } catch (error) {
     if (error instanceof StaffQrUpstreamError) throw error
     throw new StaffQrUpstreamError(502)
@@ -143,7 +169,9 @@ const MAX_STAFF_DOWNLOAD_BYTES = 5 * 1024 * 1024
 export const staffApiRequest = staffQrRequest
 export const isStaffApiConfigured = isStaffQrApiConfigured
 
-export const staffApiDownload = async (path: string): Promise<{
+export const staffApiDownload = async (
+  path: string,
+): Promise<{
   body: ArrayBuffer
   contentType: string
   contentDisposition: string
@@ -167,10 +195,14 @@ export const staffApiDownload = async (path: string): Promise<{
       MAX_STAFF_DOWNLOAD_BYTES,
       () => new StaffQrUpstreamError(502),
     )
-    const buffer = body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) as ArrayBuffer
+    const buffer = body.buffer.slice(
+      body.byteOffset,
+      body.byteOffset + body.byteLength,
+    ) as ArrayBuffer
     return {
       body: buffer,
-      contentType: response.headers.get("content-type") ?? "text/csv; charset=utf-8",
+      contentType:
+        response.headers.get("content-type") ?? "text/csv; charset=utf-8",
       contentDisposition:
         response.headers.get("content-disposition") ??
         'attachment; filename="ticket-sales.csv"',
