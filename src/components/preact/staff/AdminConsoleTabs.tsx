@@ -408,9 +408,9 @@ export function SignalTab() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState("")
 
-  async function load(signal?: AbortSignal, preserveMessage = false) {
+  async function load(signal?: AbortSignal) {
     setLoading(true)
-    if (!preserveMessage) setMessage("")
+    setMessage("")
     try {
       setOverview(
         await api<SignalOverview>("/api/staff/admin/signal/overview", {
@@ -596,9 +596,9 @@ export function OpsTab() {
   const [clearingDead, setClearingDead] = useState(false)
   const [message, setMessage] = useState("")
 
-  async function load(signal?: AbortSignal) {
+  async function load(signal?: AbortSignal, preserveMessage = false) {
     setLoading(true)
-    setMessage("")
+    if (!preserveMessage) setMessage("")
     try {
       setOverview(
         await api<OpsOverview>("/api/staff/admin/ops/summary", { signal }),
