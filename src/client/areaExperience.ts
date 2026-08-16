@@ -1,3 +1,5 @@
+import { createAreaCollectionRenderer, type AreaLatestClaim } from "./areaCollectionRenderer"
+
 // Browser runtime for AreaExperience.astro. Keep private coordinates server-side.
 type DropInfo = {
   id: string
@@ -23,17 +25,64 @@ const areaDistance = (lat1: number, lng1: number, lat2: number, lng2: number) =>
   return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-const areaPosition = () => new Promise<GeolocationPosition>((resolve, reject) => {
-  if (!("geolocation" in navigator)) {
-    reject(new Error("geolocation unavailable"))
-    return
-  }
-  navigator.geolocation.getCurrentPosition(resolve, reject, {
-    enableHighAccuracy: true,
-    maximumAge: 0,
-    timeout: 10000,
+const AREA_NEAREST_CACHE_MS = 120_000
+let areaWarmPosition: GeolocationPosition | null = null
+let areaWarmupScheduled = false
+
+const areaPositionWithOptions = (options: PositionOptions) =>
+  new Promise<GeolocationPosition>((resolve, reject) => {
+    if (!("geolocation" in navigator)) {
+      reject(new Error("geolocation unavailable"))
+      return
+    }
+    navigator.geolocation.getCurrentPosition((position) => {
+      areaWarmPosition = position
+      resolve(position)
+    }, reject, options)
   })
+
+const areaPrecisePosition = () => areaPositionWithOptions({
+  enableHighAccuracy: true,
+  maximumAge: 0,
+  timeout: 10_000,
 })
+
+const areaNearestPosition = () => {
+  const cached = areaWarmPosition
+  if (cached && Date.now() - cached.timestamp <= AREA_NEAREST_CACHE_MS) {
+    return Promise.resolve(cached)
+  }
+  return areaPositionWithOptions({
+    enableHighAccuracy: false,
+    maximumAge: AREA_NEAREST_CACHE_MS,
+    timeout: 5_000,
+  })
+}
+
+const scheduleAreaLocationWarmup = () => {
+  if (areaWarmupScheduled || !("geolocation" in navigator)) return
+  areaWarmupScheduled = true
+  const warm = async () => {
+    try {
+      // Never trigger the browser permission prompt just for warmup. The first
+      // explicit user action remains the permission boundary.
+      if (!navigator.permissions?.query) return
+      const permission = await navigator.permissions.query({ name: "geolocation" as PermissionName })
+      if (permission.state !== "granted") return
+      await areaNearestPosition()
+    } catch {
+      // Warmup is best-effort; the explicit nearest/claim actions own UX errors.
+    }
+  }
+  const requestIdle = Reflect.get(window, "requestIdleCallback") as
+    | ((callback: IdleRequestCallback, options?: IdleRequestOptions) => number)
+    | undefined
+  if (typeof requestIdle === "function") {
+    requestIdle(() => void warm(), { timeout: 1_500 })
+  } else {
+    globalThis.setTimeout(() => void warm(), 250)
+  }
+}
 
 const formatAreaDistance = (kilometres: number) => {
   if (kilometres < 1) return `${Math.max(1, Math.round(kilometres * 1000))} m`
@@ -58,7 +107,7 @@ const initAreaExperience = () => {
     const drops = new Map<string, DropInfo>()
     const liveDrops = new Set<string>()
     const claimedDrops = new Set<string>()
-    let latestClaim: { dropId: string; city: string; citySlug: string; line: string } | null = null
+    let latestClaim: AreaLatestClaim | null = null
     let isClaiming = false
     let isAuthenticated = false
     let profileResolved = false
@@ -84,6 +133,11 @@ const initAreaExperience = () => {
         lng: Number(button.dataset.lng),
       })
     })
+
+    // Warm the provider only when AREA actually has an active signal. This keeps
+    // idle visits completely GPS-free while still making the first explicit
+    // nearest-point lookup feel warm when permission was already granted.
+    if (liveDrops.size > 0) scheduleAreaLocationWarmup()
 
     const selectedCity = root.querySelector<HTMLElement>("[data-selected-city]")
     const selectedRegion = root.querySelector<HTMLElement>("[data-selected-region]")
@@ -326,7 +380,7 @@ const initAreaExperience = () => {
       }
       if (locationStatus) locationStatus.textContent = copy.locationWorking
       try {
-        const position = await areaPosition()
+        const position = await areaNearestPosition()
         let nearest: { drop: DropInfo; distance: number } | null = null
         for (const drop of drops.values()) {
           if (!liveDrops.has(drop.id)) continue
@@ -349,224 +403,16 @@ const initAreaExperience = () => {
       }
     })
 
-    const renderClaims = (claims: any[]) => {
-      claimedDrops.clear()
-      latestClaim = null
-      root.querySelectorAll<HTMLElement>("[data-collection-card]").forEach((card) => {
-        card.classList.remove("is-unlocked")
-        const locked = card.querySelector<HTMLElement>("[data-card-locked]")
-        const unlocked = card.querySelector<HTMLElement>("[data-card-unlocked]")
-        const state = card.querySelector<HTMLElement>("[data-card-state]")
-        const line = card.querySelector<HTMLElement>("[data-card-line]")
-        const track = card.querySelector<HTMLElement>("[data-card-track]")
-        const riddle = card.querySelector<HTMLElement>("[data-card-riddle]")
-        const meta = card.querySelector<HTMLElement>("[data-card-meta]")
-        const artwork = card.querySelector<HTMLImageElement>("[data-card-artwork]")
-        const artworkPlaceholder = card.querySelector<HTMLElement>(
-          "[data-card-artwork-placeholder]"
-        )
-        if (locked) locked.hidden = false
-        if (unlocked) unlocked.hidden = true
-        if (state) {
-          state.textContent = copy.locked
-          state.classList.remove("text-amber-400")
-          state.classList.add("text-zinc-400")
-        }
-        if (line) line.textContent = ""
-        if (track) track.textContent = ""
-        if (riddle) riddle.textContent = ""
-        if (meta) meta.textContent = ""
-        if (artwork) {
-          artwork.onload = null
-          artwork.onerror = null
-          artwork.removeAttribute("src")
-          artwork.alt = ""
-          artwork.hidden = true
-        }
-        if (artworkPlaceholder) artworkPlaceholder.hidden = false
-      })
-
-      claims.forEach((claim) => {
-        if (!claim?.dropId || !drops.has(claim.dropId)) return
-        claimedDrops.add(claim.dropId)
-        latestClaim = {
-          dropId: claim.dropId,
-          city: claim.city || "",
-          citySlug: drops.get(claim.dropId)?.citySlug || "",
-          line: claim.line || "",
-        }
-        const card = root.querySelector<HTMLElement>(`[data-collection-card="${CSS.escape(claim.dropId)}"]`)
-        if (!card) return
-        card.classList.add("is-unlocked")
-        const locked = card.querySelector<HTMLElement>("[data-card-locked]")
-        const unlocked = card.querySelector<HTMLElement>("[data-card-unlocked]")
-        if (locked) locked.hidden = true
-        if (unlocked) unlocked.hidden = false
-        const line = card.querySelector<HTMLElement>("[data-card-line]")
-        const track = card.querySelector<HTMLElement>("[data-card-track]")
-        const state = card.querySelector<HTMLElement>("[data-card-state]")
-        const meta = card.querySelector<HTMLElement>("[data-card-meta]")
-        const riddle = card.querySelector<HTMLElement>("[data-card-riddle]")
-        const artwork = card.querySelector<HTMLImageElement>("[data-card-artwork]")
-        const artworkPlaceholder = card.querySelector<HTMLElement>(
-          "[data-card-artwork-placeholder]"
-        )
-        if (line) line.textContent = `“${claim.line}”`
-        if (track) track.textContent = `${claim.track} · ${claim.edition}`
-        if (riddle) {
-          riddle.textContent = claim.riddle
-            ? `${copy.riddle}: ${claim.riddle}`
-            : ""
-        }
-        const artworkPath =
-          typeof claim.artwork === "string"
-            ? claim.artwork
-            : typeof claim.artworkUrl === "string"
-            ? claim.artworkUrl
-            : ""
-        const expectedArtwork = `/area/collectibles/${claim.dropId}.webp`
-        if (artwork && artworkPath === expectedArtwork) {
-          artwork.alt = `${copy.artworkAlt} — ${claim.city || claim.dropId}`
-          artwork.hidden = false
-          artwork.onload = () => {
-            if (artworkPlaceholder) artworkPlaceholder.hidden = true
-          }
-          artwork.onerror = () => {
-            artwork.removeAttribute("src")
-            artwork.hidden = true
-            if (artworkPlaceholder) artworkPlaceholder.hidden = false
-          }
-          artwork.src = artworkPath
-        } else if (artworkPlaceholder) {
-          artworkPlaceholder.hidden = false
-        }
-        if (meta) {
-          const recoveredAt = new Date(claim.claimedAt)
-          const date = Number.isNaN(recoveredAt.getTime())
-            ? ""
-            : new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
-                dateStyle: "medium",
-              }).format(recoveredAt)
-          const artifact = Number.isInteger(claim.editionNumber)
-            ? `${copy.editionNumber} #${String(claim.editionNumber).padStart(3, "0")}`
-            : ""
-          meta.textContent = [artifact, date ? `${copy.recoveredOn}: ${date}` : ""]
-            .filter(Boolean)
-            .join(" · ")
-        }
-        if (state) {
-          state.textContent = copy.unlocked
-          state.classList.remove("text-zinc-400")
-          state.classList.add("text-amber-400")
-        }
-      })
-
-      // Claims are assigned inside the iteration callback above. Keep the
-      // declared union here instead of TypeScript's callback-insensitive
-      // control-flow narrowing, which otherwise treats this value as null.
-      const signalClaim = latestClaim as {
-        dropId: string
-        city: string
-        citySlug: string
-        line: string
-      } | null
-      const signalBridge = root.querySelector<HTMLElement>("[data-signal-bridge]")
-      const signalBridgeLink = root.querySelector<HTMLAnchorElement>("[data-signal-bridge-link]")
-      if (signalBridge) signalBridge.hidden = !signalClaim
-      if (signalClaim?.citySlug && signalBridgeLink) {
-        try {
-          localStorage.setItem("virya-signal-city", signalClaim.citySlug)
-        } catch {
-          // Optional personalization must not affect AREA.
-        }
-        const signalUrl = new URL(root.dataset.signalUrl || "/signal/", location.origin)
-        signalUrl.searchParams.set("city", signalClaim.citySlug)
-        signalUrl.searchParams.set("source", "area")
-        signalUrl.searchParams.set("drop", signalClaim.dropId)
-        signalUrl.hash = "join-signal"
-        signalBridgeLink.href = signalUrl.toString()
-      }
-
-      buttons.forEach((button) => {
-        button.classList.toggle(
-          "is-claimed",
-          claimedDrops.has(button.dataset.dropId || "")
-        )
-      })
-      const collectionSize = drops.size
-      const recovered = claimedDrops.size
-      const count = root.querySelector<HTMLElement>("[data-collection-count]")
-      const size = root.querySelector<HTMLElement>("[data-collection-size]")
-      const progress = root.querySelector<HTMLElement>("[data-collection-progress]")
-      const progressBar = root.querySelector<HTMLElement>("[data-collection-progress-bar]")
-      const complete = root.querySelector<HTMLElement>("[data-collection-complete]")
-      const completeBody = root.querySelector<HTMLElement>("[data-collection-complete-body]")
-      if (count) count.textContent = String(recovered)
-      if (size) size.textContent = String(collectionSize)
-      if (progress) progress.setAttribute("aria-valuenow", String(recovered))
-      if (progressBar) {
-        progressBar.style.width = `${collectionSize ? (recovered / collectionSize) * 100 : 0}%`
-      }
-      const isComplete = collectionSize > 0 && recovered === collectionSize
-      if (complete) complete.hidden = !isComplete
-      if (completeBody) completeBody.hidden = !isComplete
-      renderSelected(selectedId)
-    }
-
-    const renderVouchers = (vouchers: any[]) => {
-      const wrap = root.querySelector<HTMLElement>("[data-voucher-list-wrap]")
-      const list = root.querySelector<HTMLElement>("[data-voucher-list]")
-      if (!wrap || !list) return
-      list.textContent = ""
-      wrap.hidden = vouchers.length === 0
-
-      vouchers.forEach((voucher) => {
-        const item = document.createElement("li")
-        item.className = "flex min-w-0 flex-col items-stretch gap-3 border border-zinc-800 bg-zinc-950 p-3 sm:flex-row sm:items-center sm:justify-between"
-        const code = document.createElement("code")
-        code.className = "break-all text-xs font-bold text-amber-400"
-        code.textContent = voucher.code
-        const meta = document.createElement("span")
-        meta.className = "text-[9px] uppercase tracking-widest text-zinc-400"
-        const statusLabel =
-          voucher.status === "redeemed"
-            ? copy.codeRedeemed
-            : voucher.status === "reserved"
-              ? copy.codeReserved
-              : copy.codeIssued
-        meta.textContent = `${copy.codeBenefit} · ${statusLabel}`
-        const actions = document.createElement("div")
-        actions.className = "flex w-full flex-col gap-2 sm:w-auto sm:flex-row"
-        const copyButton = document.createElement("button")
-        copyButton.type = "button"
-        copyButton.className = "min-h-[40px] w-full border border-zinc-700 px-3 text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:border-amber-400 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-        copyButton.textContent = copy.copyCode
-        copyButton.disabled = voucher.status === "redeemed"
-        copyButton.addEventListener("click", async () => {
-          await navigator.clipboard.writeText(voucher.code)
-          copyButton.textContent = copy.copied
-        })
-        const storeButton = document.createElement("button")
-        storeButton.type = "button"
-        storeButton.className = "min-h-[40px] w-full bg-amber-400 px-3 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-        storeButton.textContent = copy.useInStore
-        storeButton.disabled = voucher.status === "redeemed"
-        storeButton.addEventListener("click", () => {
-          try {
-            sessionStorage.setItem("virya-area-reward-code", voucher.code)
-          } catch {
-            // The code remains visible and can still be copied manually.
-          }
-          location.assign(root.dataset.merchUrl || "/merch/")
-        })
-        actions.append(copyButton, storeButton)
-        const text = document.createElement("div")
-        text.className = "flex min-w-0 flex-col gap-1"
-        text.append(code, meta)
-        item.append(text, actions)
-        list.append(item)
-      })
-    }
+    const { renderClaims, renderVouchers } = createAreaCollectionRenderer({
+      root,
+      copy,
+      drops,
+      claimedDrops,
+      buttons,
+      lang,
+      renderSelected,
+      selectedId: () => selectedId,
+    })
 
     const renderWallet = (data: any) => {
       const balance = Number(data?.tokenBalance || 0)
@@ -608,7 +454,7 @@ const initAreaExperience = () => {
         if (locationStatus) locationStatus.textContent = copy.noLiveSignal
       }
 
-      renderClaims(Array.isArray(data?.claims) ? data.claims : [])
+      latestClaim = renderClaims(Array.isArray(data?.claims) ? data.claims : [])
       renderVouchers(Array.isArray(data?.vouchers) ? data.vouchers : [])
 
       const voucherButton = root.querySelector<HTMLButtonElement>("[data-voucher-button]")
@@ -777,7 +623,7 @@ const initAreaExperience = () => {
               .replace("{current}", String(Math.min(samples.length + 1, targetSamples)))
               .replace("{total}", String(targetSamples))
           }
-          const position = await areaPosition()
+          const position = await areaPrecisePosition()
           samples.push({
             lat: position.coords.latitude,
             lng: position.coords.longitude,

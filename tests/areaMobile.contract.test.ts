@@ -12,8 +12,22 @@ test("AREA city icons remain visible and GPS stays idle without a live drop", ()
   assert.match(experience, /area-marker-core/)
   assert.match(experience, /classList\.toggle\("is-inactive", !live\)/)
   const noLiveGuard = experience.indexOf("if (liveDrops.size === 0)")
-  const geolocation = experience.indexOf("const position = await areaPosition()")
+  const geolocation = experience.indexOf("const position = await areaNearestPosition()")
   assert.ok(noLiveGuard >= 0 && noLiveGuard < geolocation)
+})
+
+
+test("AREA warms only an active, already-granted coarse position and keeps claims precise", () => {
+  const experience = read("src/client/areaExperience.ts")
+  assert.match(experience, /if \(liveDrops\.size > 0\) scheduleAreaLocationWarmup\(\)/)
+  assert.match(experience, /permission\.state !== "granted"/)
+  assert.match(experience, /enableHighAccuracy: false/)
+  assert.match(experience, /maximumAge: AREA_NEAREST_CACHE_MS/)
+  assert.match(experience, /const position = await areaNearestPosition\(\)/)
+  assert.match(experience, /enableHighAccuracy: true/)
+  assert.match(experience, /maximumAge: 0/)
+  assert.match(experience, /const position = await areaPrecisePosition\(\)/)
+  assert.doesNotMatch(experience, /requestPermissions|permissions\.request/)
 })
 
 test("old Virya Signal requests use a strict compatibility proxy", () => {

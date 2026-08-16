@@ -62,11 +62,16 @@ assert(
     !experience.includes("radiusMeters"),
   "The browser component still references private zone geometry.",
 )
+const noLiveGuard = experience.indexOf("if (liveDrops.size === 0)")
+const nearestGps = experience.indexOf("const position = await areaNearestPosition()")
 assert(
-  experience.includes("if (liveDrops.size === 0)") &&
-    experience.indexOf("if (liveDrops.size === 0)") <
-      experience.indexOf("const position = await areaPosition()"),
+  noLiveGuard >= 0 && nearestGps >= 0 && noLiveGuard < nearestGps,
   "Nearest-point lookup must not request GPS when no signal is active.",
+)
+assert(
+  experience.includes("if (liveDrops.size > 0) scheduleAreaLocationWarmup()") &&
+    experience.indexOf("if (liveDrops.size > 0) scheduleAreaLocationWarmup()") < nearestGps,
+  "AREA geolocation warmup must stay idle when no signal is active.",
 )
 assert(
   wallet.includes("ensureLegacyAreaImported") &&
