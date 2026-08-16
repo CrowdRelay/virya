@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readFileSync, readdirSync } from "node:fs"
 import { resolve } from "node:path"
 
 const root = process.cwd()
@@ -12,7 +12,12 @@ const layout = read("src/components/Layout.astro")
 const signalPage = read("src/components/SignalPage.astro")
 const accountPage = read("src/components/SignalAccountPage.astro")
 const actionPage = read("src/components/SignalActionPage.astro")
-const area = read("src/components/AreaExperience.astro") + read("src/client/areaExperience.ts")
+const areaClient = readdirSync(resolve(root, "src/client"))
+  .filter(name => /^area.*\.ts$/i.test(name))
+  .sort()
+  .map(name => read(`src/client/${name}`))
+  .join("\n")
+const area = read("src/components/AreaExperience.astro") + "\n" + areaClient
 const client = read("src/lib/crowdrelay.ts")
 const browserClient = read("src/lib/crowdrelay-client.ts")
 const headers = read("public/_headers")
@@ -67,7 +72,8 @@ assert(
   "The browser client contains a hard-coded privileged key.",
 )
 assert(
-  area.includes("virya-signal-city") && area.includes('signalUrl.searchParams.set("source", "area")'),
+  /(?:localStorage\.)?setItem\(\s*["']virya-signal-city["']/.test(area) &&
+    /searchParams\.set\(\s*["']source["']\s*,\s*["']area["']\s*\)/.test(area),
   "AREA must pass a coarse city signal into the Virya Signal bridge.",
 )
 assert(

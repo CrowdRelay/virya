@@ -96,10 +96,13 @@ test("high-risk operator mutations no longer mint a random replay key", async ()
 
 test("deliberately repeatable operator commands keep explicit fresh attempts", async () => {
   const retry = await source("src/pages/api/staff/admin/ops/retry.ts")
+  const clearDead = await source("src/pages/api/staff/admin/ops/clear-dead-deliveries.ts")
   const audit = await source("src/pages/api/staff/admin/ecosystem/proofs/audit.ts")
   const reconcile = await source("src/pages/api/staff/admin/ecosystem/reconcile.ts")
   const emitDue = await source("src/pages/api/staff/admin/ecosystem/emit-due.ts")
   assert.match(retry, /randomUUID\(/)
+  assert.match(clearDead, /randomUUID\(/)
+  assert.match(clearDead, /admin\/ops\/deliveries\/dead\/clear/)
   assert.match(audit, /randomUUID\(/)
   assert.match(reconcile, /randomUUID\(/)
   assert.match(emitDue, /idempotencyKey: `checklist-due-\$\{crypto\.randomUUID\(\)\}`/)

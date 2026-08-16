@@ -408,9 +408,9 @@ export function SignalTab() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState("")
 
-  async function load(signal?: AbortSignal) {
+  async function load(signal?: AbortSignal, preserveMessage = false) {
     setLoading(true)
-    setMessage("")
+    if (!preserveMessage) setMessage("")
     try {
       setOverview(
         await api<SignalOverview>("/api/staff/admin/signal/overview", {
@@ -593,6 +593,7 @@ export function OpsTab() {
   const [overview, setOverview] = useState<OpsOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState("")
+  const [clearingDead, setClearingDead] = useState(false)
   const [message, setMessage] = useState("")
 
   async function load(signal?: AbortSignal) {
@@ -619,8 +620,39 @@ export function OpsTab() {
     return () => controller.abort()
   }, [])
 
+  async function clearDeadDeliveries() {
+    if (busyId || clearingDead || (overview?.summary.deliveries.dead ?? 0) === 0) return
+    const count = overview?.summary.deliveries.dead ?? overview?.deadDeliveries.length ?? 0
+    if (!window.confirm(
+      `Wyczyścić ${count} martwych dostaw webhooków z aktywnej kolejki?\n\nTylko status dead zostanie oznaczony jako cancelled. Pending, processing i dostarczone wpisy pozostaną bez zmian; historia prób i audyt zostają zachowane.`,
+    )) return
+    setClearingDead(true)
+    setMessage("")
+    try {
+      const result = await api<{ cleared?: number; replayed?: boolean }>(
+        "/api/staff/admin/ops/clear-dead-deliveries",
+        { method: "POST" },
+      )
+      const cleared = Math.max(0, Number(result.cleared ?? 0))
+      setMessage(
+        result.replayed
+          ? "Ta operacja czyszczenia została już przyjęta. Odświeżam stan kolejki."
+          : `Wyczyszczono ${cleared} martwych dostaw z aktywnej kolejki. Historia i audyt zostały zachowane.`,
+      )
+      await load(undefined, true)
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Nie udało się wyczyścić martwych dostaw",
+      )
+    } finally {
+      setClearingDead(false)
+    }
+  }
+
   async function retry(target: "outbox" | "delivery", id: string) {
-    if (busyId) return
+    if (busyId || clearingDead) return
     setBusyId(id)
     setMessage("")
     try {
@@ -629,7 +661,7 @@ export function OpsTab() {
         body: { target, id },
       })
       setMessage("Element wrócił do kolejki. Historia prób została zachowana.")
-      await load()
+      await load(undefined, true)
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -678,7 +710,7 @@ export function OpsTab() {
           </div>
           <button
             type="button"
-            disabled={!!busyId || loading}
+            disabled={!!busyId || clearingDead || loading}
             onClick={() => void load()}
             class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
           >
@@ -752,6 +784,29 @@ export function OpsTab() {
             ok={!push || push.dead === 0}
           />
         </div>
+        {(deliveries?.dead ?? 0) > 0 && (
+          <div class="mt-4 flex flex-col gap-2 rounded-2xl border border-rose-400/20 bg-rose-400/[.06] p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <strong class="text-sm font-black text-rose-100">
+                {deliveries?.dead ?? 0} martwych dostaw webhooków
+              </strong>
+              <p class="mt-1 text-xs leading-5 text-zinc-400">
+                Wyczyść usuwa je wyłącznie z aktywnej kolejki przez stan cancelled.
+                Pending, processing i dostarczone wpisy nie są ruszane; historia prób i audyt zostają.
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={!!busyId || clearingDead || loading}
+              onClick={() => void clearDeadDeliveries()}
+              class="min-h-11 shrink-0 rounded-xl border border-rose-300/30 bg-rose-300/10 px-4 py-2 text-sm font-black text-rose-100 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {clearingDead
+                ? "Czyszczę…"
+                : `Wyczyść dead dostawy (${deliveries?.dead ?? 0})`}
+            </button>
+          </div>
+        )}
         {(outbox || deliveries || push) && (
           <p class="mt-4 text-xs text-zinc-500">
             Najstarszy gotowy element:{" "}
@@ -804,7 +859,7 @@ export function OpsTab() {
               </div>
               <button
                 type="button"
-                disabled={!!busyId || item.endpoint_active === false}
+                disabled={!!busyId || clearingDead || item.endpoint_active === false}
                 onClick={() => void retry(item.target, item.id)}
                 class="min-h-11 rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
               >
