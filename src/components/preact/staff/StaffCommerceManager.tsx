@@ -1,6 +1,8 @@
 import type { ComponentChildren } from "preact"
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
+import StaffLatarnikNetworkManager, { type BeaconNetworkOverview } from "./StaffLatarnikNetworkManager"
+import StaffLatarnikReleaseManager, { type BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
 import { staffApi, type StaffApiError } from "./staffApi"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
@@ -166,6 +168,8 @@ type Overview = {
   draws: RewardDraw[]
   fulfillments: Fulfillment[]
   recommendations: Recommendation[]
+  beaconReleases: BeaconReleaseOverview
+  beaconNetwork: BeaconNetworkOverview
   degraded: { active: boolean; unavailable: string[] }
   generatedAt: string
 }
@@ -653,7 +657,20 @@ export default function StaffCommerceManager() {
         </section>
       )}
 
+      <StaffLatarnikNetworkManager
+        data={overview?.beaconNetwork ?? { discoveryRuns: [], pendingCandidates: [], approvedCandidates: [], inviteJobs: [] }}
+        disabled={busy || loading}
+        onRefresh={refresh}
+      />
+
       {inventoryReady ? (<>
+      <StaffLatarnikReleaseManager
+        data={overview?.beaconReleases ?? { pool: { activeReleaseLatarnicy: 0, contactableLatarnicy: 0, missingEmail: 0 }, campaigns: [], recipients: [] }}
+        skus={inventoryItems.map(item => ({ sku: item.sku, label: `${item.product_name} — ${item.variant_label}`, available: item.available_quantity }))}
+        disabled={busy || loading}
+        onRefresh={refresh}
+      />
+
       <section class="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <div class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
           <div class="flex items-end justify-between gap-4">

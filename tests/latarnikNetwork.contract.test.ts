@@ -1,0 +1,43 @@
+import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
+import test from "node:test"
+
+const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
+const panel = read("src/components/preact/staff/StaffLatarnikNetworkManager.tsx")
+const manager = read("src/components/preact/staff/StaffCommerceManager.tsx")
+const overview = read("src/pages/api/staff/commerce/overview.ts")
+const campaigns = read("src/pages/api/staff/commerce/campaigns.ts")
+
+test("Latarnik network reuses the existing commerce BFF instead of adding a route", () => {
+  assert.match(manager, /StaffLatarnikNetworkManager/)
+  assert.match(overview, /admin\/autopilot\/beacon-network/)
+  assert.match(campaigns, /record\.kind === "beacon_network"/)
+  assert.match(panel, /\/api\/staff\/commerce\/campaigns/)
+  assert.doesNotMatch(panel, /\/api\/staff\/latarnik\/network/)
+})
+
+test("public discovery remains research until explicit reviewed consent evidence", () => {
+  assert.match(panel, /Publiczny e-mail nie jest zgodą na marketing/)
+  assert.match(panel, /Źródło i tożsamość są zweryfikowane/)
+  assert.match(panel, /Mam dowód zgody na marketing e-mail/)
+  assert.match(panel, /HTTPS URL dowodu zgody marketingowej/)
+  assert.match(campaigns, /record\.sourceVerified !== true/)
+  assert.match(campaigns, /record\.marketingEmailConsentConfirmed !== true/)
+  assert.match(campaigns, /parsed\.protocol === "https:"/)
+})
+
+test("staff can request Polish discovery and invite only approved selected candidates", () => {
+  assert.match(panel, /SZUKAJ LATARNIKÓW PL/)
+  assert.match(panel, /countryCode: "PL"/)
+  assert.match(panel, /ZAPROŚ ZATWIERDZONYCH/)
+  assert.match(panel, /selectedApproved/)
+  assert.match(campaigns, /action === "queue_invites"/)
+  assert.match(campaigns, /unique\.length > 200/)
+  assert.match(campaigns, /beaconIds: unique/)
+})
+
+test("network executor unavailability is fail-closed and visible to staff", () => {
+  assert.match(panel, /status === 503/)
+  assert.match(panel, /Nic nie zostało wysłane ani obiecane/)
+  assert.match(overview, /pendingCandidates: \[\], approvedCandidates: \[\], inviteJobs: \[\]/)
+})

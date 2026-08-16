@@ -17,6 +17,8 @@ type Campaign = Record<string, unknown>
 type RewardDraw = Record<string, unknown>
 type Fulfillment = Record<string, unknown>
 type Recommendation = Record<string, unknown>
+type BeaconReleaseOverview = Record<string, unknown>
+type BeaconNetworkOverview = Record<string, unknown>
 
 const logFailure = (source: string, error: unknown) => {
   console.warn("[staff-commerce-overview] upstream unavailable", {
@@ -32,7 +34,7 @@ const valueOr = <T,>(result: PromiseSettledResult<T>, fallback: T) =>
 export const GET: APIRoute = async ({ cookies }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
 
-  const [catalog, activation, inventory, campaigns, draws, fulfillments, recommendations] =
+  const [catalog, activation, inventory, campaigns, draws, fulfillments, recommendations, beaconReleases, beaconNetwork] =
     await Promise.allSettled([
       staffApiRequest<MerchCatalog>("admin/merch/catalog", { timeoutMs: 8_000 }),
       staffApiRequest<InventoryActivation>("admin/merch/inventory/activation", { timeoutMs: 8_000 }),
@@ -41,6 +43,8 @@ export const GET: APIRoute = async ({ cookies }) => {
       staffApiRequest<RewardDraw[]>("admin/reward-draws", { timeoutMs: 8_000 }),
       staffApiRequest<Fulfillment[]>("admin/reward-fulfillments", { timeoutMs: 8_000 }),
       staffApiRequest<Recommendation[]>("admin/merch/promotion-recommendations", { timeoutMs: 8_000 }),
+      staffApiRequest<BeaconReleaseOverview>("admin/autopilot/beacon-release-campaigns", { timeoutMs: 8_000 }),
+      staffApiRequest<BeaconNetworkOverview>("admin/autopilot/beacon-network", { timeoutMs: 8_000 }),
     ] as const)
 
   const entries = [
@@ -51,6 +55,8 @@ export const GET: APIRoute = async ({ cookies }) => {
     ["draws", draws],
     ["fulfillments", fulfillments],
     ["recommendations", recommendations],
+    ["beaconReleases", beaconReleases],
+    ["beaconNetwork", beaconNetwork],
   ] as const
   const unavailable = entries.flatMap(([source, result]) => {
     if (result.status === "fulfilled") return []
@@ -70,6 +76,8 @@ export const GET: APIRoute = async ({ cookies }) => {
     draws: valueOr(draws, []),
     fulfillments: valueOr(fulfillments, []),
     recommendations: valueOr(recommendations, []),
+    beaconReleases: valueOr(beaconReleases, { pool: { activeReleaseLatarnicy: 0, contactableLatarnicy: 0, missingEmail: 0 }, campaigns: [], recipients: [] }),
+    beaconNetwork: valueOr(beaconNetwork, { discoveryRuns: [], pendingCandidates: [], approvedCandidates: [], inviteJobs: [] }),
     degraded: { active: unavailable.length > 0, unavailable },
     generatedAt: new Date().toISOString(),
   })
