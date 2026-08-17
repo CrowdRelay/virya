@@ -37,6 +37,9 @@ type Recipient = {
   recipientName?: string | null
   recipientPhone?: string | null
   parcelLockerCode?: string | null
+  activationDueAt?: string | null
+  activationQueuedAt?: string | null
+  activationSuppressedAt?: string | null
 }
 
 export type BeaconReleaseOverview = {
@@ -243,6 +246,15 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
                           <span class="ml-2 text-xs text-zinc-600">{person.city || person.beaconKind}</span>
                           {person.recipientName && person.parcelLockerCode ? (
                             <p class="mt-1 text-xs text-zinc-300">{person.recipientName} · {person.recipientPhone} · <strong class="text-amber-200">{person.parcelLockerCode}</strong></p>
+                          ) : null}
+                          {person.status === "delivered" && person.activationDueAt ? (
+                            <p class="mt-1 text-[11px] text-zinc-500">
+                              {person.activationQueuedAt
+                                ? "Aktywizacja zakolejkowana."
+                                : person.activationSuppressedAt
+                                  ? "Aktywizacja pominięta (brak zgody/kontaktu)."
+                                  : `Follow-up najwcześniej ${new Date(person.activationDueAt).toLocaleString("pl-PL")}.`}
+                            </p>
                           ) : null}
                         </div>
                         <span class="text-[9px] font-black uppercase tracking-wider text-zinc-500">{recipientStatus(person.status)}</span>
