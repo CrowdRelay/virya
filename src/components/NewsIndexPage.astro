@@ -1,0 +1,76 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import ScrollToTop from "./ScrollToTop.astro"
+import { t, lp } from "../i18n/t"
+import { newsPosts, formatNewsDate, type NewsLang } from "../data/news"
+import { getSeoTags } from "../utils/seo"
+
+interface Props {
+  lang: NewsLang
+}
+
+const { lang } = Astro.props
+const isPl = lang === "pl"
+const { canonicalUrl, hreflangLinks } = getSeoTags("/news/", lang)
+const title = isPl ? "Aktualności | Virya" : "News | Virya"
+const description = isPl
+  ? "Aktualności, koncerty i najważniejsze informacje od Virya."
+  : "Latest news, shows and important updates from Virya."
+---
+
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+  <Fragment slot="head">
+    {hreflangLinks.map(link => <link rel={link.rel} hreflang={link.hreflang} href={link.href} />)}
+  </Fragment>
+
+  <div class="flex min-h-screen flex-col bg-zinc-950">
+    <Navbar lang={lang} displayLinks={true} activePage="news" />
+    <ScrollToTop />
+
+    <main id="main-content" class="flex-1 pt-20">
+      <div class="mx-auto max-w-6xl px-6 pb-16 pt-8 lg:px-12">
+        <div class="mb-10 max-w-3xl">
+          <p class="mb-3 text-xs font-bold uppercase tracking-[0.4em] text-amber-400">{t(lang, "news.eyebrow")}</p>
+          <h1 class="mb-3 text-4xl font-black uppercase tracking-tight text-white lg:text-5xl">{t(lang, "news.heading")}</h1>
+          <p class="text-sm leading-6 text-zinc-400">{t(lang, "news.sub")}</p>
+        </div>
+
+        <div class="grid gap-5">
+          {newsPosts.map((post, index) => (
+            <article class="group overflow-hidden border border-zinc-800 bg-zinc-900/35 transition-colors hover:border-zinc-700">
+              <a href={lp(lang, `/news/${post.slug}/`)} class="grid lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
+                <div class={`overflow-hidden bg-zinc-900 ${index === 0 ? "lg:min-h-80" : "lg:min-h-64"}`}>
+                  <img
+                    src={post.image}
+                    alt={post.imageAlt[lang]}
+                    loading={index === 0 ? "eager" : "lazy"}
+                    fetchpriority={index === 0 ? "high" : "auto"}
+                    class="h-full min-h-56 w-full object-cover transition duration-500 group-hover:scale-[1.015]"
+                  />
+                </div>
+                <div class="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
+                  <div class="mb-4 flex flex-wrap items-center gap-3">
+                    <span class="border border-amber-400/40 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-amber-400">{post.tag[lang]}</span>
+                    <time datetime={post.publishedAt} class="text-[10px] uppercase tracking-widest text-zinc-500">{formatNewsDate(post.publishedAt, lang)}</time>
+                  </div>
+                  <h2 class="text-2xl font-black uppercase tracking-tight text-zinc-100 transition-colors group-hover:text-amber-400 sm:text-3xl">
+                    {post.title[lang]}
+                  </h2>
+                  <p class="mt-4 max-w-2xl text-sm leading-6 text-zinc-400">{post.excerpt[lang]}</p>
+                  <span class="mt-6 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-amber-400">
+                    {t(lang, "news.readMore")}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                  </span>
+                </div>
+              </a>
+            </article>
+          ))}
+        </div>
+      </div>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>

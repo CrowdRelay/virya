@@ -1,0 +1,18 @@
+---
+export const prerender = true
+
+import NewsPostPage from "../../components/NewsPostPage.astro"
+import { newsPosts, type NewsPost } from "../../data/news"
+
+export function getStaticPaths() {
+  return newsPosts.map(post => ({ params: { slug: post.slug }, props: { post } }))
+}
+
+interface Props {
+  post: NewsPost
+}
+
+const { post } = Astro.props
+---
+
+<NewsPostPage lang="en" post={post} />
