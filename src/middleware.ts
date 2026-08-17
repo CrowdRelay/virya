@@ -15,7 +15,10 @@ const SECURITY_HEADERS = {
     "default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: https:; media-src 'self'; font-src 'self' data: https:; script-src 'self' 'unsafe-inline' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://signal-api.virya.music; frame-src https://open.spotify.com https://js.stripe.com https://www.youtube-nocookie.com; form-action 'self'; frame-ancestors 'self'",
 } as const
 
-function requestId(request: Request): string {
+function requestId(request: Request, isPrerendered: boolean): string {
+  if (isPrerendered) {
+    return "static"
+  }
   const provided = request.headers.get("x-request-id")?.trim()
   return provided && REQUEST_ID_PATTERN.test(provided)
     ? provided
@@ -66,7 +69,8 @@ function problemResponse(pathname: string, id: string): Response {
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const id = requestId(context.request)
+  const isPrerendered = Boolean((context as unknown as { isPrerendered?: boolean }).isPrerendered)
+  const id = requestId(context.request, isPrerendered)
   const startedAt = performance.now()
   let response: Response
 
