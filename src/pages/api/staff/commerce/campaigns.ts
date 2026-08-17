@@ -51,7 +51,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         const radiusKm = Number(record.radiusKm ?? 100)
         const locale = typeof record.locale === "string" ? record.locale : "pl"
         if (unique.length === 0 || unique.length > 200 || unique.length !== beaconIds.length || !unique.every(id => /^[0-9a-f-]{36}$/i.test(id))
-          || !Number.isInteger(ttlDays) || ttlDays < 1 || ttlDays > 90 || !Number.isInteger(radiusKm) || radiusKm < 1 || radiusKm > 500
+          || !Number.isInteger(ttlDays) || ttlDays < 1 || ttlDays > 30 || !Number.isInteger(radiusKm) || radiusKm < 10 || radiusKm > 500
           || !/^[a-z]{2}(?:-[A-Z]{2})?$/.test(locale)) {
           return areaJson({ error: "Invalid invite batch" }, 400)
         }

@@ -15,7 +15,6 @@
     "@netlify/blobs": "^10.7.12",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.2.0",
-    "disposable-email-domains-js": "1.25.0",
     "nodemailer": "^9.0.4",
     "preact": "^10.29.8",
     "qrcode-generator": "2.0.4",
