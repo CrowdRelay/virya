@@ -32,12 +32,21 @@ type EventItem = {
   venue: string | null
   starts_at: string
 }
+type BandsintownSyncStatus = {
+  last_synced_at: string | null
+  last_success_at: string | null
+  next_sync_at: string
+  consecutive_failures: number
+  last_error: string | null
+  in_progress: boolean
+}
 type Overview = {
   schema_version: number
   flags: FeatureFlag[]
   last_reconciliation: ReconciliationRun | null
   open_findings: number
   next_event: EventItem | null
+  bandsintown_sync: BandsintownSyncStatus | null
 }
 type ChecklistItem = {
   item_key: string
@@ -252,6 +261,28 @@ export default function EcosystemControl() {
     }
   }
 
+  async function syncBandsintown() {
+    if (busy) return
+    setBusy("bandsintown-sync")
+    setMessage("")
+    try {
+      const result = await request<{ provider: string; queued: boolean; already_running: boolean }>(
+        "/api/staff/admin/ecosystem/reconcile",
+        { method: "POST", body: JSON.stringify({ trigger: "bandsintown_sync" }) },
+      )
+      setMessage(result.already_running
+        ? "Bandsintown już się synchronizuje."
+        : result.queued
+          ? "Synchronizacja Bandsintown zlecona. Worker pobierze źródło w najbliższym ticku."
+          : "Nie udało się zakolejkować synchronizacji Bandsintown.")
+      await load()
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Synchronizacja Bandsintown nie powiodła się")
+    } finally {
+      setBusy("")
+    }
+  }
+
   async function createAuditProof() {
     if (busy) return
     setBusy("audit-proof")
@@ -332,6 +363,34 @@ export default function EcosystemControl() {
           </div>
         </div>
       )}
+
+      <div class="rounded-2xl border border-white/10 bg-white/[.025] p-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-black uppercase tracking-wider text-zinc-300">Bandsintown</h3>
+            <p class="mt-1 text-sm text-zinc-500">
+              Ostatni sukces: {formatDate(overview?.bandsintown_sync?.last_success_at)} · następna próba: {formatDate(overview?.bandsintown_sync?.next_sync_at)}
+            </p>
+            {overview?.bandsintown_sync && (
+              <p class={`mt-1 text-xs ${overview.bandsintown_sync.consecutive_failures ? "text-rose-300" : "text-zinc-600"}`}>
+                {overview.bandsintown_sync.in_progress
+                  ? "Synchronizacja w toku…"
+                  : overview.bandsintown_sync.consecutive_failures
+                    ? `Błędy z rzędu: ${overview.bandsintown_sync.consecutive_failures}${overview.bandsintown_sync.last_error ? ` · ${overview.bandsintown_sync.last_error}` : ""}`
+                    : `Ostatnia próba: ${formatDate(overview.bandsintown_sync.last_synced_at)}`}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => void syncBandsintown()}
+            disabled={!!busy || overview?.bandsintown_sync?.in_progress}
+            class="rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-amber-100 disabled:opacity-50"
+          >
+            {busy === "bandsintown-sync" ? "Zlecam…" : overview?.bandsintown_sync?.in_progress ? "Synchronizuję…" : "Synchronizuj teraz"}
+          </button>
+        </div>
+      </div>
 
       <div>
         <h3 class="text-sm font-black uppercase tracking-wider text-zinc-300">Kill switche</h3>

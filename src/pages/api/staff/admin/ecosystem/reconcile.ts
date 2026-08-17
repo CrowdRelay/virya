@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro"
-import { areaJson, isSameOriginRequest } from "../../../../../server/areaHttp"
+import { areaJson, isSameOriginRequest, readSmallJsonObject } from "../../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../../server/staffQrApi"
 
@@ -12,11 +12,15 @@ const statusFor = (error: unknown) =>
 export const POST: APIRoute = async ({ cookies, request }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
   if (!isSameOriginRequest(request)) return areaJson({ error: "Invalid request origin" }, 403)
-  const idempotencyKey = request.headers.get("idempotency-key") ?? `reconcile-${new Date().toISOString().slice(0, 13)}-${crypto.randomUUID()}`
+  let body: Record<string, unknown> = {}
+  try { body = await readSmallJsonObject(request) } catch { return areaJson({ error: "Invalid request" }, 400) }
+  const trigger = body.trigger == null ? "manual" : body.trigger
+  if (trigger !== "manual" && trigger !== "bandsintown_sync") return areaJson({ error: "Invalid trigger" }, 400)
+  const idempotencyKey = request.headers.get("idempotency-key") ?? `${trigger}-${new Date().toISOString().slice(0, 13)}-${crypto.randomUUID()}`
   try {
     return areaJson(await staffApiRequest("admin/ecosystem/reconcile", {
       method: "POST",
-      body: { trigger: "manual" },
+      body: { trigger },
       idempotencyKey,
       correlationId: idempotencyKey,
       timeoutMs: 20_000,
