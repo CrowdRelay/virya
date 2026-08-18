@@ -1,5 +1,7 @@
 ---
 import type { Lang } from "../i18n/t"
+import { lp } from "../i18n/t"
+import { THOMANN_HOME_URL, thomannAffiliateUrl } from "../lib/thomann"
 
 interface Props {
   lang?: Lang
@@ -8,58 +10,110 @@ interface Props {
 const { lang = "en" } = Astro.props
 const isPl = lang === "pl"
 const labogaUrl = "https://www.davidlaboga.com/cables.html"
+const thomannUrl = thomannAffiliateUrl(THOMANN_HOME_URL, "partners")
 ---
 
 <div class="virya-section border-t border-zinc-800/60">
   <div class="virya-section__inner">
     <p class="virya-eyebrow">VIRYA // PARTNERS</p>
-    <h2 class="virya-heading mt-4">Endorsements</h2>
+    <h2 class="virya-heading mt-4">{isPl ? "Endorsementy i partnerzy" : "Endorsements & partners"}</h2>
     <p class="virya-copy mt-5 mb-10">
-      {isPl ? "Marki, które wspierają brzmienie VIRYA" : "The brands behind the VIRYA signal chain"}
+      {isPl
+        ? "Marki i partnerzy, którzy wspierają koncertowy ekosystem VIRYA"
+        : "Brands and partners supporting the VIRYA live ecosystem"}
     </p>
 
-    <a
-      href={labogaUrl}
-      target="_blank"
-      rel="noopener"
-      class="group relative block overflow-hidden border border-zinc-800/80 bg-zinc-900/35 transition-all duration-300 hover:border-amber-400/70 hover:bg-zinc-900/70"
-      aria-label={isPl ? "Odwiedź stronę Laboga Cables" : "Visit Laboga Cables"}
-    >
-      <div class="absolute inset-y-0 left-0 w-1 bg-amber-400 transition-all duration-300 group-hover:w-2" aria-hidden="true" />
-      <div class="absolute -right-16 -top-20 h-56 w-56 rounded-full border border-amber-400/10 transition-transform duration-500 group-hover:scale-110" aria-hidden="true" />
-      <div class="absolute -right-8 -top-12 h-40 w-40 rounded-full border border-amber-400/10 transition-transform duration-500 group-hover:scale-110" aria-hidden="true" />
+    <div class="grid gap-5">
+      <a
+        href={labogaUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="group relative block overflow-hidden border border-zinc-800/80 bg-zinc-900/35 transition-all duration-300 hover:border-amber-400/70 hover:bg-zinc-900/70"
+        aria-label={isPl ? "Odwiedź stronę Laboga Cables" : "Visit Laboga Cables"}
+      >
+        <div class="absolute inset-y-0 left-0 w-1 bg-amber-400 transition-all duration-300 group-hover:w-2" aria-hidden="true" />
+        <div class="absolute -right-16 -top-20 h-56 w-56 rounded-full border border-amber-400/10 transition-transform duration-500 group-hover:scale-110" aria-hidden="true" />
+        <div class="absolute -right-8 -top-12 h-40 w-40 rounded-full border border-amber-400/10 transition-transform duration-500 group-hover:scale-110" aria-hidden="true" />
 
-      <div class="relative grid gap-8 px-7 py-8 sm:px-10 sm:py-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-        <div class="flex min-w-0 items-center gap-5 sm:gap-7">
-          <span class="hidden sm:flex h-16 w-16 shrink-0 items-center justify-center border border-amber-400/40 text-amber-400 transition-colors duration-300 group-hover:bg-amber-400 group-hover:text-black" aria-hidden="true">
-            <svg viewBox="0 0 64 64" class="h-9 w-9 fill-none stroke-current" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter">
-              <path d="M8 37h16l8-8h11" />
-              <path d="M43 21v16" />
-              <path d="M43 24h8l5 5v8h-5" />
-              <path d="M8 31v12" />
-            </svg>
+        <div class="relative grid gap-8 px-7 py-8 sm:px-10 sm:py-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div class="flex min-w-0 items-center gap-5 sm:gap-7">
+            <span class="hidden h-16 w-16 shrink-0 items-center justify-center border border-amber-400/40 text-amber-400 transition-colors duration-300 group-hover:bg-amber-400 group-hover:text-black sm:flex" aria-hidden="true">
+              <svg viewBox="0 0 64 64" class="h-9 w-9 fill-none stroke-current" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter">
+                <path d="M8 37h16l8-8h11" />
+                <path d="M43 21v16" />
+                <path d="M43 24h8l5 5v8h-5" />
+                <path d="M8 31v12" />
+              </svg>
+            </span>
+
+            <div class="min-w-0">
+              <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.3em] text-amber-400">
+                {isPl ? "Endorsement kablowy" : "Cable endorsement"}
+              </p>
+              <h3 class="text-2xl font-black uppercase tracking-[0.16em] text-white sm:text-3xl lg:text-4xl">
+                Laboga Cables
+              </h3>
+              <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
+                {isPl
+                  ? "Kable instrumentalne i sceniczne w łańcuchu sygnałowym VIRYA."
+                  : "Instrument and stage cables in the VIRYA signal chain."}
+              </p>
+            </div>
+          </div>
+
+          <span class="inline-flex min-h-11 w-fit items-center gap-3 border border-amber-400/60 px-5 text-[10px] font-bold uppercase tracking-widest text-amber-400 transition-all duration-200 group-hover:bg-amber-400 group-hover:text-black">
+            {isPl ? "Poznaj Laboga Cables" : "Explore Laboga Cables"}
+            <span aria-hidden="true">↗</span>
           </span>
+        </div>
+      </a>
 
-          <div class="min-w-0">
-            <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.3em] text-amber-400">
-              {isPl ? "Endorsement kablowy" : "Cable endorsement"}
-            </p>
-            <h2 class="text-2xl font-black uppercase tracking-[0.16em] text-white sm:text-3xl lg:text-4xl">
-              Laboga Cables
-            </h2>
-            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
-              {isPl
-                ? "Kable instrumentalne i sceniczne w łańcuchu sygnałowym VIRYA."
-                : "Instrument and stage cables in the VIRYA signal chain."}
-            </p>
+      <div class="group relative overflow-hidden border border-cyan-400/30 bg-cyan-400/[0.035] transition-all duration-300 hover:border-cyan-300/65 hover:bg-cyan-400/[0.06]">
+        <div class="absolute inset-y-0 left-0 w-1 bg-cyan-300 transition-all duration-300 group-hover:w-2" aria-hidden="true" />
+        <div class="absolute -right-14 -top-20 h-52 w-52 rounded-full border border-cyan-300/10 transition-transform duration-500 group-hover:scale-110" aria-hidden="true" />
+
+        <div class="relative grid gap-8 px-7 py-8 sm:px-10 sm:py-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div class="flex min-w-0 items-center gap-5 sm:gap-7">
+            <span class="hidden h-16 w-16 shrink-0 items-center justify-center rounded-full border border-cyan-300/45 text-3xl font-black lowercase text-cyan-300 transition-colors duration-300 group-hover:bg-cyan-300 group-hover:text-zinc-950 sm:flex" aria-hidden="true">t</span>
+            <div class="min-w-0">
+              <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-300">
+                Premium Affiliate · pilot
+              </p>
+              <h3 class="text-2xl font-black lowercase tracking-tight text-white sm:text-3xl lg:text-4xl">thomann</h3>
+              <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
+                {isPl
+                  ? "Partner afiliacyjny sprzętu muzycznego. Zakupy rozpoczęte przez nasze linki mogą wygenerować prowizję dla VIRYA."
+                  : "Music-gear affiliate partner. Purchases started through our links may generate a commission for VIRYA."}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
+            <a
+              href={lp(lang, "/gear/")}
+              class="inline-flex min-h-11 items-center justify-center gap-3 border border-zinc-700 px-5 text-[10px] font-bold uppercase tracking-widest text-zinc-200 transition-all duration-200 hover:border-amber-400/60 hover:text-amber-400"
+            >
+              {isPl ? "Nasz sprzęt" : "Our gear"}
+              <span aria-hidden="true">→</span>
+            </a>
+            <a
+              href={thomannUrl}
+              target="_blank"
+              rel="sponsored noopener noreferrer"
+              class="inline-flex min-h-11 items-center justify-center gap-3 border border-cyan-300/70 bg-cyan-300 px-5 text-[10px] font-black uppercase tracking-widest text-zinc-950 transition-all duration-200 hover:bg-cyan-200"
+            >
+              {isPl ? "Kupuj w Thomann" : "Shop Thomann"}
+              <span aria-hidden="true">↗</span>
+            </a>
           </div>
         </div>
-
-        <span class="inline-flex min-h-11 w-fit items-center gap-3 border border-amber-400/60 px-5 text-[10px] font-bold uppercase tracking-widest text-amber-400 transition-all duration-200 group-hover:bg-amber-400 group-hover:text-black">
-          {isPl ? "Poznaj Laboga Cables" : "Explore Laboga Cables"}
-          <span aria-hidden="true">↗</span>
-        </span>
       </div>
-    </a>
+    </div>
+
+    <p class="mt-5 max-w-3xl text-xs leading-relaxed text-zinc-600">
+      {isPl
+        ? "Thomann jest partnerem afiliacyjnym, nie endorsementem sprzętowym VIRYA. Linki Thomann są oznaczone jako sponsorowane; możemy otrzymać prowizję od kwalifikujących się zakupów."
+        : "Thomann is an affiliate partner, not a VIRYA gear endorsement. Thomann links are marked as sponsored; we may receive a commission from qualifying purchases."}
+    </p>
   </div>
 </div>

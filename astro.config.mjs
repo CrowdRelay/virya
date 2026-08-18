@@ -9,6 +9,8 @@ const SITEMAP_EXCLUDED_PATHS = new Set([
   "/merch/cancel",
   "/pl/merch/success",
   "/pl/merch/cancel",
+  "/thomann",
+  "/pl/thomann",
   // Remove these two entries when the first real news post is published.
   "/news",
   "/pl/news",
