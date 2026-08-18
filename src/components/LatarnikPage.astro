@@ -46,8 +46,8 @@ const description = isPl
         </p>
         <p class="mt-4 max-w-2xl text-sm leading-6 text-zinc-500">
           {isPl
-            ? "Latarnik nie jest newsletterem ani programem ambasadorskim. To wygodny kanał dla mediów, radia, fotografów, promotorów, twórców i lokalnych partnerów — z Press Roomem i egzemplarzem każdego nowego fizycznego wydania po potwierdzeniu Paczkomatu."
-            : "Beacon is not a newsletter or ambassador programme. It is a low-friction channel for media, radio, photographers, promoters, creators and local partners — with a Press Room and a copy of each new physical release after delivery confirmation."}
+            ? "Latarnik nie jest newsletterem ani programem ambasadorskim. To wygodny kanał dla mediów, radia, fotografów, promotorów, twórców i lokalnych partnerów — z Press Roomem oraz dostępem do wybranych pul materiałów i fizycznych wydań."
+            : "Beacon is not a newsletter or ambassador programme. It is a low-friction channel for media, radio, photographers, promoters, creators and local partners — with a Press Room and access to selected promotional and physical-release allocations."}
         </p>
       </section>
 
@@ -61,8 +61,8 @@ const description = isPl
           <h2 class="mt-3 text-2xl font-black">{isPl ? "Aktywuj swój dostęp" : "Activate your access"}</h2>
           <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
             {isPl
-              ? "Jedno kliknięcie wystarczy. Zaproszenie jest jednorazowe; po aktywacji ten adres zostanie oczyszczony z tokena. Temat Premiery daje Ci też miejsce w puli kolejnych fizycznych wydań — przy każdej wysyłce osobno potwierdzasz Paczkomat."
-              : "One click is enough. The invitation is single-use; after activation the token is removed from the address. The Releases topic also puts you in the pool for future physical releases; you confirm the parcel-locker destination separately for each shipment."}
+              ? "Jedno kliknięcie wystarczy. Zaproszenie jest jednorazowe; po aktywacji ten adres zostanie oczyszczony z tokena. Temat Premiery może też otworzyć dostęp do wybranych pul fizycznych wydań — dane do wysyłki potwierdzasz osobno dla każdej przyznanej sztuki."
+              : "One click is enough. The invitation is single-use; after activation the token is removed from the address. The Releases topic can also open access to selected physical-release allocations; you confirm delivery details separately for each allocated copy."}
           </p>
           <button data-action="activate" type="button" class="mt-6 inline-flex min-h-12 items-center justify-center border border-amber-400 bg-amber-400 px-6 text-sm font-black uppercase tracking-wider text-zinc-950 transition hover:bg-amber-300">
             {isPl ? "Dołącz jako Latarnik" : "Join as a Beacon"}
@@ -181,8 +181,8 @@ const description = isPl
               <h2 class="mt-2 text-2xl font-black">{isPl ? "Nowe wydania fizyczne" : "New physical releases"}</h2>
               <p class="mt-3 text-sm leading-6 text-zinc-400">
                 {isPl
-                  ? "Gdy tłoczymy nową płytę, rezerwujemy pulę dla aktywnych Latarników. Egzemplarz wysyłamy tylko po potwierdzeniu danych dla konkretnej premiery — nie przechowujemy Paczkomatu jako stałego profilu."
-                  : "When we press a new record, we reserve a pool for active Beacons. We only ship after you confirm delivery details for that specific release; your parcel-locker destination is not treated as a permanent profile field."}
+                  ? "Dla wybranych premier możemy uruchomić ograniczoną pulę egzemplarzy dla Latarników. Jeśli trafisz do danej puli, poprosimy o potwierdzenie danych tylko dla tej wysyłki — nie przechowujemy Paczkomatu jako stałego profilu."
+                  : "For selected releases we may open a limited allocation for Beacons. If you are included, we ask you to confirm delivery details only for that shipment; the parcel-locker destination is not kept as a permanent profile field."}
               </p>
             </div>
             <div data-release-campaigns class="mt-6 grid gap-4"></div>
@@ -530,7 +530,7 @@ const description = isPl
       const error = root.querySelector("[data-error]")
       error?.classList.add("hidden")
       try {
-        const response = await api("beacon/invitations/exchange", { method: "POST", body: JSON.stringify({ inviteToken: invite }) }, "")
+        const response = await api("beacon/invitations/exchange", { method: "POST", body: JSON.stringify({ inviteToken: invite, clientKind: "web" }) }, "")
         if (!response.ok) throw new Error(`exchange_${response.status}`)
         const data = await response.json()
         cleanInviteUrl()

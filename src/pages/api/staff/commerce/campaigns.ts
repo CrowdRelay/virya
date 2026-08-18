@@ -44,7 +44,39 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           },
         }))
       }
-      if (action === "queue_invites") {
+      if (action === "single_invite") {
+        const beaconId = typeof record.beaconId === "string" ? record.beaconId : ""
+        const ttlDays = Number(record.ttlDays ?? 14)
+        const radiusKm = Number(record.radiusKm ?? 100)
+        const locale = typeof record.locale === "string" ? record.locale : "pl"
+        if (!/^[0-9a-f-]{36}$/i.test(beaconId) || !Number.isInteger(ttlDays) || ttlDays < 1 || ttlDays > 30
+          || !Number.isInteger(radiusKm) || radiusKm < 10 || radiusKm > 500 || !/^[a-z]{2}(?:-[A-Z]{2})?$/.test(locale)) {
+          return areaJson({ error: "Invalid single invite" }, 400)
+        }
+        const upstream = await staffApiRequest<Record<string, unknown>>(`admin/autopilot/beacons/${beaconId}/signal-invites`, {
+          method: "POST", body: { ttlDays, radiusKm, locale },
+        })
+        const displayName = typeof upstream.displayName === "string" ? upstream.displayName.trim() : ""
+        const inviteUrl = typeof upstream.inviteUrl === "string" ? upstream.inviteUrl.trim() : ""
+        const expiresAt = typeof upstream.expiresAt === "string" ? upstream.expiresAt.trim() : ""
+        let validInvite = false
+        try {
+          const parsed = new URL(inviteUrl)
+          const invite = parsed.searchParams.getAll("invite")
+          validInvite = parsed.protocol === "https:" && parsed.hostname === "virya.music"
+            && ["/latarnik", "/latarnik/", "/pl/latarnik", "/pl/latarnik/"].includes(parsed.pathname)
+            && parsed.username === "" && parsed.password === "" && parsed.hash === ""
+            && [...parsed.searchParams.keys()].every(key => key === "invite")
+            && invite.length === 1 && /^[A-Za-z0-9_-]{24,128}$/.test(invite[0] ?? "")
+        } catch { /* invalid upstream capability */ }
+        if (!displayName || displayName.length > 200 || !validInvite || !Number.isFinite(Date.parse(expiresAt))) {
+          throw new Error("Invalid Latarnik invite response")
+        }
+        // The browser needs only the one-time URL to render/copy the QR. Do not
+        // forward the standalone raw inviteToken returned by CrowdRelay.
+        return areaJson({ displayName, inviteUrl, expiresAt }, 201)
+      }
+      if (action === "preview_invites" || action === "queue_invites") {
         const beaconIds = Array.isArray(record.beaconIds) ? record.beaconIds.filter((value): value is string => typeof value === "string") : []
         const unique = [...new Set(beaconIds)]
         const ttlDays = Number(record.ttlDays ?? 14)
@@ -56,8 +88,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           return areaJson({ error: "Invalid invite batch" }, 400)
         }
         return areaJson(await staffApiRequest("admin/autopilot/beacon-network", {
-          method: "POST", idempotencyKey, body: { action, beaconIds: unique, ttlDays, radiusKm, locale },
-        }), 202)
+          method: "POST", ...(action === "queue_invites" ? { idempotencyKey } : {}), body: { action, beaconIds: unique, ttlDays, radiusKm, locale },
+        }), action === "queue_invites" ? 202 : 200)
       }
       return areaJson({ error: "Unsupported Latarnik network action" }, 400)
     }

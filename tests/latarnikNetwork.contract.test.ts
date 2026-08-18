@@ -29,7 +29,8 @@ test("public discovery remains research until explicit reviewed consent evidence
 test("staff can request Polish discovery and invite only approved selected candidates", () => {
   assert.match(panel, /SZUKAJ LATARNIKÓW PL/)
   assert.match(panel, /countryCode: "PL"/)
-  assert.match(panel, /ZAPROŚ ZATWIERDZONYCH/)
+  assert.match(panel, /WYŚLIJ FALĘ/)
+  assert.match(panel, /PREVIEW/)
   assert.match(panel, /selectedApproved/)
   assert.match(campaigns, /action === "queue_invites"/)
   assert.match(campaigns, /unique\.length > 200/)
@@ -40,4 +41,22 @@ test("network executor unavailability is fail-closed and visible to staff", () =
   assert.match(panel, /status === 503/)
   assert.match(panel, /Nic nie zostało wysłane ani obiecane/)
   assert.match(overview, /pendingCandidates: \[\], approvedCandidates: \[\], inviteJobs: \[\]/)
+})
+
+test("staff previews exact waves and keeps one-time QR only in component state", () => {
+  assert.match(panel, /action: "preview_invites"/)
+  assert.match(panel, /tokensMinted !== false/)
+  assert.match(panel, /Najpierw zrób aktualny PREVIEW/)
+  assert.match(panel, /selectedApproved\.length > 50/)
+  assert.match(panel, /action: "single_invite"/)
+  assert.match(panel, /qrDataUrl\(value\.inviteUrl/)
+  assert.match(panel, /setInviteQr\(null\)/)
+  assert.match(panel, /QR i link nie są zapisywane przez panel/)
+})
+
+test("invite job rows surface product conversion rather than mail-open tracking", () => {
+  for (const field of ["activeCount", "webCount", "androidCount", "pushEnabledCount", "helpingCount", "coverageCount"]) {
+    assert.match(panel, new RegExp(`job\\.${field}`))
+  }
+  assert.doesNotMatch(panel, /tracking pixel|open rate/i)
 })
