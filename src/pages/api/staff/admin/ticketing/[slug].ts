@@ -134,8 +134,7 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
       active: type.active === true,
     })
   }
-  const ticketingIntent = {
-    slug,
+  const ticketingBody = {
     currency,
     vat_rate_basis_points: vat,
     capacity,
@@ -146,14 +145,24 @@ export const POST: APIRoute = async ({ request, cookies, params }) => {
     active,
     ticket_types: ticketTypes,
   }
+
+  const ticketingIntent = {
+    slug,
+    ...ticketingBody,
+  }
+
   let savedSale: unknown
   try {
     savedSale = await staffApiRequest(
       `admin/events/${encodeURIComponent(slug)}/ticketing`,
       {
         method: "POST",
-        body: ticketingIntent,
-        idempotencyKey: mutationKeyForRequest(request, "staff-ticketing", ticketingIntent),
+        body: ticketingBody,
+        idempotencyKey: mutationKeyForRequest(
+          request,
+          "staff-ticketing",
+          ticketingIntent,
+        ),
         timeoutMs: 15_000,
       },
     )
