@@ -16,7 +16,21 @@ const fingerprints = () => (readServerEnv(
 
 export const GET: APIRoute = async () => {
   const sha256CertFingerprints = fingerprints()
-  const body = sha256CertFingerprints.length === 0 ? [] : [{
+  if (sha256CertFingerprints.length === 0) {
+    // Returning a valid-but-empty association makes a broken production deploy
+    // look healthy while Android silently opens Synesthesia/Latarnik links in a
+    // browser. Fail closed so release smoke and Android verification see it.
+    return new Response(JSON.stringify({ error: "android_app_links_not_configured" }), {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+        "X-Virya-App-Links": "unconfigured",
+      },
+    })
+  }
+  const body = [{
     relation: ["delegate_permission/common.handle_all_urls"],
     target: {
       namespace: "android_app",
@@ -29,6 +43,7 @@ export const GET: APIRoute = async () => {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "public, max-age=300, s-maxage=300",
       "X-Content-Type-Options": "nosniff",
+      "X-Virya-App-Links": "configured",
     },
   })
 }

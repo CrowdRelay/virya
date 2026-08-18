@@ -229,6 +229,47 @@ jobs:
             --auth="${NETLIFY_AUTH_TOKEN}" \
             --message="GitHub Actions artifact ${GITHUB_SHA}"
 
+      - name: Verify production Android App Links
+        if: steps.freshness.outputs.current == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="${RUNNER_TEMP}/assetlinks.json"
+          for attempt in $(seq 1 10); do
+            if curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+              --max-time 10 'https://virya.music/.well-known/assetlinks.json' -o "${target}"; then
+              if python3 - "${target}" <<'PY'
+          import json, re, sys
+          data = json.load(open(sys.argv[1]))
+          pattern = re.compile(r"^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$")
+          if not isinstance(data, list) or not data:
+              raise SystemExit(1)
+          matches = [
+              item for item in data
+              if isinstance(item, dict)
+              and item.get("relation") == ["delegate_permission/common.handle_all_urls"]
+              and isinstance(item.get("target"), dict)
+              and item["target"].get("namespace") == "android_app"
+              and item["target"].get("package_name") == "music.virya.signal"
+          ]
+          if len(matches) != 1:
+              raise SystemExit(1)
+          fingerprints = matches[0]["target"].get("sha256_cert_fingerprints")
+          if not isinstance(fingerprints, list) or not fingerprints or not all(
+              isinstance(value, str) and pattern.fullmatch(value) for value in fingerprints
+          ):
+              raise SystemExit(1)
+          print(f"VIRYA_ANDROID_APP_LINKS=PASS fingerprints={len(fingerprints)}")
+          PY
+              then
+                exit 0
+              fi
+            fi
+            sleep 3
+          done
+          echo 'VIRYA_ANDROID_APP_LINKS=FAIL production assetlinks is missing/invalid' >&2
+          exit 1
+
       - name: Report Virya release to CrowdRelay ledger
         if: steps.freshness.outputs.current == 'true'
         continue-on-error: true

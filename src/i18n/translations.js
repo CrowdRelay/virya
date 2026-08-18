@@ -425,41 +425,47 @@ export const translations = {
         ],
       },
       dataDeletion: {
-        title: "Virya Automation — Data Deletion",
+        title: "Virya — Account & Data Deletion",
         sections: [
           {
-            heading: "Who operates the application",
+            heading: "Who operates Virya services",
             paras: [[
-              { t: "Virya Automation is an internal social-media and workflow automation application operated by WB Soft Wojciech Bator, ul. Braniborska 50/2, 53-680 Wrocław, Poland, NIP: 8943126279. For privacy and deletion requests, contact " },
+              { t: "Virya services are operated by WB Soft Wojciech Bator, ul. Braniborska 50/2, 53-680 Wrocław, Poland, NIP: 8943126279. For privacy and deletion requests, contact " },
               { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
               { t: "." },
             ]],
           },
           {
-            heading: "How to request deletion",
+            heading: "Delete your Virya Signal fan account",
+            paras: [[{ t: "In Virya Signal open My profile → Signal settings → Delete Virya account. Confirm the warning once more. The app asks CrowdRelay to erase the account first and removes the encrypted local profile only after the server confirms deletion." }]],
+          },
+          {
+            heading: "Request Virya Signal deletion without the app",
             paras: [[
-              { t: "Send an email to " },
-              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
-              { t: " with the subject “Virya Automation — Data Deletion Request”. Include the name or username of the connected Facebook or Instagram account and, if available, the Page or Business Account name. Do not send passwords, access tokens or other authentication secrets." },
+              { t: "If you no longer have access to the app, email " },
+              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com?subject=Virya%20Signal%20%E2%80%94%20Account%20Deletion%20Request" } },
+              { t: " with the subject “Virya Signal — Account Deletion Request”, preferably from the address used for the Signal account. Do not send passwords, PINs, session tokens or other authentication secrets. We may ask for a minimal verification step before acting on the request." },
             ]],
           },
           {
-            heading: "What we will delete",
-            paras: [[{ t: "Where associated with your account and stored by us, we will delete or irreversibly anonymise OAuth access tokens, Facebook Page and Instagram account identifiers, cached profile or public business metadata, and automation logs that are no longer needed to operate or secure the service." }]],
+            heading: "What Signal deletion removes",
+            paras: [[{ t: "We remove active fan sessions, push-notification endpoints, profile name and locale, the account email from the active fan identity, AREA account linkage, acquisition/referral relationships, Synesthesia reward-entry data, Synesthesia account linkage and any public Synesthesia leaderboard publication. Existing referral codes are disabled. Anonymous gameplay may remain without a link to the deleted account." }]],
           },
           {
-            heading: "Timeframe and confirmation",
-            paras: [[{ t: "We will verify the request where reasonably necessary, complete deletion within 30 days and confirm completion by email. We may retain the minimum information required by law, to prevent fraud, or to establish, exercise or defend legal claims. Any retained information will be isolated from normal application use." }]],
+            heading: "Records that may be retained",
+            paras: [[{ t: "A minimal pseudonymous tombstone and consent evidence may be retained for audit integrity. Paid order, ticket and accounting records may also be retained for fulfilment, accounting, fraud prevention and legal obligations. Retained records are not usable to sign back into the deleted Signal account." }]],
           },
           {
-            heading: "Revoke future access",
-            paras: [[{ t: "You may also remove Virya Automation from your Meta account settings under Business Integrations or Apps and Websites. Removing access stops future API access but may not delete information already stored by the application, so contact us using the procedure above if you also want our stored copy deleted." }]],
-          },
-          {
-            heading: "Scope of this page",
+            heading: "Virya Automation / Meta deletion",
             paras: [[
-              { t: "This procedure concerns information processed by Virya Automation. To delete your Facebook or Instagram account itself, use the account deletion controls provided directly by Meta." },
+              { t: "For the internal Virya Automation social-media integration, email " },
+              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com?subject=Virya%20Automation%20%E2%80%94%20Data%20Deletion%20Request" } },
+              { t: " with the subject “Virya Automation — Data Deletion Request”. Include the name or username of the connected Facebook or Instagram account and, if available, the Page or Business Account name. Do not send passwords or access tokens." },
             ]],
+          },
+          {
+            heading: "Timeframe and future access",
+            paras: [[{ t: "Manual deletion requests are verified where reasonably necessary and handled without undue delay. You may also revoke Virya Automation from Meta Business Integrations / Apps and Websites; revoking access stops future Meta API access but does not by itself delete copies already stored by us." }]],
           },
         ],
       },
@@ -931,39 +937,47 @@ export const translations = {
         ],
       },
       dataDeletion: {
-        title: "Virya Automation — usuwanie danych",
+        title: "Virya — usuwanie konta i danych",
         sections: [
           {
-            heading: "Operator aplikacji",
+            heading: "Kto obsługuje usługi Virya",
             paras: [[
-              { t: "Virya Automation jest wewnętrzną aplikacją do automatyzacji social mediów i workflowów, prowadzoną przez WB Soft Wojciech Bator, ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. W sprawach prywatności i usuwania danych napisz na " },
+              { t: "Usługi Virya prowadzi WB Soft Wojciech Bator, ul. Braniborska 50/2, 53-680 Wrocław, NIP: 8943126279. W sprawach prywatności i usuwania danych napisz na " },
               { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
               { t: "." },
             ]],
           },
           {
-            heading: "Jak zgłosić żądanie usunięcia",
+            heading: "Usunięcie konta fana Virya Signal",
+            paras: [[{ t: "W Virya Signal otwórz Mój profil → Ustawienia Sygnału → Usuń konto Virya i jeszcze raz potwierdź ostrzeżenie. Aplikacja najpierw zleca CrowdRelay trwałe usunięcie konta, a zaszyfrowany profil lokalny usuwa dopiero po potwierdzeniu operacji przez serwer." }]],
+          },
+          {
+            heading: "Żądanie usunięcia Signal bez dostępu do aplikacji",
             paras: [[
-              { t: "Wyślij wiadomość na " },
-              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com" } },
-              { t: " z tematem „Virya Automation — żądanie usunięcia danych”. Podaj nazwę lub nazwę użytkownika połączonego konta Facebook albo Instagram oraz, jeśli jest dostępna, nazwę strony lub konta firmowego. Nie wysyłaj haseł, tokenów dostępu ani innych sekretów uwierzytelniających." },
+              { t: "Jeżeli nie masz już dostępu do aplikacji, napisz na " },
+              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com?subject=Virya%20Signal%20%E2%80%94%20%C5%BC%C4%85danie%20usuni%C4%99cia%20konta" } },
+              { t: " z tematem „Virya Signal — żądanie usunięcia konta”, najlepiej z adresu użytego do założenia konta Signal. Nie wysyłaj haseł, PIN-u, tokenów sesji ani innych sekretów uwierzytelniających. Przed realizacją możemy poprosić o minimalną weryfikację." },
             ]],
           },
           {
-            heading: "Jakie dane usuniemy",
-            paras: [[{ t: "Jeżeli są powiązane z Twoim kontem i przechowywane przez nas, usuniemy lub nieodwracalnie zanonimizujemy tokeny OAuth, identyfikatory stron Facebook i kont Instagram, zapisane metadane profilu lub publiczne dane firmowe oraz logi automatyzacji, które nie są już potrzebne do działania ani zabezpieczenia usługi." }]],
+            heading: "Co usuwa operacja w Signal",
+            paras: [[{ t: "Usuwamy aktywne sesje fana, endpointy powiadomień push, nazwę profilu i locale, adres e-mail z aktywnej tożsamości fana, powiązanie z AREA, relacje pozyskania/referral, wpis do losowania Synesthesii, powiązanie wyników Synesthesii z kontem oraz każdą publiczną publikację w leaderboardzie. Istniejące kody polecające są wyłączane. Anonimowa historia gry może pozostać bez powiązania z usuniętym kontem." }]],
           },
           {
-            heading: "Termin i potwierdzenie",
-            paras: [[{ t: "W razie potrzeby zweryfikujemy zasadność żądania, zakończymy usuwanie w ciągu 30 dni i potwierdzimy wykonanie e-mailem. Możemy zachować minimalny zakres informacji wymagany prawem, potrzebny do zapobiegania nadużyciom albo do ustalenia, dochodzenia lub obrony roszczeń. Takie dane będą odseparowane od zwykłego działania aplikacji." }]],
+            heading: "Dane, które mogą pozostać",
+            paras: [[{ t: "Minimalny pseudonimowy rekord techniczny oraz dowody zgód mogą pozostać dla integralności audytu. Rekordy płatnych zamówień, biletów i księgowości mogą być również zachowane w zakresie potrzebnym do realizacji, księgowości, zapobiegania nadużyciom i obowiązków prawnych. Zachowane rekordy nie pozwalają ponownie zalogować się do usuniętego konta Signal." }]],
           },
           {
-            heading: "Cofnięcie dostępu na przyszłość",
-            paras: [[{ t: "Możesz również usunąć Virya Automation w ustawieniach konta Meta, w sekcji Integracje firmowe albo Aplikacje i witryny. Cofnięcie dostępu zatrzymuje przyszły dostęp API, ale nie musi automatycznie usuwać informacji wcześniej zapisanych przez aplikację. Aby usunąć także naszą kopię danych, skorzystaj z procedury opisanej powyżej." }]],
+            heading: "Usuwanie danych Virya Automation / Meta",
+            paras: [[
+              { t: "W sprawie wewnętrznej integracji social-mediowej Virya Automation napisz na " },
+              { link: { label: "virya.crew@gmail.com", href: "mailto:virya.crew@gmail.com?subject=Virya%20Automation%20%E2%80%94%20%C5%BC%C4%85danie%20usuni%C4%99cia%20danych" } },
+              { t: " z tematem „Virya Automation — żądanie usunięcia danych”. Podaj nazwę lub nazwę użytkownika połączonego konta Facebook albo Instagram oraz, jeśli jest dostępna, nazwę strony lub konta firmowego. Nie wysyłaj haseł ani tokenów dostępu." },
+            ]],
           },
           {
-            heading: "Zakres tej strony",
-            paras: [[{ t: "Ta procedura dotyczy informacji przetwarzanych przez Virya Automation. Aby usunąć całe konto Facebook lub Instagram, skorzystaj z mechanizmów usuwania konta udostępnianych bezpośrednio przez Meta." }]],
+            heading: "Termin i cofnięcie przyszłego dostępu",
+            paras: [[{ t: "Ręczne żądania usunięcia weryfikujemy w rozsądnym zakresie i realizujemy bez zbędnej zwłoki. Możesz również usunąć Virya Automation w Meta Business Integrations / Aplikacje i witryny; cofnięcie dostępu zatrzymuje przyszły dostęp API Meta, ale samo w sobie nie usuwa kopii danych zapisanych wcześniej przez nas." }]],
           },
         ],
       },
