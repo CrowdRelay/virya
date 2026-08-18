@@ -12,6 +12,20 @@
 # Security headers live in public/_headers (single source of truth); on conflict
 # Netlify's _headers wins, so they are not duplicated here.
 
+# /thomann is a constant redirect whose target the build already knows, so it is
+# answered at the edge instead of waking the SSR function for every click.
+[[redirects]]
+  from = "/thomann"
+  to = "https://www.thomann.pl/?offid=1&affid=4979&subid=virya_music&subid2=shop"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/pl/thomann"
+  to = "https://www.thomann.pl/?offid=1&affid=4979&subid=virya_music&subid2=shop"
+  status = 302
+  force = true
+
 [[headers]]
   for = "/_astro/*"
   [headers.values]

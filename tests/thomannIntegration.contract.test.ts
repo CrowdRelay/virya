@@ -41,16 +41,25 @@ test("Commercial Thomann surfaces are explicitly marked sponsored", () => {
   }
 })
 
-test("Friendly Thomann redirect is dynamic and excluded from the sitemap", () => {
-  const route = read("src/pages/thomann.ts")
-  const routePl = read("src/pages/pl/thomann.ts")
+test("Friendly Thomann redirect is served at the edge and excluded from the sitemap", () => {
+  const netlify = read("netlify.toml")
   const astroConfig = read("astro.config.mjs")
 
-  for (const source of [route, routePl]) {
-    assert.match(source, /status: 302/)
-    assert.match(source, /thomannAffiliateUrl\(THOMANN_HOME_URL, "shop"\)/)
-    assert.match(source, /"cache-control": "no-store"/)
+  // The target is constant, so this is an edge redirect rather than an SSR
+  // function woken for every click. It must still carry the Signal-scoped
+  // affiliate parameters the library builds.
+  for (const from of ['from = "/thomann"', 'from = "/pl/thomann"']) {
+    assert.match(netlify, new RegExp(from.replace(/[/]/g, "\\/")))
   }
+  const targets = netlify.match(/to = "https:\/\/www\.thomann\.pl\/\?[^"]+"/g) ?? []
+  assert.equal(targets.length, 2)
+  for (const target of targets) {
+    assert.match(target, /offid=1/)
+    assert.match(target, /affid=4979/)
+    assert.match(target, /subid=virya_music/)
+    assert.match(target, /subid2=shop/)
+  }
+  assert.match(netlify, /status = 302/)
   assert.match(astroConfig, /"\/thomann"/)
   assert.match(astroConfig, /"\/pl\/thomann"/)
 })
