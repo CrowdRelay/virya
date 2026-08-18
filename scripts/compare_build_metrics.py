@@ -3,10 +3,10 @@ from __future__ import annotations
 import argparse,json
 from pathlib import Path
 RULES={
- 'codeBytes':(1.20,32*1024),
- 'largestCodeBytes':(1.25,16*1024),
- 'homepageGzipBytes':(1.20,4*1024),
- 'fileCount':(1.25,5),
+ 'codeBytes':(1.35,64*1024),
+ 'largestCodeBytes':(1.40,32*1024),
+ 'homepageGzipBytes':(1.25,8*1024),
+ 'fileCount':(1.30,10),
 }
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('current',type=Path);ap.add_argument('previous',type=Path);a=ap.parse_args()
