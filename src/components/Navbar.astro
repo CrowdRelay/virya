@@ -51,6 +51,7 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
           </details>
         )}
         {displayLinks && <a href={lp(lang, "/epk")} aria-current={activePage === "epk" ? "page" : undefined} class={`inline-flex min-h-[44px] cursor-pointer items-center px-4 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "epk" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.epk")}</a>}
+        {displayLinks && <a href={lp(lang, "/latarnik")} aria-current={activePage === "latarnik" ? "page" : undefined} class={`inline-flex min-h-[44px] cursor-pointer items-center px-4 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "latarnik" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.latarnik")}</a>}
         {displayLinks && activePage === "home" && (
           <>
             <a href={lp(lang, "/#music")} data-section="music" class="nav-link cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400">{t(lang, "nav.music")}</a>
@@ -106,6 +107,7 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
         <a href={lp(lang, "/gallery/")} aria-current={activePage === "gallery" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "gallery" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.gallery")}</a>
         <a href={lp(lang, "/lyrics/")} aria-current={activePage === "lyrics" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "lyrics" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "lyrics.heading")}</a>
         <a href={lp(lang, "/epk")} aria-current={activePage === "epk" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "epk" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.epk")}</a>
+        <a href={lp(lang, "/latarnik")} aria-current={activePage === "latarnik" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "latarnik" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.latarnik")}</a>
         {activePage === "home" && (
           <>
             <a href={lp(lang, "/#music")} data-section="music" class="mobile-nav-link nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.music")}</a>
