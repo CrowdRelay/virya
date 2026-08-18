@@ -24,7 +24,7 @@ export default defineConfig({
     defaultStrategy: "hover",
   },
   build: {
-    inlineStylesheets: 'always',
+    inlineStylesheets: 'auto',
   },
   integrations: [
     preact(),
