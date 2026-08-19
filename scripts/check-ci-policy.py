@@ -45,23 +45,44 @@ if netlify.exists():
     if "deploy-artifact/functions" in deploy_workflows and "include-hidden-files: true" not in deploy_workflows:
         failures.append("Netlify SSR promotion artifact must include hidden function build files")
 
-# A scheduled security workflow is useful only if dependency changes also exercise it.
+# Per-change dependency security belongs to Build and promote so production
+# deployment cannot pass while advisory scanning is red. security.yml remains
+# an independent scheduled/manual freshness scan.
+build_workflow = workflow_dir / "build.yml"
+if not build_workflow.exists():
+    failures.append(".github/workflows/build.yml: canonical build workflow is required")
+else:
+    build_text = build_workflow.read_text()
+    for contract in (
+        "dependency-security:",
+        "npm run security:audit",
+        "needs: [build, dependency-security]",
+    ):
+        if contract not in build_text:
+            failures.append(f".github/workflows/build.yml: dependency-security contract missing: {contract}")
+    if build_text.count("npm run security:audit") != 1:
+        failures.append(".github/workflows/build.yml: dependency audit must have exactly one per-change owner")
+
 security_workflow = workflow_dir / "security.yml"
 if not security_workflow.exists():
     failures.append(".github/workflows/security.yml: standalone dependency-security workflow is required")
 else:
     security_text = security_workflow.read_text()
-    for trigger in ("push", "pull_request", "schedule", "workflow_dispatch"):
+    for trigger in ("schedule", "workflow_dispatch"):
         if not re.search(rf"(?m)^  {re.escape(trigger)}:\s*$", security_text):
             failures.append(f".github/workflows/security.yml: missing {trigger} trigger")
-    if "package-lock.json" not in security_text:
-        failures.append(".github/workflows/security.yml: dependency lockfile must trigger the audit")
+    for duplicate_trigger in ("push", "pull_request"):
+        if re.search(rf"(?m)^  {re.escape(duplicate_trigger)}:\s*$", security_text):
+            failures.append(
+                f".github/workflows/security.yml: {duplicate_trigger} duplicates build dependency-security"
+            )
     if "npm run security:audit" not in security_text:
-        failures.append(".github/workflows/security.yml: pinned/controlled dependency audit command is required")
+        failures.append(".github/workflows/security.yml: scheduled/manual dependency audit command is required")
     if "continue-on-error: true" in security_text:
         failures.append(".github/workflows/security.yml: dependency audit must fail closed")
     if "github.ref" not in security_text and "concurrency:" in security_text:
         failures.append(".github/workflows/security.yml: concurrency must not collapse unrelated refs")
+
 
 if failures:
     for failure in failures:

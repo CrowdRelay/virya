@@ -1,26 +1,16 @@
 name: Dependency security
 
 on:
-  push:
-    paths:
-      - "package.json"
-      - "package-lock.json"
-      - "security/**"
-      - "scripts/audit-dependencies.mjs"
-      - ".github/workflows/security.yml"
-  pull_request:
-    paths:
-      - "package.json"
-      - "package-lock.json"
-      - "security/**"
-      - "scripts/audit-dependencies.mjs"
-      - ".github/workflows/security.yml"
   schedule:
     - cron: "17 4 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: dependency-security-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   audit:

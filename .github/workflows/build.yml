@@ -17,6 +17,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  dependency-security:
+    name: Dependency security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --prefer-offline --no-audit --fund=false
+      - name: Audit high and critical dependency advisories
+        run: npm run security:audit
+
   build:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -36,8 +51,6 @@ jobs:
             images-${{ runner.os }}-
       - name: Install locked dependencies
         run: npm ci --prefer-offline --no-audit --fund=false
-      - name: Audit high and critical dependency advisories
-        run: npm run security:audit
       - name: Unit, contract, asset and type gates
         run: npm test
       - name: Build production output
@@ -125,7 +138,7 @@ jobs:
 
   deploy:
     name: Promote exact build artifact to Netlify
-    needs: build
+    needs: [build, dependency-security]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
