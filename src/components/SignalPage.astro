@@ -4,82 +4,49 @@ import Navbar from "./Navbar.astro"
 import Footer from "./Footer.astro"
 import ScrollToTop from "./ScrollToTop.astro"
 import SignalHub from "./preact/signal/SignalHub"
-import SynesthesiaLeaderboard from "./SynesthesiaLeaderboard.astro"
 import { SIGNAL_COPY } from "../data/signalCopy"
 import { getSeoTags } from "../utils/seo"
 import { lp, type Lang } from "../i18n/t"
 
-interface Props {
-  lang?: Lang
-}
-
+interface Props { lang?: Lang }
 const { lang = "en" } = Astro.props
 const copy = SIGNAL_COPY[lang]
-const clarityCards = lang === "pl"
+const benefits = lang === "pl"
   ? [
       {
-        label: "SYGNAŁ VIRYA",
-        icon: "mail",
-        title: "Zapisujesz się raz",
-        body: "Podajesz e-mail i miasto. Od razu wiesz, gdzie gramy najbliżej Ciebie i gdzie trzymasz bilety.",
-        reward: "START → e-mail + miasto",
+        number: "01",
+        title: "Koncerty blisko Ciebie",
+        body: "Wybierasz miasto i widzisz najważniejsze koncerty VIRYA bez przekopywania sociali.",
       },
       {
-        label: "GRA TERENOWA",
-        icon: "location",
-        title: "Grasz w terenie",
-        body: "Pokazujemy tylko aktywne sygnały. Otwierasz przybliżony punkt, idziesz za wskazówką i potwierdzasz strefę telefonem.",
-        reward: "Nie musisz zbierać całej Polski",
+        number: "02",
+        title: "Twoje rzeczy w jednym miejscu",
+        body: "Obserwowane koncerty, polecenia i nagrody zostają przy Twoim prywatnym Sygnałe.",
       },
       {
-        label: "SYNESTHESIA",
-        icon: "door",
-        title: "Przechodzisz przez album",
-        body: "Jedenaście utworów staje się pokojami świadomości. Ukończenie całej podróży daje jedno wejście do osobnego, audytowalnego losowania pięciu płyt.",
-        reward: "5 płyt · 1 ukończenie = 1 los",
-      },
-      {
-        label: "LIVE QR",
-        icon: "qr",
-        title: "Przychodzisz na koncert",
-        body: "Skanujesz koncertowy QR i potwierdzasz obecność. Wejściówki pozostają pulą wydarzenia, a check-in dodaje los do globalnej puli trzech płyt.",
-        reward: "Nagroda: wejściówki + globalna pula 3 płyt",
+        number: "03",
+        title: "Bliżej VIRYA, bez spamu",
+        body: "Dostajesz tylko rzeczy, które mają znaczenie: koncert, premiera albo aktywna akcja zespołu.",
       },
     ]
   : [
       {
-        label: "SIGNAL",
-        icon: "mail",
-        title: "Join once",
-        body: "Choose your city and receive meaningful Virya updates about shows, releases and limited fan actions.",
-        reward: "Alerts · live pools · referrals",
+        number: "01",
+        title: "Shows near you",
+        body: "Choose your city and see the VIRYA shows that matter without digging through social feeds.",
       },
       {
-        label: "AREA",
-        icon: "location",
-        title: "Play in the city",
-        body: "Follow a clue, reach a live zone and unlock a collectible lyric plus a real reward.",
-        reward: "1 free merch item + free delivery",
+        number: "02",
+        title: "Your stuff in one place",
+        body: "Followed shows, referrals and rewards stay attached to your private Signal.",
       },
       {
-        label: "SYNESTHESIA",
-        icon: "door",
-        title: "Walk through the album",
-        body: "Eleven tracks become rooms of consciousness. Finish the whole experience to receive one entry into a separate, auditable five-album draw.",
-        reward: "5 albums · 1 completion = 1 entry",
-      },
-      {
-        label: "LIVE QR",
-        icon: "qr",
-        title: "Come to a show",
-        body: "Scan the venue QR to confirm attendance. Guest-list spots stay event-specific, while the check-in adds an entry to the global three-album draw.",
-        reward: "Guest-list spots + global three-album draw",
+        number: "03",
+        title: "Closer to VIRYA, without spam",
+        body: "Get only meaningful updates: a show, a release or an active band action.",
       },
     ]
-const clarityHeading = lang === "pl" ? "Zacznij od jednej rzeczy" : "Start with one thing"
-const clarityBody = lang === "pl"
-  ? "Nie musisz rozumieć całego systemu. Najpierw aktywuj Sygnał; gra i koncertowe QR-y są opcjonalnymi akcjami, które pojawią się wtedy, gdy są dostępne."
-  : "You do not need to understand the whole system. Choose only what you want to do now: join, play in your city or scan a QR at a show."
+
 const { canonicalUrl, hreflangLinks } = getSeoTags("/signal/", lang)
 const schema = {
   "@context": "https://schema.org",
@@ -91,11 +58,7 @@ const schema = {
   operatingSystem: "Any",
   isAccessibleForFree: true,
   inLanguage: lang,
-  creator: {
-    "@type": "MusicGroup",
-    name: "Virya",
-    url: "https://www.virya.music/",
-  },
+  creator: { "@type": "MusicGroup", name: "Virya", url: "https://www.virya.music/" },
 }
 ---
 
@@ -107,9 +70,7 @@ const schema = {
   ogImage="https://www.virya.music/poster.webp"
 >
   <Fragment slot="head">
-    {hreflangLinks.map((link) => (
-      <link rel={link.rel} hreflang={link.hreflang} href={link.href} />
-    ))}
+    {hreflangLinks.map(link => <link rel={link.rel} hreflang={link.hreflang} href={link.href} />)}
     <link rel="dns-prefetch" href="https://signal-api.virya.music" />
     <link rel="preconnect" href="https://signal-api.virya.music" crossorigin="anonymous" />
     <script type="application/ld+json" set:html={JSON.stringify(schema).replace(/</g, "\\u003c")} />
@@ -120,128 +81,58 @@ const schema = {
     <ScrollToTop />
 
     <main id="main-content" class="flex-1">
-      <header class="relative flex min-h-[82svh] items-center overflow-hidden border-b border-zinc-800/60 px-4 pb-14 pt-[calc(7rem+env(safe-area-inset-top))] sm:px-6 lg:px-12">
-        <div class="signal-hero-grid absolute inset-0 opacity-80" aria-hidden="true"></div>
-        <div class="absolute left-[8%] top-36 h-64 w-64 rounded-full bg-amber-400/10 blur-[110px]" aria-hidden="true"></div>
-        <div class="relative mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,.72fr)]">
+      <header class="relative overflow-hidden border-b border-zinc-800/60 px-5 pb-16 pt-[calc(8rem+env(safe-area-inset-top))] sm:px-8 sm:pb-20 lg:px-12 lg:pb-28 lg:pt-40">
+        <div class="signal-hero-grid absolute inset-0 opacity-60" aria-hidden="true"></div>
+        <div class="absolute left-[6%] top-32 h-72 w-72 rounded-full bg-amber-400/[.08] blur-[120px]" aria-hidden="true"></div>
+        <div class="virya-container relative grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,.58fr)] lg:items-end">
           <div>
-            <div class="flex flex-wrap items-center gap-3">
-              <p class="text-[10px] font-black uppercase tracking-[.4em] text-amber-400">{copy.hero.eyebrow}</p>
-              <span class="inline-flex items-center gap-2 border border-zinc-800 bg-black/50 px-3 py-1 text-[8px] font-black uppercase tracking-[.2em] text-zinc-400">
-                <span class="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,.9)]" aria-hidden="true"></span>
-                {copy.hero.status}
-              </span>
-            </div>
-            <h1 class="mt-6 max-w-5xl text-[clamp(3rem,10vw,7.2rem)] font-black uppercase leading-[.84] tracking-[-.06em] text-white">
-              {copy.hero.heading}
-            </h1>
-            <p class="mt-7 max-w-2xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify sm:text-base lg:text-lg">
+            <p class="virya-eyebrow">{copy.hero.eyebrow}</p>
+            <h1 class="virya-display mt-6 max-w-5xl">{copy.hero.heading}</h1>
+            <p class="mt-7 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg sm:leading-8">
               {copy.hero.body}
             </p>
-            <div class="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-              <a href="#join-signal" class="virya-button virya-button--primary min-h-[52px] px-7">
-                {copy.hero.primary} <span class="ml-3" aria-hidden="true">→</span>
+            <div class="mt-9 flex flex-wrap items-center gap-3">
+              <a href="#join-signal" class="virya-button virya-button--primary">
+                {copy.hero.primary} <span aria-hidden="true">→</span>
               </a>
-              <a href={lp(lang, "/my-signal/")} class="min-h-[44px] px-2 py-3 text-[10px] font-black uppercase tracking-[.18em] text-zinc-400 hover:text-amber-400">
-                {lang === "pl" ? "Mam już Sygnał" : "I already joined"} →
-              </a>
-              <a href="https://synesthesia.virya.music/?source=virya-signal" class="min-h-[44px] px-2 py-3 text-[10px] font-black uppercase tracking-[.18em] text-cyan-300 hover:text-cyan-100">
-                SYNESTHESIA ↗
+              <a href={lp(lang, "/my-signal/")} class="virya-button virya-button--secondary">
+                {lang === "pl" ? "Mam już konto" : "I already joined"}
               </a>
             </div>
           </div>
 
-          <aside class="virya-panel relative overflow-hidden border-amber-400/40 p-5 shadow-2xl sm:p-7">
-            <div class="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
-            <div class="relative flex items-center justify-between">
-              <p class="font-mono text-[9px] font-black uppercase tracking-[.25em] text-amber-400">{lang === "pl" ? "SYGNAŁ // AKTYWNY" : "SIGNAL // ACTIVE"}</p>
-              <span class="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_18px_rgba(251,191,36,.9)]" aria-hidden="true"></span>
-            </div>
-            <div class="relative mt-8 grid gap-px border border-zinc-800 bg-zinc-800">
-              {copy.promise.steps.map((step) => (
-                <div class="grid grid-cols-[42px_1fr_auto] items-center gap-3 bg-zinc-950 p-3">
-                  <span class="font-mono text-[8px] text-amber-400">{step.number}</span>
-                  <span class="text-[9px] font-black uppercase tracking-widest text-zinc-200">{step.title}</span>
-                  <span class="text-[8px] uppercase tracking-widest text-zinc-600">{lang === "pl" ? "gotowe" : "ready"}</span>
+          <aside class="border-l border-amber-400/45 pl-5 sm:pl-7">
+            <p class="virya-eyebrow text-zinc-500">{lang === "pl" ? "W skrócie" : "In short"}</p>
+            <dl class="mt-5 divide-y divide-zinc-800/70 border-y border-zinc-800/70">
+              {(lang === "pl"
+                ? [["Miasto", "koncerty i alerty"], ["Konto", "bez hasła"], ["Dane", "bez sprzedaży reklamodawcom"]]
+                : [["City", "shows and alerts"], ["Account", "no password"], ["Data", "never sold to advertisers"]]
+              ).map(([label, value]) => (
+                <div class="grid grid-cols-[5rem_1fr] gap-4 py-3 text-sm">
+                  <dt class="font-bold uppercase tracking-[.08em] text-zinc-500">{label}</dt>
+                  <dd class="text-zinc-200">{value}</dd>
                 </div>
               ))}
-            </div>
-            <div class="relative mt-8 flex items-end justify-between border-t border-zinc-800 pt-5">
-              <div>
-                <p class="text-[8px] font-black uppercase tracking-[.25em] text-zinc-500">{lang === "pl" ? "RDZEŃ" : "CORE"}</p>
-                <p class="mt-1 text-sm font-black uppercase text-white">{lang === "pl" ? "Najpierw muzyka" : "Music first"}</p>
-              </div>
-              <p class="font-mono text-[9px] uppercase tracking-[.18em] text-amber-400">{lang === "pl" ? "SYN + GRA + LIVE + MERCH" : "SYN + AREA + LIVE + MERCH"}</p>
-            </div>
+            </dl>
           </aside>
         </div>
       </header>
 
-      <section aria-labelledby="signal-simple-heading" class="virya-section border-b border-zinc-800/60 bg-black/30">
-        <div class="virya-section__inner">
-          <div class="max-w-3xl">
-            <p class="virya-eyebrow">{lang === "pl" ? "Najprościej" : "In plain terms"}</p>
-            <h2 id="signal-simple-heading" class="virya-heading mt-4 !text-[clamp(2rem,7vw,4rem)]">{clarityHeading}</h2>
-            <p class="virya-copy mt-5 text-zinc-300">{clarityBody}</p>
-          </div>
-          <div class="mt-9 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {clarityCards.map((card) => (
-              <article class="virya-panel flex min-h-full flex-col p-5 sm:p-6">
-                <div class="flex items-center justify-between gap-4">
-                  <span class="signal-clarity-icon" aria-hidden="true">
-                    {card.icon === "mail" && (
-                      <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M4.5 6.75h15v10.5h-15z" />
-                        <path d="m5.25 7.5 6.75 5.25 6.75-5.25" />
-                      </svg>
-                    )}
-                    {card.icon === "location" && (
-                      <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0Z" />
-                        <circle cx="12" cy="10" r="2.25" />
-                      </svg>
-                    )}
-                    {card.icon === "door" && (
-                      <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M6.5 20V4h11v16M9.5 20V7l5-1.4V20" />
-                        <circle cx="13.1" cy="12.7" r=".65" fill="currentColor" stroke="none" />
-                      </svg>
-                    )}
-                    {card.icon === "qr" && (
-                      <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M4.5 4.5h5v5h-5zM14.5 4.5h5v5h-5zM4.5 14.5h5v5h-5z" />
-                        <path d="M14.5 14.5h2v2h-2zM17.5 17.5h2v2h-2zM17.5 14.5h2M14.5 18.5v1" />
-                      </svg>
-                    )}
-                  </span>
-                  <span class="text-[8px] font-black uppercase tracking-[.22em] text-zinc-500">{card.label}</span>
-                </div>
-                <h3 class="mt-7 text-xl font-black uppercase leading-tight text-white">{card.title}</h3>
-                <p class="mt-3 flex-1 text-xs leading-relaxed text-zinc-400 text-justify mobile-justify">{card.body}</p>
-                <p class="mt-6 border-t border-zinc-800 pt-4 text-[9px] font-black uppercase leading-relaxed tracking-[.16em] text-amber-400">{card.reward}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <SynesthesiaLeaderboard lang={lang} />
-
-      <section class="virya-section">
+      <section class="virya-section virya-surface" aria-labelledby="signal-benefits-heading">
         <div class="virya-section__inner">
           <div class="max-w-4xl">
-            <p class="virya-eyebrow">{copy.promise.eyebrow}</p>
-            <h2 class="virya-heading mt-4">{copy.promise.heading}</h2>
-            <p class="virya-copy mt-6 max-w-3xl">{copy.promise.body}</p>
+            <p class="virya-eyebrow">{lang === "pl" ? "Po co Sygnał" : "Why Signal"}</p>
+            <h2 id="signal-benefits-heading" class="virya-heading mt-4">
+              {lang === "pl" ? "Jedna prosta relacja z zespołem" : "One simple connection to the band"}
+            </h2>
           </div>
-          <div class="mt-10 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
-            {copy.promise.steps.map((step) => (
-              <a href={step.href} class="group min-h-60 bg-zinc-950 p-5 transition-colors hover:bg-zinc-900 sm:p-6">
-                <span class="font-mono text-[9px] font-black text-amber-400">{step.number}</span>
-                <h3 class="mt-10 text-xl font-black uppercase leading-none text-white group-hover:text-amber-400">{step.title}</h3>
-                <p class="mt-4 text-xs leading-relaxed text-zinc-400 text-justify mobile-justify">{step.body}</p>
-                <span class="mt-7 inline-flex text-[9px] font-black uppercase tracking-widest text-zinc-300 group-hover:text-amber-400">{step.cta} →</span>
-              </a>
+          <div class="mt-10 grid gap-px border-y border-zinc-800 bg-zinc-800 md:grid-cols-3">
+            {benefits.map(item => (
+              <article class="bg-zinc-950 px-5 py-7 sm:px-7 sm:py-8">
+                <span class="font-mono text-[11px] font-black text-amber-300">{item.number}</span>
+                <h3 class="mt-8 text-xl font-black uppercase leading-tight text-white">{item.title}</h3>
+                <p class="mt-4 text-sm leading-7 text-zinc-400">{item.body}</p>
+              </article>
             ))}
           </div>
         </div>
@@ -254,12 +145,11 @@ const schema = {
           <div class="max-w-4xl">
             <p class="virya-eyebrow">{copy.area.eyebrow}</p>
             <h2 class="virya-heading mt-4">{copy.area.heading}</h2>
-            <p class="virya-copy mt-6 max-w-3xl text-zinc-300">{copy.area.body}</p>
+            <p class="virya-copy mt-6 text-zinc-300">{copy.area.body}</p>
           </div>
           <div class="flex flex-col gap-3 sm:flex-row lg:flex-col">
-            <a href={lp(lang, "/area/")} class="virya-button virya-button--primary min-h-[48px] px-6">{copy.area.cta}</a>
-            <a href={lp(lang, "/merch/")} class="virya-button virya-button--secondary min-h-[48px] px-6">{copy.area.merch}</a>
-            <a href="https://synesthesia.virya.music/?source=virya-signal-bottom" class="virya-button virya-button--secondary min-h-[48px] px-6">SYNESTHESIA ↗</a>
+            <a href={lp(lang, "/area/")} class="virya-button virya-button--primary">{copy.area.cta}</a>
+            <a href={lp(lang, "/merch/")} class="virya-button virya-button--secondary">{copy.area.merch}</a>
           </div>
         </div>
       </section>
@@ -270,39 +160,12 @@ const schema = {
 </Layout>
 
 <style>
-  .signal-clarity-icon {
-    display: inline-flex;
-    width: 2.5rem;
-    height: 2.5rem;
-    flex: 0 0 2.5rem;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(251, 191, 36, 0.4);
-    border-radius: 9999px;
-    background: rgba(251, 191, 36, 0.035);
-    color: rgb(252 211 77);
-    line-height: 0;
-  }
-
-  .signal-clarity-icon svg {
-    display: block;
-    width: 1.15rem;
-    height: 1.15rem;
-    flex: none;
-    overflow: visible;
-    stroke: currentColor;
-    stroke-width: 1.65;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    vector-effect: non-scaling-stroke;
-  }
-
   .signal-hero-grid {
     background-image:
-      linear-gradient(rgba(251, 191, 36, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(251, 191, 36, 0.06) 1px, transparent 1px);
-    background-size: 52px 52px;
-    mask-image: linear-gradient(to right, black, transparent 92%);
+      linear-gradient(rgb(132 180 172 / .045) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(132 180 172 / .045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(to bottom, black, transparent 92%);
   }
 
   @supports (content-visibility: auto) {

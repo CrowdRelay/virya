@@ -29,7 +29,7 @@ const assertions = [
   ["src/components/preact/staff/StaffCommerceManager.tsx", "USUŃ BŁĘDNE LOSOWANIE"],
   ["src/pages/api/staff/commerce/draws/[id]/delete.ts", "isSameOriginRequest"],
   ["src/pages/api/staff/commerce/draws/[id]/delete.ts", "admin/reward-draws/"],
-  ["src/components/preact/staff/AdminConsoleTabs.tsx", "trybie częściowym"],
+  ["src/components/preact/staff/AdminConsoleTabs.tsx", "Część danych jest chwilowo niedostępna"],
   ["src/pages/api/staff/admin/ticketing/[slug].ts", "isSameOriginRequest"],
   ["src/pages/api/staff/admin/ticketing/[slug].ts", "2_100"],
   ["src/pages/api/staff/admin/ticketing/[slug].ts", "refreshPending"],

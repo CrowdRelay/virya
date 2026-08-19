@@ -1,0 +1,107 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import BlurImage from "./BlurImage.astro"
+import Footer from "./Footer.astro"
+import ScrollToTop from "./ScrollToTop.astro"
+import { t, lp, type Lang } from "../i18n/t"
+import { getSeoTags } from "../utils/seo"
+
+interface Props { lang: Lang }
+const { lang } = Astro.props
+const { canonicalUrl, hreflangLinks } = getSeoTags("/about/", lang)
+const title = `${t(lang, "band.storyHeading")} | Virya`
+const description = t(lang, "band.story1").slice(0, 155) + "…"
+const members = [
+  { name: "Wojciech Bator", roleKey: "band.roles.guitar" },
+  { name: "Marcin Janusiński", roleKey: "band.roles.vocals" },
+  { name: "Jakub Dąbrowski", roleKey: "band.roles.drums" },
+  { name: "Lubomyr Kosakovsky", roleKey: "band.roles.bass" },
+]
+const links = [
+  ["Spotify", "https://open.spotify.com/artist/6bbW0jOKAWJWm3h6CTWaAS"],
+  ["YouTube", "https://www.youtube.com/@ViryaOfficial"],
+  ["Instagram", "https://www.instagram.com/virya.official"],
+  ["Bandcamp", "https://virya.bandcamp.com"],
+  ["Facebook", "https://www.facebook.com/ViryaBand"],
+  ["SoundCloud", "https://soundcloud.com/viryaofficial"],
+]
+---
+
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+  <Fragment slot="head">
+    {hreflangLinks.map(l => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
+  </Fragment>
+
+  <div class="min-h-screen bg-zinc-950">
+    <Navbar lang={lang} displayLinks={true} activePage="about" />
+    <ScrollToTop />
+
+    <main id="main-content" class="pt-20">
+      <section class="virya-section pb-10 lg:pb-16">
+        <div class="virya-section__inner grid gap-10 lg:grid-cols-[minmax(0,.78fr)_minmax(420px,1.22fr)] lg:items-end">
+          <header>
+            <p class="virya-eyebrow">VIRYA // {t(lang, "band.sub")}</p>
+            <h1 class="virya-display mt-5">{t(lang, "band.storyHeading")}</h1>
+            <p class="mt-7 max-w-xl text-lg leading-8 text-zinc-300">{t(lang, "band.teaser")}</p>
+          </header>
+          <BlurImage
+            src="/images/band.webp"
+            alt={lang === "pl" ? "VIRYA — zespół" : "VIRYA band"}
+            width="1200"
+            height="900"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            sizes="(max-width: 1023px) calc(100vw - 2.5rem), 720px"
+            class="aspect-[4/3] w-full object-cover"
+          />
+        </div>
+      </section>
+
+      <section class="virya-section virya-surface">
+        <div class="virya-section__inner grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-20">
+          <article class="max-w-3xl space-y-7 text-base leading-8 text-zinc-300 sm:text-[17px]">
+            <p>{t(lang, "band.story1")}</p>
+            <p>{t(lang, "band.story2")}</p>
+            <p>{t(lang, "band.story3")}</p>
+            <p class="border-l border-amber-300 pl-5 text-sm font-black uppercase tracking-[.14em] text-amber-200">
+              {t(lang, "band.noPain")}
+            </p>
+          </article>
+
+          <aside class="space-y-10">
+            <section>
+              <p class="virya-eyebrow text-zinc-500">{t(lang, "band.lineup")}</p>
+              <ul class="mt-5 border-y border-zinc-800/80">
+                {members.map(({ name, roleKey }) => (
+                  <li class="grid grid-cols-[1fr_auto] items-center gap-5 border-b border-zinc-800/70 py-4 last:border-0">
+                    <span class="text-sm font-bold text-zinc-100">{name}</span>
+                    <span class="text-right text-[11px] font-bold uppercase tracking-[.1em] text-zinc-500">{t(lang, roleKey)}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section>
+              <p class="virya-eyebrow text-zinc-500">{t(lang, "band.links")}</p>
+              <div class="mt-4 grid grid-cols-2 gap-x-5">
+                {links.map(([label, href]) => (
+                  <a href={href} target="_blank" rel="noreferrer" class="flex min-h-11 items-center border-b border-zinc-800/60 text-sm text-zinc-400 transition-colors hover:text-amber-300">
+                    {label} <span class="ml-auto" aria-hidden="true">↗</span>
+                  </a>
+                ))}
+              </div>
+            </section>
+
+            <a href={lp(lang, "/epk/")} class="virya-button virya-button--secondary w-full">
+              {t(lang, "band.pressPack")} <span aria-hidden="true">→</span>
+            </a>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>

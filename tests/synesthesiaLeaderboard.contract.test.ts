@@ -29,13 +29,14 @@ test("Synesthesia leaderboard is public, privacy-safe and lazy", () => {
   assert.match(leaderboard, /publikacja jest dobrowolna/i)
 })
 
-test("leaderboard stays available in Signal but is deliberately demoted from the homepage", () => {
-  assert.match(signalPage, /<SynesthesiaLeaderboard lang=\{lang\} \/>/)
-  assert.doesNotMatch(ecosystem, /<SynesthesiaLeaderboard/)
-  assert.match(ecosystem, /Albumowy eksperyment: Synesthesia/)
-  assert.match(ecosystem, /Interactive album experiment: Synesthesia/)
-  assert.doesNotMatch(ecosystemRail, /\["synesthesia"/)
-  assert.match(ecosystemRail, /Albumowy eksperyment: Synesthesia/)
-  assert.match(ecosystemRail, /Album experiment: Synesthesia/)
-  assert.doesNotMatch(signalPage, /SynesthesiaLeaderboard[^\n]+client:/)
+test("Synesthesia is hidden from public acquisition surfaces while remaining available inside Signal", () => {
+  const mySignal = readFileSync(
+    new URL("../src/components/preact/signal/MySignal.tsx", import.meta.url),
+    "utf8",
+  )
+  for (const source of [signalPage, ecosystem, ecosystemRail]) {
+    assert.doesNotMatch(source, /Synesthesia|synesthesia/)
+  }
+  assert.match(mySignal, /synesthesia\.virya\.music/)
+  assert.match(mySignal, /synesthesia\.rooms_completed/)
 })

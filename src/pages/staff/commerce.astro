@@ -1,22 +1,21 @@
 ---
 export const prerender = false
 import Layout from "../../components/Layout.astro"
-import StaffNavigation from "../../components/StaffNavigation.astro"
+import StaffShell from "../../components/StaffShell.astro"
 import StaffCommerceManager from "../../components/preact/staff/StaffCommerceManager"
 ---
-<Layout title="Virya Merch & Campaigns" description="Prywatny panel magazynu, sprzedaży merchu i kampanii CrowdRelay." lang="pl">
+<Layout title="Virya Staff — merch" description="Prywatny panel operacyjny VIRYA." lang="pl">
   <Fragment slot="head">
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <meta name="referrer" content="no-referrer" />
     <style is:global>
-      .input { width: 100%; border-radius: .75rem; border: 1px solid rgb(255 255 255 / .1); background: #09090b; padding: .75rem 1rem; color: white; outline: none; }
-      .input:focus { border-color: #fcd34d; }
+      .input { width: 100%; border-radius: .375rem; border: 1px solid rgb(255 255 255 / .1); background: #09090b; padding: .75rem 1rem; color: white; outline: none; }
+      .input:focus { border-color: #84b4ac; }
     </style>
   </Fragment>
-  <main id="main-content" class="min-h-screen w-full overflow-x-hidden bg-zinc-950 px-4 py-8 sm:px-6 lg:px-8">
-    <div class="mx-auto w-full max-w-7xl">
-      <StaffNavigation active="commerce" />
+  <main id="main-content">
+    <StaffShell active="commerce">
       <StaffCommerceManager client:load />
-    </div>
+    </StaffShell>
   </main>
 </Layout>

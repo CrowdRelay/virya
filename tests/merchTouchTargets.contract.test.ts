@@ -14,8 +14,10 @@ test("merch cart controls keep mobile-sized touch targets", () => {
 test("merch secondary dialogs expose 44px close and action targets", () => {
   const geowidget = read("src/components/preact/merch/inpostGeowidget.jsx")
   const product = read("src/components/preact/merch/productCard.jsx")
+  const styles = read("src/styles/global.css")
   assert.match(geowidget, /min-h-\[44px\] min-w-\[44px\]/)
   assert.match(product, /sm:inline-flex min-h-\[44px\]/)
-  assert.match(product, /w-full sm:w-auto min-h-\[44px\]/)
+  assert.match(product, /virya-button virya-button--secondary w-full/)
+  assert.match(styles, /\.virya-button \{[\s\S]*?min-height: 3rem;/)
   assert.ok((product.match(/min-w-\[44px\]/g) ?? []).length >= 3)
 })

@@ -1,10 +1,17 @@
 ---
 export const prerender = false
 import Layout from "../../components/Layout.astro"
-import StaffNavigation from "../../components/StaffNavigation.astro"
+import StaffShell from "../../components/StaffShell.astro"
 import AccountingManager from "../../components/preact/staff/AccountingManager"
 ---
-<Layout title="Virya Staff — bilety i księgowość" description="Prywatne rozliczenia sprzedaży biletów Virya." lang="pl">
-  <Fragment slot="head"><meta name="robots" content="noindex, nofollow, noarchive" /><meta name="referrer" content="no-referrer" /></Fragment>
-  <main id="main-content" class="min-h-screen w-full overflow-x-hidden bg-zinc-950 px-4 py-8 sm:px-6 lg:px-8"><div class="mx-auto max-w-7xl"><StaffNavigation active="accounting" /><AccountingManager client:load /></div></main>
+<Layout title="Virya Staff — rozliczenia" description="Prywatny panel operacyjny VIRYA." lang="pl">
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="no-referrer" />
+  </Fragment>
+  <main id="main-content">
+    <StaffShell active="accounting">
+      <AccountingManager client:load />
+    </StaffShell>
+  </main>
 </Layout>

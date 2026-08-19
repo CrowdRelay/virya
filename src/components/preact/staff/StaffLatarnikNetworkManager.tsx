@@ -271,7 +271,7 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
   }
 
   return (
-    <section class="rounded-3xl border border-cyan-300/20 bg-gradient-to-br from-cyan-300/[0.05] to-zinc-950 p-5 sm:p-7">
+    <section class="rounded-xl border border-cyan-300/20 bg-gradient-to-br from-cyan-300/[0.05] to-zinc-950 p-5 sm:p-7">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p class="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">Latarnik / network</p>
@@ -298,7 +298,7 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
       </div>
 
       {latestRun ? (
-        <div class="mt-4 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm">
+        <div class="mt-4 rounded-lg border border-white/10 bg-black/30 p-4 text-sm">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <strong class="text-zinc-100">Ostatni research: {latestRun.countryCode} · cel {latestRun.targetCount}</strong>
             <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${statusClass(latestRun.status)}`}>{latestRun.status}</span>
@@ -323,7 +323,7 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
             const review = reviewFor(candidate.id)
             const canApprove = review.sourceVerified && review.consentConfirmed && isHttpsUrl(review.evidenceUrl)
             return (
-              <article key={candidate.id} class="rounded-2xl border border-white/10 bg-black/30 p-4">
+              <article key={candidate.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <strong class="text-sm text-white">{candidate.displayName}</strong>
@@ -363,7 +363,7 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
           </div>
           <button type="button" disabled={disabled || busy || (data.approvedCandidates ?? []).length === 0} onClick={toggleAll} class="rounded-lg border border-white/15 px-3 py-2 text-[10px] font-black text-zinc-300 disabled:opacity-40">ZAZNACZ / WYCZYŚĆ</button>
         </div>
-        <div class="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 sm:grid-cols-4 sm:items-end">
+        <div class="mt-4 grid gap-3 rounded-lg border border-white/10 bg-black/25 p-4 sm:grid-cols-4 sm:items-end">
           <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">TTL dni
             <input class="input" type="number" min="1" max="30" value={ttlDays} onInput={event => { setTtlDays(Number(event.currentTarget.value)); setPreview(null); setPreviewKey("") }} />
           </label>
@@ -378,7 +378,7 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
             <button type="button" disabled={disabled || busy || selectedApproved.length === 0 || !preview} onClick={queueInvites} class="rounded-lg bg-cyan-300 px-4 py-2 text-[10px] font-black text-zinc-950 disabled:opacity-40">WYŚLIJ FALĘ</button>
           </div>
         </div>
-        {preview ? <div class="mt-3 rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.04] p-4 text-xs text-zinc-300">
+        {preview ? <div class="mt-3 rounded-lg border border-cyan-300/20 bg-cyan-300/[0.04] p-4 text-xs text-zinc-300">
           <div class="flex flex-wrap justify-between gap-2"><strong class="text-cyan-100">PREVIEW · {preview.beaconCount} kontaktów · tokeny: 0</strong><span>TTL {preview.ttlDays} dni · {preview.radiusKm} km · {preview.locale.toUpperCase()}</span></div>
           <p class="mt-2 text-zinc-500">{Object.entries(preview.byKind).map(([kind, count]) => `${kindLabel(kind)}: ${count}`).join(" · ")}</p>
           <details class="mt-3"><summary class="cursor-pointer font-black text-zinc-300">Pokaż mail</summary><strong class="mt-3 block text-white">{preview.delivery.subject}</strong><pre class="mt-2 whitespace-pre-wrap font-sans leading-5 text-zinc-400">{preview.delivery.text}</pre></details>
@@ -415,10 +415,10 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
         </div>
       ) : null}
       {inviteQr ? <div class="fixed inset-0 z-[120] grid place-items-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label="Jednorazowe zaproszenie Latarnika">
-        <div class="w-full max-w-md rounded-3xl border border-cyan-300/25 bg-zinc-950 p-6 shadow-2xl">
+        <div class="w-full max-w-md rounded-xl border border-cyan-300/25 bg-zinc-950 p-6 shadow-2xl">
           <p class="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Zaproszenie do Latarnika</p>
           <h3 class="mt-2 text-xl font-black text-white">{inviteQr.displayName}</h3>
-          <div class="mx-auto mt-5 max-w-[280px] rounded-2xl bg-white p-4"><img src={inviteQr.qr} alt="Jednorazowy QR zaproszenia do Latarnika" class="h-auto w-full" /></div>
+          <div class="mx-auto mt-5 max-w-[280px] rounded-lg bg-white p-4"><img src={inviteQr.qr} alt="Jednorazowy QR zaproszenia do Latarnika" class="h-auto w-full" /></div>
           <p class="mt-4 text-center text-xs text-zinc-500">Ważne do {displayDate(inviteQr.expiresAt)}. QR i link nie są zapisywane przez panel.</p>
           <div class="mt-5 grid gap-2 sm:grid-cols-2">
             <button type="button" onClick={() => void copyInviteLink()} class="min-h-11 rounded-xl border border-white/15 px-4 text-xs font-black text-zinc-200">{copied ? "SKOPIOWANO" : "KOPIUJ LINK"}</button>

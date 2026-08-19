@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import AudienceIntelligence from "./AudienceIntelligence"
 import {
-  type Capabilities,
   type EventItem,
   type LoadState,
   type Overview,
@@ -11,12 +10,9 @@ import {
 } from "./adminConsoleShared"
 import {
   AdmissionTab,
-  MailerTab,
-  OpsTab,
   OverviewTab,
   SignalTab,
   StatusCard,
-  SystemTab,
 } from "./AdminConsoleTabs"
 import { TicketingTab } from "./AdminTicketingTab"
 
@@ -24,7 +20,6 @@ export default function AdminConsole() {
   const [state, setState] = useState<LoadState>("checking")
   const [password, setPassword] = useState("")
   const [tab, setTab] = useState<Tab>("overview")
-  const [capabilities, setCapabilities] = useState<Capabilities | null>(null)
   const [overview, setOverview] = useState<Overview | null>(null)
   const [overviewLoading, setOverviewLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -48,12 +43,16 @@ export default function AdminConsole() {
     return () => controller.abort()
   }, [])
 
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("tab")
+    if (tabs.some(item => item.key === requested)) setTab(requested as Tab)
+  }, [])
+
   async function checkSession(signal?: AbortSignal) {
     try {
       const status = await api<{
         authenticated: boolean
         configured: boolean
-        capabilities?: Capabilities
       }>("/api/staff/admin/status", { signal })
       if (!status.configured) {
         setState("unconfigured")
@@ -64,7 +63,6 @@ export default function AdminConsole() {
         queueMicrotask(() => passwordRef.current?.focus())
         return
       }
-      setCapabilities(status.capabilities ?? null)
       setState("ready")
       await loadOverview(signal)
     } catch (error) {
@@ -97,7 +95,6 @@ export default function AdminConsole() {
       await api("/api/staff/qr/logout", { method: "POST", body: {} })
     } finally {
       setOverview(null)
-      setCapabilities(null)
       setState("login")
       setBusy(false)
     }
@@ -113,7 +110,7 @@ export default function AdminConsole() {
         setMessage(
           error instanceof Error
             ? error.message
-            : "Nie udało się pobrać stanu systemu",
+            : "Nie udało się pobrać danych panelu",
         )
       }
     } finally {
@@ -126,28 +123,27 @@ export default function AdminConsole() {
     return (
       <StatusCard
         title="Panel nie jest skonfigurowany"
-        body="Ustaw wymagane envy logowania staff oraz serwerowy klucz administratora CrowdRelay w Netlify."
+        body="Dostęp Staff nie jest jeszcze skonfigurowany. Skontaktuj się z administratorem VIRYA."
       />
     )
   if (state === "error")
     return (
       <StatusCard
         title="Panel jest chwilowo niedostępny"
-        body="Odśwież stronę albo sprawdź logi funkcji Netlify."
+        body="Odśwież stronę. Jeśli problem wraca, zgłoś go administratorowi VIRYA."
       />
     )
   if (state === "login") {
     return (
-      <section class="mx-auto max-w-lg rounded-3xl border border-white/10 bg-zinc-900/80 p-7 shadow-2xl">
+      <section class="mx-auto max-w-lg rounded-xl border border-white/10 bg-zinc-900/80 p-7 shadow-2xl">
         <p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">
-          Virya control center
+          VIRYA // STAFF
         </p>
         <h1 class="mt-3 text-3xl font-black text-white">
-          Panel administracyjny
+          Panel zespołu
         </h1>
         <p class="mt-3 text-sm leading-6 text-zinc-400">
-          To samo bezpieczne logowanie co w QR i księgowości. Sesja wygasa po 12
-          godzinach.
+          Koncerty, fani, sprzedaż i komunikacja w jednym miejscu. Sesja wygasa po 12 godzinach.
         </p>
         <form onSubmit={login} class="mt-6 grid gap-4">
           <label class="text-sm font-semibold text-zinc-200">
@@ -182,18 +178,17 @@ export default function AdminConsole() {
 
   return (
     <section class="grid gap-5">
-      <header class="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
+      <header class="rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
         <div class="flex flex-wrap items-start justify-between gap-5">
           <div>
             <p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">
-              Virya control center
+              VIRYA // STAFF
             </p>
             <h1 class="mt-2 text-3xl font-black text-white sm:text-4xl">
-              Cały system w jednym miejscu
+              Dzisiaj w VIRYA
             </h1>
             <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">
-              CrowdRelay, Audience Intelligence, sprzedaż biletów, wejściówki, QR, księgowość i mailer.
-              Sekrety nigdy nie trafiają do przeglądarki.
+              Najbliższe koncerty, aktywne akcje i rzeczy, które wymagają decyzji zespołu.
             </p>
           </div>
           <div class="flex gap-2">
@@ -217,17 +212,17 @@ export default function AdminConsole() {
 
       <nav
         aria-label="Sekcje panelu"
-        class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/30 p-2 sm:grid-cols-4 xl:grid-cols-8"
+        class="flex gap-1 overflow-x-auto border-y border-white/10 bg-black/20 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map(item => (
           <button
             key={item.key}
             onClick={() => setTab(item.key)}
-            class={`rounded-xl px-3 py-3 text-left transition ${tab === item.key ? "bg-amber-300 text-zinc-950" : "text-zinc-300 hover:bg-white/10 hover:text-white"}`}
+            class={`min-h-12 shrink-0 border-b-2 px-4 py-2 text-left transition ${tab === item.key ? "border-amber-400 bg-amber-400/[.08] text-white" : "border-transparent text-zinc-400 hover:border-zinc-700 hover:text-white"}`}
           >
             <strong class="block text-sm">{item.label}</strong>
             <span
-              class={`mt-1 block text-[11px] ${tab === item.key ? "text-zinc-700" : "text-zinc-500"}`}
+              class="mt-0.5 block text-[11px] text-zinc-500"
             >
               {item.hint}
             </span>
@@ -238,24 +233,19 @@ export default function AdminConsole() {
       {message && (
         <div
           role="status"
-          class="rounded-2xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
+          class="rounded-lg border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
         >
           {message}
         </div>
       )}
 
       {tab === "overview" && (
-        <OverviewTab overview={overview} capabilities={capabilities} loading={overviewLoading} />
+        <OverviewTab overview={overview} loading={overviewLoading} />
       )}
       {tab === "signal" && <SignalTab />}
       {tab === "audience" && <AudienceIntelligence />}
-      {tab === "ops" && <OpsTab />}
       {tab === "ticketing" && <TicketingTab events={events} />}
       {tab === "admission" && <AdmissionTab events={events} />}
-      {tab === "mailer" && <MailerTab capabilities={capabilities} />}
-      {tab === "system" && (
-        <SystemTab capabilities={capabilities} overview={overview} loading={overviewLoading} />
-      )}
     </section>
   )
 }

@@ -7,118 +7,197 @@ interface Props {
   displayLinks?: boolean
   activePage?: string
 }
+
 const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
+
+const primary = [
+  { key: "live", href: lp(lang, "/#shows"), label: t(lang, "nav.shows"), section: "shows" },
+  { key: "music", href: lp(lang, "/#music"), label: t(lang, "nav.music"), section: "music" },
+  { key: "signal", href: lp(lang, "/signal/"), label: t(lang, "nav.signal"), section: undefined },
+  { key: "merch", href: lp(lang, "/merch/"), label: t(lang, "nav.merch"), section: undefined },
+  { key: "about", href: lp(lang, "/about/"), label: t(lang, "nav.band"), section: undefined },
+]
+
+const more = [
+  { key: "videos", href: lp(lang, "/videos/"), label: t(lang, "nav.videos"), section: undefined },
+  { key: "gallery", href: lp(lang, "/gallery/"), label: t(lang, "nav.gallery"), section: undefined },
+  { key: "lyrics", href: lp(lang, "/lyrics/"), label: t(lang, "lyrics.heading"), section: undefined },
+  { key: "gear", href: lp(lang, "/gear/"), label: lang === "pl" ? "Sprzęt" : "Gear", section: undefined },
+  { key: "epk", href: lp(lang, "/epk/"), label: t(lang, "nav.epk"), section: undefined },
+  { key: "contact", href: lp(lang, "/#contact"), label: t(lang, "nav.contact"), section: "contact" },
+]
+
+const moreActive = more.some(item => item.key === activePage)
 ---
 
 <nav
   id="main-nav"
   aria-label={lang === "pl" ? "Główna nawigacja" : "Main navigation"}
-  class="fixed top-0 right-0 left-0 p-3 z-20 backdrop-blur-md bg-black/70 border-b border-white/5 transition-all duration-200"
+  class="fixed inset-x-0 top-0 z-40 border-b border-transparent bg-black/20 px-4 py-2 backdrop-blur-[10px] transition-[background-color,border-color,transform] duration-200 sm:px-6 lg:px-8"
 >
-  <div>
-    <div class="container mx-auto flex items-center">
-      <div class="flex flex-1 items-center">
-        <a title={t(lang, "nav.home")} class={`group flex my-2 cursor-pointer logo-link`} href={lp(lang, "/")}>
-          <BlurImage
-            src="/virya.webp"
-            title="Virya"
-            loading="eager"
-            alt="Virya logo"
-            width="50"
-            height="50"
-            sizes="50px"
-            class={`w-[50px] h-[50px] rounded-full ring-2 ring-offset-2 ring-offset-black transition-all duration-300 group-hover:ring-amber-400 group-hover:scale-110 group-hover:brightness-125 group-hover:shadow-[0_0_12px_rgba(251,191,36,0.5)] logo-ring ${activePage === "home" ? "ring-amber-400" : "ring-amber-400/40"}`}
-          />
-        </a>
-      </div>
-
-      <div class="hidden lg:flex items-center">
-        {displayLinks && <a href={lp(lang, "/about")} aria-current={activePage === "about" ? "page" : undefined} class={`cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "about" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.band")}</a>}
-        {displayLinks && <a href={lp(lang, "/signal/")} aria-current={activePage === "signal" ? "page" : undefined} class={`mx-1 inline-flex min-h-[38px] items-center border px-3 text-xs font-black uppercase tracking-widest transition-colors ${activePage === "signal" ? "border-amber-400 bg-amber-400 text-black" : "border-amber-400/55 text-amber-400 hover:bg-amber-400 hover:text-black"}`}>{t(lang, "nav.signal")}</a>}
-        {displayLinks && <a href={lp(lang, "/area/")} aria-current={activePage === "area" ? "page" : undefined} class={`cursor-pointer px-3 py-3 text-xs font-black uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "area" ? "text-amber-400" : "text-amber-400/80 hover:text-amber-300"}`}>{t(lang, "nav.area")}</a>}
-        {displayLinks && <a href={lp(lang, "/merch")} aria-current={activePage === "merch" ? "page" : undefined} class={`cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "merch" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.merch")}</a>}
-        {displayLinks && <a href={lp(lang, "/gear/")} aria-current={activePage === "gear" ? "page" : undefined} class={`cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "gear" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{lang === "pl" ? "Sprzęt" : "Gear"}</a>}
-        {displayLinks && (
-          <details class="group/media relative">
-            <summary class={`inline-flex min-h-[44px] cursor-pointer list-none items-center gap-1 px-4 text-xs font-semibold uppercase tracking-widest transition-colors marker:content-none ${["videos", "gallery", "lyrics"].includes(activePage) ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>
-              {t(lang, "nav.media")} <span aria-hidden="true" class="text-[9px] transition-transform group-open/media:rotate-180">▾</span>
-            </summary>
-            <div class="absolute right-0 top-full min-w-44 border border-zinc-800 bg-zinc-950/98 p-2 shadow-2xl">
-              <a href={lp(lang, "/videos/")} aria-current={activePage === "videos" ? "page" : undefined} class={`flex min-h-[44px] items-center px-3 text-xs font-semibold uppercase tracking-widest transition-colors ${activePage === "videos" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>{t(lang, "nav.videos")}</a>
-              <a href={lp(lang, "/gallery/")} aria-current={activePage === "gallery" ? "page" : undefined} class={`flex min-h-[44px] items-center px-3 text-xs font-semibold uppercase tracking-widest transition-colors ${activePage === "gallery" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>{t(lang, "nav.gallery")}</a>
-              <a href={lp(lang, "/lyrics/")} aria-current={activePage === "lyrics" ? "page" : undefined} class={`flex min-h-[44px] items-center px-3 text-xs font-semibold uppercase tracking-widest transition-colors ${activePage === "lyrics" ? "text-amber-400" : "text-zinc-300 hover:text-amber-400"}`}>{t(lang, "lyrics.heading")}</a>
-            </div>
-          </details>
-        )}
-        {displayLinks && <a href={lp(lang, "/epk")} aria-current={activePage === "epk" ? "page" : undefined} class={`inline-flex min-h-[44px] cursor-pointer items-center px-4 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "epk" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.epk")}</a>}
-        {displayLinks && <a href={lp(lang, "/latarnik")} aria-current={activePage === "latarnik" ? "page" : undefined} class={`inline-flex min-h-[44px] cursor-pointer items-center px-4 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out ${activePage === "latarnik" ? "text-amber-400" : "text-zinc-400 hover:text-amber-400"}`}>{t(lang, "nav.latarnik")}</a>}
-        {displayLinks && activePage === "home" && (
-          <>
-            <a href={lp(lang, "/#music")} data-section="music" class="nav-link cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400">{t(lang, "nav.music")}</a>
-            <a href={lp(lang, "/#shows")} data-section="shows" class="nav-link cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400">{t(lang, "nav.shows")}</a>
-            <a href={lp(lang, "/#contact")} data-section="contact" class="nav-link cursor-pointer lg:px-4 px-2 py-2 text-xs font-semibold uppercase tracking-widest transition duration-300 ease-in-out text-zinc-400 hover:text-amber-400">{t(lang, "nav.contact")}</a>
-          </>
-        )}
-        <div class="flex items-center gap-1 ml-4 pl-4 border-l border-white/10 text-xs font-bold uppercase tracking-widest" aria-label={t(lang, "nav.language")}>
-          <button data-lang-switch="en" class={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 py-1 transition-colors cursor-pointer ${lang === "en" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="EN — Switch to English" aria-current={lang === "en" ? "true" : undefined}>EN</button>
-          <span class="text-zinc-700" aria-hidden="true">/</span>
-          <button data-lang-switch="pl" class={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 py-1 transition-colors cursor-pointer ${lang === "pl" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="PL — Przełącz na polski" aria-current={lang === "pl" ? "true" : undefined}>PL</button>
-        </div>
-      </div>
-
-      <div class="flex lg:hidden items-center gap-2">
-        <div class="flex items-center gap-1 mr-1 text-xs font-bold uppercase tracking-widest">
-          <button data-lang-switch="en" class={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 py-1 transition-colors cursor-pointer ${lang === "en" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="EN — Switch to English">EN</button>
-          <span class="text-zinc-700" aria-hidden="true">/</span>
-          <button data-lang-switch="pl" class={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 py-1 transition-colors cursor-pointer ${lang === "pl" ? "text-amber-400" : "text-zinc-400 hover:text-zinc-100"}`} aria-label="PL — Przełącz na polski">PL</button>
-        </div>
-        {displayLinks && activePage !== "signal" && (
-          <a href={lp(lang, "/signal/")} aria-label={t(lang, "nav.toSignal")} class="inline-flex min-h-[44px] items-center border border-amber-400/55 px-3 text-[10px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black">
-            {t(lang, "nav.signal")}
-          </a>
-        )}
-        {displayLinks && (
-          <button
-            id="mobile-menu-btn"
-            class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-2 text-zinc-300 hover:text-amber-400 transition-colors"
-            aria-label={t(lang, "nav.openMenu")}
-            aria-expanded="false"
-            aria-controls="mobile-menu"
-          >
-            <svg id="icon-hamburger" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-            <svg id="icon-close" class="w-6 h-6 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
-        )}
-      </div>
-    </div>
+  <div class="virya-container--wide flex min-h-[64px] items-center gap-5">
+    <a
+      title={t(lang, "nav.home")}
+      class="logo-link group flex shrink-0 items-center"
+      href={lp(lang, "/")}
+      aria-label={t(lang, "nav.home")}
+    >
+      <BlurImage
+        src="/virya.webp"
+        title="Virya"
+        loading="eager"
+        alt="Virya"
+        width="46"
+        height="46"
+        sizes="46px"
+        class:list={[
+          "logo-ring h-[46px] w-[46px] rounded-full ring-1 ring-offset-2 ring-offset-black/80 transition-[filter,box-shadow,transform] duration-200 group-hover:brightness-110",
+          activePage === "home" ? "ring-amber-300" : "ring-amber-400/45",
+        ]}
+      />
+    </a>
 
     {displayLinks && (
-      <div id="mobile-menu" hidden class="lg:hidden container mx-auto mt-3 pt-1 border-t border-white/10 flex flex-col">
-        <a href={lp(lang, "/about")} aria-current={activePage === "about" ? "page" : undefined} class={`mobile-nav-link w-full border-b border-white/5 px-2 py-4 text-left text-sm font-semibold uppercase tracking-widest transition-colors hover:text-amber-400 ${activePage === "about" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.band")}</a>
-        <a href={lp(lang, "/signal/")} aria-current={activePage === "signal" ? "page" : undefined} class={`mobile-nav-link flex w-full items-center justify-between border-b border-white/5 px-2 py-4 text-left text-sm font-black uppercase tracking-widest transition-colors ${activePage === "signal" ? "text-amber-400" : "text-amber-400/90 hover:text-amber-300"}`}>{t(lang, "nav.signal")} <span aria-hidden="true">→</span></a>
-        <a href={lp(lang, "/area/")} aria-current={activePage === "area" ? "page" : undefined} class={`mobile-nav-link w-full border-b border-white/5 px-2 py-4 text-left text-sm font-black uppercase tracking-widest transition-colors hover:text-amber-300 ${activePage === "area" ? "text-amber-400" : "text-amber-400/80"}`}>{t(lang, "nav.area")}</a>
-        <a href={lp(lang, "/merch")} aria-current={activePage === "merch" ? "page" : undefined} class={`mobile-nav-link w-full border-b border-white/5 px-2 py-4 text-left text-sm font-semibold uppercase tracking-widest transition-colors hover:text-amber-400 ${activePage === "merch" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.merch")}</a>
-        <a href={lp(lang, "/gear/")} aria-current={activePage === "gear" ? "page" : undefined} class={`mobile-nav-link w-full border-b border-white/5 px-2 py-4 text-left text-sm font-semibold uppercase tracking-widest transition-colors hover:text-amber-400 ${activePage === "gear" ? "text-amber-400" : "text-zinc-300"}`}>{lang === "pl" ? "Sprzęt" : "Gear"}</a>
-        <a href={lp(lang, "/videos/")} aria-current={activePage === "videos" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "videos" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.videos")}</a>
-        <a href={lp(lang, "/gallery/")} aria-current={activePage === "gallery" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "gallery" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.gallery")}</a>
-        <a href={lp(lang, "/lyrics/")} aria-current={activePage === "lyrics" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "lyrics" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "lyrics.heading")}</a>
-        <a href={lp(lang, "/epk")} aria-current={activePage === "epk" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "epk" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.epk")}</a>
-        <a href={lp(lang, "/latarnik")} aria-current={activePage === "latarnik" ? "page" : undefined} class={`mobile-nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors hover:text-amber-400 ${activePage === "latarnik" ? "text-amber-400" : "text-zinc-300"}`}>{t(lang, "nav.latarnik")}</a>
-        {activePage === "home" && (
-          <>
-            <a href={lp(lang, "/#music")} data-section="music" class="mobile-nav-link nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.music")}</a>
-            <a href={lp(lang, "/#shows")} data-section="shows" class="mobile-nav-link nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.shows")}</a>
-            <a href={lp(lang, "/#contact")} data-section="contact" class="mobile-nav-link nav-link w-full text-left px-2 py-4 text-sm font-semibold uppercase tracking-widest border-b border-white/5 transition-colors text-zinc-300 hover:text-amber-400">{t(lang, "nav.contact")}</a>
-          </>
-        )}
+      <div class="hidden min-w-0 flex-1 items-center justify-center lg:flex">
+        <div class="flex items-center gap-0.5">
+          {primary.map(item => (
+            <a
+              href={item.href}
+              data-section={item.section}
+              aria-current={activePage === item.key ? "page" : undefined}
+              class:list={[
+                "nav-link inline-flex min-h-11 items-center px-3 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors xl:px-4",
+                activePage === item.key
+                  ? "text-amber-300"
+                  : "text-zinc-300 hover:text-amber-300",
+              ]}
+            >
+              {item.label}
+            </a>
+          ))}
+
+          <details class="group/more relative">
+            <summary
+              class:list={[
+                "inline-flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors marker:content-none xl:px-4",
+                moreActive ? "text-amber-300" : "text-zinc-300 hover:text-amber-300",
+              ]}
+            >
+              {lang === "pl" ? "Więcej" : "More"}
+              <span aria-hidden="true" class="text-[10px] transition-transform group-open/more:rotate-180">▾</span>
+            </summary>
+            <div class="absolute right-0 top-[calc(100%+.5rem)] min-w-52 border border-zinc-800/90 bg-[#0b100f]/98 p-2 shadow-2xl shadow-black/50">
+              {more.map(item => (
+                <a
+                  href={item.href}
+                  data-section={item.section}
+                  aria-current={activePage === item.key ? "page" : undefined}
+                  class:list={[
+                    "nav-link flex min-h-11 items-center border-b border-white/[.045] px-3 text-[11px] font-bold uppercase tracking-[.13em] transition-colors last:border-0",
+                    activePage === item.key
+                      ? "text-amber-300"
+                      : "text-zinc-300 hover:bg-white/[.035] hover:text-amber-300",
+                  ]}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </details>
+        </div>
       </div>
     )}
+
+    <div class="ml-auto flex shrink-0 items-center gap-1">
+      <div class="flex items-center text-[10px] font-extrabold uppercase tracking-[.14em]" aria-label={t(lang, "nav.language")}>
+        <button
+          data-lang-switch="en"
+          class:list={[
+            "inline-flex min-h-11 min-w-11 items-center justify-center transition-colors",
+            lang === "en" ? "text-amber-300" : "text-zinc-500 hover:text-zinc-100",
+          ]}
+          aria-label="EN — Switch to English"
+          aria-current={lang === "en" ? "true" : undefined}
+        >EN</button>
+        <span class="text-zinc-700" aria-hidden="true">/</span>
+        <button
+          data-lang-switch="pl"
+          class:list={[
+            "inline-flex min-h-11 min-w-11 items-center justify-center transition-colors",
+            lang === "pl" ? "text-amber-300" : "text-zinc-500 hover:text-zinc-100",
+          ]}
+          aria-label="PL — Przełącz na polski"
+          aria-current={lang === "pl" ? "true" : undefined}
+        >PL</button>
+      </div>
+
+      {displayLinks && (
+        <button
+          id="mobile-menu-btn"
+          class="inline-flex min-h-11 min-w-11 items-center justify-center text-zinc-200 transition-colors hover:text-amber-300 lg:hidden"
+          aria-label={t(lang, "nav.openMenu")}
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+        >
+          <svg id="icon-hamburger" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <svg id="icon-close" class="hidden h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      )}
+    </div>
   </div>
+
+  {displayLinks && (
+    <div
+      id="mobile-menu"
+      hidden
+      class="virya-container--wide max-h-[calc(100svh-5.75rem)] overflow-y-auto border-t border-white/10 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 lg:hidden"
+    >
+      <div class="grid">
+        {primary.map(item => (
+          <a
+            href={item.href}
+            data-section={item.section}
+            aria-current={activePage === item.key ? "page" : undefined}
+            class:list={[
+              "mobile-nav-link nav-link flex min-h-[56px] items-center border-b border-white/[.055] py-3 text-lg font-black uppercase tracking-[-.015em] transition-colors",
+              activePage === item.key ? "text-amber-300" : "text-zinc-100 hover:text-amber-300",
+            ]}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+
+      <div class="grid grid-cols-2 gap-x-5 pt-5">
+        {more.map(item => (
+          <a
+            href={item.href}
+            data-section={item.section}
+            aria-current={activePage === item.key ? "page" : undefined}
+            class:list={[
+              "mobile-nav-link nav-link flex min-h-11 items-center border-b border-white/[.04] text-[11px] font-bold uppercase tracking-[.12em] transition-colors",
+              activePage === item.key ? "text-amber-300" : "text-zinc-400 hover:text-amber-300",
+            ]}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  )}
 </nav>
+
+<style>
+  #main-nav.is-scrolled,
+  #main-nav:has(#mobile-menu:not([hidden])) {
+    border-bottom-color: rgb(39 50 47 / .86);
+    background: rgb(7 9 8 / .9);
+  }
+</style>
 
 <script>
   function initNav() {
@@ -126,203 +205,100 @@ const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
     const controller = new AbortController()
     window.__viryaNavController = controller
     const { signal } = controller
-
     const nav = document.getElementById("main-nav")
     if (!nav) return
 
-    document.addEventListener(
-      "astro:before-preparation",
-      () => controller.abort(),
-      { once: true, signal },
-    )
+    document.addEventListener("astro:before-preparation", () => controller.abort(), { once: true, signal })
 
     let lastY = window.scrollY
     let ticking = false
-    const onScroll = () => {
-      if (ticking) return
-      ticking = true
-      requestAnimationFrame(() => {
-        if (signal.aborted) return
-        if (document.body.style.position === "fixed") {
-          ticking = false
-          return
-        }
-        const y = window.scrollY
-        if (y < 10 || y < lastY) {
-          nav.style.transform = "translateY(0)"
-        } else {
+    const updateScrollState = () => {
+      const y = window.scrollY
+      nav.classList.toggle("is-scrolled", y > 18)
+      if (document.body.style.position !== "fixed") {
+        if (y < 18 || y < lastY) nav.style.transform = "translateY(0)"
+        else if (y > lastY + 4) {
           nav.style.transform = "translateY(-100%)"
           closeMenu()
         }
-        lastY = y
-        ticking = false
-      })
+      }
+      lastY = y
+      ticking = false
     }
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(updateScrollState)
+    }
+    updateScrollState()
     window.addEventListener("scroll", onScroll, { passive: true, signal })
-
-    const navLinks = nav.querySelectorAll<HTMLElement>("[data-section]")
-    const logoRing = nav.querySelector<HTMLElement>(".logo-ring")
-    if (navLinks.length > 0 && "IntersectionObserver" in window) {
-      const idByEl = new Map<Element, string>()
-      const visible = new Set<string>()
-      const observer = new IntersectionObserver(
-        entries => {
-          for (const entry of entries) {
-            const id = idByEl.get(entry.target)
-            if (!id) continue
-            if (entry.isIntersecting) visible.add(id)
-            else visible.delete(id)
-          }
-
-          let activeId: string | null = null
-          for (const link of navLinks) {
-            const id = link.dataset.section
-            if (id && visible.has(id)) {
-              activeId = id
-              break
-            }
-          }
-
-          navLinks.forEach(link => {
-            const idle = link.classList.contains("mobile-nav-link")
-              ? "text-zinc-300"
-              : "text-zinc-400"
-            const active = link.dataset.section === activeId
-            link.classList.toggle("text-amber-400", active)
-            link.classList.toggle(idle, !active)
-          })
-
-          if (logoRing) {
-            logoRing.classList.toggle("ring-amber-400", !activeId)
-            logoRing.classList.toggle("ring-amber-400/40", Boolean(activeId))
-          }
-        },
-        { rootMargin: "-150px 0px -50% 0px", threshold: 0 },
-      )
-
-      navLinks.forEach(link => {
-        const id = link.dataset.section
-        const section = id ? document.getElementById(id) : null
-        if (!id || !section) return
-        idByEl.set(section, id)
-        observer.observe(section)
-      })
-      signal.addEventListener("abort", () => observer.disconnect(), { once: true })
-    }
 
     function closeMenu() {
       const menu = document.getElementById("mobile-menu")
+      const btn = document.getElementById("mobile-menu-btn")
       if (!menu || menu.hidden) return
       menu.hidden = true
-      document.getElementById("mobile-menu-btn")?.setAttribute("aria-expanded", "false")
+      btn?.setAttribute("aria-expanded", "false")
       document.getElementById("icon-hamburger")?.classList.remove("hidden")
       document.getElementById("icon-close")?.classList.add("hidden")
     }
 
     const btn = document.getElementById("mobile-menu-btn")
-    btn?.addEventListener(
-      "click",
-      () => {
-        const menu = document.getElementById("mobile-menu")
-        if (!menu) return
-        const opening = menu.hidden
-        menu.hidden = !opening
-        btn.setAttribute("aria-expanded", String(opening))
-        document.getElementById("icon-hamburger")?.classList.toggle("hidden", opening)
-        document.getElementById("icon-close")?.classList.toggle("hidden", !opening)
-      },
-      { signal },
-    )
-
-    document.addEventListener(
-      "click",
-      event => {
-        const menu = document.getElementById("mobile-menu")
-        if (!menu || menu.hidden) return
-        const target = event.target
-        if (!(target instanceof Node)) return
-        if (btn?.contains(target) || nav.contains(target)) return
-        closeMenu()
-      },
-      { signal },
-    )
+    btn?.addEventListener("click", () => {
+      const menu = document.getElementById("mobile-menu")
+      if (!menu) return
+      const opening = menu.hidden
+      menu.hidden = !opening
+      btn.setAttribute("aria-expanded", String(opening))
+      document.getElementById("icon-hamburger")?.classList.toggle("hidden", opening)
+      document.getElementById("icon-close")?.classList.toggle("hidden", !opening)
+      if (opening) nav.style.transform = "translateY(0)"
+    }, { signal })
 
     nav.querySelectorAll<HTMLElement>(".mobile-nav-link").forEach(link => {
       link.addEventListener("click", closeMenu, { signal })
     })
 
-    const mediaMenu = nav.querySelector<HTMLDetailsElement>("details")
-    document.addEventListener(
-      "click",
-      event => {
-        const target = event.target
-        if (
-          mediaMenu?.open &&
-          target instanceof Node &&
-          !mediaMenu.contains(target)
-        ) {
-          mediaMenu.open = false
-        }
-      },
-      { signal },
-    )
-    mediaMenu?.addEventListener(
-      "keydown",
-      event => {
-        if (event.key !== "Escape") return
-        mediaMenu.open = false
-        mediaMenu.querySelector<HTMLElement>("summary")?.focus()
-      },
-      { signal },
-    )
+    const moreMenu = nav.querySelector<HTMLDetailsElement>("details")
+    document.addEventListener("click", event => {
+      const target = event.target
+      if (moreMenu?.open && target instanceof Node && !moreMenu.contains(target)) moreMenu.open = false
+    }, { signal })
+    moreMenu?.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return
+      moreMenu.open = false
+      moreMenu.querySelector<HTMLElement>("summary")?.focus()
+    }, { signal })
 
     nav.querySelectorAll<HTMLAnchorElement>("a[href*='#']").forEach(link => {
-      link.addEventListener(
-        "click",
-        event => {
-          if (!link.hash) return
-          const target = document.querySelector(link.hash)
-          if (!target) return
-          event.preventDefault()
-          target.scrollIntoView({ behavior: "smooth" })
-          closeMenu()
-        },
-        { signal },
-      )
+      link.addEventListener("click", event => {
+        if (!link.hash) return
+        const target = document.querySelector(link.hash)
+        if (!target) return
+        event.preventDefault()
+        target.scrollIntoView({ behavior: "smooth" })
+        closeMenu()
+      }, { signal })
     })
 
     const logo = nav.querySelector<HTMLAnchorElement>("a.logo-link")
-    logo?.addEventListener(
-      "click",
-      event => {
-        const path = window.location.pathname
-        const isHome = path === "/" || path === "/pl/" || path === "/pl"
-        if (!isHome) return
-        event.preventDefault()
-        window.scrollTo({ top: 0, behavior: "smooth" })
-      },
-      { signal },
-    )
+    logo?.addEventListener("click", event => {
+      const path = window.location.pathname
+      if (path !== "/" && path !== "/pl/" && path !== "/pl") return
+      event.preventDefault()
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }, { signal })
 
-    document.querySelectorAll<HTMLElement>("[data-lang-switch]").forEach(element => {
-      element.addEventListener(
-        "click",
-        () => {
-          const target = element.dataset.langSwitch ?? "en"
-          try {
-            localStorage.setItem("virya-lang", target)
-          } catch {
-            // Language switching still works without persistent storage.
-          }
-          const path = location.pathname
-          const base = path.replace(/^(\/pl)+(?=\/|$)/, "") || "/"
-          location.href =
-            (target === "pl" ? (base === "/" ? "/pl/" : `/pl${base}`) : base) +
-            location.search +
-            location.hash
-        },
-        { signal },
-      )
+    nav.querySelectorAll<HTMLElement>("[data-lang-switch]").forEach(element => {
+      element.addEventListener("click", () => {
+        const target = element.dataset.langSwitch ?? "en"
+        try { localStorage.setItem("virya-lang", target) } catch {}
+        const path = location.pathname
+        const base = path.replace(/^(\/pl)+(?=\/|$)/, "") || "/"
+        location.href =
+          (target === "pl" ? (base === "/" ? "/pl/" : `/pl${base}`) : base) +
+          location.search + location.hash
+      }, { signal })
     })
   }
 

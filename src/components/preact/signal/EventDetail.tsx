@@ -345,14 +345,14 @@ export default function EventDetail({
                 fanContext.paid_ticket_quantity > 0 ||
                 fanContext.interested) && (
                 <aside
-                  class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border border-cyan-300/20 bg-cyan-300/[.035] px-4 py-3 text-[9px] font-black uppercase tracking-[.16em] text-cyan-100"
+                  class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border border-amber-300/20 bg-amber-300/[.035] px-4 py-3 text-[9px] font-black uppercase tracking-[.16em] text-amber-100"
                   aria-label={
                     lang === "pl"
                       ? "Twój kontekst koncertu"
                       : "Your event context"
                   }
                 >
-                  <span class="text-cyan-300">
+                  <span class="text-amber-300">
                     {lang === "pl" ? "TWÓJ SYGNAŁ" : "YOUR SIGNAL"}
                   </span>
                   {fanContext.pass_status && (
@@ -391,14 +391,14 @@ export default function EventDetail({
                   </span>
                 </a>
               )}
-              {isCrowdRelayEvent && (
+              {isCrowdRelayEvent && !saleOpen && (
                 <button
                   type="button"
                   onClick={registerInterest}
                   disabled={
                     interestState === "saving" || interestState === "saved"
                   }
-                  class={`virya-button min-h-12 px-5 ${saleOpen ? "virya-button--accent-outline" : "virya-button--primary"}`}
+                  class="virya-button virya-button--primary min-h-12 px-5"
                 >
                   {interestState === "saving"
                     ? copy.interestWorking
@@ -420,9 +420,24 @@ export default function EventDetail({
                   </span>
                 </a>
               )}
+              {calendarUrl && (
+                <a href={calendarUrl} class="virya-button virya-button--secondary min-h-12 px-5">
+                  {copy.calendar} <span class="ml-2" aria-hidden="true">↓</span>
+                </a>
+              )}
             </div>
 
             <div class="mt-4 flex flex-wrap gap-x-5 gap-y-1">
+              {isCrowdRelayEvent && saleOpen && (
+                <button
+                  type="button"
+                  onClick={registerInterest}
+                  disabled={interestState === "saving" || interestState === "saved"}
+                  class="virya-event-text-link disabled:opacity-50"
+                >
+                  {interestState === "saving" ? copy.interestWorking : interestState === "saved" ? copy.interestSaved : copy.interest}
+                </button>
+              )}
               {bandsintownRsvp && (
                 <a
                   href={bandsintownRsvp}
@@ -447,11 +462,6 @@ export default function EventDetail({
               {listenUrl && (
                 <a href={listenUrl} class="virya-event-text-link">
                   {copy.listen} →
-                </a>
-              )}
-              {calendarUrl && (
-                <a href={calendarUrl} class="virya-event-text-link">
-                  {copy.calendar} ↓
                 </a>
               )}
               <button

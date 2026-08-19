@@ -41,10 +41,9 @@ test("backend-backed admin sections expose scoped loading overlays", () => {
   for (const marker of [
     "BackendLoader",
     "overviewLoading",
-    "Pobieram stan CrowdRelay",
-    "Pobieram sprzedaż z CrowdRelay",
+    "Pobieram aktualne dane",
+    "Pobieram sprzedaż",
     "Pobieram statystyki Sygnału",
-    "Pobieram kolejki CrowdRelay",
     "aria-busy",
   ]) {
     assert.ok(ui.includes(marker), `missing admin loading marker: ${marker}`)

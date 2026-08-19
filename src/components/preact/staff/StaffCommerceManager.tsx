@@ -527,7 +527,7 @@ export default function StaffCommerceManager() {
   }
   if (state === "login") {
     return (
-      <section class="mx-auto max-w-lg rounded-3xl border border-white/10 bg-zinc-900/80 p-7 shadow-2xl">
+      <section class="mx-auto max-w-lg rounded-xl border border-white/10 bg-zinc-900/80 p-7 shadow-2xl">
         <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">Virya / commerce staff</p>
         <h1 class="mt-3 text-3xl font-black text-white">Merch i kampanie</h1>
         <p class="mt-3 text-sm leading-6 text-zinc-400">Zaloguj się tym samym hasłem co do QR i Control Center.</p>
@@ -550,7 +550,7 @@ export default function StaffCommerceManager() {
   return (
     <div class="relative grid gap-6">
       {loading && <BackendLoader overlay label="Pobieram merch, magazyn i losowania…" />}
-      <section class="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
+      <section class="rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">CrowdRelay / commerce</p>
@@ -573,7 +573,7 @@ export default function StaffCommerceManager() {
       </section>
 
       {!inventoryReady ? (
-        <section class="rounded-3xl border border-amber-300/25 bg-zinc-900/80 p-5 sm:p-7">
+        <section class="rounded-xl border border-amber-300/25 bg-zinc-900/80 p-5 sm:p-7">
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p class="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Przygotowanie magazynu</p>
@@ -583,7 +583,7 @@ export default function StaffCommerceManager() {
                 Sam zapis nie uruchamia sprzedaży. Dopiero przycisk READY wykonuje preflight i atomowo włącza publiczny stan, rezerwacje Stripe oraz kampanie.
               </p>
             </div>
-            <div class="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-right">
+            <div class="rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-right">
               <strong class="block text-2xl text-white">{activation?.counted_active_variants ?? 0}/{activation?.total_active_variants ?? inventoryItems.length}</strong>
               <span class="text-xs text-zinc-500">wariantów zatwierdzonych</span>
             </div>
@@ -604,7 +604,7 @@ export default function StaffCommerceManager() {
               {inventoryItems.length === 0 ? (
                 <Empty>Katalog lub overview magazynu jest chwilowo niedostępny. Migracja 0028 seeduje katalog automatycznie.</Empty>
               ) : inventoryItems.map(item => (
-                <label key={item.variant_id} class={`rounded-2xl border p-4 ${item.counted ? "border-emerald-400/20 bg-emerald-400/[0.04]" : "border-white/10 bg-black/30"}`}>
+                <label key={item.variant_id} class={`rounded-lg border p-4 ${item.counted ? "border-emerald-400/20 bg-emerald-400/[0.04]" : "border-white/10 bg-black/30"}`}>
                   <span class="block text-sm font-black text-white">{item.product_name} — {item.variant_label}</span>
                   <code class="mt-1 block text-[11px] text-zinc-500">{item.sku}</code>
                   <span class="mt-3 flex items-center gap-3">
@@ -646,7 +646,7 @@ export default function StaffCommerceManager() {
           </form>
         </section>
       ) : (
-        <section class="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] px-5 py-4">
+        <section class="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.05] px-5 py-4">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p class="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Magazyn aktywny</p>
@@ -672,7 +672,7 @@ export default function StaffCommerceManager() {
       />
 
       <section class="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <div class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+        <div class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
           <div class="flex items-end justify-between gap-4">
             <div>
               <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Magazyn</p>
@@ -687,7 +687,7 @@ export default function StaffCommerceManager() {
               const recommendation = recommendationBySku.get(variant.sku)
               const promotable = recommendation?.recommended_max_giveaway ?? 0
               return (
-                <article key={variant.id} class="rounded-2xl border border-white/10 bg-black/30 p-4">
+                <article key={variant.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p class="font-bold text-white">{product.name} — {variant.label}</p>
@@ -718,7 +718,7 @@ export default function StaffCommerceManager() {
           </div>
         </div>
 
-        <form onSubmit={adjustStock} class="h-fit rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+        <form onSubmit={adjustStock} class="h-fit rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
           <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Ruch magazynowy</p>
           <h2 class="mt-2 text-2xl font-black text-white">Przyjęcie lub korekta</h2>
           <div class="mt-5 grid gap-4">
@@ -741,7 +741,7 @@ export default function StaffCommerceManager() {
       </section>
 
       <section class="grid gap-6 xl:grid-cols-[1fr_1.35fr]">
-        <form onSubmit={createCampaign} class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+        <form onSubmit={createCampaign} class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
           <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Nowa kampania</p>
           <h2 class="mt-2 text-2xl font-black text-white">Losowanie wielu nagród</h2>
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
@@ -806,12 +806,12 @@ export default function StaffCommerceManager() {
           </div>
         </form>
 
-        <div class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+        <div class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
           <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Kampanie</p>
           <h2 class="mt-2 text-2xl font-black text-white">Sterowanie losowaniami</h2>
           <div class="mt-5 grid gap-3">
             {(overview?.campaigns ?? []).length === 0 ? <Empty>Brak kampanii wielonagrodowych.</Empty> : overview?.campaigns.map(item => (
-              <article key={item.id} class="rounded-2xl border border-white/10 bg-black/30 p-4">
+              <article key={item.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p class="font-black text-white">{item.name}</p>
@@ -840,7 +840,7 @@ export default function StaffCommerceManager() {
         </div>
       </section>
 
-      <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+      <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
         <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Losowania / administracja</p>
         <h2 class="mt-2 text-2xl font-black text-white">Wszystkie weighted draws</h2>
         <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
@@ -848,7 +848,7 @@ export default function StaffCommerceManager() {
         </p>
         <div class="mt-5 grid gap-3">
           {(overview?.draws ?? []).length === 0 ? <Empty>Brak skonfigurowanych losowań.</Empty> : overview?.draws.map(draw => (
-            <article key={draw.id} class="rounded-2xl border border-white/10 bg-black/30 p-4">
+            <article key={draw.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p class="font-black text-white">{draw.name}</p>
@@ -901,12 +901,12 @@ export default function StaffCommerceManager() {
         </div>
       </section>
 
-      <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+      <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
         <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Fulfillment</p>
         <h2 class="mt-2 text-2xl font-black text-white">Wydawanie nagród</h2>
         <div class="mt-5 grid gap-3 md:grid-cols-2">
           {(overview?.fulfillments ?? []).length === 0 ? <Empty>Po losowaniu pojawią się tutaj zwycięzcy i statusy nagród.</Empty> : overview?.fulfillments.map(item => (
-            <article key={item.id} class="rounded-2xl border border-white/10 bg-black/30 p-4">
+            <article key={item.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <p class="font-black text-white">#{item.winner_rank} {item.fan_display_name || item.fan_email_masked}</p>
@@ -948,5 +948,5 @@ function Empty({ children }: { children: ComponentChildren }) {
 }
 
 function StatusCard({ title, body }: { title: string; body?: string }) {
-  return <section class="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-zinc-900/80 p-7"><h1 class="text-2xl font-black text-white">{title}</h1>{body ? <p class="mt-3 text-sm leading-6 text-zinc-400">{body}</p> : null}</section>
+  return <section class="mx-auto max-w-2xl rounded-xl border border-white/10 bg-zinc-900/80 p-7"><h1 class="text-2xl font-black text-white">{title}</h1>{body ? <p class="mt-3 text-sm leading-6 text-zinc-400">{body}</p> : null}</section>
 }

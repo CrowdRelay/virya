@@ -230,7 +230,7 @@ export default function StaffPairingManager() {
   }
   if (state === "login") {
     return (
-      <section class="mx-auto max-w-lg rounded-3xl border border-white/10 bg-zinc-900/80 p-7 shadow-2xl">
+      <section class="mx-auto max-w-lg rounded-xl border border-white/10 bg-zinc-900/80 p-7 shadow-2xl">
         <p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">
           Virya Signal / staff
         </p>
@@ -264,7 +264,7 @@ export default function StaffPairingManager() {
 
   return (
     <div class="grid gap-6">
-      <section class="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
+      <section class="rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">
@@ -292,7 +292,7 @@ export default function StaffPairingManager() {
       <div class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
         <form
           onSubmit={generate}
-          class="min-w-0 rounded-3xl border border-white/10 bg-zinc-900/70 p-6"
+          class="min-w-0 rounded-xl border border-white/10 bg-zinc-900/70 p-6"
         >
           <h2 class="text-xl font-black text-white">Nowe parowanie</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-500">
@@ -330,16 +330,16 @@ export default function StaffPairingManager() {
               {busy ? "GENERUJĘ…" : "WYGENERUJ QR STAFF"}
             </button>
           </div>
-          <div class="mt-6 rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4 text-xs leading-5 text-amber-100/80">
+          <div class="mt-6 rounded-lg border border-amber-300/20 bg-amber-300/5 p-4 text-xs leading-5 text-amber-100/80">
             QR zawiera wyłącznie jednorazowy kod ważny przez kilka minut — nie
             zawiera klucza administratora ani trwałego tokena staff. Po wymianie
             CrowdRelay wydaje osobną, odwoływalną sesję dla tego urządzenia.
           </div>
         </form>
 
-        <section class="min-w-0 rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+        <section class="min-w-0 rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
           {!qr || !envelope ? (
-            <div class="grid min-h-[420px] place-items-center rounded-2xl border border-dashed border-white/10 bg-black/20 p-8 text-center">
+            <div class="grid min-h-[420px] place-items-center rounded-lg border border-dashed border-white/10 bg-black/20 p-8 text-center">
               <div>
                 <div class="text-5xl text-zinc-700" aria-hidden="true">▦</div>
                 <h2 class="mt-4 text-xl font-black text-white">Kod nie został wygenerowany</h2>
@@ -361,7 +361,7 @@ export default function StaffPairingManager() {
                 </div>
               </div>
               <div
-                class={`mx-auto w-full max-w-[520px] overflow-hidden rounded-2xl bg-white p-4 transition ${expired ? "opacity-15 blur-sm" : ""}`}
+                class={`mx-auto w-full max-w-[520px] overflow-hidden rounded-lg bg-white p-4 transition ${expired ? "opacity-15 blur-sm" : ""}`}
                 aria-hidden={expired ? "true" : undefined}
                 dangerouslySetInnerHTML={{ __html: qr.svg }}
               />
@@ -379,7 +379,7 @@ export default function StaffPairingManager() {
           )}
         </section>
       </div>
-      <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-6">
+      <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-xl font-black text-white">Sparowane urządzenia</h2>
@@ -391,7 +391,7 @@ export default function StaffPairingManager() {
           {sessions.length === 0 ? <p class="text-sm text-zinc-500">Brak aktywności urządzeń do pokazania.</p> : sessions.map(session => {
             const active = !session.revokedAt && Date.parse(session.expiresAt) > Date.now()
             return (
-              <div key={session.id} class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
+              <div key={session.id} class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/25 px-4 py-3">
                 <div>
                   <strong class="text-sm text-white">{session.displayName}</strong>
                   <p class="mt-1 text-xs text-zinc-500">{active ? `ważna do ${new Date(session.expiresAt).toLocaleString("pl-PL")}` : "wygasła lub odwołana"}</p>
@@ -409,7 +409,7 @@ export default function StaffPairingManager() {
 
 function StatusCard({ title, body }: { title: string; body?: string }) {
   return (
-    <section class="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-zinc-900/80 p-7">
+    <section class="mx-auto max-w-2xl rounded-xl border border-white/10 bg-zinc-900/80 p-7">
       <p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">
         Virya Signal / staff
       </p>

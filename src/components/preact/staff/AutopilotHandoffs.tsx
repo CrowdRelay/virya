@@ -36,20 +36,12 @@ type RecentAction = {
   status: string
   manual_steps?: ManualStep[]
 }
-type ExecutorReadiness = {
-  executor_manifest_drift: boolean
-  active_team_email_executor_count: number
-  n8n_attestation_ready: boolean
-  team_email_live: boolean
-}
-
 type Overview = {
   runtime_enabled: boolean
   needs_you: PendingAction[]
   available_assignees?: TeamAssignee[]
   recent_actions?: RecentAction[]
   booking_policy?: BookingPolicySummary | null
-  release_ledger?: ExecutorReadiness
 }
 
 const date = (value: string | null | undefined) => {
@@ -111,7 +103,6 @@ export default function AutopilotHandoffs() {
   const [manualActions, setManualActions] = useState<RecentAction[]>([])
   const [bookingPolicy, setBookingPolicy] = useState<BookingPolicySummary | null>(null)
   const [runtimeEnabled, setRuntimeEnabled] = useState<boolean | null>(null)
-  const [executorReadiness, setExecutorReadiness] = useState<ExecutorReadiness | null>(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState("")
@@ -128,7 +119,6 @@ export default function AutopilotHandoffs() {
       setManualActions((overview.recent_actions ?? []).filter(action => (action.manual_steps?.length ?? 0) > 0))
       setBookingPolicy(overview.booking_policy ?? null)
       setRuntimeEnabled(Boolean(overview.runtime_enabled))
-      setExecutorReadiness(overview.release_ledger ?? null)
       setError("")
     } catch (value) {
       if (!(value instanceof DOMException && value.name === "AbortError"))
@@ -180,13 +170,13 @@ export default function AutopilotHandoffs() {
   }
 
   return (
-    <section class="rounded-3xl border border-amber-300/20 bg-zinc-900/70 p-5">
+    <section class="rounded-xl border border-amber-300/20 bg-zinc-900/70 p-5">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">Chief of Staff · Needs you</p>
           <h2 class="mt-2 text-xl font-black text-white">Rzeczy wymagające człowieka</h2>
           <p class="mt-1 max-w-3xl text-sm text-zinc-400">
-            To ta sama kolejka approvali co w Signal. CrowdRelay przypisuje właściciela według kompetencji i obciążenia; mail jest tylko przypominajką, nie drugim task systemem.
+            Jedna kolejka decyzji zespołu. Właściciel jest dobierany według kompetencji i obciążenia; mail pozostaje tylko przypomnieniem, nie drugim task systemem.
           </p>
         </div>
         <button type="button" disabled={loading} onClick={() => void load()} class="rounded-xl border border-white/10 px-3 py-2 text-xs font-black text-zinc-200 disabled:opacity-50">
@@ -194,52 +184,16 @@ export default function AutopilotHandoffs() {
         </button>
       </div>
       {error && <p role="alert" class="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{error}</p>}
-      <div class="mt-4 flex flex-wrap gap-2" aria-label="Stan wykonawczy Autopilota">
+      <div class="mt-4 flex flex-wrap gap-2" aria-label="Stan automatów">
         <ReadinessChip
           ok={runtimeEnabled === true}
           pending={loading && runtimeEnabled === null}
-          label={runtimeEnabled === null ? "AUTONOMIA · BRAK DANYCH" : runtimeEnabled ? "AUTONOMIA ON" : "AUTONOMIA OFF"}
+          label={runtimeEnabled === null ? "AUTOMATY · BRAK DANYCH" : runtimeEnabled ? "AUTOMATY ON" : "AUTOMATY OFF"}
         />
-        <ReadinessChip
-          ok={executorReadiness?.n8n_attestation_ready === true}
-          pending={loading && !executorReadiness}
-          label={!executorReadiness
-            ? "N8N STATUS · BRAK DANYCH"
-            : executorReadiness.n8n_attestation_ready
-              ? "N8N ATTEST OK"
-              : "N8N BRAK ATTESTU"}
-        />
-        <ReadinessChip
-          ok={executorReadiness?.team_email_live === true}
-          pending={loading && !executorReadiness}
-          label={!executorReadiness
-            ? "TEAM EMAIL · BRAK DANYCH"
-            : executorReadiness.team_email_live
-              ? `TEAM EMAIL LIVE · ${executorReadiness.active_team_email_executor_count}`
-              : executorReadiness.n8n_attestation_ready
-                ? "TEAM EMAIL CZEKA NA HEARTBEAT"
-                : "TEAM EMAIL NIEGOTOWE"}
-        />
-        {executorReadiness?.executor_manifest_drift && (
-          <ReadinessChip ok={false} label="N8N MANIFEST DRIFT" />
-        )}
       </div>
-      <p class="mt-2 max-w-4xl text-xs leading-5 text-zinc-500" aria-live="polite">
-        {executorReadiness?.executor_manifest_drift
-          ? "Manifest n8n nie zgadza się z poświadczonym stanem produkcji. Handoff pozostaje fail-closed do ponownej attestacji i heartbeat."
-          : executorReadiness?.team_email_live
-            ? "Team email jest poświadczony i ma żywy executor. Wyłączenie autonomii nie zatrzymuje już zatwierdzonych handoffów."
-            : executorReadiness?.n8n_attestation_ready
-              ? "Attest n8n jest poprawny; wysyłka czeka na świeży heartbeat executora z capability team.email."
-              : executorReadiness
-                ? "Desired state może być ustawiony, ale wysyłka pozostaje fail-closed, dopóki produkcyjny workflow nie ma świeżej attestacji."
-                : loading
-                  ? "Sprawdzam rzeczywisty stan wykonawczy, nie tylko desired state."
-                  : "Nie udało się potwierdzić stanu executora. Kolejka pozostaje widoczna, ale status wysyłki nie jest potwierdzony."}
-      </p>
       <div class="mt-4 grid gap-3">
         {items.map(item => (
-          <article key={item.id} class="rounded-2xl border border-white/10 bg-black/30 p-4">
+          <article key={item.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
                 <strong class="block text-white">{humanAction(item.action_kind)}</strong>
@@ -273,7 +227,7 @@ export default function AutopilotHandoffs() {
             </div>
           </article>
         ))}
-        {!loading && items.length === 0 && <p class="rounded-2xl bg-black/20 p-4 text-sm text-zinc-500">Nic nie wymaga teraz ręcznej decyzji.</p>}
+        {!loading && items.length === 0 && <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Nic nie wymaga teraz ręcznej decyzji.</p>}
       </div>
 
       <BookingPolicyPanel summary={bookingPolicy} onSaved={() => load()} />
@@ -286,7 +240,7 @@ export default function AutopilotHandoffs() {
             {manualActions.flatMap(action => (action.manual_steps ?? []).map((step, index) => {
               const href = safeExternalUrl(step.url)
               return (
-                <article key={`${action.id}:${index}`} class="rounded-2xl border border-sky-300/15 bg-sky-300/5 p-4">
+                <article key={`${action.id}:${index}`} class="rounded-lg border border-sky-300/15 bg-sky-300/5 p-4">
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="min-w-0">
                       <strong class="text-zinc-100">{step.destination}</strong>

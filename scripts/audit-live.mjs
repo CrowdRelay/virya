@@ -79,9 +79,9 @@ assert(
 )
 assert(
   navbar.includes("__viryaNavController?.abort()") &&
-    navbar.includes("observer.disconnect()") &&
+    navbar.includes('document.addEventListener("astro:before-preparation"') &&
     navbar.includes("{ passive: true, signal }"),
-  "Astro navigation must release global listeners and observers on page swaps.",
+  "Astro navigation must release global listeners through its lifecycle-bound AbortController.",
 )
 
 if (failures.length) {

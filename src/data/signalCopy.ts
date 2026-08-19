@@ -386,7 +386,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       chips: ["City demand", "AREA rewards", "Album draws", "Merch loop", "Referrals"],
     },
     manager: {
-      eyebrow: "Fan infrastructure",
+      eyebrow: "Promotion support",
       heading: "A professional band with an owned growth engine",
       body:
         "Virya combines a release-ready live act with first-party fan acquisition, geolocation engagement, merch conversion and automated event communication.",
@@ -405,7 +405,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         },
         {
           title: "Automation-ready",
-          body: "Reliable Rust backend, transactional events and n8n-ready workflows.",
+          body: "Show communication and fan follow-up can be prepared and activated quickly around a confirmed date.",
         },
       ],
       signal: "Open Virya Signal",
@@ -625,10 +625,10 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       chips: ["Koncerty w Twoim mieście", "Dodatkowe losy za polecenia", "Nagrody z gry", "Albumy i wejściówki", "Prywatne konto"],
     },
     manager: {
-      eyebrow: "Infrastruktura fanowska",
-      heading: "Profesjonalny zespół z własnym silnikiem wzrostu",
+      eyebrow: "Wsparcie promocji",
+      heading: "Live act, który potrafi wesprzeć promocję",
       body:
-        "Virya łączy gotowy do grania live act z własnym pozyskiwaniem fanów, angażowaniem geolokalizacyjnym, konwersją merchową i automatyczną komunikacją koncertową.",
+        "VIRYA wspiera koncert własną publicznością opartą o miasta, bezpośrednimi alertami, RSVP i biletami, materiałami promo oraz mierzalnymi akcjami fanów — bez potrzeby poznawania zaplecza technicznego.",
       points: [
         {
           title: "Własna publiczność",
@@ -644,7 +644,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         },
         {
           title: "Gotowość do automatyzacji",
-          body: "Niezawodny backend w Ruście, transakcyjne zdarzenia i workflow gotowe pod n8n.",
+          body: "Komunikację koncertową i follow-up fanów możemy szybko przygotować i uruchomić wokół potwierdzonej daty.",
         },
       ],
       signal: "Otwórz Sygnał Virya",

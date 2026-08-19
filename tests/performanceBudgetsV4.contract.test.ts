@@ -18,21 +18,24 @@ function files(root: URL): string[] {
 }
 
 test("public hydration stays deliberately sparse", () => {
-  const astro = files(SRC).filter(path => extname(path) === ".astro")
+  const astro = files(SRC).filter(path =>
+    extname(path) === ".astro" && !path.includes("/pages/staff/"),
+  )
   const source = astro.map(path => readFileSync(path, "utf8")).join("\n")
-  const directives =
-    source.match(/client:(?:load|idle|visible|media|only)/g) ?? []
+  const directives = source.match(/client:(?:load|idle|visible|media|only)/g) ?? []
   const eager = source.match(/client:load/g) ?? []
-  assert.ok(
-    directives.length <= 19,
-    `hydrated islands grew to ${directives.length}`,
-  )
-  assert.ok(
-    eager.length <= 10,
-    `eager hydrated islands grew to ${eager.length}`,
-  )
+  assert.ok(directives.length <= 18, `public hydrated islands grew to ${directives.length}`)
+  assert.ok(eager.length <= 8, `public eager hydrated islands grew to ${eager.length}`)
   assert.match(source, /client:visible/)
   assert.match(source, /client:idle/)
+})
+
+test("private Staff hydration stays bounded independently from the public budget", () => {
+  const staffRoot = new URL("../src/pages/staff/", import.meta.url)
+  const astro = files(staffRoot).filter(path => extname(path) === ".astro")
+  const source = astro.map(path => readFileSync(path, "utf8")).join("\n")
+  const directives = source.match(/client:(?:load|idle|visible|media|only)/g) ?? []
+  assert.ok(directives.length <= 6, `Staff hydrated islands grew to ${directives.length}`)
 })
 
 test("fan dashboard renders from one private read-model before enrichment", () => {

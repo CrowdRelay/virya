@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       to,
       subject: "Virya Control Center — test mailera",
       text: `Mailer działa poprawnie. Test wykonano ${testedAt}.`,
-      html: `<div style="font-family:Arial,sans-serif;background:#09090b;color:#e4e4e7;padding:32px"><p style="color:#fbbf24;font-weight:800;letter-spacing:.12em">VIRYA // CONTROL CENTER</p><h1 style="color:#fff">Mailer działa</h1><p>Test wykonano ${testedAt}.</p></div>`,
+      html: `<div style="font-family:Arial,sans-serif;background:#09090b;color:#e4e4e7;padding:32px"><p style="color:#84b4ac;font-weight:800;letter-spacing:.12em">VIRYA // CONTROL CENTER</p><h1 style="color:#fff">Mailer działa</h1><p>Test wykonano ${testedAt}.</p></div>`,
     })
     return areaJson({ ok: true, messageId: result.messageId })
   } catch (error) {

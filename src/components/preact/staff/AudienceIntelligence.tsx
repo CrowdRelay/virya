@@ -183,7 +183,7 @@ export default function AudienceIntelligence() {
         <Metric label="Segmenty" value={dashboard?.segments.length ?? 0} />
       </div>
 
-      <nav class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/30 p-2 sm:grid-cols-4">
+      <nav class="grid grid-cols-2 gap-2 rounded-lg border border-white/10 bg-black/30 p-2 sm:grid-cols-4">
         {([
           ["fans", "Fani", "Fan 360"],
           ["segments", "Segmenty", "kogo znamy"],
@@ -367,7 +367,7 @@ function SegmentsPane({ dashboard, reload }: { dashboard: AudienceDashboard | nu
         <h3 class="text-lg font-black text-white">Segmenty</h3>
         <div class="mt-3 grid gap-3">
           {(dashboard?.segments ?? []).map(segment => (
-            <div key={segment.id} class="rounded-2xl border border-white/8 bg-black/25 p-4">
+            <div key={segment.id} class="rounded-lg border border-white/8 bg-black/25 p-4">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div><strong class="text-sm text-white">{segment.name}</strong><p class="mt-1 text-xs text-zinc-500">{segment.slug}</p></div>
                 <button onClick={async () => { setBusy(true); try { setPreview(await request<SegmentPreview>(`/api/staff/admin/audience/segments/${encodeURIComponent(segment.slug)}/preview?limit=20`)) } finally { setBusy(false) } }} class={secondaryButton}>Podgląd</button>
@@ -378,7 +378,7 @@ function SegmentsPane({ dashboard, reload }: { dashboard: AudienceDashboard | nu
           {!(dashboard?.segments.length) && <p class="text-sm text-zinc-500">Nie ma jeszcze segmentów.</p>}
         </div>
         {preview && (
-          <div class="mt-5 rounded-2xl border border-cyan-300/20 bg-cyan-300/[.05] p-4">
+          <div class="mt-5 rounded-lg border border-cyan-300/20 bg-cyan-300/[.05] p-4">
             <strong class="text-sm text-cyan-100">{preview.segment.name}: {preview.total} fanów</strong>
             <div class="mt-3 grid gap-2">{preview.sample.map(fan => <span key={fan.id} class="truncate text-xs text-zinc-400">{fan.display_name || fan.email}</span>)}</div>
           </div>
@@ -452,7 +452,7 @@ function CampaignsPane({ campaigns, dashboard, reload }: { campaigns: Communicat
         <h3 class="text-lg font-black text-white">Kampanie</h3>
         <div class="mt-3 grid gap-3">
           {campaigns.map(campaign => (
-            <div key={campaign.id} class="rounded-2xl border border-white/8 bg-black/25 p-4">
+            <div key={campaign.id} class="rounded-lg border border-white/8 bg-black/25 p-4">
               <div class="flex flex-wrap items-start justify-between gap-3"><div><strong class="text-sm text-white">{campaign.name}</strong><p class="mt-1 text-xs text-zinc-500">{campaign.channel} · {campaign.segment_slug} · {campaign.status}</p></div><span class="text-[11px] text-zinc-500">{time(campaign.scheduled_at)}</span></div>
               {campaign.status === "completed" && <p class="mt-3 text-xs text-zinc-400">dostarczono {campaign.delivered_count ?? 0}/{campaign.recipient_count ?? 0} · błędy {campaign.failed_count ?? 0}</p>}
               {campaign.status === "draft" && (scheduleTarget === campaign.id ? (
@@ -481,7 +481,7 @@ function AnalyticsPane({ dashboard }: { dashboard: AudienceDashboard | null }) {
         <h3 class="text-lg font-black text-white">Funnel wg źródła</h3>
         <div class="mt-4 grid gap-3">
           {(dashboard?.funnel ?? []).map(row => (
-            <div key={row.source} class="rounded-2xl border border-white/8 bg-black/25 p-4">
+            <div key={row.source} class="rounded-lg border border-white/8 bg-black/25 p-4">
               <strong class="text-sm text-white">{row.source}</strong>
               <div class="mt-3 grid grid-cols-4 gap-2 text-center text-[11px]"><Small label="pozyskani" value={row.acquired_fans} /><Small label="aktywni" value={row.active_fans} /><Small label="kupili" value={row.ticket_buyers} /><Small label="przyszli" value={row.attendees} /></div>
             </div>
@@ -491,10 +491,10 @@ function AnalyticsPane({ dashboard }: { dashboard: AudienceDashboard | null }) {
       </Panel>
       <Panel>
         <h3 class="text-lg font-black text-white">Przychód biletowy</h3>
-        <p class="mt-1 text-xs text-zinc-500">Waluty są rozdzielone — CrowdRelay nigdy ich nie sumuje bez kursu.</p>
+        <p class="mt-1 text-xs text-zinc-500">Waluty są rozdzielone — panel nie sumuje ich bez kursu.</p>
         <div class="mt-4 grid gap-3">
           {(dashboard?.revenue ?? []).map(row => (
-            <div key={row.currency} class="rounded-2xl border border-white/8 bg-black/25 p-4"><div class="flex items-end justify-between gap-3"><div><strong class="text-2xl font-black text-white">{money(row.after_refunds_minor, row.currency)}</strong><p class="mt-1 text-xs text-zinc-500">po refundach · {row.paid_orders} zamówień</p></div><span class="text-xs text-zinc-500">refund {money(row.refunded_minor, row.currency)}</span></div></div>
+            <div key={row.currency} class="rounded-lg border border-white/8 bg-black/25 p-4"><div class="flex items-end justify-between gap-3"><div><strong class="text-2xl font-black text-white">{money(row.after_refunds_minor, row.currency)}</strong><p class="mt-1 text-xs text-zinc-500">po refundach · {row.paid_orders} zamówień</p></div><span class="text-xs text-zinc-500">refund {money(row.refunded_minor, row.currency)}</span></div></div>
           ))}
           {!(dashboard?.revenue.length) && <p class="text-sm text-zinc-500">Jeszcze brak płatnych zamówień.</p>}
         </div>
@@ -509,16 +509,16 @@ function Timeline({ title, rows }: { title: string; rows: Array<{ title: string;
 }
 
 function Panel({ children }: { children: ComponentChildren }) {
-  return <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">{children}</section>
+  return <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">{children}</section>
 }
 function Metric({ label, value }: { label: string; value: number }) {
-  return <div class="rounded-2xl border border-white/10 bg-zinc-900/70 p-4"><span class="text-[10px] font-bold uppercase tracking-[.18em] text-zinc-500">{label}</span><strong class="mt-2 block text-2xl font-black text-white">{new Intl.NumberFormat("pl-PL").format(value)}</strong></div>
+  return <div class="rounded-lg border border-white/10 bg-zinc-900/70 p-4"><span class="text-[10px] font-bold uppercase tracking-[.18em] text-zinc-500">{label}</span><strong class="mt-2 block text-2xl font-black text-white">{new Intl.NumberFormat("pl-PL").format(value)}</strong></div>
 }
 function Small({ label, value }: { label: string; value: number }) {
   return <span><strong class="block text-sm text-white">{value}</strong><span class="text-zinc-600">{label}</span></span>
 }
 function Notice({ children, tone }: { children: ComponentChildren; tone: "warn" | "safe" }) {
-  return <div role="status" class={`rounded-2xl border px-4 py-3 text-sm leading-6 ${tone === "warn" ? "border-amber-300/30 bg-amber-300/10 text-amber-100" : "border-emerald-400/20 bg-emerald-400/[.07] text-emerald-100"}`}>{children}</div>
+  return <div role="status" class={`rounded-lg border px-4 py-3 text-sm leading-6 ${tone === "warn" ? "border-amber-300/30 bg-amber-300/10 text-amber-100" : "border-emerald-400/20 bg-emerald-400/[.07] text-emerald-100"}`}>{children}</div>
 }
 
 const inputClass = "w-full rounded-xl border border-white/10 bg-black/40 px-3 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300/60"

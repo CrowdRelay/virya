@@ -1,0 +1,96 @@
+---
+type Active = "home" | "qr" | "commerce" | "accounting" | "pair"
+const { active = "home" } = Astro.props as { active?: Active }
+
+const groups = [
+  {
+    label: "DZISIAJ",
+    items: [{ key: "home", href: "/staff/", label: "Dzisiaj" }],
+  },
+  {
+    label: "LIVE",
+    items: [
+      { key: "qr", href: "/staff/qr/", label: "QR i bramka" },
+    ],
+  },
+  {
+    label: "FANI",
+    items: [
+      { key: "home", href: "/staff/?tab=signal", label: "Sygnał" },
+      { key: "home", href: "/staff/?tab=audience", label: "Fani" },
+      { key: "home", href: "/staff/?tab=admission", label: "Goście" },
+    ],
+  },
+  {
+    label: "SPRZEDAŻ",
+    items: [
+      { key: "home", href: "/staff/?tab=ticketing", label: "Bilety" },
+      { key: "commerce", href: "/staff/commerce/", label: "Merch" },
+      { key: "accounting", href: "/staff/accounting/", label: "Rozliczenia" },
+    ],
+  },
+  {
+    label: "WIĘCEJ",
+    items: [{ key: "pair", href: "/staff/pair/", label: "Urządzenia" }],
+  },
+] as const
+---
+
+<div class="min-h-screen bg-[#070908] text-zinc-100 lg:grid lg:grid-cols-[224px_minmax(0,1fr)]">
+  <aside class="hidden border-r border-zinc-800/80 bg-black/30 lg:sticky lg:top-0 lg:block lg:h-screen">
+    <div class="flex h-full flex-col px-4 py-6">
+      <a href="/staff/" class="flex min-h-12 items-center gap-3 px-2">
+        <img src="/virya.webp" alt="" width="36" height="36" class="h-9 w-9 rounded-full" />
+        <div>
+          <p class="text-[11px] font-black uppercase tracking-[.18em] text-amber-400">VIRYA</p>
+          <p class="text-xs font-semibold text-zinc-500">Staff</p>
+        </div>
+      </a>
+      <nav aria-label="Nawigacja panelu Virya" class="mt-7 grid gap-6">
+        {groups.map(group => (
+          <div>
+            <p class="px-3 text-[10px] font-black uppercase tracking-[.16em] text-zinc-600">{group.label}</p>
+            <div class="mt-2 grid gap-1">
+              {group.items.map(item => (
+                <a
+                  href={item.href}
+                  aria-current={active === item.key && !item.href.includes("?tab=") ? "page" : undefined}
+                  class:list={[
+                    "flex min-h-11 items-center border-l-2 px-3 text-sm font-semibold transition-colors",
+                    active === item.key && !item.href.includes("?tab=")
+                      ? "border-amber-400 bg-amber-400/[.08] text-white"
+                      : "border-transparent text-zinc-400 hover:border-zinc-700 hover:bg-white/[.03] hover:text-white",
+                  ]}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </nav>
+      <a href="/pl/" class="mt-auto flex min-h-11 items-center px-3 text-xs font-bold uppercase tracking-[.12em] text-zinc-500 hover:text-amber-400">← Strona VIRYA</a>
+    </div>
+  </aside>
+
+  <div class="min-w-0 pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0">
+    <div class="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
+      <slot />
+    </div>
+  </div>
+
+  <nav aria-label="Główna nawigacja Staff" class="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-zinc-800 bg-[#070908]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
+    <a href="/staff/" aria-current={active === "home" ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em]", active === "home" ? "text-amber-400" : "text-zinc-500"]}><span aria-hidden="true">●</span>Dzisiaj</a>
+    <a href="/staff/qr/" aria-current={active === "qr" ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em]", active === "qr" ? "text-amber-400" : "text-zinc-500"]}><span aria-hidden="true">⌁</span>Live</a>
+    <a href="/staff/?tab=audience" class="flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em] text-zinc-500"><span aria-hidden="true">◎</span>Fani</a>
+    <a href="/staff/commerce/" aria-current={active === "commerce" ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em]", active === "commerce" ? "text-amber-400" : "text-zinc-500"]}><span aria-hidden="true">◇</span>Sprzedaż</a>
+    <details class="group relative">
+      <summary class="flex min-h-16 cursor-pointer list-none flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em] text-zinc-500 marker:content-none"><span aria-hidden="true">•••</span>Więcej</summary>
+      <div class="absolute bottom-[calc(100%+.5rem)] right-2 w-48 border border-zinc-800 bg-zinc-950 p-2 shadow-2xl">
+        <a href="/staff/?tab=ticketing" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Bilety</a>
+        <a href="/staff/accounting/" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Rozliczenia</a>
+        <a href="/staff/pair/" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Urządzenia</a>
+      </div>
+    </details>
+  </nav>
+</div>

@@ -1,0 +1,59 @@
+---
+import BlurImage from "./BlurImage.astro"
+import { PRODUCTS } from "../data/products.js"
+import { lp, type Lang } from "../i18n/t"
+
+interface Props { lang?: Lang }
+const { lang = "en" } = Astro.props
+const featured = PRODUCTS.slice(0, 3)
+const imageSrc = (src: string) => src.startsWith("/") ? src : `/images/${src}`
+---
+
+<section class="virya-section virya-surface" aria-labelledby="merch-teaser-heading">
+  <div class="virya-section__inner">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <div>
+        <p class="virya-eyebrow">VIRYA // MERCH</p>
+        <h2 id="merch-teaser-heading" class="virya-heading mt-4">
+          {lang === "pl" ? "Rzeczy, które zabierasz z koncertu" : "Take a piece of the show with you"}
+        </h2>
+        <p class="virya-copy mt-5">
+          {lang === "pl"
+            ? "Oficjalne wydania i merch VIRYA. Małe stany magazynowe, wysyłka z Polski i zero marketplace'owego plastiku."
+            : "Official VIRYA releases and merch. Small inventory, shipped from Poland, without the marketplace feel."}
+        </p>
+      </div>
+      <a href={lp(lang, "/merch/")} class="virya-button virya-button--secondary">
+        {lang === "pl" ? "Cały sklep" : "Full store"} <span aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {featured.map((product, index) => (
+        <a href={`${lp(lang, "/merch/")}?product=${encodeURIComponent(product.id)}`} class="group block border-t border-zinc-800 pt-4">
+          <div class="aspect-square overflow-hidden bg-zinc-900/40">
+            <BlurImage
+              src={imageSrc(product.front)}
+              alt={lang === "pl" && product.name_pl ? product.name_pl : product.name}
+              width="520"
+              height="520"
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1023px) calc((100vw - 4rem) / 2), 400px"
+              class="h-full w-full object-cover transition-[filter,transform] duration-300 group-hover:brightness-110 lg:group-hover:scale-[1.015]"
+            />
+          </div>
+          <div class="flex items-start justify-between gap-4 pt-4">
+            <div>
+              <p class="text-[11px] font-black uppercase tracking-[.13em] text-white">
+                {lang === "pl" && product.name_pl ? product.name_pl : product.name}
+              </p>
+              <p class="mt-1 text-sm text-zinc-500">{product.price} PLN</p>
+            </div>
+            <span class="text-amber-300 transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

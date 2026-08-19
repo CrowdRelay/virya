@@ -11,6 +11,7 @@ import SignalEcosystem from "../../components/SignalEcosystem.astro"
 import AreaTeaser from "../../components/AreaTeaser.astro"
 import Portfolio from "../../components/Portfolio.astro"
 import Spotify from "../../components/Spotify.astro"
+import MerchTeaser from "../../components/MerchTeaser.astro"
 import Endorsements from "../../components/Endorsements.astro"
 import Shows from "../../components/preact/Shows"
 import Contact from "../../components/preact/Contact"
@@ -41,29 +42,23 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
     <ScrollToTop />
 
     <main id="main-content">
-      <header class="header relative lg:overflow-hidden min-h-screen flex flex-col">
+      <header class="header relative flex min-h-[88svh] flex-col overflow-hidden sm:min-h-[92svh] lg:min-h-screen">
         <Landing />
         <MainText lang={lang} />
-        <button
-          id="scroll-arrow-btn"
-          aria-label="Scroll to content"
-          class="arrows"
-        >
-          <svg aria-hidden="true" viewBox="0 0 60 72" class="w-full h-full overflow-visible">
-            <path class="a1" d="M0 0 L30 32 L60 0"></path>
-            <path class="a2" d="M0 20 L30 52 L60 20"></path>
-            <path class="a3" d="M0 40 L30 72 L60 40"></path>
-          </svg>
-        </button>
       </header>
 
-      <div class="lg:container lg:mx-auto bg-zinc-950 flex flex-col">
-        <section id="about" class="scroll-mt-20">
-          <BandTeaser lang={lang} />
+      <div class="flex flex-col bg-zinc-950">
+        <section id="shows" class="scroll-mt-20">
+          <Shows client:visible lang={lang} messages={messages.shows} initialEvents={initialLiveEvents} />
         </section>
 
         <section id="showcase" class="scroll-mt-20">
           <Showcase lang={lang} />
+        </section>
+
+        <section id="music" class="scroll-mt-20">
+          <Portfolio lang={lang} />
+          <Spotify lang={lang} />
         </section>
 
         <section id="signal" class="scroll-mt-20">
@@ -74,13 +69,10 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
           <AreaTeaser lang={lang} />
         </section>
 
-        <section id="music" class="scroll-mt-20">
-          <Portfolio lang={lang} />
-          <Spotify lang={lang} />
-        </section>
+        <MerchTeaser lang={lang} />
 
-        <section id="shows" class="scroll-mt-20">
-          <Shows client:visible lang={lang} messages={messages.shows} initialEvents={initialLiveEvents} />
+        <section id="about" class="scroll-mt-20">
+          <BandTeaser lang={lang} />
         </section>
 
         <section id="endorsements" class="scroll-mt-20">
@@ -96,13 +88,4 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
     <Footer lang={lang} />
   </div>
 
-  <script>
-    document.addEventListener("astro:page-load", () => {
-      const btn = document.getElementById("scroll-arrow-btn")
-      const about = document.getElementById("about")
-      if (btn && about) {
-        btn.addEventListener("click", () => about.scrollIntoView({ behavior: "smooth" }))
-      }
-    })
-  </script>
 </Layout>

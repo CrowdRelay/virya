@@ -2,8 +2,8 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import test from "node:test"
 
-const shared = readFileSync(
-  new URL("../src/components/preact/staff/adminConsoleShared.ts", import.meta.url),
+const route = readFileSync(
+  new URL("../src/pages/api/staff/admin/ops/summary.ts", import.meta.url),
   "utf8",
 )
 const tabs = readFileSync(
@@ -11,11 +11,9 @@ const tabs = readFileSync(
   "utf8",
 )
 
-test("staff ops keeps CrowdRelay watchdog state visible even if notification delivery is down", () => {
-  assert.match(shared, /watchdog\?:/)
-  assert.match(shared, /active_alerts: number/)
-  assert.match(shared, /critical_alerts: number/)
-  assert.match(tabs, /overview\?\.summary\.watchdog/)
-  assert.match(tabs, /Autopilot pilnuje/)
-  assert.match(tabs, /n8n jest tylko kanałem powiadomienia/)
+test("watchdog telemetry remains available through the bounded ops route but is not normal Staff UI", () => {
+  assert.match(route, /admin\/ops\/summary/)
+  assert.match(route, /summary: summaryResult\.value/)
+  assert.match(route, /Promise\.allSettled/)
+  assert.doesNotMatch(tabs, /summary\.watchdog|Autopilot pilnuje|n8n jest tylko kanałem powiadomienia/)
 })

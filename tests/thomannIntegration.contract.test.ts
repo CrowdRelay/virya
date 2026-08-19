@@ -10,25 +10,24 @@ test("Thomann affiliate integration is exposed through the expected public surfa
   const footer = read("src/components/Footer.astro")
   const endorsements = read("src/components/Endorsements.astro")
   const gearPage = read("src/components/GearPage.astro")
-  const epk = read("src/pages/epk.astro")
-  const epkPl = read("src/pages/pl/epk.astro")
+  const epk = read("src/components/EpkPage.astro")
 
   assert.match(navbar, /\/gear\//)
   assert.match(footer, /thomannAffiliateUrl\(THOMANN_HOME_URL, "footer"\)/)
   assert.match(endorsements, /thomannAffiliateUrl\(THOMANN_HOME_URL, "partners"\)/)
   assert.match(gearPage, /thomannAffiliateUrl\(item\.thomannUrl, "gear"\)/)
-  assert.match(gearPage, /virya\.music\/thomann/)
+  assert.match(gearPage, /const shopPath = "\/thomann"/)
   assert.match(epk, /thomannAffiliateUrl\(THOMANN_HOME_URL, "epk"\)/)
-  assert.match(epkPl, /thomannAffiliateUrl\(THOMANN_HOME_URL, "epk"\)/)
 })
 
 test("Commercial Thomann surfaces are explicitly marked sponsored", () => {
   const expectations = new Map([
     ["src/components/Footer.astro", 1],
     ["src/components/Endorsements.astro", 1],
-    ["src/components/GearPage.astro", 3],
-    ["src/pages/epk.astro", 1],
-    ["src/pages/pl/epk.astro", 1],
+    // One sponsored anchor lives inside the gear map and therefore covers all
+    // rendered product links; the second is the generic shop CTA.
+    ["src/components/GearPage.astro", 2],
+    ["src/components/EpkPage.astro", 1],
   ])
 
   for (const [path, minimum] of expectations) {

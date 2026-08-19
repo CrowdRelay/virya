@@ -2,53 +2,51 @@
 import { t, type Lang } from "../i18n/t"
 import BlurImage from "./BlurImage.astro"
 
-interface Props {
-  lang?: Lang
-}
+interface Props { lang?: Lang }
 const { lang = "en" } = Astro.props
 ---
 
-<div class="virya-section border-t border-zinc-800/60">
-  <div class="virya-section__inner">
-    <p class="virya-eyebrow">VIRYA // NOW</p>
-    <h2 class="virya-heading mt-4">{t(lang, "showcase.heading")}</h2>
-    <p class="virya-copy mt-5 mb-10">{t(lang, "showcase.sub")}</p>
+<div class="virya-section virya-surface">
+  <div class="virya-section__inner grid gap-8 lg:grid-cols-[minmax(0,.72fr)_minmax(420px,1.28fr)] lg:items-end">
+    <div>
+      <p class="virya-eyebrow">VIRYA // NOW</p>
+      <h2 class="virya-heading mt-4">{t(lang, "showcase.heading")}</h2>
+      <p class="virya-copy mt-5">{t(lang, "showcase.sub")}</p>
+    </div>
 
-    <div class="virya-panel relative mx-auto aspect-square max-w-2xl overflow-hidden" id="showcase-container">
+    <div class="virya-panel relative aspect-video overflow-hidden bg-black" id="showcase-container">
       <BlurImage
         src="/showcase-poster.webp"
         alt={t(lang, "showcase.play")}
-        width="672"
-        height="672"
+        width="960"
+        height="540"
         loading="lazy"
         decoding="async"
-        sizes="(max-width: 703px) calc(100vw - 2rem), 672px"
-        class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-80"
+        sizes="(max-width: 1023px) calc(100vw - 2.5rem), 760px"
+        class="h-full w-full object-cover"
         id="showcase-poster"
       />
       <video
         id="showcase-video"
-        class="absolute inset-0 w-full h-full object-cover hidden"
-        src="/showcase-web.mp4"
+        class="absolute inset-0 hidden h-full w-full object-cover"
         poster="/showcase-poster.webp"
         controls
         playsinline
         preload="none"
         aria-label={t(lang, "showcase.play")}
-      />
+      >
+        <source src="/showcase-web.webm" type="video/webm" />
+        <source src="/showcase-web.mp4" type="video/mp4" />
+      </video>
       <button
         id="showcase-btn"
         aria-label={t(lang, "showcase.play")}
-        class="group block absolute inset-0 w-full h-full cursor-pointer"
+        class="group absolute inset-0 block h-full w-full cursor-pointer"
         type="button"
       >
-        <span
-          id="showcase-play-icon"
-          class="absolute inset-0 flex items-center justify-center"
-          aria-hidden="true"
-        >
-          <span class="flex items-center justify-center w-16 h-16 rounded-full bg-amber-400 text-black shadow-lg shadow-black/40 transition-transform duration-200 group-hover:scale-110">
-            <svg class="w-6 h-6 ml-1" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <span id="showcase-play-icon" class="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+          <span class="flex h-16 w-16 items-center justify-center rounded-full bg-amber-300 text-[#07100e] shadow-2xl shadow-black/50 transition-transform duration-200 lg:group-hover:scale-105">
+            <svg class="ml-1 h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M8 5v14l11-7z" />
             </svg>
           </span>
@@ -63,8 +61,32 @@ const { lang = "en" } = Astro.props
     const btn = document.getElementById("showcase-btn")
     const video = document.getElementById("showcase-video") as HTMLVideoElement | null
     const poster = document.getElementById("showcase-poster")
-    const icon = document.getElementById("showcase-play-icon")
-    if (!btn || !video || !poster) return
+    const container = document.getElementById("showcase-container")
+    if (!btn || !video || !poster || !container) return
+
+    let prewarmed = false
+    const connection = (navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string }
+    }).connection
+    const reducedData = connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType ?? "")
+
+    const prewarmShowcase = () => {
+      if (prewarmed || reducedData) return
+      prewarmed = true
+      const fastDesktop = window.innerWidth >= 768 && /^(4g)?$/.test(connection?.effectiveType ?? "4g")
+      video.preload = fastDesktop ? "auto" : "metadata"
+      video.load()
+    }
+
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver(entries => {
+        if (!entries.some(entry => entry.isIntersecting)) return
+        prewarmShowcase()
+        observer.disconnect()
+      }, { rootMargin: "800px 0px" })
+      observer.observe(container)
+      document.addEventListener("astro:before-preparation", () => observer.disconnect(), { once: true })
+    }
 
     const restorePoster = () => {
       video.pause()
@@ -73,11 +95,12 @@ const { lang = "en" } = Astro.props
       btn.classList.remove("hidden")
     }
 
+    btn.addEventListener("pointerenter", prewarmShowcase, { once: true })
+    btn.addEventListener("focus", prewarmShowcase, { once: true })
     btn.addEventListener("click", () => {
+      prewarmShowcase()
       poster.classList.add("hidden")
       video.classList.remove("hidden")
-      // The launch button must leave the stacking context while the native
-      // media controls are visible; otherwise it intercepts seeking/volume taps.
       btn.classList.add("hidden")
       video.play().catch(restorePoster)
     })

@@ -9,11 +9,9 @@ import {
 
 export const prerender = false
 
-type Health = { status: string }
 type PublicEvents = { events: unknown[] }
 type Cities = { items: unknown[] }
-type PushConfig = { enabled: boolean; android_fcm: boolean; web_push: boolean }
-type SourceName = "live" | "ready" | "operations" | "events" | "cities" | "push"
+type SourceName = "operations" | "events" | "cities"
 
 const statusFor = (error: unknown) => {
   if (!(error instanceof StaffQrUpstreamError)) return 502
@@ -40,9 +38,10 @@ const valueOr = <T>(result: PromiseSettledResult<T>, fallback: T) =>
 export const GET: APIRoute = async ({ cookies }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
 
+  // Staff is an action surface, not an observability dashboard. Keep this read
+  // model limited to data a band member can act on. Health/readiness/push queue
+  // diagnostics have dedicated ops endpoints and belong in Control Plane.
   const results = await Promise.allSettled([
-    staffApiRequest<Health>("health/live", { timeoutMs: 4_000 }),
-    staffApiRequest<Health>("health/ready", { timeoutMs: 4_000 }),
     staffApiRequest<StaffQrOverview>("admin/event-qr/overview", {
       timeoutMs: 8_000,
     }),
@@ -50,10 +49,9 @@ export const GET: APIRoute = async ({ cookies }) => {
       timeoutMs: 8_000,
     }),
     staffApiRequest<Cities>("public/cities?limit=100", { timeoutMs: 8_000 }),
-    staffApiRequest<PushConfig>("public/push/config", { timeoutMs: 4_000 }),
   ] as const)
 
-  const names: SourceName[] = ["live", "ready", "operations", "events", "cities", "push"]
+  const names: SourceName[] = ["operations", "events", "cities"]
   const unavailableSources = results.flatMap((result, index) =>
     result.status === "rejected" ? [names[index]] : [],
   )
@@ -64,7 +62,7 @@ export const GET: APIRoute = async ({ cookies }) => {
   if (failures.length === results.length) {
     const error = failures[0]
     const firstFailureIndex = results.findIndex(result => result.status === "rejected")
-    logFailure(names[firstFailureIndex] ?? "live", error)
+    logFailure(names[firstFailureIndex] ?? "operations", error)
     return areaJson(
       { error: "Admin overview temporarily unavailable" },
       statusFor(error),
@@ -72,22 +70,15 @@ export const GET: APIRoute = async ({ cookies }) => {
   }
 
   for (const [index, result] of results.entries()) {
-    if (result.status === "rejected") {
-      logFailure(names[index], result.reason)
-    }
+    if (result.status === "rejected") logFailure(names[index], result.reason)
   }
 
-  const [liveResult, readyResult, operationsResult, eventsResult, citiesResult, pushResult] = results
-  const live = valueOr(liveResult, { status: "unavailable" })
-  const ready = valueOr(readyResult, { status: "unavailable" })
+  const [operationsResult, eventsResult, citiesResult] = results
   const operations = valueOr(operationsResult, { events: [], campaigns: [] })
   const events = valueOr(eventsResult, { events: [] })
   const cities = valueOr(citiesResult, { items: [] })
-  const push = valueOr(pushResult, { enabled: false, android_fcm: false, web_push: false })
 
   return areaJson({
-    services: { live: live.status, ready: ready.status },
-    push,
     operations,
     publicEvents: events.events,
     cities: cities.items,

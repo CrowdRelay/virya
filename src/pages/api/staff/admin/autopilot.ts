@@ -61,8 +61,9 @@ export const GET: APIRoute = async ({ cookies }) => {
   if (overviewResult.status === "rejected") {
     return areaJson({ error: "Autopilot overview unavailable" }, statusFor(overviewResult.reason))
   }
+  const { release_ledger: _technicalReadiness, ...overview } = overviewResult.value
   return areaJson({
-    ...overviewResult.value,
+    ...overview,
     booking_policy: policyResult.status === "fulfilled" ? policyResult.value : null,
   })
 }

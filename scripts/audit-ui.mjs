@@ -12,6 +12,9 @@ const failures = []
 const expect = (condition, message) => { if (!condition) failures.push(message) }
 
 expect(showcase.includes('preload="none"'), "showcase video must stay click-to-load")
+expect(showcase.includes("prewarmShowcase"), "showcase video must use bounded poster-first prewarm")
+expect(showcase.includes("IntersectionObserver"), "showcase prewarm must be proximity-driven")
+expect(showcase.includes("saveData"), "showcase prewarm must respect reduced-data connections")
 expect(showcase.includes('btn.classList.add("hidden")'), "showcase launch overlay must leave the video controls")
 expect(showcase.includes('video.addEventListener("ended", restorePoster)'), "showcase must restore its poster after playback")
 expect(showcase.includes('video.play().catch(restorePoster)'), "showcase must recover if autoplay/playback fails")

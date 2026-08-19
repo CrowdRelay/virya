@@ -3,17 +3,8 @@ import { staffApi, type StaffApiError } from "./staffApi"
 // Shared types and bounded browser helpers for the staff control center.
 
 export type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
-export type Tab = "overview" | "signal" | "audience" | "ops" | "ticketing" | "admission" | "mailer" | "system"
+export type Tab = "overview" | "signal" | "audience" | "ticketing" | "admission"
 export type ApiError = StaffApiError
-export type Capabilities = {
-  crowdrelayAdmin: boolean
-  crowdrelayCommerce: boolean
-  crowdrelayWebhook: boolean
-  crowdrelayMailer: boolean
-  ticketMailer: boolean
-  gmail: boolean
-  stripe: boolean
-}
 export type EventItem = {
   id: string
   slug: string
@@ -37,8 +28,6 @@ export type QrCampaign = {
 }
 
 export type Overview = {
-  services: { live: string; ready: string }
-  push?: { enabled: boolean; android_fcm: boolean; web_push: boolean }
   operations: { events: EventItem[]; campaigns: QrCampaign[] }
   publicEvents: EventItem[]
   cities: Array<{ slug: string; name: string; fan_count: number }>
@@ -98,46 +87,6 @@ export type TicketingOverview = {
     currency: string
     paid_at: string | null
   }>
-}
-
-export type QueueSummary = {
-  pending: number
-  processing: number
-  delivered_24h: number
-  dead: number
-  oldest_pending_seconds: number
-}
-
-export type OpsItem = {
-  id: string
-  event_type: string
-  status: string
-  available_at: string
-  last_error_kind: string | null
-  created_at: string
-  dead_at: string | null
-  attempts?: number
-  attempt_count?: number
-  max_attempts: number
-  endpoint_name?: string
-  endpoint_active?: boolean
-  last_response_status?: number | null
-}
-
-export type OpsOverview = {
-  summary: {
-    outbox: QueueSummary
-    deliveries: QueueSummary
-    push?: QueueSummary
-    watchdog?: {
-      active_alerts: number
-      critical_alerts: number
-      last_observed_at?: string | null
-    }
-  }
-  deadDeliveries: OpsItem[]
-  deadOutbox: OpsItem[]
-  degraded?: Array<"dead_deliveries" | "dead_outbox">
 }
 
 export type SignalOverview = {
@@ -283,12 +232,9 @@ export type TicketingSaveReceipt = {
 }
 
 export const tabs: Array<{ key: Tab; label: string; hint: string }> = [
-  { key: "overview", label: "Stan", hint: "system i koncerty" },
-  { key: "signal", label: "Sygnał", hint: "fani, miasta i wzrost" },
-  { key: "audience", label: "Audience", hint: "Fan 360 i kampanie" },
-  { key: "ops", label: "Operacje", hint: "checklista, kolejki i retry" },
-  { key: "ticketing", label: "Bilety", hint: "ceny i pule" },
-  { key: "admission", label: "Wejściówki", hint: "wydaj i unieważnij" },
-  { key: "mailer", label: "Mailer", hint: "konfiguracja i test" },
-  { key: "system", label: "Integracje", hint: "n8n, Meta, Stripe" },
+  { key: "overview", label: "Dzisiaj", hint: "to, co wymaga uwagi" },
+  { key: "signal", label: "Sygnał", hint: "miasta i wzrost" },
+  { key: "audience", label: "Fani", hint: "Fan 360 i komunikacja" },
+  { key: "ticketing", label: "Bilety", hint: "sprzedaż i pule" },
+  { key: "admission", label: "Goście", hint: "wejściówki" },
 ]

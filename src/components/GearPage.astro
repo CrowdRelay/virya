@@ -49,37 +49,6 @@ const gear = GEAR_ITEMS.map((item) => ({
               : "No random catalogue and no recommendations for gear we do not know. These are pieces from the current VIRYA live setup and the fallback equipment listed in our rider."}
           </p>
 
-          <div class="mt-8 grid gap-5 border border-cyan-400/35 bg-cyan-400/[0.04] p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p class="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-300">
-                {isPl ? "Robisz zakupy w Thomannie?" : "Shopping at Thomann?"}
-              </p>
-              <h2 class="mt-2 text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
-                {isPl ? "Zacznij przez VIRYA" : "Start through VIRYA"}
-              </h2>
-              <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
-                {isPl
-                  ? "Kliknij raz, potem normalnie przeglądaj Thomanna i skompletuj dowolny koszyk. Jeśli zakup zostanie zakwalifikowany przez program afiliacyjny, VIRYA może otrzymać prowizję."
-                  : "Click once, then browse Thomann normally and build any basket you want. If the purchase qualifies under the affiliate programme, VIRYA may receive a commission."}
-              </p>
-              <p class="mt-3 font-mono text-xs text-cyan-300/80">virya.music/thomann</p>
-            </div>
-            <a
-              href={shopPath}
-              target="_blank"
-              rel="sponsored noopener noreferrer"
-              class="inline-flex min-h-12 items-center justify-center gap-3 border border-cyan-300/70 bg-cyan-300 px-6 text-[11px] font-black uppercase tracking-widest text-zinc-950 transition hover:bg-cyan-200"
-            >
-              {isPl ? "Kupuj w Thomann" : "Shop at Thomann"}
-              <span aria-hidden="true">↗</span>
-            </a>
-          </div>
-
-          <p class="mt-4 text-xs leading-relaxed text-zinc-500">
-            {isPl
-              ? "Link afiliacyjny: cena w sklepie nie jest ustalana przez VIRYA. Możemy otrzymać prowizję od kwalifikującego się zakupu."
-              : "Affiliate link: VIRYA does not set the store price. We may receive a commission from a qualifying purchase."}
-          </p>
         </div>
       </section>
 
@@ -92,7 +61,7 @@ const gear = GEAR_ITEMS.map((item) => ({
             </div>
             <a
               href="/techrider.pdf"
-              class="inline-flex min-h-11 w-fit items-center text-[10px] font-bold uppercase tracking-widest text-zinc-400 transition hover:text-amber-400"
+              class="inline-flex min-h-11 w-fit items-center text-[11px] font-bold uppercase tracking-widest text-zinc-400 transition hover:text-amber-400"
             >
               {isPl ? "Rider techniczny →" : "Technical rider →"}
             </a>
@@ -105,7 +74,7 @@ const gear = GEAR_ITEMS.map((item) => ({
                   {String(index + 1).padStart(2, "0")}
                 </div>
                 <div class="relative flex flex-1 flex-col">
-                  <p class={`text-[10px] font-black uppercase tracking-[0.28em] ${item.featured ? "text-amber-400" : "text-zinc-500"}`}>
+                  <p class={`text-[11px] font-black uppercase tracking-[0.28em] ${item.featured ? "text-amber-400" : "text-zinc-500"}`}>
                     {item.category[lang]}
                   </p>
                   <h3 class="mt-4 pr-8 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
@@ -118,7 +87,7 @@ const gear = GEAR_ITEMS.map((item) => ({
                     href={item.affiliateUrl}
                     target="_blank"
                     rel="sponsored noopener noreferrer"
-                    class="mt-7 inline-flex min-h-11 w-fit items-center gap-3 border border-zinc-700 px-4 text-[10px] font-black uppercase tracking-widest text-zinc-200 transition group-hover:border-amber-400/60 hover:bg-amber-400 hover:text-black"
+                    class="mt-7 inline-flex min-h-11 w-fit items-center gap-3 border border-zinc-700 px-4 text-[11px] font-black uppercase tracking-widest text-zinc-200 transition group-hover:border-amber-400/60 hover:bg-amber-400 hover:text-black"
                     aria-label={`${isPl ? "Sprawdź w Thomann" : "View at Thomann"}: ${item.name}`}
                   >
                     {isPl ? "Sprawdź w Thomann" : "View at Thomann"}
@@ -128,37 +97,24 @@ const gear = GEAR_ITEMS.map((item) => ({
               </article>
             ))}
           </div>
+
+          <aside class="mt-12 grid gap-6 border-y border-amber-400/25 bg-amber-400/[.035] px-5 py-7 sm:px-7 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p class="virya-eyebrow">VIRYA // THOMANN</p>
+              <h2 class="mt-3 text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">{isPl ? "I tak kupujesz w Thomannie?" : "Shopping at Thomann anyway?"}</h2>
+              <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+                {isPl ? "Zacznij przez VIRYA, a potem przeglądaj sklep normalnie. Kwalifikujący się zakup może przynieść zespołowi prowizję bez zmiany ceny w sklepie." : "Start through VIRYA, then browse normally. A qualifying purchase may support the band without changing the store price."}
+              </p>
+              <p class="mt-3 text-xs text-zinc-500">{isPl ? "Link afiliacyjny · VIRYA nie ustala cen sklepu." : "Affiliate link · VIRYA does not set store prices."}</p>
+            </div>
+            <a href={shopPath} target="_blank" rel="sponsored noopener noreferrer" class="virya-button virya-button--primary">
+              {isPl ? "Otwórz Thomann" : "Open Thomann"} <span aria-hidden="true">↗</span>
+            </a>
+          </aside>
         </div>
       </section>
 
-      <section class="virya-section border-t border-zinc-800/60">
-        <div class="virya-section__inner">
-          <div class="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-center">
-            <div>
-              <p class="virya-eyebrow">VIRYA // THOMANN</p>
-              <h2 class="virya-heading mt-4">{isPl ? "Nie widzisz swojej rzeczy?" : "Looking for something else?"}</h2>
-              <p class="virya-copy mt-5">
-                {isPl
-                  ? "Nie musi być na tej liście. Użyj wejścia VIRYA do Thomanna, a potem wyszukaj i kup dokładnie to, czego potrzebujesz."
-                  : "It does not need to be on this list. Use the VIRYA entry to Thomann, then search for and buy exactly what you need."}
-              </p>
-            </div>
-            <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
-              <a
-                href={shopPath}
-                target="_blank"
-                rel="sponsored noopener noreferrer"
-                class="virya-button virya-button--primary justify-center"
-              >
-                {isPl ? "Otwórz Thomann" : "Open Thomann"} ↗
-              </a>
-              <a href={lp(lang, "/#endorsements")} class="virya-button virya-button--secondary justify-center">
-                {isPl ? "Partnerzy VIRYA" : "VIRYA partners"}
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+
     </main>
 
     <Footer lang={lang} />

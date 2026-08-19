@@ -55,7 +55,7 @@ export const translations = {
       story1:
         "Virya was born in 2023 from a refusal to follow established paths. Founded by guitarist Wojciech Bator and drummer Jakub Dąbrowski, the band set out to dismantle genre boundaries — fusing the ferocity of modern metalcore with unexpected influences that reach far beyond metal. Technical precision, raw emotion, and relentless energy define the sound. Architects, Tesseract, and Twelve Foot Ninja may come to mind, but Virya carves its own path.",
       story2:
-        "The lineup took its definitive shape with the arrival of Marek Bienias on vocals — a force of nature whose commanding presence and powerful voice brought the band to a new level. In 2024, bassist Lubomyr Kosakovsky completed the lineup, adding even more mass and depth to the sound.",
+        "The current chapter of Virya is carried by vocalist Marcin Janusiński, guitarist Wojciech Bator, drummer Jakub Dąbrowski and bassist Lubomyr Kosakovsky. The lineup keeps the band focused on a live-first sound: precise, heavy and built to hit with real physical energy on stage.",
       story3:
         "The name Virya is more than a name — it is a declaration. Rooted in the concept of positive energy and unbreakable will, it is the band's manifesto: that every concert must be a catharsis, a release of raw power shared between the band and the audience. Their music carries the weight of life's hardships and the defiant belief that rising above them is always possible. No pain, no gain.",
       roles: {

@@ -151,7 +151,7 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
   }
 
   return (
-    <section class="rounded-3xl border border-amber-300/25 bg-gradient-to-br from-amber-300/[0.06] to-zinc-950 p-5 sm:p-7">
+    <section class="rounded-xl border border-amber-300/25 bg-gradient-to-br from-amber-300/[0.06] to-zinc-950 p-5 sm:p-7">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p class="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Latarnik / physical release</p>
@@ -206,7 +206,7 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
         ) : data.campaigns.map(campaign => {
           const recipients = recipientsByCampaign.get(campaign.id) ?? []
           return (
-            <article key={campaign.id} class="rounded-2xl border border-white/10 bg-black/35 p-4 sm:p-5">
+            <article key={campaign.id} class="rounded-lg border border-white/10 bg-black/35 p-4 sm:p-5">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p class="font-black text-white">{campaign.title}</p>

@@ -7,12 +7,11 @@ const source = readFileSync(
   "utf8",
 )
 
-test("Signal clarity icons use centered monochrome SVGs", () => {
-  assert.match(source, /class="signal-clarity-icon"/)
-  assert.match(source, /display: inline-flex/)
-  assert.match(source, /align-items: center/)
-  assert.match(source, /justify-content: center/)
-  assert.match(source, /stroke: currentColor/)
-  assert.doesNotMatch(source, /\["✉", "⌖", "▣"\]/)
-  assert.equal((source.match(/<svg viewBox="0 0 24 24" fill="none">/g) ?? []).length, 4)
+test("Signal clarity section stays static, readable and editorial", () => {
+  assert.match(source, /number: "01"/)
+  assert.match(source, /number: "02"/)
+  assert.match(source, /number: "03"/)
+  assert.match(source, /signal-benefits-heading/)
+  assert.match(source, /md:grid-cols-3/)
+  assert.doesNotMatch(source, /signal-clarity-icon|\["✉", "⌖", "▣"\]/)
 })

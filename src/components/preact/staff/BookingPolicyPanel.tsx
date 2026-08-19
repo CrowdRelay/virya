@@ -112,7 +112,7 @@ export default function BookingPolicyPanel({ summary, onSaved }: Props) {
       </div>
 
       {!summary ? (
-        <p class="mt-4 rounded-2xl bg-black/20 p-4 text-sm text-zinc-500">Polityka bookingowa jest chwilowo niedostępna.</p>
+        <p class="mt-4 rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Polityka bookingowa jest chwilowo niedostępna.</p>
       ) : (
         <div class="mt-4 grid gap-4">
           <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

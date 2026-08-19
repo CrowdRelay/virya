@@ -116,18 +116,18 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
   <div data-area-experience data-lang={lang} data-signal-url={lp(lang, "/signal/")} data-merch-url={lp(lang, "/merch/")} class="area-experience min-w-0 overflow-x-clip">
     <script type="application/json" data-area-copy set:html={safeClientCopy}></script>
 
-    <header class="area-hero relative flex min-h-[100svh] items-center overflow-hidden border-b border-zinc-800/60 px-4 pb-12 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:px-6 sm:pb-16 sm:pt-32 lg:min-h-[88vh] lg:px-12">
+    <header class="area-hero relative flex min-h-[88svh] items-center overflow-hidden border-b border-zinc-800/60 px-4 pb-12 pt-[calc(6.5rem+env(safe-area-inset-top))] sm:px-6 sm:pb-16 sm:pt-32 lg:min-h-[88vh] lg:px-12">
       <div class="area-grid absolute inset-0 opacity-70" aria-hidden="true"></div>
       <div class="absolute left-[8%] top-28 h-56 w-56 rounded-full bg-amber-400/10 blur-[100px]" aria-hidden="true"></div>
       <div class="relative mx-auto grid min-w-0 w-full max-w-7xl items-center gap-10 sm:gap-14 lg:grid-cols-[1.15fr_.85fr]">
         <div class="min-w-0">
-          <p class="mb-5 max-w-full text-[9px] font-black uppercase leading-relaxed tracking-[0.28em] text-amber-400 sm:text-[10px] sm:tracking-[0.4em]">
+          <p class="mb-5 max-w-full text-[11px] font-black uppercase leading-relaxed tracking-[0.18em] text-amber-400 sm:text-[11px] sm:tracking-[0.4em]">
             {copy.hero.eyebrow}
           </p>
           <h1 class="area-display-title max-w-4xl text-[clamp(2.4rem,10.8vw,3.6rem)] font-black uppercase leading-[.9] tracking-[-.04em] text-white sm:text-6xl lg:text-8xl">
             {copy.hero.title}
           </h1>
-          <p class="mt-6 max-w-2xl text-[0.95rem] leading-relaxed text-zinc-300 text-justify mobile-justify sm:mt-7 sm:text-base lg:text-lg">
+          <p class="mt-6 max-w-2xl text-[0.95rem] leading-relaxed text-zinc-300 sm:mt-7 sm:text-base lg:text-lg">
             {copy.hero.body}
           </p>
           <div class="mt-8 grid min-w-0 grid-cols-1 gap-3 sm:mt-9 sm:flex sm:flex-wrap">
@@ -138,22 +138,22 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               {copy.hero.mapCta}
             </a>
             <a
-              href="#how-it-works"
+              href="#area-collection"
               class="inline-flex min-h-[48px] w-full min-w-0 items-center justify-center border border-zinc-600 px-4 py-3 text-center text-[11px] font-black uppercase leading-snug tracking-[.15em] text-zinc-100 transition-colors hover:border-amber-400 hover:text-amber-400 sm:w-auto sm:px-6 sm:text-xs sm:tracking-widest"
             >
-              {copy.hero.howCta}
+              {modeCopy.collectionCta}
             </a>
           </div>
           <ol class="mt-7 grid max-w-2xl grid-cols-1 gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3" aria-label={copy.steps.heading}>
             {copy.steps.items.map((item: any) => (
               <li class="flex items-center gap-3 bg-zinc-950 px-4 py-3">
-                <span class="font-mono text-[10px] text-amber-400">{item.number}</span>
-                <span class="text-[10px] font-black uppercase tracking-wider text-zinc-200">{item.title}</span>
+                <span class="font-mono text-[11px] text-amber-400">{item.number}</span>
+                <span class="text-[11px] font-black uppercase tracking-wider text-zinc-200">{item.title}</span>
               </li>
             ))}
           </ol>
           <div class="mt-8 flex min-w-0 max-w-2xl items-start gap-3 border-l-2 border-amber-400 bg-zinc-900/50 p-4 sm:mt-10">
-            <span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_14px_rgba(251,191,36,.8)]" aria-hidden="true"></span>
+            <span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_14px_rgba(132,180,172,.8)]" aria-hidden="true"></span>
             <p class="text-xs leading-relaxed text-zinc-400 text-justify">
               <strong class="mr-2 uppercase tracking-widest text-zinc-100">{copy.hero.pilot}</strong>
               {copy.hero.pilotBody}
@@ -163,37 +163,37 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
         <div class="relative mx-auto min-w-0 w-full max-w-md">
           <div class="area-card relative min-h-[390px] w-full max-w-full overflow-hidden border border-amber-400/50 bg-zinc-900 p-5 shadow-[0_28px_90px_rgba(0,0,0,.55)] sm:aspect-[4/5] sm:min-h-0 sm:p-7">
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_75%_15%,rgba(251,191,36,.22),transparent_30%),linear-gradient(145deg,transparent_25%,rgba(251,191,36,.06),transparent_60%)]" aria-hidden="true"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_75%_15%,rgba(132,180,172,.22),transparent_30%),linear-gradient(145deg,transparent_25%,rgba(132,180,172,.06),transparent_60%)]" aria-hidden="true"></div>
             <div class="absolute -right-16 top-20 h-64 w-64 rounded-full border border-amber-400/10" aria-hidden="true"></div>
             <div class="relative flex h-full flex-col">
               <div class="flex min-w-0 items-start justify-between gap-3">
                 <div class="min-w-0">
-                  <p class="text-[9px] font-black uppercase tracking-[0.28em] text-amber-400 sm:tracking-[0.35em]">{lang === "pl" ? "VIRYA // GRA" : "VIRYA // AREA"}</p>
-                  <p class="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-400">
+                  <p class="text-[11px] font-black uppercase tracking-[0.28em] text-amber-400 sm:tracking-[0.35em]">{lang === "pl" ? "VIRYA // GRA" : "VIRYA // AREA"}</p>
+                  <p class="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-400">
                     {lang === "pl" ? "Karta" : "Collectible"} 001 / {String(areaDrops.length).padStart(3, "0")}
                   </p>
                 </div>
                 <img src="/virya.webp" alt="" width="48" height="48" class="h-12 w-12 rounded-full opacity-80" />
               </div>
               <div class="my-auto">
-                <p class="font-mono text-[10px] uppercase tracking-[.35em] text-zinc-400">{lang === "pl" ? "Odkodowana transmisja" : "Decoded transmission"}</p>
+                <p class="font-mono text-[11px] uppercase tracking-[.35em] text-zinc-400">{lang === "pl" ? "Odkodowana transmisja" : "Decoded transmission"}</p>
                 <blockquote class="mt-5 border-l-2 border-amber-400 pl-5 text-3xl font-black uppercase leading-tight tracking-tight text-white sm:text-4xl">
                   “{copy.hero.teaserLine}”
                 </blockquote>
-                <p class="mt-5 text-[10px] font-black uppercase tracking-[.25em] text-amber-400">{copy.hero.teaserTrack}</p>
+                <p class="mt-5 text-[11px] font-black uppercase tracking-[.25em] text-amber-400">{copy.hero.teaserTrack}</p>
               </div>
               <div class="grid grid-cols-3 gap-2 border-t border-zinc-800 pt-5 text-center">
                 <div>
                   <p class="text-lg font-black text-white">+1</p>
-                  <p class="text-[8px] uppercase tracking-widest text-zinc-400">VIRYA</p>
+                  <p class="text-[11px] uppercase tracking-widest text-zinc-400">VIRYA</p>
                 </div>
                 <div>
                   <p class="text-lg font-black text-white">{lang === "pl" ? "MERCH" : "ITEM"}</p>
-                  <p class="text-[8px] uppercase tracking-widest text-zinc-400">{lang === "pl" ? "GRATIS" : "FREE"}</p>
+                  <p class="text-[11px] uppercase tracking-widest text-zinc-400">{lang === "pl" ? "GRATIS" : "FREE"}</p>
                 </div>
                 <div>
                   <p class="text-lg font-black text-white">PL</p>
-                  <p class="text-[8px] uppercase tracking-widest text-zinc-400">{lang === "pl" ? "GRA" : "AREA"}</p>
+                  <p class="text-[11px] uppercase tracking-widest text-zinc-400">{lang === "pl" ? "GRA" : "AREA"}</p>
                 </div>
               </div>
             </div>
@@ -212,87 +212,30 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         ].map(([value, label]) => (
           <div class="px-4 py-7 text-center">
             <dt class="text-2xl font-black uppercase text-white">{value}</dt>
-            <dd class="mt-1 text-[9px] font-bold uppercase tracking-[.22em] text-zinc-400">{label}</dd>
+            <dd class="mt-1 text-[11px] font-bold uppercase tracking-[.22em] text-zinc-400">{label}</dd>
           </div>
         ))}
       </dl>
     </section>
 
-    <section id="area-profile" class="scroll-mt-24 border-b border-zinc-800/60 px-4 py-14 sm:px-6 sm:py-16 lg:px-12 lg:py-20">
-      <div class="mx-auto grid min-w-0 max-w-7xl gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,.75fr)] lg:items-start">
-        <div class="max-w-3xl">
-          <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.profile.eyebrow}</p>
-          <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.6rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-5xl">{copy.profile.heading}</h2>
-          <p class="mt-5 text-sm leading-relaxed text-zinc-400 text-justify mobile-justify lg:text-base">{copy.profile.body}</p>
-          <p class="mt-5 border-l border-amber-400 pl-4 text-xs leading-relaxed text-zinc-300 text-justify">{copy.profile.claimNote}</p>
-        </div>
-
-        <div data-profile-shell aria-busy="true" class="min-w-0 border border-zinc-800 bg-zinc-900/40 p-4 sm:p-6 lg:p-7">
-          <p data-profile-loading class="text-xs font-semibold text-zinc-400">{copy.claim.accountChecking}</p>
-
-          <div data-profile-logged-out hidden>
-            <h3 class="text-xl font-black uppercase text-white">{copy.profile.loggedOut}</h3>
-            <form data-auth-form class="mt-6" novalidate>
-              <label for={`area-profile-email-${lang}`} class="block text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
-                {copy.profile.emailLabel}
-              </label>
-              <div class="mt-2 flex flex-col gap-3 sm:flex-row">
-                <input
-                  id={`area-profile-email-${lang}`}
-                  data-auth-email
-                  type="email"
-                  inputmode="email"
-                  autocomplete="email"
-                  required
-                  maxlength="254"
-                  placeholder={copy.profile.emailPlaceholder}
-                  class="min-h-[48px] min-w-0 flex-1 border border-zinc-700 bg-zinc-950 px-4 text-sm text-white placeholder:text-zinc-600"
-                />
-                <button
-                  data-auth-request
-                  type="submit"
-                  class="min-h-[48px] bg-amber-400 px-5 text-[10px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300 disabled:cursor-wait disabled:opacity-50"
-                >
-                  {copy.profile.requestButton}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div data-profile-logged-in hidden>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p class="inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-[.24em] text-amber-400">
-                  <span class="h-2 w-2 rounded-full bg-amber-400" aria-hidden="true"></span>
-                  {copy.profile.signedIn}
-                </p>
-                <h3 class="mt-2 text-xl font-black uppercase text-white">{copy.profile.signedInAs}</h3>
-                <p data-profile-email class="mt-2 font-mono text-xs text-zinc-300"></p>
-              </div>
-              <button
-                data-auth-logout
-                type="button"
-                class="min-h-[44px] border border-zinc-700 px-4 text-[9px] font-black uppercase tracking-widest text-zinc-300 transition-colors hover:border-amber-400 hover:text-amber-400 disabled:cursor-wait disabled:opacity-50"
-              >
-                {copy.profile.signOut}
-              </button>
-            </div>
-          </div>
-
-          <aside data-migration-notice hidden class="mt-6 border-l-2 border-amber-400 bg-amber-400/[.06] p-4">
-            <h3 class="text-xs font-black uppercase tracking-widest text-amber-400">{copy.profile.migrationTitle}</h3>
-            <p class="mt-2 text-[10px] leading-relaxed text-zinc-300 text-justify">{copy.profile.migrationBody}</p>
-          </aside>
-
-          <p data-profile-status role="status" aria-live="polite" class="mt-5 text-xs font-semibold text-amber-400"></p>
-        </div>
+    <nav aria-label={lang === "pl" ? "Tryby Gry Virya" : "VIRYA Area modes"} class="sticky top-[68px] z-20 border-y border-zinc-800/80 bg-[#070908]/95 px-4 backdrop-blur-md sm:px-6 lg:px-12">
+      <div class="mx-auto flex max-w-7xl overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {[
+          ["#area-map", modeCopy.hunt],
+          ["#area-collection", modeCopy.collection],
+          ["#area-rewards", modeCopy.rewards],
+        ].map(([href, label]) => (
+          <a href={href} class="inline-flex min-h-12 shrink-0 items-center border-b-2 border-transparent px-4 text-[11px] font-black uppercase tracking-[.14em] text-zinc-400 transition-colors hover:border-amber-400 hover:text-white sm:px-6">
+            {label}
+          </a>
+        ))}
       </div>
-    </section>
+    </nav>
 
     <section id="area-map" class="scroll-mt-24 px-4 py-16 sm:px-6 sm:py-20 lg:px-12 lg:py-28">
       <div class="mx-auto max-w-7xl">
         <div class="mb-12 max-w-3xl">
-          <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.map.eyebrow}</p>
+          <p class="mb-3 text-[11px] font-black uppercase tracking-[.35em] text-amber-400">{copy.map.eyebrow}</p>
           <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.75rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-6xl">{copy.map.heading}</h2>
           <p class="mt-5 text-sm leading-relaxed text-zinc-400 text-justify mobile-justify lg:text-base">{copy.map.body}</p>
         </div>
@@ -307,7 +250,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                     <stop offset="1" stop-color="#18181b"></stop>
                   </linearGradient>
                   <pattern id={`area-lines-${lang}`} width="28" height="28" patternUnits="userSpaceOnUse">
-                    <path d="M28 0H0V28" fill="none" stroke="#fbbf24" stroke-opacity=".07" stroke-width="1"></path>
+                    <path d="M28 0H0V28" fill="none" stroke="#84b4ac" stroke-opacity=".07" stroke-width="1"></path>
                   </pattern>
                 </defs>
                 <path d="M112 112L180 77L254 82L315 57L388 72L460 62L516 116L492 171L526 224L503 279L516 339L463 375L421 442L350 462L292 438L240 469L187 432L126 414L101 357L72 302L94 244L68 184L108 153Z" fill={`url(#area-fill-${lang})`} stroke="#52525b" stroke-width="2"></path>
@@ -350,18 +293,18 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
               <button
                 type="button"
                 data-nearest-button
-                class="inline-flex min-h-[44px] w-full items-center justify-center border border-zinc-700 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-200 transition-colors hover:border-amber-400 hover:text-amber-400 sm:w-auto"
+                class="inline-flex min-h-[44px] w-full items-center justify-center border border-zinc-700 px-5 py-3 text-[11px] font-black uppercase tracking-widest text-zinc-200 transition-colors hover:border-amber-400 hover:text-amber-400 sm:w-auto"
               >
                 <svg aria-hidden="true" viewBox="0 0 24 24" class="mr-2 h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
                 {copy.map.nearest}
               </button>
-              <p class="mt-3 max-w-xl text-[10px] leading-relaxed text-zinc-400 text-justify">{copy.map.nearestNote}</p>
+              <p class="mt-3 max-w-xl text-[11px] leading-relaxed text-zinc-400 text-justify">{copy.map.nearestNote}</p>
               <div class="mt-5 grid gap-2 sm:grid-cols-3" aria-label={lang === "pl" ? "Jak działa Gra Virya" : "How Virya Area works"}>
                 {[
                   lang === "pl" ? "1. Wybierz aktywne miasto" : "1. Choose a live city",
                   lang === "pl" ? "2. Otwórz punkt startowy" : "2. Open the start area",
                   lang === "pl" ? "3. Potwierdź strefę telefonem" : "3. Verify the zone",
-                ].map(item => <span class="border border-zinc-800 bg-zinc-950 p-3 text-[9px] font-black uppercase leading-relaxed tracking-wider text-zinc-300">{item}</span>)}
+                ].map(item => <span class="border border-zinc-800 bg-zinc-950 p-3 text-[11px] font-black uppercase leading-relaxed tracking-wider text-zinc-300">{item}</span>)}
               </div>
               <p class="mt-4 border-l-2 border-amber-400/60 pl-4 text-xs leading-relaxed text-zinc-300">{lang === "pl" ? "Nie zbierasz 12 punktów w całym kraju. Lista po załadowaniu pokazuje tylko sygnały aktywne teraz." : "You do not collect all 12 locations. After loading, the list shows only signals active now."}</p>
               <p data-location-status role="status" aria-live="polite" class="mt-3 text-xs font-semibold text-amber-400"></p>
@@ -372,23 +315,23 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             <aside class="min-w-0 border border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
               <div class="flex min-w-0 flex-wrap items-start justify-between gap-4">
                 <div class="min-w-0">
-                  <p class="text-[9px] font-black uppercase tracking-[.3em] text-zinc-400">{copy.map.selected}</p>
+                  <p class="text-[11px] font-black uppercase tracking-[.3em] text-zinc-400">{copy.map.selected}</p>
                   <h3 data-selected-city class="mt-2 break-words text-[clamp(1.65rem,8vw,1.875rem)] font-black uppercase leading-none tracking-tight text-white">{firstDrop.city}</h3>
-                  <p data-selected-region class="mt-1 text-[10px] uppercase tracking-widest text-zinc-400">{firstDrop.region}</p>
+                  <p data-selected-region class="mt-1 text-[11px] uppercase tracking-widest text-zinc-400">{firstDrop.region}</p>
                 </div>
                 <span data-selected-number class="border border-amber-400/50 px-2 py-1 font-mono text-xs text-amber-400">#{firstDrop.number}</span>
               </div>
               <p data-selected-clue class="mt-7 border-l border-amber-400 pl-4 text-sm italic leading-relaxed text-zinc-300">“{firstDrop.clue[lang]}”</p>
               <div class="mt-7 flex items-center justify-between border-t border-zinc-800 pt-5">
-                <span data-selected-status class="inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-[.22em] text-zinc-400">
+                <span data-selected-status class="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[.22em] text-zinc-400">
                   <span class="h-1.5 w-1.5 rounded-full bg-zinc-500" aria-hidden="true"></span>
                   {copy.map.signal}
                 </span>
               </div>
               <div class="mt-4">
-                <p class="text-[9px] font-black uppercase tracking-widest text-zinc-400">{copy.map.coordinates}</p>
-                <p data-selected-coordinates class="mt-1 break-all font-mono text-[10px] uppercase tracking-wider text-zinc-400">{copy.map.encrypted}</p>
-                <a data-navigation-button hidden target="_blank" rel="noopener noreferrer" class="mt-4 inline-flex min-h-[44px] items-center border border-amber-400/50 px-4 text-[9px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-400 hover:text-black">{lang === "pl" ? "OTWÓRZ PUNKT STARTOWY ↗" : "OPEN START AREA ↗"}</a>
+                <p class="text-[11px] font-black uppercase tracking-widest text-zinc-400">{copy.map.coordinates}</p>
+                <p data-selected-coordinates class="mt-1 break-all font-mono text-[11px] uppercase tracking-wider text-zinc-400">{copy.map.encrypted}</p>
+                <a data-navigation-button hidden target="_blank" rel="noopener noreferrer" class="mt-4 inline-flex min-h-[44px] items-center border border-amber-400/50 px-4 text-[11px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-400 hover:text-black">{lang === "pl" ? "OTWÓRZ PUNKT STARTOWY ↗" : "OPEN START AREA ↗"}</a>
               </div>
             </aside>
 
@@ -416,9 +359,9 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                       <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
                       <circle cx="12" cy="10" r="2.2"></circle>
                     </svg>
-                    <span class="block font-mono text-[8px] text-zinc-400">#{drop.number}</span>
+                    <span class="block font-mono text-[11px] text-zinc-400">#{drop.number}</span>
                   </span>
-                  <span class="mt-2 block text-[10px] font-black uppercase tracking-widest text-zinc-200">{drop.city}</span>
+                  <span class="mt-2 block text-[11px] font-black uppercase tracking-widest text-zinc-200">{drop.city}</span>
                 </button>
               ))}
             </div>
@@ -428,10 +371,10 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         <section data-claim-panel hidden class="mt-8 min-w-0 border border-amber-400/60 bg-amber-400/[.06] p-4 sm:p-6 lg:p-8">
           <div class="grid items-center gap-7 lg:grid-cols-[1fr_auto]">
             <div>
-              <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.claim.eyebrow}</p>
+              <p class="text-[11px] font-black uppercase tracking-[.3em] text-amber-400">{copy.claim.eyebrow}</p>
               <h3 class="mt-2 text-2xl font-black uppercase text-white">{copy.claim.heading}</h3>
               <p class="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify">{copy.claim.body}</p>
-              <p class="mt-3 max-w-3xl text-[10px] leading-relaxed text-zinc-400 text-justify">{copy.claim.privacy}</p>
+              <p class="mt-3 max-w-3xl text-[11px] leading-relaxed text-zinc-400 text-justify">{copy.claim.privacy}</p>
             </div>
             <div class="flex flex-col items-stretch gap-3 lg:w-80">
               <div id="area-claim-auth-note" data-claim-auth-required hidden class="border border-zinc-700 bg-zinc-950/70 p-4 text-xs leading-relaxed text-zinc-300">
@@ -456,19 +399,74 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </div>
     </section>
 
-    <section id="how-it-works" class="scroll-mt-24 border-y border-zinc-800/60 bg-zinc-900/20 px-4 py-16 sm:px-6 sm:py-20 lg:px-12 lg:py-28">
-      <div class="mx-auto max-w-7xl">
-        <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.steps.eyebrow}</p>
-        <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.75rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-6xl">{copy.steps.heading}</h2>
-        <ol class="mt-12 grid gap-px overflow-hidden border border-zinc-800 bg-zinc-800 lg:grid-cols-3">
-          {copy.steps.items.map((item: any) => (
-            <li class="bg-zinc-950 p-7 lg:p-9">
-              <span class="font-mono text-xs text-amber-400">{item.number}</span>
-              <h3 class="mt-8 text-xl font-black uppercase tracking-tight text-white">{item.title}</h3>
-              <p class="mt-4 text-sm leading-relaxed text-zinc-400 text-justify mobile-justify">{item.body}</p>
-            </li>
-          ))}
-        </ol>
+    <section id="area-profile" class="scroll-mt-24 border-b border-zinc-800/60 px-4 py-14 sm:px-6 sm:py-16 lg:px-12 lg:py-20">
+      <div class="mx-auto grid min-w-0 max-w-7xl gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,.75fr)] lg:items-start">
+        <div class="max-w-3xl">
+          <p class="mb-3 text-[11px] font-black uppercase tracking-[.35em] text-amber-400">{copy.profile.eyebrow}</p>
+          <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.6rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-5xl">{copy.profile.heading}</h2>
+          <p class="mt-5 text-sm leading-relaxed text-zinc-400 text-justify mobile-justify lg:text-base">{copy.profile.body}</p>
+          <p class="mt-5 border-l border-amber-400 pl-4 text-xs leading-relaxed text-zinc-300 text-justify">{copy.profile.claimNote}</p>
+        </div>
+
+        <div data-profile-shell aria-busy="true" class="min-w-0 border border-zinc-800 bg-zinc-900/40 p-4 sm:p-6 lg:p-7">
+          <p data-profile-loading class="text-xs font-semibold text-zinc-400">{copy.claim.accountChecking}</p>
+
+          <div data-profile-logged-out hidden>
+            <h3 class="text-xl font-black uppercase text-white">{copy.profile.loggedOut}</h3>
+            <form data-auth-form class="mt-6" novalidate>
+              <label for={`area-profile-email-${lang}`} class="block text-[11px] font-black uppercase tracking-[.24em] text-zinc-400">
+                {copy.profile.emailLabel}
+              </label>
+              <div class="mt-2 flex flex-col gap-3 sm:flex-row">
+                <input
+                  id={`area-profile-email-${lang}`}
+                  data-auth-email
+                  type="email"
+                  inputmode="email"
+                  autocomplete="email"
+                  required
+                  maxlength="254"
+                  placeholder={copy.profile.emailPlaceholder}
+                  class="min-h-[48px] min-w-0 flex-1 border border-zinc-700 bg-zinc-950 px-4 text-sm text-white placeholder:text-zinc-600"
+                />
+                <button
+                  data-auth-request
+                  type="submit"
+                  class="min-h-[48px] bg-amber-400 px-5 text-[11px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300 disabled:cursor-wait disabled:opacity-50"
+                >
+                  {copy.profile.requestButton}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div data-profile-logged-in hidden>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p class="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[.24em] text-amber-400">
+                  <span class="h-2 w-2 rounded-full bg-amber-400" aria-hidden="true"></span>
+                  {copy.profile.signedIn}
+                </p>
+                <h3 class="mt-2 text-xl font-black uppercase text-white">{copy.profile.signedInAs}</h3>
+                <p data-profile-email class="mt-2 font-mono text-xs text-zinc-300"></p>
+              </div>
+              <button
+                data-auth-logout
+                type="button"
+                class="min-h-[44px] border border-zinc-700 px-4 text-[11px] font-black uppercase tracking-widest text-zinc-300 transition-colors hover:border-amber-400 hover:text-amber-400 disabled:cursor-wait disabled:opacity-50"
+              >
+                {copy.profile.signOut}
+              </button>
+            </div>
+          </div>
+
+          <aside data-migration-notice hidden class="mt-6 border-l-2 border-amber-400 bg-amber-400/[.06] p-4">
+            <h3 class="text-xs font-black uppercase tracking-widest text-amber-400">{copy.profile.migrationTitle}</h3>
+            <p class="mt-2 text-[11px] leading-relaxed text-zinc-300 text-justify">{copy.profile.migrationBody}</p>
+          </aside>
+
+          <p data-profile-status role="status" aria-live="polite" class="mt-5 text-xs font-semibold text-amber-400"></p>
+        </div>
       </div>
     </section>
 
@@ -476,25 +474,25 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       <div class="mx-auto max-w-7xl">
         <div class="grid items-end gap-10 lg:grid-cols-[1fr_360px]">
           <div>
-            <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.collection.eyebrow}</p>
+            <p class="mb-3 text-[11px] font-black uppercase tracking-[.35em] text-amber-400">{copy.collection.eyebrow}</p>
             <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.75rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-6xl">{copy.collection.heading}</h2>
             <p class="mt-5 max-w-3xl text-sm leading-relaxed text-zinc-400 text-justify mobile-justify">{copy.collection.body}</p>
           </div>
           <aside class="min-w-0 border border-amber-400/30 bg-zinc-900/50 p-4 sm:p-6">
-            <p class="text-[9px] font-black uppercase tracking-[.28em] text-zinc-400">{copy.collection.wallet}</p>
+            <p class="text-[11px] font-black uppercase tracking-[.28em] text-zinc-400">{copy.collection.wallet}</p>
             <div class="mt-3 flex min-w-0 flex-col gap-3 min-[360px]:flex-row min-[360px]:items-end min-[360px]:justify-between">
               <p><span data-wallet-balance class="text-5xl font-black text-white">0</span> <span class="text-xs font-bold uppercase tracking-widest text-amber-400">{copy.collection.walletUnit}</span></p>
-              <p class="max-w-full text-left text-[9px] font-bold uppercase leading-relaxed tracking-widest text-zinc-400 min-[360px]:max-w-36 min-[360px]:text-right">{copy.collection.walletValue}</p>
+              <p class="max-w-full text-left text-[11px] font-bold uppercase leading-relaxed tracking-widest text-zinc-400 min-[360px]:max-w-36 min-[360px]:text-right">{copy.collection.walletValue}</p>
             </div>
-            <p data-wallet-status role="status" aria-live="polite" class="mt-4 text-[10px] text-zinc-400">{copy.collection.loading}</p>
-            <p class="mt-3 border-t border-zinc-800 pt-3 text-[9px] leading-relaxed text-zinc-400 text-justify">{copy.collection.browserNote}</p>
+            <p data-wallet-status role="status" aria-live="polite" class="mt-4 text-[11px] text-zinc-400">{copy.collection.loading}</p>
+            <p class="mt-3 border-t border-zinc-800 pt-3 text-[11px] leading-relaxed text-zinc-400 text-justify">{copy.collection.browserNote}</p>
           </aside>
         </div>
 
         <div class="mt-8 grid gap-3 lg:grid-cols-2">
           <section class="border border-zinc-800 bg-zinc-900/30 p-5" aria-live="polite">
             <div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
-              <p class="min-w-0 text-[9px] font-black uppercase tracking-[.22em] text-zinc-400 sm:tracking-[.28em]">{copy.collection.progress}</p>
+              <p class="min-w-0 text-[11px] font-black uppercase tracking-[.22em] text-zinc-400 sm:tracking-[.28em]">{copy.collection.progress}</p>
               <p class="font-mono text-sm font-black text-amber-400">
                 <span data-collection-count>0</span> / <span data-collection-size>{areaDrops.length}</span>
               </p>
@@ -521,7 +519,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
           <section data-community-panel hidden class="border border-amber-400/25 bg-amber-400/[.035] p-5">
             <div class="flex min-w-0 flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
-                <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400 sm:tracking-[.28em]">{copy.community.eyebrow}</p>
+                <p class="text-[11px] font-black uppercase tracking-[.24em] text-amber-400 sm:tracking-[.28em]">{copy.community.eyebrow}</p>
                 <h3 class="mt-2 text-lg font-black uppercase text-white">{copy.community.heading}</h3>
               </div>
               <p class="shrink-0 font-mono text-sm font-black text-amber-400">
@@ -540,27 +538,27 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
             >
               <div data-community-progress-bar class="h-full w-0 bg-amber-400 transition-[width] duration-500"></div>
             </div>
-            <p data-community-status role="status" aria-live="polite" class="mt-3 text-[10px] text-zinc-400">
+            <p data-community-status role="status" aria-live="polite" class="mt-3 text-[11px] text-zinc-400">
               {copy.community.loading}
             </p>
           </section>
         </div>
 
-        <div class="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="area-collection-grid mt-10 grid gap-3 min-[520px]:grid-cols-2 lg:grid-cols-4">
           {areaDrops.map((drop) => (
-            <article data-collection-card={drop.id} class="area-collection-card relative min-h-72 min-w-0 overflow-hidden border border-zinc-800 bg-zinc-900/40 p-5 sm:min-h-80 sm:p-6">
+            <article data-collection-card={drop.id} class="area-collection-card relative min-h-40 min-w-0 overflow-hidden border border-zinc-800 bg-zinc-900/40 p-4 sm:p-5">
               <div class="absolute inset-0 area-card-grid opacity-40" aria-hidden="true"></div>
               <div class="relative flex h-full flex-col">
                 <div class="flex min-w-0 flex-wrap items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <p class="font-mono text-[9px] text-amber-400">#{drop.number}</p>
+                    <p class="font-mono text-[11px] text-amber-400">#{drop.number}</p>
                     <h3 class="mt-1 break-words text-sm font-black uppercase tracking-[.15em] text-white sm:tracking-widest">{drop.city}</h3>
                   </div>
-                  <span data-card-state class="max-w-full text-right text-[8px] font-black uppercase leading-relaxed tracking-[.16em] text-zinc-400 sm:tracking-[.2em]">{copy.collection.locked}</span>
+                  <span data-card-state class="max-w-full text-right text-[11px] font-black uppercase leading-relaxed tracking-[.16em] text-zinc-400 sm:tracking-[.2em]">{copy.collection.locked}</span>
                 </div>
-                <div data-card-locked class="my-auto text-center">
-                  <span class="font-mono text-5xl text-zinc-700" aria-hidden="true">◇</span>
-                  <p class="mt-4 font-mono text-[9px] uppercase tracking-[.28em] text-zinc-400">encrypted // {drop.id}</p>
+                <div data-card-locked class="my-auto py-4 text-center">
+                  <span class="font-mono text-2xl text-zinc-700" aria-hidden="true">◇</span>
+                  <p class="mt-3 font-mono text-[11px] uppercase tracking-[.16em] text-zinc-500">encrypted // {drop.id}</p>
                 </div>
                 <div data-card-unlocked hidden class="my-6">
                   <div data-card-artwork-wrap class="relative -mx-6 mb-6 aspect-[4/3] overflow-hidden border-y border-zinc-800 bg-zinc-950">
@@ -575,44 +573,45 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                       class="h-full w-full object-cover"
                     />
                     <div data-card-artwork-placeholder class="absolute inset-0 flex items-center justify-center p-6 text-center">
-                      <p class="font-mono text-[9px] uppercase tracking-[.25em] text-zinc-500">{copy.collection.artworkPending}</p>
+                      <p class="font-mono text-[11px] uppercase tracking-[.25em] text-zinc-500">{copy.collection.artworkPending}</p>
                     </div>
                   </div>
                   <blockquote data-card-line class="border-l-2 border-amber-400 pl-4 text-2xl font-black uppercase leading-tight text-white"></blockquote>
-                  <p data-card-track class="mt-4 text-[9px] font-black uppercase tracking-[.22em] text-amber-400"></p>
+                  <p data-card-track class="mt-4 text-[11px] font-black uppercase tracking-[.22em] text-amber-400"></p>
                   <p data-card-riddle class="mt-3 text-xs font-semibold text-zinc-200"></p>
-                  <p data-card-meta class="mt-2 font-mono text-[8px] uppercase tracking-[.16em] text-zinc-400"></p>
+                  <p data-card-meta class="mt-2 font-mono text-[11px] uppercase tracking-[.16em] text-zinc-400"></p>
                 </div>
-                <p class="font-mono text-[8px] uppercase tracking-[.2em] text-zinc-400">{lang === "pl" ? "GRA VIRYA // POLSKA" : "VIRYA AREA // POLAND"}</p>
+                <p class="font-mono text-[11px] uppercase tracking-[.2em] text-zinc-400">{lang === "pl" ? "GRA VIRYA // POLSKA" : "VIRYA AREA // POLAND"}</p>
               </div>
             </article>
           ))}
         </div>
+        <p class="mt-4 text-xs leading-5 text-zinc-500">{modeCopy.lockedHint}</p>
 
-        <div class="mt-8 grid min-w-0 gap-6 lg:grid-cols-2">
+        <div id="area-rewards" class="mt-8 grid min-w-0 scroll-mt-36 gap-6 lg:grid-cols-2">
           <section class="min-w-0 border border-zinc-800 bg-zinc-900/30 p-4 sm:p-6 lg:p-8">
-            <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.collection.voucherHeading}</p>
+            <p class="text-[11px] font-black uppercase tracking-[.3em] text-amber-400">{copy.collection.voucherHeading}</p>
             <p class="mt-3 text-sm leading-relaxed text-zinc-400 text-justify mobile-justify">{copy.collection.voucherBody}</p>
             <div class="mt-6">
-              <button data-voucher-button type="button" disabled class="min-h-[46px] w-full bg-amber-400 px-5 text-[10px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
+              <button data-voucher-button type="button" disabled class="min-h-[46px] w-full bg-amber-400 px-5 text-[11px] font-black uppercase tracking-widest text-black transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
                 {copy.collection.voucherButton}
               </button>
             </div>
             <p data-voucher-status role="status" aria-live="polite" class="mt-4 text-xs font-semibold text-amber-400"></p>
             <div data-voucher-list-wrap hidden class="mt-6 border-t border-zinc-800 pt-5">
-              <h3 class="text-[9px] font-black uppercase tracking-[.25em] text-zinc-400">{copy.collection.codes}</h3>
+              <h3 class="text-[11px] font-black uppercase tracking-[.25em] text-zinc-400">{copy.collection.codes}</h3>
               <ul data-voucher-list class="mt-3 space-y-2"></ul>
             </div>
-            <a href={lp(lang, "/merch/")} class="mt-6 inline-flex min-h-[44px] items-center text-[10px] font-black uppercase tracking-widest text-amber-400 hover:text-amber-300">
+            <a href={lp(lang, "/merch/")} class="mt-6 inline-flex min-h-[44px] items-center text-[11px] font-black uppercase tracking-widest text-amber-400 hover:text-amber-300">
               {copy.collection.shop} <span class="ml-2" aria-hidden="true">→</span>
             </a>
           </section>
 
           <section class="min-w-0 border border-zinc-800 bg-zinc-900/30 p-4 sm:p-6 lg:p-8">
-            <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.share.eyebrow}</p>
+            <p class="text-[11px] font-black uppercase tracking-[.3em] text-amber-400">{copy.share.eyebrow}</p>
             <h3 class="area-section-title mt-3 text-[clamp(1.65rem,7vw,2rem)] font-black uppercase leading-tight text-white">{copy.share.heading}</h3>
             <p class="mt-3 text-sm leading-relaxed text-zinc-400 text-justify mobile-justify">{copy.share.body}</p>
-            <button data-share-button type="button" class="mt-6 min-h-[46px] w-full border border-amber-400/60 px-4 text-[10px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black sm:w-auto sm:px-5">
+            <button data-share-button type="button" class="mt-6 min-h-[46px] w-full border border-amber-400/60 px-4 text-[11px] font-black uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-400 hover:text-black sm:w-auto sm:px-5">
               {copy.share.button}
             </button>
             <p data-share-status role="status" aria-live="polite" class="mt-4 text-xs font-semibold text-amber-400"></p>
@@ -624,15 +623,15 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
         <section data-signal-bridge hidden class="mt-6 overflow-hidden border border-amber-400/35 bg-amber-400/[.045]">
           <div class="grid gap-px bg-zinc-800 lg:grid-cols-[minmax(0,1fr)_auto]">
             <div class="bg-zinc-950 p-5 sm:p-7">
-              <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{lang === "pl" ? "VIRYA // POŁĄCZ Z SYGNAŁEM" : "VIRYA // SIGNAL LINK"}</p>
+              <p class="text-[11px] font-black uppercase tracking-[.3em] text-amber-400">{lang === "pl" ? "VIRYA // POŁĄCZ Z SYGNAŁEM" : "VIRYA // SIGNAL LINK"}</p>
               <h3 class="mt-3 text-2xl font-black uppercase leading-tight text-white">{signalCopy.areaBridge.heading}</h3>
               <p class="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify">{signalCopy.areaBridge.body}</p>
             </div>
             <div class="flex flex-col justify-center gap-3 bg-zinc-950 p-5 sm:flex-row lg:flex-col lg:p-7">
-              <a data-signal-bridge-link href={lp(lang, "/signal/#join-signal")} class="inline-flex min-h-[46px] items-center justify-center bg-amber-400 px-5 text-[9px] font-black uppercase tracking-widest text-black hover:bg-amber-300">
+              <a data-signal-bridge-link href={lp(lang, "/signal/#join-signal")} class="inline-flex min-h-[46px] items-center justify-center bg-amber-400 px-5 text-[11px] font-black uppercase tracking-widest text-black hover:bg-amber-300">
                 {signalCopy.areaBridge.signal}
               </a>
-              <a href={lp(lang, "/merch/")} class="inline-flex min-h-[46px] items-center justify-center border border-zinc-700 px-5 text-[9px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400">
+              <a href={lp(lang, "/merch/")} class="inline-flex min-h-[46px] items-center justify-center border border-zinc-700 px-5 text-[11px] font-black uppercase tracking-widest text-zinc-200 hover:border-amber-400 hover:text-amber-400">
                 {signalCopy.areaBridge.merch}
               </a>
             </div>
@@ -641,27 +640,28 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </div>
     </section>
 
-    <section class="border-t border-zinc-800/60 bg-black/30 px-4 py-16 sm:px-6 sm:py-20 lg:px-12 lg:py-28">
-      <div class="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.75fr_1.25fr]">
-        <div>
-          <p class="mb-3 text-[10px] font-black uppercase tracking-[.35em] text-amber-400">{copy.rules.eyebrow}</p>
-          <h2 class="area-section-title text-[clamp(2rem,9.5vw,2.6rem)] font-black uppercase leading-[.95] tracking-tight text-white sm:text-4xl lg:text-5xl">{copy.rules.heading}</h2>
-        </div>
-        <div>
-          <ul class="space-y-4">
-            {copy.rules.items.map((item: string) => (
-              <li class="flex gap-4 border-b border-zinc-800/60 pb-4 text-sm leading-relaxed text-zinc-300">
-                <span class="font-mono text-amber-400" aria-hidden="true">+</span>
-                <span class="text-justify">{item}</span>
-              </li>
-            ))}
-          </ul>
-          <p class="mt-7 border-l border-zinc-700 pl-4 text-xs leading-relaxed text-zinc-400 text-justify mobile-justify">{copy.rules.chain}</p>
-          <div class="mt-7 flex flex-wrap gap-5 text-[10px] font-black uppercase tracking-widest">
-            <a href={lp(lang, "/legal/privacy/")} class="text-amber-400 hover:text-amber-300">{copy.rules.privacy}</a>
-            <a href={lp(lang, "/legal/terms/")} class="text-zinc-400 hover:text-amber-400">{copy.rules.terms}</a>
+    <section class="border-t border-zinc-800/60 bg-black/30 px-4 py-10 sm:px-6 lg:px-12">
+      <div class="mx-auto max-w-7xl">
+        <details class="group border border-zinc-800/80 bg-zinc-950/70">
+          <summary class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-black uppercase tracking-[.12em] text-zinc-200 marker:content-none sm:px-6">
+            <span>{copy.rules.heading}</span>
+            <span class="text-amber-400 transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+          </summary>
+          <div class="border-t border-zinc-800 px-5 py-6 sm:px-6">
+            <ul class="grid gap-4 md:grid-cols-2">
+              {copy.rules.items.map((item: string) => (
+                <li class="flex gap-3 text-sm leading-6 text-zinc-300">
+                  <span class="font-mono text-amber-400" aria-hidden="true">+</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <div class="mt-6 flex flex-wrap gap-5 border-t border-zinc-800 pt-5 text-[11px] font-black uppercase tracking-[.12em]">
+              <a href={lp(lang, "/legal/privacy/")} class="text-amber-400 hover:text-amber-300">{copy.rules.privacy}</a>
+              <a href={lp(lang, "/legal/terms/")} class="text-zinc-400 hover:text-amber-400">{copy.rules.terms}</a>
+            </div>
           </div>
-        </div>
+        </details>
       </div>
     </section>
   </div>
@@ -671,8 +671,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 <style>
   .area-grid {
     background-image:
-      linear-gradient(rgba(251, 191, 36, 0.055) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(251, 191, 36, 0.055) 1px, transparent 1px);
+      linear-gradient(rgba(132, 180, 172, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(132, 180, 172, 0.055) 1px, transparent 1px);
     background-size: 52px 52px;
     mask-image: linear-gradient(to bottom, black 20%, transparent 92%);
   }
@@ -697,7 +697,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
     content: "";
     position: absolute;
     inset: 0;
-    border: 1px solid rgba(251, 191, 36, 0.45);
+    border: 1px solid rgba(132, 180, 172, 0.45);
     border-radius: 9999px;
     opacity: 0;
   }
@@ -710,8 +710,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
   .area-marker.is-selected .area-marker-core,
   .area-marker:hover .area-marker-core,
   .area-marker:focus-visible .area-marker-core {
-    background: #fbbf24;
-    color: #09090b;
+    background: #84b4ac;
+    color: #070908;
   }
 
   .area-marker.is-claimed .area-marker-core {
@@ -740,8 +740,8 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
   .area-drop-list:hover,
   .area-drop-list:focus-visible,
   .area-drop-list.is-selected {
-    border-color: rgba(251, 191, 36, 0.8);
-    background: rgba(251, 191, 36, 0.06);
+    border-color: rgba(132, 180, 172, 0.8);
+    background: rgba(132, 180, 172, 0.06);
   }
 
   .area-drop-list.is-inactive:not(.is-selected) {
@@ -749,10 +749,16 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
     background: rgba(24, 24, 27, 0.28);
   }
 
+  .area-collection-grid > .area-collection-card:nth-child(n + 5):not(.is-unlocked) {
+    display: none;
+  }
+
   .area-collection-card.is-unlocked {
-    border-color: rgba(251, 191, 36, 0.55);
+    min-height: 20rem;
+    grid-column: span 2;
+    border-color: rgba(132, 180, 172, 0.55);
     background:
-      radial-gradient(circle at 80% 0%, rgba(251, 191, 36, 0.14), transparent 35%),
+      radial-gradient(circle at 80% 0%, rgba(132, 180, 172, 0.14), transparent 35%),
       rgba(24, 24, 27, 0.7);
   }
 
@@ -780,6 +786,12 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
   .area-display-title,
   .area-section-title {
     text-wrap: balance;
+  }
+
+  @media (max-width: 519px) {
+    .area-collection-card.is-unlocked {
+      grid-column: span 1;
+    }
   }
 
   @media (max-width: 639px) {

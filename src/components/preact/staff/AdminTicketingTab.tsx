@@ -208,8 +208,8 @@ export function TicketingTab({ events }: { events: EventItem[] }) {
 
   return (
     <section class="relative grid gap-5" aria-busy={loading}>
-      {loading && <BackendLoader overlay label="Pobieram sprzedaż z CrowdRelay…" />}
-      <div class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+      {loading && <BackendLoader overlay label="Pobieram sprzedaż…" />}
+      <div class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 class="text-xl font-black text-white">
@@ -217,7 +217,7 @@ export function TicketingTab({ events }: { events: EventItem[] }) {
             </h2>
             <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400 text-pretty">
               Ustaw okno sprzedaży, VAT, limit zamówienia, całkowitą pulę oraz
-              typy i ceny biletów. Opłacenie następuje w Stripe, a CrowdRelay
+              typy i ceny biletów. Opłacenie następuje w Stripe, a system
               rozdziela sprzedaż od aktywnych rezerwacji.
             </p>
           </div>
@@ -254,7 +254,7 @@ export function TicketingTab({ events }: { events: EventItem[] }) {
         <form onSubmit={save} class="grid gap-5">
           {overview && <TicketingInventorySummary overview={overview} />}
 
-          <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+          <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h3 class="text-lg font-black text-white">
@@ -330,7 +330,7 @@ export function TicketingTab({ events }: { events: EventItem[] }) {
             </div>
           </section>
 
-          <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+          <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 class="text-lg font-black text-white">Typy biletów</h3>
@@ -366,7 +366,7 @@ export function TicketingTab({ events }: { events: EventItem[] }) {
               {form.ticketTypes.map((type, index) => (
                 <article
                   key={index}
-                  class="grid gap-4 rounded-2xl border border-white/5 bg-black/30 p-4 xl:grid-cols-[1fr_1.2fr_.7fr_.6fr_auto]"
+                  class="grid gap-4 rounded-lg border border-white/5 bg-black/30 p-4 xl:grid-cols-[1fr_1.2fr_.7fr_.6fr_auto]"
                 >
                   <Field
                     label="Slug"
@@ -477,7 +477,7 @@ function TicketingInventorySummary({
   overview: TicketingOverview
 }) {
   return (
-    <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+    <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.7fr)] lg:items-end">
         <div>
           <p class="text-xs font-bold uppercase tracking-[.2em] text-amber-300">
@@ -577,7 +577,7 @@ export function OrderStatusBadge({ status }: { status: string }) {
 
 function RecentOrders({ orders }: { orders: RecentOrder[] }) {
   return (
-    <section class="overflow-hidden rounded-3xl border border-white/10 bg-zinc-900/70">
+    <section class="overflow-hidden rounded-xl border border-white/10 bg-zinc-900/70">
       <div class="border-b border-white/10 p-5 sm:p-6">
         <h3 class="text-lg font-black text-white">Ostatnie zamówienia</h3>
         <p class="mt-1 text-sm text-zinc-500">
@@ -589,7 +589,7 @@ function RecentOrders({ orders }: { orders: RecentOrder[] }) {
         {orders.map(order => (
           <article
             key={order.order_id}
-            class="rounded-2xl border border-white/5 bg-black/25 p-4"
+            class="rounded-lg border border-white/5 bg-black/25 p-4"
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">

@@ -51,7 +51,7 @@ export function Metric({
 }) {
   return (
     <div
-      class={`rounded-2xl border p-4 ${ok ? "border-white/10 bg-zinc-900/70" : "border-rose-400/35 bg-rose-400/10"}`}
+      class={`rounded-lg border p-4 ${ok ? "border-white/10 bg-zinc-900/70" : "border-rose-400/35 bg-rose-400/10"}`}
     >
       <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">
         {label}

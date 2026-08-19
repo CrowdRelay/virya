@@ -1,9 +1,17 @@
 ---
 export const prerender = false
 import Layout from "../../components/Layout.astro"
-import StaffNavigation from "../../components/StaffNavigation.astro"
+import StaffShell from "../../components/StaffShell.astro"
+import AdminConsole from "../../components/preact/staff/AdminConsole"
 ---
-<Layout title="Virya Staff" description="Prywatny panel operacyjny Virya." lang="pl">
-  <Fragment slot="head"><meta name="robots" content="noindex, nofollow, noarchive" /></Fragment>
-  <main id="main-content" class="min-h-screen bg-zinc-950 px-4 py-8 sm:px-6"><div class="mx-auto max-w-6xl"><StaffNavigation active="home" /><header class="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-7"><p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">Virya operations</p><h1 class="mt-2 text-4xl font-black text-white">Jeden panel. Cały koncert.</h1><p class="mt-3 max-w-2xl text-zinc-400">Bramka, QR, sprzedaż, VAT, refundy i dokument miesięczny korzystają z tych samych eventów i admission passes.</p></header><div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4"><a href="/staff/control/" class="group rounded-3xl border border-amber-300/20 bg-amber-300/5 p-6 transition hover:-translate-y-1 hover:border-amber-300/60"><span class="text-xs font-bold uppercase tracking-wider text-amber-300">Control center</span><h2 class="mt-2 text-2xl font-black text-white">Cały system</h2><p class="mt-2 text-sm leading-6 text-zinc-400">CrowdRelay, Fan 360, segmenty, bilety, wejściówki, mailer i integracje.</p></a><a href="/staff/pair/" class="group rounded-3xl border border-white/10 bg-zinc-900/70 p-6 transition hover:-translate-y-1 hover:border-amber-300/50"><span class="text-xs font-bold uppercase tracking-wider text-amber-300">Virya Signal</span><h2 class="mt-2 text-2xl font-black text-white">Parowanie apki</h2><p class="mt-2 text-sm leading-6 text-zinc-400">Krótkotrwały QR logujący zaufany telefon jako staff.</p></a><a href="/staff/qr/" class="group rounded-3xl border border-white/10 bg-zinc-900/70 p-6 transition hover:-translate-y-1 hover:border-amber-300/50"><span class="text-xs font-bold uppercase tracking-wider text-amber-300">Live ops</span><h2 class="mt-2 text-2xl font-black text-white">QR i bramka</h2><p class="mt-2 text-sm leading-6 text-zinc-400">Kampanie check-in, skanowanie wejściówek i frekwencja.</p></a><a href="/staff/accounting/" class="group rounded-3xl border border-white/10 bg-zinc-900/70 p-6 transition hover:-translate-y-1 hover:border-amber-300/50"><span class="text-xs font-bold uppercase tracking-wider text-amber-300">Back office</span><h2 class="mt-2 text-2xl font-black text-white">Bilety i księgowość</h2><p class="mt-2 text-sm leading-6 text-zinc-400">WEW, VAT 8%, Stripe, refundy i CSV do Saldeo.</p></a></div></div></main>
+<Layout title="Virya Staff" description="Prywatny panel operacyjny VIRYA." lang="pl">
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="no-referrer" />
+  </Fragment>
+  <main id="main-content">
+    <StaffShell active="home">
+      <AdminConsole client:load />
+    </StaffShell>
+  </main>
 </Layout>
