@@ -4,9 +4,11 @@ import type { Lang } from "../../../i18n/t"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import {
   clearPendingConcertCheckin,
+  clearSynesthesiaHandoff,
   crowdrelay,
   getPendingConcertCheckin,
   readFragmentToken,
+  synesthesiaHandoffFromLocation,
 } from "../../../lib/crowdrelay"
 
 interface Props {
@@ -49,6 +51,30 @@ export default function SignalTokenAction({ lang, action }: Props) {
         )
 
         if (action !== "confirm") return
+
+        // Fan confirmation establishes the authenticated web session. If the
+        // signup was reached from a completed Synesthesia run, continue that
+        // process immediately instead of requiring an extra visit to My Signal.
+        // Transient failures intentionally keep the short-lived handoff so My
+        // Signal / SignalHub can retry it; only success or terminal rejection
+        // consumes the capability.
+        const handoff = synesthesiaHandoffFromLocation()
+        if (handoff) {
+          try {
+            await crowdrelay.linkSynesthesiaCompletion(handoff)
+            if (cancelled) return
+            clearSynesthesiaHandoff()
+          } catch (error) {
+            if (cancelled) return
+            if (
+              error instanceof CrowdRelayError &&
+              [404, 409, 422].includes(error.status)
+            ) {
+              clearSynesthesiaHandoff()
+            }
+          }
+        }
+
         const pending = getPendingConcertCheckin()
         if (!pending) return
         try {
@@ -97,7 +123,7 @@ export default function SignalTokenAction({ lang, action }: Props) {
     return () => {
       cancelled = true
     }
-  }, [action, copy])
+  }, [action, copy, lang])
 
   async function resendAccess(event: SubmitEvent) {
     event.preventDefault()
