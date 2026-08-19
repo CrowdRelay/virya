@@ -84,11 +84,16 @@ const schema = {
       <header class="relative overflow-hidden border-b border-zinc-800/60 px-5 pb-16 pt-[calc(8rem+env(safe-area-inset-top))] sm:px-8 sm:pb-20 lg:px-12 lg:pb-28 lg:pt-40">
         <div class="signal-hero-grid absolute inset-0 opacity-60" aria-hidden="true"></div>
         <div class="absolute left-[6%] top-32 h-72 w-72 rounded-full bg-amber-400/[.08] blur-[120px]" aria-hidden="true"></div>
-        <div class="virya-container relative grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,.58fr)] lg:items-end">
+        <div class="virya-container relative">
+          <p class="virya-eyebrow">{copy.hero.eyebrow}</p>
+          {/* The heading spans the container rather than the 1.1fr column. The
+              Polish hero copy is a 58-character sentence against 33 in English,
+              and inside the narrower column it wrapped to six display-size lines
+              that pushed the body and both calls to action below the fold. */}
+          <h1 class="virya-display virya-display--long mt-6">{copy.hero.heading}</h1>
+          <div class="mt-10 grid gap-12 lg:mt-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,.58fr)] lg:items-end">
           <div>
-            <p class="virya-eyebrow">{copy.hero.eyebrow}</p>
-            <h1 class="virya-display mt-6 max-w-5xl">{copy.hero.heading}</h1>
-            <p class="mt-7 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg sm:leading-8">
+            <p class="max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg sm:leading-8">
               {copy.hero.body}
             </p>
             <div class="mt-9 flex flex-wrap items-center gap-3">
@@ -115,6 +120,7 @@ const schema = {
               ))}
             </dl>
           </aside>
+          </div>
         </div>
       </header>
 
