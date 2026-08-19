@@ -1,0 +1,89 @@
+import { readFileSync } from "node:fs"
+import { resolve } from "node:path"
+
+const read = path => readFileSync(resolve(path), "utf8")
+const failures = []
+const expect = (condition, message) => { if (!condition) failures.push(message) }
+
+const home = read("src/pages/index.astro")
+const homePl = read("src/pages/pl/index.astro")
+const layout = read("src/components/Layout.astro")
+const landing = read("src/components/Landing.astro")
+const showcase = read("src/components/Showcase.astro")
+const spotify = read("src/components/Spotify.astro")
+const navbar = read("src/components/Navbar.astro")
+const mainText = read("src/components/MainText.astro")
+const merch = read("src/components/MerchTeaser.astro")
+const endorsements = read("src/components/Endorsements.astro")
+const liveCard = read("src/components/preact/LiveEventCard.tsx")
+
+for (const [label, source] of [["en", home], ["pl", homePl]]) {
+  expect(
+    source.includes("enableClientRouter={false}"),
+    `${label} homepage must not ship Astro ClientRouter/prefetch runtime on the initial document.`,
+  )
+  expect(
+    source.includes("<Shows lang={lang}") && !source.match(/<Shows\s+client:/),
+    `${label} homepage Shows must be prerendered without client hydration.`,
+  )
+  expect(
+    !source.match(/client:(?:load|idle)\b/),
+    `${label} homepage must not eagerly hydrate an island.`,
+  )
+}
+
+expect(
+  layout.includes("enableClientRouter = true") &&
+    layout.includes("enableClientRouter && <ClientRouter />"),
+  "ClientRouter must remain opt-in per rendered page so interactive routes keep navigation behavior without taxing home.",
+)
+expect(
+  layout.includes("transform:scaleX(0)") &&
+    layout.includes("scaleX(.85)") &&
+    !layout.includes("transition = 'width") &&
+    !layout.includes("style.width"),
+  "Navigation progress must animate compositor-friendly transform rather than layout-affecting width.",
+)
+expect(
+  landing.includes('preload="none"') &&
+    landing.includes("requestAnimationFrame(() => requestAnimationFrame(startVideo))") &&
+    landing.includes("initHeroVideo()"),
+  "Hero video must stay poster-first, start after the initial paint, and work without ClientRouter lifecycle events.",
+)
+expect(
+  showcase.includes("initShowcase()") && showcase.includes("prewarmShowcase") && showcase.includes("saveData"),
+  "Showcase must keep adaptive poster-first prewarming and initialize on router-free home.",
+)
+expect(
+  spotify.includes('iframe.loading = "lazy"') &&
+    spotify.includes('rootMargin: "200px"') &&
+    spotify.includes("initSpotify()"),
+  "Spotify embed must stay below-fold, lazy and router-independent.",
+)
+expect(
+  navbar.includes('activePage === "home" ? `#${section}`') &&
+    navbar.includes('"text-zinc-400 hover:text-zinc-100"'),
+  "Homepage nav must use canonical same-document hashes and keep language controls at accessible contrast.",
+)
+expect(
+  !mainText.includes('aria-label={t(lang, "hero.listenAria")}'),
+  "Hero primary CTA must expose its visible destination label instead of a mismatched accessible name.",
+)
+expect(
+  !merch.includes("text-zinc-500") && !endorsements.includes("text-zinc-600"),
+  "Homepage secondary text must not regress to low-contrast zinc-500/600 on the near-black V2 surface.",
+)
+expect(
+  liveCard.includes("aria-label={`${labels.details}: ${event.title}") &&
+    liveCard.includes("aria-label={`${labels.tickets}: ${event.title}") &&
+    liveCard.includes("aria-label={`${labels.calendar}: ${event.title}"),
+  "Repeated event actions must have event-specific accessible names so identical labels never target different destinations.",
+)
+
+if (failures.length) {
+  console.error("VIRYA Lighthouse regression audit failed:\n")
+  for (const failure of failures) console.error(`- ${failure}`)
+  process.exit(1)
+}
+
+console.log("VIRYA Lighthouse regression audit passed.")

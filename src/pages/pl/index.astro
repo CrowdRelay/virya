@@ -30,7 +30,7 @@ const title = "Virya — Nowoczesny Metalcore z Polski"
 const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z Polski. Słuchaj nowej muzyki, sprawdź koncerty i zamów oficjalny merch."
 ---
 
-<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang} enableClientRouter={false}>
   <Fragment slot="head">
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
     <link rel="preload" as="image" href="/poster.webp" fetchpriority="high" />
@@ -49,7 +49,7 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
 
       <div class="flex flex-col bg-zinc-950">
         <section id="shows" class="scroll-mt-20">
-          <Shows client:visible lang={lang} messages={messages.shows} initialEvents={initialLiveEvents} />
+          <Shows lang={lang} messages={messages.shows} initialEvents={initialLiveEvents} />
         </section>
 
         <section id="showcase" class="scroll-mt-20">

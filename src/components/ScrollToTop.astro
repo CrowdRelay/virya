@@ -26,7 +26,8 @@ const { smooth = true } = Astro.props
 
   function init() {
     const btn = document.getElementById("scroll-to-top")
-    if (!btn) return
+    if (!btn || btn.dataset.viryaInitialized === "true") return
+    btn.dataset.viryaInitialized = "true"
     const { signal } = controller
     const all = document.querySelectorAll("footer")
     const footer = all[all.length - 1]
@@ -52,5 +53,6 @@ const { smooth = true } = Astro.props
     }, { signal })
   }
 
+  init()
   document.addEventListener("astro:page-load", init)
 </script>

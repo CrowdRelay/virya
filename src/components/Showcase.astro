@@ -57,12 +57,13 @@ const { lang = "en" } = Astro.props
 </div>
 
 <script>
-  document.addEventListener("astro:page-load", () => {
+  function initShowcase() {
     const btn = document.getElementById("showcase-btn")
     const video = document.getElementById("showcase-video") as HTMLVideoElement | null
     const poster = document.getElementById("showcase-poster")
     const container = document.getElementById("showcase-container")
-    if (!btn || !video || !poster || !container) return
+    if (!btn || !video || !poster || !container || container.dataset.viryaInitialized === "true") return
+    container.dataset.viryaInitialized = "true"
 
     let prewarmed = false
     const connection = (navigator as Navigator & {
@@ -78,14 +79,15 @@ const { lang = "en" } = Astro.props
       video.load()
     }
 
+    let observer: IntersectionObserver | undefined
     if ("IntersectionObserver" in window) {
-      const observer = new IntersectionObserver(entries => {
+      observer = new IntersectionObserver(entries => {
         if (!entries.some(entry => entry.isIntersecting)) return
         prewarmShowcase()
-        observer.disconnect()
+        observer?.disconnect()
       }, { rootMargin: "800px 0px" })
       observer.observe(container)
-      document.addEventListener("astro:before-preparation", () => observer.disconnect(), { once: true })
+      document.addEventListener("astro:before-preparation", () => observer?.disconnect(), { once: true })
     }
 
     const restorePoster = () => {
@@ -106,5 +108,8 @@ const { lang = "en" } = Astro.props
     })
 
     video.addEventListener("ended", restorePoster)
-  })
+  }
+
+  initShowcase()
+  document.addEventListener("astro:page-load", initShowcase)
 </script>

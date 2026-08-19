@@ -10,9 +10,11 @@ interface Props {
 
 const { lang = "en", displayLinks = false, activePage = "" } = Astro.props
 
+const homeSectionHref = (section: string) => activePage === "home" ? `#${section}` : lp(lang, `/#${section}`)
+
 const primary = [
-  { key: "live", href: lp(lang, "/#shows"), label: t(lang, "nav.shows"), section: "shows" },
-  { key: "music", href: lp(lang, "/#music"), label: t(lang, "nav.music"), section: "music" },
+  { key: "live", href: homeSectionHref("shows"), label: t(lang, "nav.shows"), section: "shows" },
+  { key: "music", href: homeSectionHref("music"), label: t(lang, "nav.music"), section: "music" },
   { key: "signal", href: lp(lang, "/signal/"), label: t(lang, "nav.signal"), section: undefined },
   { key: "merch", href: lp(lang, "/merch/"), label: t(lang, "nav.merch"), section: undefined },
   { key: "about", href: lp(lang, "/about/"), label: t(lang, "nav.band"), section: undefined },
@@ -24,7 +26,7 @@ const more = [
   { key: "lyrics", href: lp(lang, "/lyrics/"), label: t(lang, "lyrics.heading"), section: undefined },
   { key: "gear", href: lp(lang, "/gear/"), label: lang === "pl" ? "Sprzęt" : "Gear", section: undefined },
   { key: "epk", href: lp(lang, "/epk/"), label: t(lang, "nav.epk"), section: undefined },
-  { key: "contact", href: lp(lang, "/#contact"), label: t(lang, "nav.contact"), section: "contact" },
+  { key: "contact", href: homeSectionHref("contact"), label: t(lang, "nav.contact"), section: "contact" },
 ]
 
 const moreActive = more.some(item => item.key === activePage)
@@ -114,7 +116,7 @@ const moreActive = more.some(item => item.key === activePage)
           data-lang-switch="en"
           class:list={[
             "inline-flex min-h-11 min-w-11 items-center justify-center transition-colors",
-            lang === "en" ? "text-amber-300" : "text-zinc-500 hover:text-zinc-100",
+            lang === "en" ? "text-amber-300" : "text-zinc-400 hover:text-zinc-100",
           ]}
           aria-label="EN — Switch to English"
           aria-current={lang === "en" ? "true" : undefined}
@@ -124,7 +126,7 @@ const moreActive = more.some(item => item.key === activePage)
           data-lang-switch="pl"
           class:list={[
             "inline-flex min-h-11 min-w-11 items-center justify-center transition-colors",
-            lang === "pl" ? "text-amber-300" : "text-zinc-500 hover:text-zinc-100",
+            lang === "pl" ? "text-amber-300" : "text-zinc-400 hover:text-zinc-100",
           ]}
           aria-label="PL — Przełącz na polski"
           aria-current={lang === "pl" ? "true" : undefined}

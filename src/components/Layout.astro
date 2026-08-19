@@ -12,6 +12,7 @@ interface Props {
   ogType?: string
   lang?: Lang
   head?: string
+  enableClientRouter?: boolean
 }
 
 const {
@@ -23,6 +24,7 @@ const {
   ogType = "website",
   lang = "en",
   head,
+  enableClientRouter = true,
 } = Astro.props
 
 const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.indexOf('/pl/')===0)return;var pref=localStorage.getItem('virya-lang');if(pref!=='pl'&&pref!=='en'){pref=(navigator.language||'').toLowerCase().indexOf('pl')===0?'pl':'en';}if(pref==='pl'){location.replace('/pl'+p+location.search+location.hash);}}catch(e){}})();`
@@ -60,45 +62,47 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     <!-- Parse HTML first; the full diagnostic guard is not on the critical rendering path. -->
     <script is:inline src="/runtime-guard.js" defer></script>
     <script src="/rum.js" defer></script>
-    <ClientRouter />
+    {enableClientRouter && <ClientRouter />}
     {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
-    <script is:inline>
-      (function() {
-        if (window.__viryaNavProgressInstalled) return;
-        window.__viryaNavProgressInstalled = true;
-        var hideTimer;
-        var resetTimer;
-        function clearTimers() { clearTimeout(hideTimer); clearTimeout(resetTimer); }
-        function getBar() {
-          var bar = document.getElementById('nav-progress');
-          if (!bar) {
-            bar = document.createElement('div');
-            bar.id = 'nav-progress';
-            bar.setAttribute('aria-hidden', 'true');
-            bar.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;height:2px;width:0;background:#84b4ac;transition:none;pointer-events:none;opacity:0;';
-            document.documentElement.appendChild(bar);
+    {enableClientRouter && (
+      <script is:inline>
+        (function() {
+          if (window.__viryaNavProgressInstalled) return;
+          window.__viryaNavProgressInstalled = true;
+          var hideTimer;
+          var resetTimer;
+          function clearTimers() { clearTimeout(hideTimer); clearTimeout(resetTimer); }
+          function getBar() {
+            var bar = document.getElementById('nav-progress');
+            if (!bar) {
+              bar = document.createElement('div');
+              bar.id = 'nav-progress';
+              bar.setAttribute('aria-hidden', 'true');
+              bar.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;height:2px;width:100%;background:#84b4ac;transform:scaleX(0);transform-origin:left center;transition:none;pointer-events:none;opacity:0;will-change:transform,opacity;';
+              document.documentElement.appendChild(bar);
+            }
+            return bar;
           }
-          return bar;
-        }
-        document.addEventListener('astro:before-preparation', function() {
-          clearTimers();
-          var bar = getBar();
-          bar.style.transition = 'none'; bar.style.width = '0'; bar.style.opacity = '1';
-          bar.getBoundingClientRect();
-          bar.style.transition = 'width 0.8s ease'; bar.style.width = '85%';
-        });
-        document.addEventListener('astro:page-load', function() {
-          clearTimers();
-          var bar = getBar();
-          bar.style.transition = 'width 0.1s ease'; bar.style.width = '100%';
-          hideTimer = setTimeout(function() {
-            bar.style.transition = 'opacity 0.3s ease'; bar.style.opacity = '0';
-            resetTimer = setTimeout(function() { bar.style.transition = 'none'; bar.style.width = '0'; }, 350);
-          }, 150);
-        });
-        getBar();
-      })();
-    </script>
+          document.addEventListener('astro:before-preparation', function() {
+            clearTimers();
+            var bar = getBar();
+            bar.style.transition = 'none'; bar.style.transform = 'scaleX(0)'; bar.style.opacity = '1';
+            bar.getBoundingClientRect();
+            bar.style.transition = 'transform 0.8s ease'; bar.style.transform = 'scaleX(.85)';
+          });
+          document.addEventListener('astro:page-load', function() {
+            clearTimers();
+            var bar = getBar();
+            bar.style.transition = 'transform 0.1s ease'; bar.style.transform = 'scaleX(1)';
+            hideTimer = setTimeout(function() {
+              bar.style.transition = 'opacity 0.3s ease'; bar.style.opacity = '0';
+              resetTimer = setTimeout(function() { bar.style.transition = 'none'; bar.style.transform = 'scaleX(0)'; }, 350);
+            }, 150);
+          });
+          getBar();
+        })();
+      </script>
+    )}
     <script is:inline>
       if ('serviceWorker' in navigator && !window.__viryaServiceWorkerScheduled) {
         window.__viryaServiceWorkerScheduled = true;

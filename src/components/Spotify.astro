@@ -57,26 +57,26 @@ const { lang = "en" } = Astro.props
   let controller = new AbortController()
   document.addEventListener("astro:before-swap", () => { controller.abort(); controller = new AbortController() })
 
-  function init() {
+  function initSpotify() {
     const root = document.getElementById("spotify-root")
     const skeleton = document.getElementById("spotify-skeleton")
     const embed = document.getElementById("spotify-embed")
-    if (!root || !skeleton || !embed) return
+    if (!root || !skeleton || !embed || root.dataset.viryaInitialized === "true") return
+    root.dataset.viryaInitialized = "true"
     const artistId = embed.dataset.artist
     if (!artistId) return
 
     let done = false
     const { signal } = controller
-
-    const io = new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting || done) return
+    const loadEmbed = () => {
+      if (done) return
       done = true
-      io.disconnect()
       const iframe = document.createElement("iframe")
       iframe.title = "Virya on Spotify"
       iframe.src = `https://open.spotify.com/embed/artist/${artistId}?utm_source=generator`
       iframe.width = "100%"
       iframe.height = "450"
+      iframe.loading = "lazy"
       iframe.setAttribute("frameborder", "0")
       iframe.setAttribute("allow", "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture")
       iframe.className = "opacity-0 absolute inset-0 outline-none border-0"
@@ -85,9 +85,18 @@ const { lang = "en" } = Astro.props
         iframe.classList.remove("opacity-0", "absolute", "inset-0")
       }, { once: true, signal })
       embed.appendChild(iframe)
-    }, { rootMargin: "300px" })
+    }
+
+    if (!("IntersectionObserver" in window)) return
+    const io = new IntersectionObserver((entries) => {
+      if (!entries[0]?.isIntersecting) return
+      io.disconnect()
+      loadEmbed()
+    }, { rootMargin: "200px" })
     io.observe(root)
+    signal.addEventListener("abort", () => io.disconnect(), { once: true })
   }
 
-  document.addEventListener("astro:page-load", init)
+  initSpotify()
+  document.addEventListener("astro:page-load", initSpotify)
 </script>

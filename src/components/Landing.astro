@@ -20,9 +20,10 @@
 </div>
 
 <script>
-  document.addEventListener("astro:page-load", () => {
+  function initHeroVideo() {
     const video = document.getElementById("hero-video") as HTMLVideoElement | null
-    if (!video) return
+    if (!video || video.dataset.viryaInitialized === "true") return
+    video.dataset.viryaInitialized = "true"
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
 
     const connection = (navigator as Navigator & {
@@ -48,11 +49,11 @@
       }
     }
 
-    // fetchpriority="low" already deprioritizes the video fetch behind
-    // critical resources, so we start it right away instead of waiting for
-    // window "load" plus an idle-callback timeout: that extra JS-side delay
-    // only pushes the (large) poster-to-video visual change later, hurting
-    // Speed Index for no TBT/LCP benefit.
-    startVideo()
-  })
+    // Give the static poster + hero copy two paint opportunities before the
+    // large decorative video starts competing for decode/network resources.
+    requestAnimationFrame(() => requestAnimationFrame(startVideo))
+  }
+
+  initHeroVideo()
+  document.addEventListener("astro:page-load", initHeroVideo)
 </script>

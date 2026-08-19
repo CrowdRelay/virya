@@ -24,8 +24,8 @@ test("public hydration stays deliberately sparse", () => {
   const source = astro.map(path => readFileSync(path, "utf8")).join("\n")
   const directives = source.match(/client:(?:load|idle|visible|media|only)/g) ?? []
   const eager = source.match(/client:load/g) ?? []
-  assert.ok(directives.length <= 18, `public hydrated islands grew to ${directives.length}`)
-  assert.ok(eager.length <= 8, `public eager hydrated islands grew to ${eager.length}`)
+  assert.ok(directives.length <= 14, `public hydrated islands grew to ${directives.length}`)
+  assert.ok(eager.length <= 6, `public eager hydrated islands grew to ${eager.length}`)
   assert.match(source, /client:visible/)
   assert.match(source, /client:idle/)
 })

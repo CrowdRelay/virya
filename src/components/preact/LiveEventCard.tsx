@@ -239,6 +239,7 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
                 href={tickets}
                 target={firstPartyTickets ? undefined : "_blank"}
                 rel={firstPartyTickets ? undefined : "noopener noreferrer"}
+                aria-label={`${labels.tickets}: ${event.title}${location ? ` — ${location}` : ""}${!firstPartyTickets ? `. ${opensNewTab}` : ""}`}
                 class="virya-button virya-button--primary"
               >
                 {labels.tickets}
@@ -248,13 +249,18 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
             )}
             <a
               href={details}
+              aria-label={`${labels.details}: ${event.title}${location ? ` — ${location}` : ""}`}
               class={`virya-button ${ticketSaleOpen ? "virya-button--secondary" : "virya-button--primary"}`}
             >
               {labels.details}
               <span class="ml-2" aria-hidden="true">→</span>
             </a>
             {calendar && (
-              <a href={calendar} class="virya-button virya-button--ghost">
+              <a
+                href={calendar}
+                aria-label={`${labels.calendar}: ${event.title}${location ? ` — ${location}` : ""}`}
+                class="virya-button virya-button--ghost"
+              >
                 {labels.calendar}
               </a>
             )}
