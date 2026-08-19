@@ -15,6 +15,19 @@ const CHECKIN_CLOCK_SKEW_MS = 60 * 1000
 const CHECKIN_TOKEN_PATTERN =
   /^v1\.[0-9a-f-]{36}\.[0-9a-f-]{36}\.\d{9,12}\.[0-9a-f]{64}$/i
 
+const removeFragmentParam = (name: string): void => {
+  if (typeof window === "undefined") return
+  const params = new URLSearchParams(window.location.hash.slice(1))
+  if (!params.has(name)) return
+  params.delete(name)
+  const hash = params.toString()
+  history.replaceState(
+    null,
+    "",
+    `${location.pathname}${location.search}${hash ? `#${hash}` : ""}`,
+  )
+}
+
 const checkinTokenExpiresAt = (token: string): number | null => {
   if (!CHECKIN_TOKEN_PATTERN.test(token) || token.length > 256) return null
   const seconds = Number(token.split(".")[3])
@@ -41,7 +54,9 @@ export function captureConcertCheckinFromLocation(
   )
   if (!token) return getPendingConcertCheckin(expectedSlug)
 
-  history.replaceState(null, "", `${location.pathname}${location.search}`)
+  // Consume only this capability. Other independent fragment capabilities
+  // (for example a Synesthesia handoff) must survive the check-in flow.
+  removeFragmentParam("checkin")
   if (!isLiveCheckinToken(token)) {
     clearPendingConcertCheckin()
     return null
@@ -139,9 +154,7 @@ export function rememberSignalCity(city: string): void {
 export function readFragmentToken(): string | null {
   if (typeof window === "undefined") return null
   const token = new URLSearchParams(window.location.hash.slice(1)).get("token")
-  if (token) {
-    history.replaceState(null, "", `${location.pathname}${location.search}`)
-  }
+  if (token) removeFragmentParam("token")
   return token
 }
 
@@ -221,14 +234,7 @@ export function clearSynesthesiaHandoff(): void {
       // Optional continuity storage only.
     }
   }
-  const params = new URLSearchParams(location.hash.slice(1))
-  params.delete("handoff")
-  const hash = params.toString()
-  history.replaceState(
-    null,
-    "",
-    `${location.pathname}${location.search}${hash ? `#${hash}` : ""}`,
-  )
+  removeFragmentParam("handoff")
 }
 
 export function bestEffort(task: Promise<unknown>): void {
