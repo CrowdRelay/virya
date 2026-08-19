@@ -8,7 +8,7 @@ import ScrollToTop from "../components/ScrollToTop.astro"
 import MerchClient from "../components/preact/merch/MerchClient"
 import EcosystemRail from "../components/EcosystemRail.astro"
 import { t, lp } from "../i18n/t"
-import { getSeoTags } from "../utils/seo"
+import { getSeoTags, serializeJsonLd } from "../utils/seo"
 import responsiveSrcsets from "../srcsets.json"
 
 const lang = "en"
@@ -25,7 +25,7 @@ const firstProductSrcset = (responsiveSrcsets as Record<string, string>)[firstPr
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
     <link rel="dns-prefetch" href="https://geowidget.inpost.pl" />
     <link rel="preload" as="image" href={firstProductImage} imagesrcset={firstProductSrcset} imagesizes={productImageSizes} fetchpriority="high" />
-    <script type="application/ld+json" set:html={JSON.stringify({
+    <script type="application/ld+json" set:html={serializeJsonLd({
       "@context": "https://schema.org",
       "@type": "Store",
       "name": "Virya Official Store",
