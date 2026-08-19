@@ -6,7 +6,7 @@ import Footer from "../../components/Footer.astro"
 import ScrollToTop from "../../components/ScrollToTop.astro"
 import ChevronLeft from "../../components/ChevronLeft.astro"
 import { t, lp } from "../../i18n/t"
-import { getSeoTags } from "../../utils/seo"
+import { getSeoTags, serializeJsonLd } from "../../utils/seo"
 import items from "../../components/portfolio/items.json"
 import lyricsData from "../../data/lyrics.json"
 
@@ -34,7 +34,7 @@ const hasLyrics = (lyricsData as Array<{slug: string}>).some(l => l.slug === slu
 <Layout title={title} description={description} canonical={canonicalUrl} lang={lang} ogImage={`https://www.virya.music/covers/${item.src}`}>
   <Fragment slot="head">
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
-    <script type="application/ld+json" set:html={JSON.stringify({
+    <script type="application/ld+json" set:html={serializeJsonLd({
       "@context": "https://schema.org",
       "@type": item.type === "single" ? "MusicRecording" : "MusicAlbum",
       "name": item.title,
