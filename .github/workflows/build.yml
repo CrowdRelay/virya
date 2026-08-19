@@ -235,9 +235,25 @@ jobs:
         run: |
           set -euo pipefail
           target="${RUNNER_TEMP}/assetlinks.json"
+          headers="${RUNNER_TEMP}/assetlinks.headers"
+          # Two different states must not be conflated. Play App Signing may
+          # simply not be enabled yet, in which case the endpoint fails closed
+          # with 503 and says so explicitly; that is a known state, not a broken
+          # deploy, and it must not block shipping the site. Once a fingerprint
+          # is configured the document has to be valid, and anything malformed
+          # is a hard failure because Android would silently fall back to the
+          # browser for Latarnik and My Signal links.
           for attempt in $(seq 1 10); do
-            if curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
-              --max-time 10 'https://virya.music/.well-known/assetlinks.json' -o "${target}"; then
+            code="$(curl --proto '=https' --tlsv1.2 --silent --show-error \
+              --max-time 10 --dump-header "${headers}" \
+              --write-out '%{http_code}' \
+              'https://virya.music/.well-known/assetlinks.json' -o "${target}" || true)"
+            if [[ "${code}" == "503" ]] \
+              && grep -qi '^x-virya-app-links:[[:space:]]*unconfigured' "${headers}"; then
+              echo 'VIRYA_ANDROID_APP_LINKS=UNCONFIGURED Play signing fingerprint is not set; App Links stay disabled'
+              exit 0
+            fi
+            if [[ "${code}" == "200" ]]; then
               if python3 - "${target}" <<'PY'
           import json, re, sys
           data = json.load(open(sys.argv[1]))
@@ -264,10 +280,12 @@ jobs:
               then
                 exit 0
               fi
+              echo 'VIRYA_ANDROID_APP_LINKS=FAIL production assetlinks is served but invalid' >&2
+              exit 1
             fi
             sleep 3
           done
-          echo 'VIRYA_ANDROID_APP_LINKS=FAIL production assetlinks is missing/invalid' >&2
+          echo 'VIRYA_ANDROID_APP_LINKS=FAIL production assetlinks is unreachable' >&2
           exit 1
 
       - name: Report Virya release to CrowdRelay ledger
