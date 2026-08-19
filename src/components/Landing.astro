@@ -1,57 +1,86 @@
 ---
 ---
 
-<div class="absolute inset-0 z-0 overflow-hidden">
+<div class="absolute inset-0 z-0 overflow-hidden bg-[#070908]">
+  <img
+    id="hero-poster"
+    src="/poster.webp"
+    srcset="/resp/poster-400w.webp 400w, /resp/poster-800w.webp 800w, /resp/poster-1200w.webp 1200w, /poster.webp 1280w"
+    sizes="100vw"
+    width="1280"
+    height="720"
+    loading="eager"
+    decoding="sync"
+    fetchpriority="high"
+    alt=""
+    aria-hidden="true"
+    class="absolute inset-0 h-full w-full object-cover"
+  />
   <video
     id="hero-video"
-    class="absolute inset-0 w-full h-full object-cover"
+    class="absolute inset-0 h-full w-full object-cover opacity-0"
     muted
     loop
     playsinline
-    poster="/poster.webp"
     preload="none"
-    fetchpriority="low"
     aria-hidden="true"
-  >
-    <source src="/rise.webm" type="video/webm" />
-    <source src="/rise.mp4" type="video/mp4" />
-  </video>
+    data-webm="/rise.webm"
+    data-mp4="/rise.mp4"
+  ></video>
   <div class="absolute inset-0 bg-black/60" aria-hidden="true"></div>
 </div>
 
 <script>
   function initHeroVideo() {
     const video = document.getElementById("hero-video") as HTMLVideoElement | null
-    if (!video || video.dataset.viryaInitialized === "true") return
+    const poster = document.getElementById("hero-poster") as HTMLImageElement | null
+    if (!video || !poster || video.dataset.viryaInitialized === "true") return
     video.dataset.viryaInitialized = "true"
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
 
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
     const connection = (navigator as Navigator & {
       connection?: { saveData?: boolean; effectiveType?: string }
     }).connection
     if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType ?? "")) return
 
     let started = false
-    const startVideo = () => {
-      if (started || !video.isConnected) return
-      if (document.visibilityState !== "visible") {
-        document.addEventListener("visibilitychange", startVideo, { once: true })
-        return
-      }
-      started = true
-      video.muted = true
-      const tryPlay = () => video.play().catch(() => {})
-      if (video.readyState >= 2) {
-        tryPlay()
-      } else {
-        video.load()
-        video.addEventListener("loadeddata", tryPlay, { once: true })
-      }
+
+    const selectSource = () => {
+      const webm = video.dataset.webm
+      const mp4 = video.dataset.mp4
+      if (webm && video.canPlayType('video/webm; codecs="vp9"')) return webm
+      return mp4 || webm || ""
     }
 
-    // Give the static poster + hero copy two paint opportunities before the
-    // large decorative video starts competing for decode/network resources.
-    requestAnimationFrame(() => requestAnimationFrame(startVideo))
+    const startVideo = () => {
+      if (started || !video.isConnected || document.visibilityState !== "visible") return
+      const src = selectSource()
+      if (!src) return
+      started = true
+      video.src = src
+      video.muted = true
+      video.preload = "auto"
+
+      const reveal = () => {
+        video.classList.remove("opacity-0")
+        poster.classList.add("hidden")
+      }
+      video.addEventListener("playing", reveal, { once: true })
+      video.play().catch(() => {
+        video.removeAttribute("src")
+        video.load()
+        started = false
+      })
+    }
+
+    // Keep decorative motion completely off the loading path. It starts on
+    // the first genuine user activity (not click-only), so the poster remains
+    // the stable LCP and lab/idle visits never download a large background video.
+    window.addEventListener("pointermove", startVideo, { once: true, passive: true })
+    window.addEventListener("pointerdown", startVideo, { once: true, passive: true })
+    window.addEventListener("touchstart", startVideo, { once: true, passive: true })
+    window.addEventListener("scroll", startVideo, { once: true, passive: true })
+    window.addEventListener("keydown", startVideo, { once: true })
   }
 
   initHeroVideo()

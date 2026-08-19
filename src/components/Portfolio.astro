@@ -32,17 +32,17 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
             <p class="text-xs text-justify text-zinc-400 leading-snug mb-3 line-clamp-4">{text}</p>
             <div class="flex gap-2 flex-wrap">
               {item.link && (
-                <a href={item.link} rel="noreferrer" target="_blank" class="virya-button virya-button--accent-outline">
+                <a href={item.link} rel="noreferrer" target="_blank" aria-label={`${t(lang, "music.listen")}: ${item.title}`} class="virya-button virya-button--accent-outline">
                   {t(lang, "music.listen")}
                 </a>
               )}
               {item.watch && (
-                <a href={item.watch} rel="noreferrer" target="_blank" class="virya-button virya-button--accent-outline">
+                <a href={item.watch} rel="noreferrer" target="_blank" aria-label={`${t(lang, "music.watch")}: ${item.title}`} class="virya-button virya-button--accent-outline">
                   {t(lang, "music.watch")}
                 </a>
               )}
               {item.buy && (
-                <a href={item.buy} rel="noreferrer" target="_blank" class="virya-button virya-button--accent-outline">
+                <a href={item.buy} rel="noreferrer" target="_blank" aria-label={`${t(lang, "music.buy")}: ${item.title}`} class="virya-button virya-button--accent-outline">
                   {t(lang, "music.buy")}
                 </a>
               )}

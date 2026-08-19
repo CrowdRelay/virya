@@ -13,6 +13,7 @@ const SS_OUT = "src/srcsets.json"
 const DIM_OUT = "src/imageDimensions.json"
 const EXTS = new Set([".webp", ".jpg", ".jpeg", ".png", ".avif"])
 const WIDTHS = [400, 800, 1200, 1600]
+const COVER_WIDTHS = [400, 680, 800, 1200, 1600]
 const MIN_RESPONSIVE = 200
 const CONCURRENCY = Math.max(1, Math.min(4, Number(process.env.IMAGE_JOBS) || 4))
 const CONFIG_VERSION = "v2:webp80:lqip40:24px"
@@ -52,7 +53,10 @@ async function processImage(file) {
   const key = "/" + relative(PUBLIC, file).split(/[\\/]/).join("/")
   const hash = await fingerprint(file)
   const cached = old.entries?.[key]
-  if (cached?.fingerprint === hash && cached.placeholder && cached.dimensions && await Promise.all((cached.outputs ?? []).map(exists)).then(values => values.every(Boolean))) {
+  const nativeWFromCache = Number(cached?.dimensions?.w || 0)
+  const desiredWidths = (key.startsWith("/covers/") ? COVER_WIDTHS : WIDTHS).filter(width => width < nativeWFromCache)
+  const cachedHasDesiredWidths = desiredWidths.every(width => cached?.srcset?.includes(`-${width}w.webp ${width}w`))
+  if (cached?.fingerprint === hash && cached.placeholder && cached.dimensions && cachedHasDesiredWidths && await Promise.all((cached.outputs ?? []).map(exists)).then(values => values.every(Boolean))) {
     entries[key]=cached; placeholders[key]=cached.placeholder; dimensions[key]=cached.dimensions
     if (cached.srcset) srcsets[key]=cached.srcset
     hits++; return
@@ -70,7 +74,8 @@ async function processImage(file) {
     await mkdir(outDir,{recursive:true})
     const prefix=relDir==="."?`/resp/${base}`:`/resp/${relDir}/${base}`
     const parts=[]
-    for (const width of WIDTHS) if (width < nativeW) {
+    const responsiveWidths = key.startsWith("/covers/") ? COVER_WIDTHS : WIDTHS
+    for (const width of responsiveWidths) if (width < nativeW) {
       const output=join(outDir,`${base}-${width}w.webp`); outputs.push(output)
       await sharp(file).resize(width,null,{withoutEnlargement:true}).webp({quality:80}).toFile(output)
       parts.push(`${prefix}-${width}w.webp ${width}w`)

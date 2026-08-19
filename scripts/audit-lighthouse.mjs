@@ -17,6 +17,9 @@ const merch = read("src/components/MerchTeaser.astro")
 const endorsements = read("src/components/Endorsements.astro")
 const liveCard = read("src/components/preact/LiveEventCard.tsx")
 const llms = read("public/llms.txt")
+const astroConfig = read("astro.config.mjs")
+const scrollToTop = read("src/components/ScrollToTop.astro")
+const portfolio = read("src/components/Portfolio.astro")
 
 for (const [label, source] of [["en", home], ["pl", homePl]]) {
   expect(
@@ -46,14 +49,42 @@ expect(
   "Navigation progress must animate compositor-friendly transform rather than layout-affecting width.",
 )
 expect(
-  landing.includes('preload="none"') &&
-    landing.includes("requestAnimationFrame(() => requestAnimationFrame(startVideo))") &&
+  landing.includes('id="hero-poster"') &&
+    landing.includes('fetchpriority="high"') &&
+    landing.includes('data-webm="/rise.webm"') &&
+    landing.includes('data-mp4="/rise.mp4"') &&
+    !landing.includes('<source src="/rise.') &&
+    landing.includes('window.addEventListener("pointermove", startVideo') &&
+    landing.includes('window.addEventListener("scroll", startVideo') &&
+    !landing.includes("setTimeout(startVideo") &&
     landing.includes("initHeroVideo()"),
-  "Hero video must stay poster-first, start after the initial paint, and work without ClientRouter lifecycle events.",
+  "Hero must keep the responsive poster as stable LCP and defer exactly one selected video source until genuine user activity.",
 )
 expect(
   showcase.includes("initShowcase()") && showcase.includes("prewarmShowcase") && showcase.includes("saveData"),
   "Showcase must keep adaptive poster-first prewarming and initialize on router-free home.",
+)
+
+expect(
+  astroConfig.includes("prefetch: false") &&
+    astroConfig.includes('inlineStylesheets: "always"'),
+  "Homepage performance contract must avoid the global Astro prefetch runtime and external render-blocking CSS.",
+)
+expect(
+  !scrollToTop.match(/offsetHeight|getBoundingClientRect|scrollHeight/) &&
+    scrollToTop.includes("window.scrollY < window.innerHeight"),
+  "Scroll-to-top must not force layout reads during scrolling.",
+)
+expect(
+  showcase.includes('kind="captions"') &&
+    showcase.includes('data-webm="/showcase-web.webm"') &&
+    showcase.includes("attachBestSource") &&
+    !showcase.includes('<source src="/showcase-web.'),
+  "Showcase must expose captions and attach only one selected media source.",
+)
+expect(
+  portfolio.includes('aria-label={`${t(lang, "music.watch")}: ${item.title}`}'),
+  "Repeated music actions must have release-specific accessible names.",
 )
 expect(
   spotify.includes('iframe.loading = "lazy"') &&

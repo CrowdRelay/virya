@@ -35,12 +35,12 @@ const moreActive = more.some(item => item.key === activePage)
 <nav
   id="main-nav"
   aria-label={lang === "pl" ? "Główna nawigacja" : "Main navigation"}
-  class="fixed inset-x-0 top-0 z-40 border-b border-transparent bg-black/20 px-4 py-2 backdrop-blur-[10px] transition-[background-color,border-color,transform] duration-200 sm:px-6 lg:px-8"
+  class="fixed inset-x-0 top-0 z-40 border-b border-[#27322f]/80 bg-[#070908]/95 px-4 py-2 transition-[background-color,border-color,transform] duration-200 sm:px-6 lg:px-8"
 >
   <div class="virya-container--wide flex min-h-[64px] items-center gap-5">
     <a
       title={t(lang, "nav.home")}
-      class="logo-link group flex shrink-0 items-center"
+      class="logo-link group flex min-h-12 min-w-12 shrink-0 items-center justify-center"
       href={lp(lang, "/")}
       aria-label={t(lang, "nav.home")}
     >
@@ -68,7 +68,7 @@ const moreActive = more.some(item => item.key === activePage)
               data-section={item.section}
               aria-current={activePage === item.key ? "page" : undefined}
               class:list={[
-                "nav-link inline-flex min-h-11 items-center px-3 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors xl:px-4",
+                "nav-link inline-flex min-h-12 items-center px-3 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors xl:px-4",
                 activePage === item.key
                   ? "text-amber-300"
                   : "text-zinc-300 hover:text-amber-300",
@@ -81,7 +81,7 @@ const moreActive = more.some(item => item.key === activePage)
           <details class="group/more relative">
             <summary
               class:list={[
-                "inline-flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors marker:content-none xl:px-4",
+                "inline-flex min-h-12 cursor-pointer list-none items-center gap-2 px-3 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors marker:content-none xl:px-4",
                 moreActive ? "text-amber-300" : "text-zinc-300 hover:text-amber-300",
               ]}
             >
@@ -95,7 +95,7 @@ const moreActive = more.some(item => item.key === activePage)
                   data-section={item.section}
                   aria-current={activePage === item.key ? "page" : undefined}
                   class:list={[
-                    "nav-link flex min-h-11 items-center border-b border-white/[.045] px-3 text-[11px] font-bold uppercase tracking-[.13em] transition-colors last:border-0",
+                    "nav-link flex min-h-12 items-center border-b border-white/[.045] px-3 text-[11px] font-bold uppercase tracking-[.13em] transition-colors last:border-0",
                     activePage === item.key
                       ? "text-amber-300"
                       : "text-zinc-300 hover:bg-white/[.035] hover:text-amber-300",
@@ -115,7 +115,7 @@ const moreActive = more.some(item => item.key === activePage)
         <button
           data-lang-switch="en"
           class:list={[
-            "inline-flex min-h-11 min-w-11 items-center justify-center transition-colors",
+            "inline-flex min-h-12 min-w-12 items-center justify-center transition-colors",
             lang === "en" ? "text-amber-300" : "text-zinc-400 hover:text-zinc-100",
           ]}
           aria-label="EN — Switch to English"
@@ -125,7 +125,7 @@ const moreActive = more.some(item => item.key === activePage)
         <button
           data-lang-switch="pl"
           class:list={[
-            "inline-flex min-h-11 min-w-11 items-center justify-center transition-colors",
+            "inline-flex min-h-12 min-w-12 items-center justify-center transition-colors",
             lang === "pl" ? "text-amber-300" : "text-zinc-400 hover:text-zinc-100",
           ]}
           aria-label="PL — Przełącz na polski"
@@ -136,7 +136,7 @@ const moreActive = more.some(item => item.key === activePage)
       {displayLinks && (
         <button
           id="mobile-menu-btn"
-          class="inline-flex min-h-11 min-w-11 items-center justify-center text-zinc-200 transition-colors hover:text-amber-300 lg:hidden"
+          class="inline-flex min-h-12 min-w-12 items-center justify-center text-zinc-200 transition-colors hover:text-amber-300 lg:hidden"
           aria-label={t(lang, "nav.openMenu")}
           aria-expanded="false"
           aria-controls="mobile-menu"
@@ -181,7 +181,7 @@ const moreActive = more.some(item => item.key === activePage)
             data-section={item.section}
             aria-current={activePage === item.key ? "page" : undefined}
             class:list={[
-              "mobile-nav-link nav-link flex min-h-11 items-center border-b border-white/[.04] text-[11px] font-bold uppercase tracking-[.12em] transition-colors",
+              "mobile-nav-link nav-link flex min-h-12 items-center border-b border-white/[.04] text-[11px] font-bold uppercase tracking-[.12em] transition-colors",
               activePage === item.key ? "text-amber-300" : "text-zinc-400 hover:text-amber-300",
             ]}
           >
@@ -197,7 +197,7 @@ const moreActive = more.some(item => item.key === activePage)
   #main-nav.is-scrolled,
   #main-nav:has(#mobile-menu:not([hidden])) {
     border-bottom-color: rgb(39 50 47 / .86);
-    background: rgb(7 9 8 / .9);
+    background: rgb(7 9 8 / .98);
   }
 </style>
 

@@ -20,11 +20,14 @@ export default defineConfig({
   site: "https://www.virya.music",
   output: "server",
   adapter: netlify(),
-  prefetch: {
-    defaultStrategy: "hover",
-  },
+  // Public pages are static-first. Astro's global prefetch runtime was adding
+  // an extra request to every document despite the homepage not opting into
+  // prefetched links; ClientRouter still works on routes that render it.
+  prefetch: false,
   build: {
-    inlineStylesheets: 'auto',
+    // The shared V2 stylesheet is small enough to compress well with HTML and
+    // inlining removes a render-blocking hashed asset request entirely.
+    inlineStylesheets: "always",
   },
   integrations: [
     preact(),

@@ -34,9 +34,16 @@ const { lang = "en" } = Astro.props
         playsinline
         preload="none"
         aria-label={t(lang, "showcase.play")}
+        data-webm="/showcase-web.webm"
+        data-mp4="/showcase-web.mp4"
       >
-        <source src="/showcase-web.webm" type="video/webm" />
-        <source src="/showcase-web.mp4" type="video/mp4" />
+        <track
+          kind="captions"
+          srclang={lang}
+          label={lang === "pl" ? "Polski" : "English"}
+          src={lang === "pl" ? "/captions_pl.vtt" : "/captions_en.vtt"}
+          default
+        />
       </video>
       <button
         id="showcase-btn"
@@ -71,9 +78,18 @@ const { lang = "en" } = Astro.props
     }).connection
     const reducedData = connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType ?? "")
 
+    const attachBestSource = () => {
+      if (video.src) return
+      const webm = video.dataset.webm
+      const mp4 = video.dataset.mp4
+      const src = webm && video.canPlayType('video/webm; codecs="vp9"') ? webm : (mp4 || webm)
+      if (src) video.src = src
+    }
+
     const prewarmShowcase = () => {
       if (prewarmed || reducedData) return
       prewarmed = true
+      attachBestSource()
       const fastDesktop = window.innerWidth >= 768 && /^(4g)?$/.test(connection?.effectiveType ?? "4g")
       video.preload = fastDesktop ? "auto" : "metadata"
       video.load()
@@ -100,7 +116,8 @@ const { lang = "en" } = Astro.props
     btn.addEventListener("pointerenter", prewarmShowcase, { once: true })
     btn.addEventListener("focus", prewarmShowcase, { once: true })
     btn.addEventListener("click", () => {
-      prewarmShowcase()
+      attachBestSource()
+      if (!reducedData) prewarmShowcase()
       poster.classList.add("hidden")
       video.classList.remove("hidden")
       btn.classList.add("hidden")

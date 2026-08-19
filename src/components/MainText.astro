@@ -31,6 +31,7 @@ const { lang = "en" } = Astro.props
           href="https://youtube.com/@ViryaOfficial/videos"
           target="_blank"
           rel="noreferrer"
+          aria-label={lang === "pl" ? "Oglądaj kanał VIRYA na YouTube" : "Watch VIRYA on YouTube"}
           class="virya-button virya-button--secondary"
         >
           {t(lang, "hero.watch")} <span aria-hidden="true">↗</span>

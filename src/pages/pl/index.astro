@@ -33,7 +33,7 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
 <Layout title={title} description={description} canonical={canonicalUrl} lang={lang} enableClientRouter={false}>
   <Fragment slot="head">
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
-    <link rel="preload" as="image" href="/poster.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/poster.webp" imagesrcset="/resp/poster-400w.webp 400w, /resp/poster-800w.webp 800w, /resp/poster-1200w.webp 1200w, /poster.webp 1280w" imagesizes="100vw" fetchpriority="high" />
     <script type="application/ld+json" set:html={serializeViryaIdentity()} />
   </Fragment>
 
