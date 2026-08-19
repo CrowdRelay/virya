@@ -107,7 +107,11 @@ const MerchInner = () => {
     <div class="bg-zinc-950 min-h-screen">
       <main id="main-content" class="pt-20">
         <div class="virya-container py-10 sm:py-14 lg:py-16">
-          <div class="mb-10 sm:mb-12">
+          {/* The product cards are deliberately full-bleed and carry their own
+              inner padding, but this text block had none, so the eyebrow and
+              the heading ran into the viewport edge on narrow screens. The
+              inset matches `.virya-section`'s padding-inline. */}
+          <div class="mb-10 px-5 sm:mb-12 sm:px-8 lg:px-12">
             <p class="virya-eyebrow mb-3">
               {t("merch.eyebrow")}
             </p>
@@ -170,10 +174,14 @@ const MerchInner = () => {
                 </div>
               ))}
             </dl>
-            <div class="flex flex-wrap gap-4 mt-6 text-[11px] uppercase tracking-widest text-zinc-400">
-              <a href={lp("/legal/terms")} class="hover:text-amber-400 transition-colors">{t("merch.termsLink")}</a>
-              <a href={lp("/legal/returns")} class="hover:text-amber-400 transition-colors">{t("merch.returnsLink")}</a>
-              <a href={lp("/legal/privacy")} class="hover:text-amber-400 transition-colors">{t("merch.privacyLink")}</a>
+            {/* Standalone links in a flex row, so the WCAG 2.5.8 inline
+                exception does not apply. They were 18px tall against the 24px
+                minimum, on the one page where terms and returns carry legal
+                weight. min-h-12 matches the pattern already used in Footer. */}
+            <div class="flex flex-wrap gap-x-4 mt-4 px-5 text-[11px] uppercase tracking-widest text-zinc-400 sm:px-8 lg:px-12">
+              <a href={lp("/legal/terms")} class="inline-flex items-center min-h-12 hover:text-amber-400 transition-colors">{t("merch.termsLink")}</a>
+              <a href={lp("/legal/returns")} class="inline-flex items-center min-h-12 hover:text-amber-400 transition-colors">{t("merch.returnsLink")}</a>
+              <a href={lp("/legal/privacy")} class="inline-flex items-center min-h-12 hover:text-amber-400 transition-colors">{t("merch.privacyLink")}</a>
             </div>
           </div>
         </div>

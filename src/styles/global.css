@@ -200,6 +200,28 @@
     font-size: clamp(3.6rem, 9.5vw, 8rem);
   }
 
+  /* Establishes an inline-size container so display type can be sized against
+     the column it actually occupies. `.virya-display` scales on vw, which is
+     right for a full-bleed hero and wrong inside a narrow grid column. */
+  .virya-measure {
+    container-type: inline-size;
+  }
+
+  /* Display type sized to its container instead of the viewport. Requires a
+     `.virya-measure` ancestor; without one, cqi resolves against the viewport
+     and this degrades to the plain viewport-relative scale. */
+  .virya-display--measured {
+    font-size: clamp(3.6rem, 17.5cqi, 8rem);
+  }
+
+  /* One step down from `.virya-display`, for a hero heading that is a full
+     sentence rather than a two-or-three word statement. Polish copy runs
+     roughly twice the length of the English for the same heading, so the
+     display scale has to be sized for the sentence, not the slogan. */
+  .virya-display--long {
+    font-size: clamp(2.6rem, 7.4vw, 6.25rem);
+  }
+
   .virya-copy {
     max-width: var(--virya-prose-width);
     font-size: clamp(0.975rem, 1.4vw, 1.075rem);
