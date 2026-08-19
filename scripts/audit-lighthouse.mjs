@@ -67,8 +67,8 @@ expect(
 
 expect(
   astroConfig.includes("prefetch: false") &&
-    astroConfig.includes('inlineStylesheets: "always"'),
-  "Homepage performance contract must avoid the global Astro prefetch runtime and external render-blocking CSS.",
+    astroConfig.includes('inlineStylesheets: "auto"'),
+  "Homepage performance contract must avoid the global Astro prefetch runtime and keep the shared stylesheet cacheable instead of duplicating it into every document.",
 )
 expect(
   !scrollToTop.match(/offsetHeight|getBoundingClientRect|scrollHeight/) &&
