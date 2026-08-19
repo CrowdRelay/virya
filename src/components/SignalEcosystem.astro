@@ -1,6 +1,5 @@
 ---
 import { SIGNAL_COPY } from "../data/signalCopy"
-import SynesthesiaLeaderboard from "./SynesthesiaLeaderboard.astro"
 import { lp, type Lang } from "../i18n/t"
 
 interface Props {
@@ -48,12 +47,6 @@ const copy = SIGNAL_COPY[lang]
         >
           {copy.teaser.area}
         </a>
-        <a
-          href="https://synesthesia.virya.music/?source=virya-home"
-          class="virya-button virya-button--secondary min-h-[48px] px-6"
-        >
-          SYNESTHESIA ↗
-        </a>
       </div>
     </div>
 
@@ -71,30 +64,32 @@ const copy = SIGNAL_COPY[lang]
       ))}
     </div>
 
-    <div class="mt-8 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-2 lg:grid-cols-4" aria-label={lang === "pl" ? "Ekosystem Viryi" : "Virya ecosystem"}>
+    <div class="mt-8 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3" aria-label={lang === "pl" ? "Ekosystem Viryi" : "Virya ecosystem"}>
       <div class="bg-zinc-950 p-5 sm:p-6">
         <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">{lang === "pl" ? "01 // GRA" : "01 // AREA"}</p>
         <h3 class="mt-3 text-lg font-black uppercase text-white">{lang === "pl" ? "Odkryj sygnał" : "Discover the signal"}</h3>
         <p class="mt-3 text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Terenowe punkty budują kolekcję i odblokowują korzyści, które przechodzą bezpośrednio do sklepu." : "Location drops build a collection and unlock benefits that move directly into the store."}</p>
       </div>
-      <a href="https://synesthesia.virya.music/?source=virya-home" class="group bg-zinc-950 p-5 transition-colors hover:bg-zinc-900/80 sm:p-6">
-        <p class="text-[9px] font-black uppercase tracking-[.24em] text-cyan-300">02 // SYNESTHESIA</p>
-        <h3 class="mt-3 text-lg font-black uppercase text-white group-hover:text-cyan-200">{lang === "pl" ? "Przejdź przez album" : "Walk through the album"}</h3>
-        <p class="mt-3 text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Jedenaście utworów staje się pokojami świadomości. Ukończ całość i dołącz do audytowalnego losowania 5 płyt — jedno ukończenie to jeden los." : "Eleven tracks become rooms of consciousness. Finish the full experience and enter an auditable five-album draw — one completion, one entry."}</p>
-      </a>
       <div class="bg-zinc-950 p-5 sm:p-6">
-        <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">03 // LIVE QR</p>
+        <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">02 // LIVE QR</p>
         <h3 class="mt-3 text-lg font-black uppercase text-white">{lang === "pl" ? "Przyjdź i wygraj" : "Show up and win"}</h3>
         <p class="mt-3 text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Wybrane koncerty mogą mieć osobne, audytowalne pule wejściówek. QR na miejscu potwierdza obecność i dodaje los do jednej globalnej puli trzech fizycznych płyt." : "Selected shows can have separate auditable guest-list draws. A venue QR confirms attendance and adds an entry to one global draw for three physical albums."}</p>
       </div>
       <div class="bg-zinc-950 p-5 sm:p-6">
-        <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">04 // MERCH</p>
+        <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">03 // MERCH</p>
         <h3 class="mt-3 text-lg font-black uppercase text-white">{lang === "pl" ? "Domknij pętlę" : "Close the loop"}</h3>
         <p class="mt-3 text-xs leading-relaxed text-zinc-400">{lang === "pl" ? "Nagrody z Gry Virya, polecenia i odbiór albumu prowadzą do jednego portfela korzyści oraz mierzalnej konwersji merchowej." : "AREA rewards, referrals and album pickup lead into one benefit wallet and measurable merch conversion."}</p>
       </div>
     </div>
 
-    <SynesthesiaLeaderboard lang={lang} compact={true} limit={5} />
+    <div class="mt-4 flex justify-end">
+      <a
+        href="https://synesthesia.virya.music/?source=virya-home-curiosity"
+        class="text-[9px] font-semibold uppercase tracking-[.18em] text-zinc-600 transition-colors hover:text-zinc-400"
+      >
+        {lang === "pl" ? "Albumowy eksperyment: Synesthesia ↗" : "Interactive album experiment: Synesthesia ↗"}
+      </a>
+    </div>
 
     <div class="mt-6 flex flex-wrap gap-2" aria-label={lang === "pl" ? "Funkcje Sygnału Virya" : "Virya Signal features"}>
       {copy.teaser.chips.map((chip) => (

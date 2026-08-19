@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { getAreaWallet, type AreaWallet } from "./areaLedger"
 import {
+  CrowdRelayAreaError,
   getAreaBackendWallet,
   importLegacyAreaClaims,
   importLegacyAreaWallet,
@@ -9,6 +10,12 @@ import {
 
 const migrationId = (walletId: string) =>
   `legacy-v1:${createHash("sha256").update(walletId).digest("hex")}`
+
+
+const legacyImportsDisabled = (error: unknown) =>
+  error instanceof CrowdRelayAreaError &&
+  error.status === 410 &&
+  error.body.code === "AREA_LEGACY_IMPORTS_DISABLED"
 
 const walletScore = (wallet: AreaWallet) =>
   wallet.tokenBalance +
@@ -88,13 +95,23 @@ export const ensureLegacyAreaImported = async (
       editionNumber: claim.editionNumber,
     }))
   if (missingClaims.length > 0) {
-    backend = await importLegacyAreaClaims(playerId, missingClaims)
+    try {
+      backend = await importLegacyAreaClaims(playerId, missingClaims)
+    } catch (error) {
+      if (legacyImportsDisabled(error)) return getAreaBackendWallet(playerId)
+      throw error
+    }
   }
 
-  return importLegacyAreaWallet(playerId, {
-    migrationId: migrationId(selected.walletId),
-    tokenBalance: selected.wallet.tokenBalance,
-    vouchers: visibleLegacyVouchers(selected.wallet),
-    ticketRewards: issuedLegacyTicketRewards(selected.wallet),
-  })
+  try {
+    return await importLegacyAreaWallet(playerId, {
+      migrationId: migrationId(selected.walletId),
+      tokenBalance: selected.wallet.tokenBalance,
+      vouchers: visibleLegacyVouchers(selected.wallet),
+      ticketRewards: issuedLegacyTicketRewards(selected.wallet),
+    })
+  } catch (error) {
+    if (legacyImportsDisabled(error)) return getAreaBackendWallet(playerId)
+    throw error
+  }
 }

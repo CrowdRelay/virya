@@ -69,6 +69,8 @@ const CartDrawer = () => {
   const { lines, open, setOpen, subtotal, shipping, needsShipping, total, setQty, remove, hydrated, setPriceOverrides } = useCart()
   const images = useMerchImages()
   const [point, setPoint] = useState(null)
+  const [pickupEvent, setPickupEvent] = useState(null)
+  const [fulfillmentMode, setFulfillmentMode] = useState("inpost")
   const [pickerOpen, setPickerOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -84,6 +86,32 @@ const CartDrawer = () => {
   const [rewardChecking, setRewardChecking] = useState(false)
   const previousCartSignature = useRef(null)
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const slug = new URL(window.location.href).searchParams.get("pickup")?.trim()
+    if (!slug || !/^[a-z0-9][a-z0-9_-]{0,127}$/.test(slug)) return
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 5_000)
+    fetch("/api/events", {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("events unavailable")))
+      .then(data => {
+        const event = Array.isArray(data?.events)
+          ? data.events.find(candidate => candidate?.slug === slug && Date.parse(candidate?.starts_at || "") > Date.now())
+          : null
+        if (event) {
+          setPickupEvent(event)
+          setFulfillmentMode("event_pickup")
+        }
+      })
+      .catch(() => {})
+      .finally(() => clearTimeout(timer))
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [])
+
   const rewardEntry = rewardApplied && lines.length
     ? lines.reduce(
         (best, line) =>
@@ -95,8 +123,11 @@ const CartDrawer = () => {
       )
     : null
   const rewardItemDiscount = rewardEntry?.unitPrice || 0
-  const rewardShippingDiscount = rewardApplied ? shipping : 0
-  const rewardedTotal = Math.max(0, total - rewardItemDiscount - rewardShippingDiscount)
+  const eventPickup = needsShipping && pickupEvent && fulfillmentMode === "event_pickup"
+  const effectiveShipping = needsShipping && !eventPickup ? shipping : 0
+  const effectiveTotal = subtotal + effectiveShipping
+  const rewardShippingDiscount = rewardApplied ? effectiveShipping : 0
+  const rewardedTotal = Math.max(0, effectiveTotal - rewardItemDiscount - rewardShippingDiscount)
 
   useEffect(() => {
     if (!open) return
@@ -250,14 +281,16 @@ const CartDrawer = () => {
     const email = invoice.email.trim(); const address = invoice.address.trim()
     if (!name || !surname || !email || !address) { setError(t("cart.errFill")); return }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError(t("cart.errEmail")); return }
-    if (needsShipping && !point) { setError(t("cart.errPaczkomat")); return }
+    if (needsShipping && !eventPickup && !point) { setError(t("cart.errPaczkomat")); return }
     if (rewardCode.trim() && !rewardApplied) { setError(t("cart.rewardApplyFirst")); return }
     setLoading(true)
     try {
       const checkoutPayload = {
         lang,
         items: lines.map((l) => ({ id: l.id, size: l.size, qty: l.qty, expectedPriceGrossMinor: Math.round(l.unitPrice * 100) })),
-        point: needsShipping ? point : null,
+        point: needsShipping && !eventPickup ? point : null,
+        fulfillmentMode: eventPickup ? "event_pickup" : needsShipping ? "inpost" : "none",
+        pickupEventSlug: eventPickup ? pickupEvent.slug : "",
         invoice: { name, surname, email, address, nip: invoice.nip.trim(), company: invoice.company.trim() },
         rewardCode: rewardApplied ? rewardCode.trim().toUpperCase() : "",
       }
@@ -296,7 +329,7 @@ const CartDrawer = () => {
       // player cancels Stripe Checkout, the same reservation can resume.
       window.location.href = data.url
     } catch (e) { setError(e.message || t("cart.errGeneric")); setLoading(false) }
-  }, [lines, point, needsShipping, invoice, t, lang, rewardCode, rewardApplied, setPriceOverrides])
+  }, [lines, point, needsShipping, eventPickup, pickupEvent, invoice, t, lang, rewardCode, rewardApplied, setPriceOverrides])
 
   return (
     <>
@@ -360,7 +393,33 @@ const CartDrawer = () => {
             {needsShipping && (
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">{t("cart.deliveryHeading")}</p>
-                {point ? (
+                {pickupEvent && (
+                  <div class="grid grid-cols-2 gap-2 mb-3" role="radiogroup" aria-label={lang === "pl" ? "Sposób odbioru" : "Fulfilment method"}>
+                    <button type="button" role="radio" aria-checked={eventPickup ? "true" : "false"}
+                      onClick={() => setFulfillmentMode("event_pickup")}
+                      class={`min-h-[48px] border px-2 py-2 text-[10px] font-bold uppercase tracking-wider ${eventPickup ? "border-amber-400 text-amber-400 bg-amber-400/[.06]" : "border-zinc-700 text-zinc-300"}`}>
+                      {lang === "pl" ? "Odbiór na koncercie" : "Pick up at show"}
+                    </button>
+                    <button type="button" role="radio" aria-checked={!eventPickup ? "true" : "false"}
+                      onClick={() => setFulfillmentMode("inpost")}
+                      class={`min-h-[48px] border px-2 py-2 text-[10px] font-bold uppercase tracking-wider ${!eventPickup ? "border-amber-400 text-amber-400 bg-amber-400/[.06]" : "border-zinc-700 text-zinc-300"}`}>
+                      InPost Paczkomat
+                    </button>
+                  </div>
+                )}
+                {eventPickup ? (
+                  <div class="border border-amber-400/30 bg-amber-400/[.04] px-3 py-2">
+                    <p class="text-xs font-bold text-amber-400">{pickupEvent.title}</p>
+                    <p class="text-[11px] text-zinc-400 mt-1">
+                      {new Date(pickupEvent.starts_at).toLocaleDateString(lang === "pl" ? "pl-PL" : "en-GB")}
+                      {pickupEvent.venue ? ` · ${pickupEvent.venue}` : ""}
+                      {pickupEvent.city?.name ? ` · ${pickupEvent.city.name}` : ""}
+                    </p>
+                    <p class="text-[10px] uppercase tracking-widest text-zinc-500 mt-2">
+                      {lang === "pl" ? "Bez kosztu wysyłki · pokaż potwierdzenie zamówienia przy merchu" : "No shipping fee · show your order confirmation at merch"}
+                    </p>
+                  </div>
+                ) : point ? (
                   <div class="flex items-start justify-between gap-3 border border-zinc-800 px-3 py-2">
                     <div class="min-w-0">
                       <p class="text-xs font-bold text-amber-400">{point.code}</p>
@@ -427,17 +486,17 @@ const CartDrawer = () => {
               )}
               {needsShipping && (
                 <div class="flex justify-between text-zinc-400">
-                  <span class="text-xs uppercase tracking-widest">{t("cart.deliveryRow")}</span>
-                  <span class={rewardApplied ? "line-through opacity-60" : ""}>{shipping} PLN</span>
+                  <span class="text-xs uppercase tracking-widest">{eventPickup ? (lang === "pl" ? "Odbiór na koncercie" : "Show pickup") : t("cart.deliveryRow")}</span>
+                  <span class={rewardApplied && effectiveShipping > 0 ? "line-through opacity-60" : ""}>{effectiveShipping} PLN</span>
                 </div>
               )}
-              {rewardApplied && needsShipping && (
+              {rewardApplied && effectiveShipping > 0 && (
                 <div class="flex justify-between text-amber-400">
                   <span class="text-xs uppercase tracking-widest">{t("cart.rewardDeliveryRow")}</span><span>−{rewardShippingDiscount} PLN</span>
                 </div>
               )}
               <div class="flex justify-between text-zinc-100 font-black pt-2 border-t border-zinc-800 mt-2">
-                <span class="text-xs uppercase tracking-widest">{t("cart.total")}</span><span>{rewardApplied ? rewardedTotal : total} PLN</span>
+                <span class="text-xs uppercase tracking-widest">{t("cart.total")}</span><span>{rewardApplied ? rewardedTotal : effectiveTotal} PLN</span>
               </div>
               <p class="text-[10px] text-zinc-400 pt-1">{t("cart.vatNote")}</p>
             </div>

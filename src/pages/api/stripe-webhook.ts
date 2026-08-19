@@ -17,11 +17,19 @@ import { reconcileTicketStripeEvent } from "../../server/ticketStripeWebhook"
 import {
   CrowdRelayCommerceError,
   commitMerchInventory,
+  recordConfirmedMerchOrder,
   releaseMerchInventory,
 } from "../../server/crowdrelayCommerce"
 import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 
 const MAX_BODY_BYTES = 1024 * 1024
+
+const decimalPlnToMinor = (value: string | null | undefined): number => {
+  if (!value || !/^\d+(?:\.\d{1,2})?$/.test(value)) return 0
+  const [whole, fraction = ""] = value.split(".")
+  const minor = Number(whole) * 100 + Number(fraction.padEnd(2, "0"))
+  return Number.isSafeInteger(minor) && minor >= 0 ? minor : 0
+}
 
 export const POST: APIRoute = async ({ request }) => {
   const stripeKey = readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY)?.trim()
@@ -214,19 +222,24 @@ export const POST: APIRoute = async ({ request }) => {
         shipmentDone = true
       }
       if (!shipmentDone) {
-        const shipment = await createInpostShipment({ session })
-        if (shipment?.created === false) {
-          throw new Error(
-            `InPost shipment failed with status ${shipment.status ?? "unknown"}`,
-          )
+        const eventPickup = session.metadata?.fulfillment_mode === "event_pickup"
+        if (eventPickup) {
+          await checkpointFulfillmentStep(session.id, leaseId, { shipmentDone: true })
+        } else {
+          const shipment = await createInpostShipment({ session })
+          if (shipment?.created === false) {
+            throw new Error(
+              `InPost shipment failed with status ${shipment.status ?? "unknown"}`,
+            )
+          }
+          await checkpointFulfillmentStep(session.id, leaseId, {
+            shipmentDone: true,
+            shipmentId:
+              typeof shipment?.id === "string" || typeof shipment?.id === "number"
+                ? String(shipment.id)
+                : undefined,
+          })
         }
-        await checkpointFulfillmentStep(session.id, leaseId, {
-          shipmentDone: true,
-          shipmentId:
-            typeof shipment?.id === "string" || typeof shipment?.id === "number"
-              ? String(shipment.id)
-              : undefined,
-        })
         shipmentDone = true
       }
       if (session.metadata?.virya_shipment_done !== "1") {
@@ -252,6 +265,33 @@ export const POST: APIRoute = async ({ request }) => {
           metadata: {
             ...session.metadata,
             virya_inventory_done: "1",
+          },
+        })
+      }
+
+      if (inventoryReservationId && session.metadata?.virya_merch_fact_done !== "1") {
+        const fulfillmentMode = session.metadata?.fulfillment_mode === "event_pickup"
+          ? "event_pickup"
+          : session.metadata?.fulfillment_mode === "none" ? "none" : "inpost"
+        const eventId = fulfillmentMode === "event_pickup"
+          ? session.metadata?.pickup_event_id || null
+          : null
+        await recordConfirmedMerchOrder({
+          stripeSessionId: session.id,
+          inventoryReservationId,
+          buyerEmail: session.customer_details?.email || session.customer_email || session.metadata?.inv_email || null,
+          eventId,
+          fulfillmentMode,
+          currency: String(session.currency || "pln").toUpperCase(),
+          amountGrossMinor: session.amount_total ?? 0,
+          goodsGrossMinor: decimalPlnToMinor(session.metadata?.goods_gross_pln),
+          shippingGrossMinor: decimalPlnToMinor(session.metadata?.shipping_pln),
+          confirmedAt: new Date(event.created * 1000).toISOString(),
+        })
+        session = await stripe.checkout.sessions.update(session.id, {
+          metadata: {
+            ...session.metadata,
+            virya_merch_fact_done: "1",
           },
         })
       }

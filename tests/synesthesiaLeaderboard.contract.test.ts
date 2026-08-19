@@ -14,6 +14,10 @@ const ecosystem = readFileSync(
   new URL("../src/components/SignalEcosystem.astro", import.meta.url),
   "utf8",
 )
+const ecosystemRail = readFileSync(
+  new URL("../src/components/EcosystemRail.astro", import.meta.url),
+  "utf8",
+)
 
 test("Synesthesia leaderboard is public, privacy-safe and lazy", () => {
   assert.match(leaderboard, /\/v1\/public\/synesthesia\/leaderboard\?limit=/)
@@ -25,9 +29,13 @@ test("Synesthesia leaderboard is public, privacy-safe and lazy", () => {
   assert.match(leaderboard, /publikacja jest dobrowolna/i)
 })
 
-test("leaderboard is wired into Signal and the homepage ecosystem without hydration", () => {
+test("leaderboard stays available in Signal but is deliberately demoted from the homepage", () => {
   assert.match(signalPage, /<SynesthesiaLeaderboard lang=\{lang\} \/>/)
-  assert.match(ecosystem, /<SynesthesiaLeaderboard lang=\{lang\} compact=\{true\} limit=\{5\} \/>/)
+  assert.doesNotMatch(ecosystem, /<SynesthesiaLeaderboard/)
+  assert.match(ecosystem, /Albumowy eksperyment: Synesthesia/)
+  assert.match(ecosystem, /Interactive album experiment: Synesthesia/)
+  assert.doesNotMatch(ecosystemRail, /\["synesthesia"/)
+  assert.match(ecosystemRail, /Albumowy eksperyment: Synesthesia/)
+  assert.match(ecosystemRail, /Album experiment: Synesthesia/)
   assert.doesNotMatch(signalPage, /SynesthesiaLeaderboard[^\n]+client:/)
-  assert.doesNotMatch(ecosystem, /SynesthesiaLeaderboard[^\n]+client:/)
 })

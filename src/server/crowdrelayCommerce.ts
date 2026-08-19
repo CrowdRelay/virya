@@ -258,3 +258,36 @@ export const releaseMerchInventory = (reservationId: string, reason: string) =>
       body: { reason },
     },
   )
+
+export type ConfirmedMerchOrder = {
+  stripeSessionId: string
+  inventoryReservationId: string
+  buyerEmail?: string | null
+  eventId?: string | null
+  fulfillmentMode: "inpost" | "event_pickup" | "none"
+  currency: string
+  amountGrossMinor: number
+  goodsGrossMinor: number
+  shippingGrossMinor: number
+  confirmedAt: string
+}
+
+export const recordConfirmedMerchOrder = (input: ConfirmedMerchOrder) =>
+  commerceRequest<void>("internal/merch/orders/confirmed", {
+    method: "POST",
+    authenticated: true,
+    correlationId: `merch-order-${input.stripeSessionId}`,
+    idempotencyKey: `merch-order-${input.stripeSessionId}`,
+    body: {
+      stripe_session_id: input.stripeSessionId,
+      inventory_reservation_id: input.inventoryReservationId,
+      buyer_email: input.buyerEmail ?? null,
+      event_id: input.eventId ?? null,
+      fulfillment_mode: input.fulfillmentMode,
+      currency: input.currency,
+      amount_gross_minor: input.amountGrossMinor,
+      goods_gross_minor: input.goodsGrossMinor,
+      shipping_gross_minor: input.shippingGrossMinor,
+      confirmed_at: input.confirmedAt,
+    },
+  })

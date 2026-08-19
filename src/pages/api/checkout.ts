@@ -28,6 +28,7 @@ import {
   fetchPublicMerchCatalog,
 } from "../../server/crowdrelayCommerce"
 import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
+import { loadLiveEvent } from "../../server/liveEvents"
 
 const MAX_QTY = 20
 const MAX_LINES = 50
@@ -133,6 +134,8 @@ export const POST: APIRoute = async ({ request }) => {
     const invoice = asRecord(body.invoice)
     const lang = rawLang === "pl" ? "pl" : "en"
     const rewardCode = cleanText(body.rewardCode, 64)
+    const requestedFulfillmentMode = cleanText(body.fulfillmentMode, 32)
+    const pickupEventSlug = cleanText(body.pickupEventSlug, 128)
     const checkoutRequestId =
       typeof body.checkoutRequestId === "string"
         ? body.checkoutRequestId.toLowerCase()
@@ -288,8 +291,37 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const needsShipping = cart.some((entry) => entry.requiresShipping)
-    const pointCode = cleanText(point?.code, 64, needsShipping)
-    const pointAddress = cleanText(point?.address, 300, needsShipping)
+    const fulfillmentMode = needsShipping
+      ? requestedFulfillmentMode === "event_pickup" ? "event_pickup" : requestedFulfillmentMode === "inpost" ? "inpost" : null
+      : "none"
+    if (!fulfillmentMode) return json({ error: "Invalid fulfilment method" }, 400)
+
+    let pickupEvent: Awaited<ReturnType<typeof loadLiveEvent>> = null
+    if (fulfillmentMode === "event_pickup") {
+      if (!pickupEventSlug || !/^[a-z0-9][a-z0-9_-]{0,127}$/.test(pickupEventSlug)) {
+        return json({ error: "Invalid pickup event" }, 400)
+      }
+      try {
+        pickupEvent = await loadLiveEvent(pickupEventSlug)
+      } catch (error) {
+        console.error("[checkout-pickup-event]", error)
+        return json({ error: "Pickup event is temporarily unavailable" }, 503)
+      }
+      const startsAt = pickupEvent ? Date.parse(pickupEvent.starts_at) : Number.NaN
+      if (
+        !pickupEvent ||
+        pickupEvent.source !== "crowdrelay" ||
+        !UUID_PATTERN.test(pickupEvent.id) ||
+        !Number.isFinite(startsAt) ||
+        startsAt <= Date.now()
+      ) {
+        return json({ error: "Pickup event is no longer available" }, 409)
+      }
+    }
+
+    const requiresInpost = needsShipping && fulfillmentMode === "inpost"
+    const pointCode = cleanText(point?.code, 64, requiresInpost)
+    const pointAddress = cleanText(point?.address, 300, requiresInpost)
     if (pointCode == null || pointAddress == null) {
       return json({ error: "Select an InPost Paczkomat" }, 400)
     }
@@ -378,13 +410,13 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    const shippingPln = needsShipping && !rewardCode ? SHIPPING_PLN : 0
-    const shippingRewardPln = needsShipping && rewardCode ? SHIPPING_PLN : 0
-    if (needsShipping && !rewardCode) {
+    const shippingPln = requiresInpost && !rewardCode ? SHIPPING_PLN : 0
+    const shippingRewardPln = requiresInpost && rewardCode ? SHIPPING_PLN : 0
+    if (requiresInpost && !rewardCode) {
       lineItems.push(
         stripeLine("InPost Paczkomat delivery", SHIPPING_PLN, 1),
       )
-    } else if (needsShipping && rewardCode) {
+    } else if (requiresInpost && rewardCode) {
       lineItems.push(
         stripeLine("InPost Paczkomat delivery — VIRYA Area reward", 0, 1),
       )
@@ -398,8 +430,14 @@ export const POST: APIRoute = async ({ request }) => {
       inv_address: invoiceAddress,
       inv_company: invoiceCompany,
       inv_nip: invoiceNip,
+      fulfillment_mode: fulfillmentMode,
       paczkomat_code: pointCode,
       paczkomat_address: pointAddress,
+      pickup_event_id: pickupEvent?.id ?? "",
+      pickup_event_slug: pickupEvent?.slug ?? "",
+      pickup_event_title: pickupEvent?.title.slice(0, 200) ?? "",
+      pickup_event_starts_at: pickupEvent?.starts_at ?? "",
+      pickup_event_venue: pickupEvent?.venue?.slice(0, 200) ?? "",
       goods_original_gross_pln: originalGoodsGross.toFixed(2),
       goods_gross_pln: goodsGross.toFixed(2),
       vat_pln: vat.toFixed(2),
@@ -480,7 +518,7 @@ export const POST: APIRoute = async ({ request }) => {
       success_url: `${siteOrigin}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteOrigin}${cancelPath}`,
       customer_email: invoiceEmail,
-      ...(needsShipping ? { phone_number_collection: { enabled: true } } : {}),
+      ...(requiresInpost ? { phone_number_collection: { enabled: true } } : {}),
       ...(rewardCode || inventoryWrites ? { expires_at: checkoutExpiresAt } : {}),
       metadata,
     }

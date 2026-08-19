@@ -8,18 +8,29 @@ const source = await readFile(
   "utf8",
 )
 const startMarker = '      if (session.metadata?.virya_email_done === "1" && !emailDone) {'
-const endMarker = "\n      // Inventory is appended"
+const shipmentMarker = '      if (session.metadata?.virya_shipment_done === "1" && !shipmentDone) {'
 
-test("merch inventory integration does not modify the proven mail and shipment block", () => {
+test("merch changes do not modify the proven customer email checkpoint", () => {
   const start = source.indexOf(startMarker)
-  const end = source.indexOf(endMarker, start)
+  const end = source.indexOf(shipmentMarker, start)
   assert.ok(start >= 0 && end > start)
   const protectedBlock = source.slice(start, end)
   const digest = createHash("sha256").update(protectedBlock).digest("hex")
   assert.equal(
     digest,
-    "bd3e26e81f6b400d163ca15be113f572929d20af8d212871b4621a574705fb1c",
+    "ff9ea8bd2513b56ea48fbd5bbc7ca39ce2ce8d605012005d2060f0871650939f",
   )
+})
+
+test("event pickup may bypass InPost only through the explicit fulfillment branch", () => {
+  const start = source.indexOf(shipmentMarker)
+  const end = source.indexOf("\n      // Inventory is appended", start)
+  assert.ok(start >= 0 && end > start)
+  const shippingBlock = source.slice(start, end)
+  assert.match(shippingBlock, /fulfillment_mode === "event_pickup"/)
+  assert.match(shippingBlock, /if \(eventPickup\) \{[\s\S]*checkpointFulfillmentStep/)
+  assert.match(shippingBlock, /else \{[\s\S]*createInpostShipment/)
+  assert.match(shippingBlock, /virya_shipment_done/)
 })
 
 test("inventory reconciliation is appended after mail and shipping checkpoints", () => {
