@@ -25,9 +25,9 @@ export default defineConfig({
   // prefetched links; ClientRouter still works on routes that render it.
   prefetch: false,
   build: {
-    // The shared V2 stylesheet is small enough to compress well with HTML and
-    // inlining removes a render-blocking hashed asset request entirely.
-    inlineStylesheets: "always",
+    // Keep the shared stylesheet cacheable instead of duplicating it inside
+    // every rendered document. Only genuinely small styles stay inline.
+    inlineStylesheets: "auto",
   },
   integrations: [
     preact(),
