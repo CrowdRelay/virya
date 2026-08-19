@@ -16,6 +16,7 @@ const mainText = read("src/components/MainText.astro")
 const merch = read("src/components/MerchTeaser.astro")
 const endorsements = read("src/components/Endorsements.astro")
 const liveCard = read("src/components/preact/LiveEventCard.tsx")
+const llms = read("public/llms.txt")
 
 for (const [label, source] of [["en", home], ["pl", homePl]]) {
   expect(
@@ -78,6 +79,13 @@ expect(
     liveCard.includes("aria-label={`${labels.tickets}: ${event.title}") &&
     liveCard.includes("aria-label={`${labels.calendar}: ${event.title}"),
   "Repeated event actions must have event-specific accessible names so identical labels never target different destinations.",
+)
+expect(
+  /^#\s+VIRYA\s*$/m.test(llms) &&
+    /^>\s+\S+/m.test(llms) &&
+    /^##\s+\S+/m.test(llms) &&
+    /^\s*-\s+\[[^\]]+\]\(https:\/\/[^)]+\)(?::\s+.+)?$/m.test(llms),
+  "llms.txt must follow the llms.txt Markdown shape with an H1, summary, H2 file list, and at least one descriptive Markdown link.",
 )
 
 if (failures.length) {
