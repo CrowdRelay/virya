@@ -73,6 +73,13 @@ test("healthy live-event snapshots survive short upstream outages", () => {
   assert.match(source, /staleHealthy\.staleUntil/)
 })
 
+test("an event without a first-party ticket sale is a quiet negative cache result", () => {
+  const source = read("src/server/liveEvents.ts")
+  assert.match(source, /class UpstreamHttpError extends Error/)
+  assert.match(source, /error instanceof UpstreamHttpError && error\.status === 404/)
+  assert.match(source, /TICKET_SALE_NEGATIVE_CACHE_TTL_MS/)
+})
+
 test("secondary public and staff reads share bounded lifecycle semantics", () => {
   const leaderboard = read("src/components/SynesthesiaLeaderboard.astro")
   assert.match(leaderboard, /AbortSignal\.timeout\(8_000\)/)
@@ -86,4 +93,3 @@ test("secondary public and staff reads share bounded lifecycle semantics", () =>
   assert.match(timeline, /const parseTimeline/)
   assert.doesNotMatch(timeline, /await fetch\(/)
 })
-
