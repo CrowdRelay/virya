@@ -69,13 +69,20 @@ const safeBaseUrl = () => {
 const readJson = async (response: Response): Promise<unknown> =>
   readLimitedJson<unknown>(response, MAX_RESPONSE_BYTES)
 
+class UpstreamHttpError extends Error {
+  constructor(readonly status: number) {
+    super(`Upstream returned ${status}`)
+    this.name = "UpstreamHttpError"
+  }
+}
+
 const fetchJson = async (url: URL): Promise<unknown> => {
   const response = await fetch(url, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     cache: "no-store",
   })
-  if (!response.ok) throw new Error(`Upstream returned ${response.status}`)
+  if (!response.ok) throw new UpstreamHttpError(response.status)
   return readJson(response)
 }
 
@@ -559,6 +566,9 @@ const fetchLiveTicketSale = async (
     const value = await fetchJson(url)
     return isTicketSaleOffer(value) ? value : null
   } catch (error) {
+    // CrowdRelay deliberately returns 404 when an event has no first-party sale.
+    // Cache that as a normal absence without polluting production build logs.
+    if (error instanceof UpstreamHttpError && error.status === 404) return null
     console.warn(
       "[live-ticket-sale]",
       slug,
