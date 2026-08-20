@@ -551,8 +551,7 @@ export const consumeAreaAuthRateLimit = async (
 
 export const getAreaClientNetwork = (request: Request) => {
   const netlifyIp = request.headers.get("x-nf-client-connection-ip")
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",", 1)[0]
-  const candidate = (netlifyIp || forwarded || "unknown").trim()
+  const candidate = (netlifyIp || "unknown").trim()
   // This value is only fed into a keyed HMAC and is never logged or persisted.
   return candidate.slice(0, 128)
 }

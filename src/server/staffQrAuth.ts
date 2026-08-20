@@ -140,8 +140,7 @@ export const hasStaffQrSession = (cookies: AreaCookieJar) => {
 
 export const getStaffClientNetwork = (request: Request) => {
   const netlifyIp = request.headers.get("x-nf-client-connection-ip")
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",", 1)[0]
-  return (netlifyIp || forwarded || "unknown").trim().slice(0, 128)
+  return (netlifyIp || "unknown").trim().slice(0, 128)
 }
 
 const rateKey = (identity: string, secret: string) =>

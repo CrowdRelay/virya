@@ -20,8 +20,7 @@ const rateKey = (namespace: string, network: string, secret: string) =>
 
 export const publicRequestNetwork = (request: Request) => {
   const netlifyIp = request.headers.get("x-nf-client-connection-ip")
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",", 1)[0]
-  const candidate = (netlifyIp || forwarded || "unknown").trim()
+  const candidate = (netlifyIp || "unknown").trim()
   // The raw address exists only as HMAC input and is never persisted/logged.
   return candidate.slice(0, 128)
 }

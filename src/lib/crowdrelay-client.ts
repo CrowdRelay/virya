@@ -1,4 +1,4 @@
-// @generated-contract openapi-sha256: c0012721a90d2db7edceac713676620ea2165497454f9f727a257420fcc6410a
+// @generated-contract openapi-sha256: 556e3f0988de51a1d4f58b7d91f406d5b449ca0d730a01ebd5cce785c137de48
 export interface EventCity {
   id: string
   slug: string

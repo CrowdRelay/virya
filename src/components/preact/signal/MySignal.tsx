@@ -53,6 +53,8 @@ export default function MySignal({ lang }: Props) {
   const [copied, setCopied] = useState(false)
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [recoveryEmail, setRecoveryEmail] = useState("")
+  const [recoveryState, setRecoveryState] = useState<"idle" | "sending" | "sent" | "error">("idle")
 
   useEffect(() => {
     let cancelled = false
@@ -155,6 +157,22 @@ export default function MySignal({ lang }: Props) {
     )}`
   }, [state])
 
+  async function requestSessionRecovery(event: SubmitEvent) {
+    event.preventDefault()
+    const email = recoveryEmail.trim()
+    if (!email || recoveryState === "sending") return
+    setRecoveryState("sending")
+    try {
+      await crowdrelay.requestFanAccess(email, locale)
+      // The response is intentionally neutral to prevent account enumeration.
+      // Keep the Synesthesia handoff in storage; the confirmation/recovery link
+      // returns here and consumes it once the fan session exists.
+      setRecoveryState("sent")
+    } catch {
+      setRecoveryState("error")
+    }
+  }
+
   async function copyReferral() {
     if (!referralUrl) return
     try {
@@ -206,44 +224,69 @@ export default function MySignal({ lang }: Props) {
       : pagePath(lang, "/signal/#join-signal")
     return (
       <div class="virya-panel relative overflow-hidden border-amber-400/30 bg-amber-400/[.035] p-6 sm:p-8">
-        <div
-          class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl"
-          aria-hidden="true"
-        ></div>
-        <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
-          {copy.eyebrow}
-        </p>
+        <div class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
+        <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.eyebrow}</p>
         <h2 class="mt-3 max-w-2xl text-2xl font-black uppercase leading-tight text-white sm:text-3xl">
           {state.kind === "unauthorized"
-            ? copy.unauthorizedTitle
+            ? pendingHandoff
+              ? lang === "pl" ? "Dokończ połączenie z Signal" : "Finish connecting to Signal"
+              : copy.unauthorizedTitle
             : copy.heading}
         </h2>
         <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-300 text-justify mobile-justify">
           {state.kind === "unauthorized"
-            ? copy.unauthorizedBody
+            ? pendingHandoff
+              ? lang === "pl"
+                ? "Wynik Synesthesia czeka bezpiecznie. Jeśli masz już Signal, wpisz e-mail — wyślemy link do odzyskania sesji. Po jego otwarciu wrócisz tutaj i wynik połączy się automatycznie."
+                : "Your Synesthesia result is waiting safely. If you already have Signal, enter your email and we will send a session recovery link. After opening it, return here and the result will connect automatically."
+              : copy.unauthorizedBody
             : SIGNAL_COPY[lang].form.loadError}
         </p>
+
+        {state.kind === "unauthorized" && pendingHandoff && (
+          <form onSubmit={requestSessionRecovery} class="mt-6 max-w-md rounded-xl border border-cyan-300/15 bg-black/20 p-4">
+            <label class="block text-xs font-black uppercase tracking-wider text-zinc-300">
+              {lang === "pl" ? "E-mail w Virya Signal" : "Virya Signal email"}
+              <input
+                type="email"
+                autocomplete="email"
+                value={recoveryEmail}
+                onInput={event => {
+                  setRecoveryEmail((event.currentTarget as HTMLInputElement).value)
+                  if (recoveryState === "error") setRecoveryState("idle")
+                }}
+                class="mt-2 min-h-12 w-full border border-white/15 bg-black/40 px-4 text-sm text-white outline-none focus:border-cyan-300"
+                required
+              />
+            </label>
+            <button type="submit" disabled={recoveryState === "sending" || recoveryState === "sent"} class="virya-button virya-button--primary mt-3 min-h-[46px] px-5 disabled:opacity-50">
+              {recoveryState === "sending"
+                ? lang === "pl" ? "WYSYŁAM…" : "SENDING…"
+                : recoveryState === "sent"
+                  ? lang === "pl" ? "LINK WYSŁANY" : "LINK SENT"
+                  : lang === "pl" ? "WYŚLIJ LINK DO SIGNAL" : "SEND SIGNAL LINK"}
+            </button>
+            <p class={`mt-3 text-xs leading-relaxed ${recoveryState === "error" ? "text-rose-300" : "text-zinc-500"}`} role="status" aria-live="polite">
+              {recoveryState === "sent"
+                ? lang === "pl"
+                  ? "Jeśli adres jest zapisany w Signal, link jest w drodze. Wynik Synesthesia pozostaje zachowany podczas logowania."
+                  : "If the address belongs to Signal, the link is on its way. Your Synesthesia result remains saved during sign-in."
+                : recoveryState === "error"
+                  ? lang === "pl" ? "Nie udało się wysłać linku. Spróbuj ponownie za chwilę." : "We could not send the link. Try again shortly."
+                  : lang === "pl" ? "Nie masz jeszcze Signal? Możesz utworzyć profil poniżej." : "New to Signal? You can create a profile below."}
+            </p>
+          </form>
+        )}
+
         <div class="mt-6 flex flex-wrap gap-3">
           {state.kind === "error" && (
-            <button
-              type="button"
-              onClick={() => {
-                setState({ kind: "loading" })
-                setReloadKey(value => value + 1)
-              }}
-              class="virya-button virya-button--primary min-h-[46px] px-5"
-            >
+            <button type="button" onClick={() => { setState({ kind: "loading" }); setReloadKey(value => value + 1) }} class="virya-button virya-button--primary min-h-[46px] px-5">
               {lang === "pl" ? "SPRÓBUJ PONOWNIE" : "TRY AGAIN"}
             </button>
           )}
-          <a
-            href={joinHref}
-            class="virya-button virya-button--secondary min-h-[46px] px-5"
-          >
+          <a href={joinHref} class="virya-button virya-button--secondary min-h-[46px] px-5">
             {pendingHandoff
-              ? lang === "pl"
-                ? "POŁĄCZ SESJĘ I SYNESTEZJĘ"
-                : "CONNECT SESSION & SYNESTHESIA"
+              ? lang === "pl" ? "NIE MAM SIGNAL — UTWÓRZ PROFIL" : "NEW TO SIGNAL — CREATE PROFILE"
               : copy.join}
           </a>
         </div>
