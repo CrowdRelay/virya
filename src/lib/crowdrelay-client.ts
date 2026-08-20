@@ -974,7 +974,7 @@ export class CrowdRelayClient {
     let lastError: CrowdRelayError | null = null
 
     for (let attempt = 0; attempt < retryDelays.length; attempt += 1) {
-      const delay = retryDelays[attempt] ?? 0
+      const delay = jitteredRetryDelayMs(retryDelays[attempt] ?? 0)
       if (delay > 0) await sleep(delay)
 
       try {
@@ -1037,6 +1037,23 @@ const RETRYABLE_READ_STATUSES = new Set([0, 408, 425, 429, 500, 502, 503, 504])
 
 const sleep = (delayMs: number) =>
   new Promise<void>(resolve => globalThis.setTimeout(resolve, delayMs))
+
+const RETRY_JITTER_RATIO = 0.25
+
+/**
+ * Spreads the fixed read backoff so a fleet of renderers recovering from the
+ * same 429/5xx does not retry in lockstep and re-create the burst that caused
+ * it. The spread is deliberately bounded: worst-case added latency stays under
+ * 200 ms across the whole retry ladder, so the per-request budget is unchanged.
+ */
+export function jitteredRetryDelayMs(
+  delayMs: number,
+  random: () => number = Math.random,
+): number {
+  if (!(delayMs > 0)) return 0
+  const spread = delayMs * RETRY_JITTER_RATIO
+  return Math.round(delayMs - spread + random() * spread * 2)
+}
 
 function normalizeRequestError(error: unknown): CrowdRelayError {
   if (error instanceof CrowdRelayError) return error
