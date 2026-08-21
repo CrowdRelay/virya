@@ -199,6 +199,11 @@ const moreActive = more.some(item => item.key === activePage)
     border-bottom-color: rgb(39 50 47 / .86);
     background: rgb(7 9 8 / .98);
   }
+
+  :global([data-area-experience] nav[aria-label="VIRYA Area modes"]) {
+    top: 81px;
+    transition: top 200ms ease;
+  }
 </style>
 
 <script>
@@ -214,14 +219,36 @@ const moreActive = more.some(item => item.key === activePage)
 
     let lastY = window.scrollY
     let ticking = false
+    let areaSyncFrame = 0
+    const syncAreaNav = () => {
+      const areaNav = document.querySelector<HTMLElement>('[data-area-experience] nav[aria-label="VIRYA Area modes"]')
+      if (!areaNav) return
+      const bottom = Math.max(0, Math.round(nav.getBoundingClientRect().bottom))
+      areaNav.style.top = `${bottom}px`
+    }
+    const animateAreaNavSync = () => {
+      cancelAnimationFrame(areaSyncFrame)
+      const started = performance.now()
+      const tick = (now: number) => {
+        syncAreaNav()
+        if (now - started < 240) areaSyncFrame = requestAnimationFrame(tick)
+      }
+      areaSyncFrame = requestAnimationFrame(tick)
+    }
+    syncAreaNav()
+    window.addEventListener("resize", syncAreaNav, { signal })
+
     const updateScrollState = () => {
       const y = window.scrollY
       nav.classList.toggle("is-scrolled", y > 18)
       if (document.body.style.position !== "fixed") {
-        if (y < 18 || y < lastY) nav.style.transform = "translateY(0)"
-        else if (y > lastY + 4) {
+        if (y < 18 || y < lastY) {
+          nav.style.transform = "translateY(0)"
+          animateAreaNavSync()
+        } else if (y > lastY + 4) {
           nav.style.transform = "translateY(-100%)"
           closeMenu()
+          animateAreaNavSync()
         }
       }
       lastY = y
@@ -254,7 +281,10 @@ const moreActive = more.some(item => item.key === activePage)
       btn.setAttribute("aria-expanded", String(opening))
       document.getElementById("icon-hamburger")?.classList.toggle("hidden", opening)
       document.getElementById("icon-close")?.classList.toggle("hidden", !opening)
-      if (opening) nav.style.transform = "translateY(0)"
+      if (opening) {
+        nav.style.transform = "translateY(0)"
+        animateAreaNavSync()
+      }
     }, { signal })
 
     nav.querySelectorAll<HTMLElement>(".mobile-nav-link").forEach(link => {
