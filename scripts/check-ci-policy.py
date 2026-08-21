@@ -45,23 +45,22 @@ if netlify.exists():
     if "deploy-artifact/functions" in deploy_workflows and "include-hidden-files: true" not in deploy_workflows:
         failures.append("Netlify SSR promotion artifact must include hidden function build files")
 
-# Per-change dependency security belongs to Build and promote so production
-# deployment cannot pass while advisory scanning is red. security.yml remains
-# an independent scheduled/manual freshness scan.
+# Per-change dependency security belongs to the build job so production
+# deployment cannot pass while advisory scanning is red. Keeping it in that
+# job also prevents a second, isolated npm ci. security.yml remains an
+# independent scheduled/manual freshness scan.
 build_workflow = workflow_dir / "build.yml"
 if not build_workflow.exists():
     failures.append(".github/workflows/build.yml: canonical build workflow is required")
 else:
     build_text = build_workflow.read_text()
-    for contract in (
-        "dependency-security:",
-        "npm run security:audit",
-        "needs: [build, dependency-security]",
-    ):
+    for contract in ("npm run security:audit", "needs: build"):
         if contract not in build_text:
             failures.append(f".github/workflows/build.yml: dependency-security contract missing: {contract}")
     if build_text.count("npm run security:audit") != 1:
         failures.append(".github/workflows/build.yml: dependency audit must have exactly one per-change owner")
+    if build_text.count("npm ci --prefer-offline --no-audit --fund=false") != 1:
+        failures.append(".github/workflows/build.yml: per-change workflow must install dependencies exactly once")
 
 security_workflow = workflow_dir / "security.yml"
 if not security_workflow.exists():
