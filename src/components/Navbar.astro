@@ -52,10 +52,10 @@ const moreActive = more.some(item => item.key === activePage)
         width="46"
         height="46"
         sizes="46px"
-        class:list=[
+        class:list={[
           "logo-ring h-[46px] w-[46px] rounded-full ring-1 ring-offset-2 ring-offset-black/80 transition-[filter,box-shadow,transform] duration-200 group-hover:brightness-110",
           activePage === "home" ? "ring-amber-300" : "ring-amber-400/45",
-        ]
+        ]}
       />
     </a>
 
@@ -67,12 +67,12 @@ const moreActive = more.some(item => item.key === activePage)
               href={item.href}
               data-section={item.section}
               aria-current={activePage === item.key ? "page" : undefined}
-              class:list=[
+              class:list={[
                 "nav-link inline-flex min-h-12 items-center px-3 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors xl:px-4",
                 activePage === item.key
                   ? "text-amber-300"
                   : "text-zinc-300 hover:text-amber-300",
-              ]
+              ]}
             >
               {item.label}
             </a>
@@ -80,10 +80,10 @@ const moreActive = more.some(item => item.key === activePage)
 
           <details class="group/more relative">
             <summary
-              class:list=[
+              class:list={[
                 "inline-flex min-h-12 cursor-pointer list-none items-center gap-2 px-3 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors marker:content-none xl:px-4",
                 moreActive ? "text-amber-300" : "text-zinc-300 hover:text-amber-300",
-              ]
+              ]}
             >
               {lang === "pl" ? "Więcej" : "More"}
               <span aria-hidden="true" class="text-[10px] transition-transform group-open/more:rotate-180">▾</span>
@@ -94,12 +94,12 @@ const moreActive = more.some(item => item.key === activePage)
                   href={item.href}
                   data-section={item.section}
                   aria-current={activePage === item.key ? "page" : undefined}
-                  class:list=[
+                  class:list={[
                     "nav-link flex min-h-12 items-center border-b border-white/[.045] px-3 text-[11px] font-bold uppercase tracking-[.13em] transition-colors last:border-0",
                     activePage === item.key
                       ? "text-amber-300"
                       : "text-zinc-300 hover:bg-white/[.035] hover:text-amber-300",
-                  ]
+                  ]}
                 >
                   {item.label}
                 </a>
@@ -114,20 +114,20 @@ const moreActive = more.some(item => item.key === activePage)
       <div class="flex items-center text-[10px] font-extrabold uppercase tracking-[.14em]" aria-label={t(lang, "nav.language")}>
         <button
           data-lang-switch="en"
-          class:list=[
+          class:list={[
             "inline-flex min-h-12 min-w-12 items-center justify-center transition-colors",
             lang === "en" ? "text-amber-300" : "text-zinc-400 hover:text-zinc-100",
-          ]
+          ]}
           aria-label="EN — Switch to English"
           aria-current={lang === "en" ? "true" : undefined}
         >EN</button>
         <span class="text-zinc-700" aria-hidden="true">/</span>
         <button
           data-lang-switch="pl"
-          class:list=[
+          class:list={[
             "inline-flex min-h-12 min-w-12 items-center justify-center transition-colors",
             lang === "pl" ? "text-amber-300" : "text-zinc-400 hover:text-zinc-100",
-          ]
+          ]}
           aria-label="PL — Przełącz na polski"
           aria-current={lang === "pl" ? "true" : undefined}
         >PL</button>
@@ -164,10 +164,10 @@ const moreActive = more.some(item => item.key === activePage)
             href={item.href}
             data-section={item.section}
             aria-current={activePage === item.key ? "page" : undefined}
-            class:list=[
+            class:list={[
               "mobile-nav-link nav-link flex min-h-[56px] items-center border-b border-white/[.055] py-3 text-lg font-black uppercase tracking-[-.015em] transition-colors",
               activePage === item.key ? "text-amber-300" : "text-zinc-100 hover:text-amber-300",
-            ]
+            ]}
           >
             {item.label}
           </a>
@@ -180,10 +180,10 @@ const moreActive = more.some(item => item.key === activePage)
             href={item.href}
             data-section={item.section}
             aria-current={activePage === item.key ? "page" : undefined}
-            class:list=[
+            class:list={[
               "mobile-nav-link nav-link flex min-h-12 items-center border-b border-white/[.04] text-[11px] font-bold uppercase tracking-[.12em] transition-colors",
               activePage === item.key ? "text-amber-300" : "text-zinc-400 hover:text-amber-300",
-            ]
+            ]}
           >
             {item.label}
           </a>
@@ -201,8 +201,30 @@ const moreActive = more.some(item => item.key === activePage)
   }
 
   :global([data-area-experience] nav[aria-label="VIRYA Area modes"]) {
-    top: 81px;
-    transition: top 200ms ease;
+    top: 0;
+    border-color: transparent;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  :global([data-area-experience] nav[aria-label="VIRYA Area modes"] > div) {
+    position: relative;
+    isolation: isolate;
+    transform: translateY(81px);
+    transition: transform 200ms ease;
+  }
+
+  :global([data-area-experience] nav[aria-label="VIRYA Area modes"] > div::before) {
+    content: "";
+    position: absolute;
+    inset: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    border-block: 1px solid rgb(39 39 42 / .8);
+    background: rgb(7 9 8 / .95);
+    backdrop-filter: blur(12px);
+    z-index: -1;
   }
 </style>
 
@@ -217,9 +239,9 @@ const moreActive = more.some(item => item.key === activePage)
 
     document.addEventListener("astro:before-preparation", () => controller.abort(), { once: true, signal })
 
-    const areaNav = document.querySelector<HTMLElement>('[data-area-experience] nav[aria-label="VIRYA Area modes"]')
-    const setAreaNavTop = (visible: boolean) => {
-      areaNav?.style.setProperty("top", visible ? "81px" : "0px")
+    const areaNav = document.querySelector<HTMLElement>('[data-area-experience] nav[aria-label="VIRYA Area modes"] > div')
+    const setAreaNavVisible = (visible: boolean) => {
+      areaNav?.style.setProperty("transform", visible ? "translateY(81px)" : "translateY(0)")
     }
 
     let lastY = window.scrollY
@@ -231,11 +253,11 @@ const moreActive = more.some(item => item.key === activePage)
       if (document.body.style.position !== "fixed") {
         if (navVisible) {
           nav.style.transform = "translateY(0)"
-          setAreaNavTop(true)
+          setAreaNavVisible(true)
         } else if (y > lastY + 4) {
           nav.style.transform = "translateY(-100%)"
           closeMenu()
-          setAreaNavTop(false)
+          setAreaNavVisible(false)
         }
       }
       lastY = y
@@ -246,7 +268,7 @@ const moreActive = more.some(item => item.key === activePage)
       ticking = true
       requestAnimationFrame(updateScrollState)
     }
-    setAreaNavTop(window.scrollY < 18)
+    setAreaNavVisible(window.scrollY < 18)
     updateScrollState()
     window.addEventListener("scroll", onScroll, { passive: true, signal })
 
@@ -271,7 +293,7 @@ const moreActive = more.some(item => item.key === activePage)
       document.getElementById("icon-close")?.classList.toggle("hidden", !opening)
       if (opening) {
         nav.style.transform = "translateY(0)"
-        setAreaNavTop(true)
+        setAreaNavVisible(true)
       }
     }, { signal })
 
