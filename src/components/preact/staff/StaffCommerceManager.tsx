@@ -4,7 +4,7 @@ import BackendLoader from "./BackendLoader"
 import type { BeaconNetworkOverview } from "./StaffLatarnikNetworkManager"
 import type { BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
 import { staffApi, type StaffApiError } from "./staffApi"
-import { staffSecondaryButton } from "./staffButtons"
+import { staffAccentButton, staffAccentChip, staffSecondaryButton } from "./staffButtons"
 import StaffLogoutButton from "./StaffLogoutButton"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
@@ -540,7 +540,7 @@ export default function StaffCommerceManager() {
               onInput={event => setPassword(event.currentTarget.value)}
               class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" />
           </label>
-          <button disabled={busy || !password} class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50">
+          <button disabled={busy || !password} class={staffAccentButton}>
             {busy ? "LOGUJĘ…" : "ZALOGUJ"}
           </button>
         </form>
@@ -640,7 +640,7 @@ export default function StaffCommerceManager() {
                 type="button"
                 disabled={busy || !activation?.can_mark_ready}
                 onClick={() => void markInventoryReady()}
-                class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-40"
+                class={staffAccentButton}
               >
                 {activation?.ready ? "NAPRAW AKTYWACJĘ" : "MAGAZYN GOTOWY — READY"}
               </button>
@@ -726,7 +726,7 @@ export default function StaffCommerceManager() {
             <Field label="Powód">
               <input value={stockReason} onInput={event => setStockReason(event.currentTarget.value)} maxLength={500} placeholder="np. dostawa 50 płyt" class="input" />
             </Field>
-            <button disabled={busy || !stockSku || stockDelta === 0} class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50">
+            <button disabled={busy || !stockSku || stockDelta === 0} class={staffAccentButton}>
               ZAPISZ RUCH
             </button>
           </div>
@@ -793,7 +793,7 @@ export default function StaffCommerceManager() {
             <div class="sm:col-span-2 rounded-xl border border-white/10 bg-black/30 p-3 text-xs leading-5 text-zinc-400">
               System natychmiast rezerwuje {Math.max(0, campaign.winnerCount * campaign.unitsPerWinner)} szt. Nagrody nie będą w tym czasie dostępne do sprzedaży.
             </div>
-            <button disabled={busy || !campaign.name || !campaign.slug || !campaign.prizeSku} class="sm:col-span-2 rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50">
+            <button disabled={busy || !campaign.name || !campaign.slug || !campaign.prizeSku} class={`${staffAccentButton} sm:col-span-2`}>
               UTWÓRZ I ZAREZERWUJ NAGRODY
             </button>
           </div>
@@ -909,7 +909,7 @@ export default function StaffCommerceManager() {
               </div>
               {item.status === "pending" ? (
                 <div class="mt-4 flex gap-2">
-                  <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "prepared", actor_id: "virya-staff-web", note: "prepared in staff panel" }, "Nagroda oznaczona jako przygotowana.")} class="rounded-lg bg-amber-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">PRZYGOTOWANA</button>
+                  <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "prepared", actor_id: "virya-staff-web", note: "prepared in staff panel" }, "Nagroda oznaczona jako przygotowana.")} class={staffAccentChip}>PRZYGOTOWANA</button>
                   <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "cancelled", actor_id: "virya-staff-web", note: "cancelled in staff panel" }, "Nagroda anulowana i wróciła do dostępnego stocku.")} class="rounded-lg border border-red-400/30 px-3 py-2 text-xs font-black text-red-300 disabled:opacity-50">ANULUJ</button>
                 </div>
               ) : item.status === "prepared" ? (

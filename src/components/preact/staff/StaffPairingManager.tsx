@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { generateQr, type GeneratedQr } from "../../../lib/qrCode"
 import { staffApi, type StaffApiError } from "./staffApi"
-import { staffLogoutButton } from "./staffButtons"
+import { staffAccentButton, staffLogoutButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type ApiError = StaffApiError
@@ -253,7 +253,7 @@ export default function StaffPairingManager() {
           </label>
           <button
             disabled={busy || !password}
-            class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50"
+            class={staffAccentButton}
           >
             {busy ? "LOGUJĘ…" : "ZALOGUJ"}
           </button>
@@ -326,7 +326,7 @@ export default function StaffPairingManager() {
             </label>
             <button
               disabled={busy || displayName.trim().length < 2}
-              class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50"
+              class={staffAccentButton}
             >
               {busy ? "GENERUJĘ…" : "WYGENERUJ QR STAFF"}
             </button>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
-import { staffSecondaryButton } from "./staffButtons"
+import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
 
 type FeatureFlag = {
   key: string
@@ -338,7 +338,7 @@ export default function EcosystemControl() {
         </div>
         <div class="flex gap-2">
           <button type="button" onClick={() => void load()} disabled={!!busy || loading} class={staffSecondaryButton}>Odśwież</button>
-          <button type="button" onClick={() => void reconcile()} disabled={!!busy} class="rounded-xl bg-amber-300 px-4 py-2 text-sm font-black text-zinc-950 disabled:opacity-50">{busy === "reconcile" ? "Sprawdzam…" : "Uruchom reconciliation"}</button>
+          <button type="button" onClick={() => void reconcile()} disabled={!!busy} class={staffAccentButton}>{busy === "reconcile" ? "Sprawdzam…" : "Uruchom reconciliation"}</button>
         </div>
       </div>
 

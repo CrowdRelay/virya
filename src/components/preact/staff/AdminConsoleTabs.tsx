@@ -9,7 +9,7 @@ import {
   api,
   formatDate,
 } from "./adminConsoleShared"
-import { staffSecondaryButton } from "./staffButtons"
+import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
 
 export function OverviewTab({
   overview,
@@ -49,7 +49,7 @@ export function OverviewTab({
             </div>
             <div class="flex flex-wrap gap-3">
               <span class="flex min-h-12 items-center border border-zinc-700 px-4 text-sm font-black text-white">{daysToNext === 0 ? "DZISIAJ" : `${daysToNext} dni`}</span>
-              <a href="/staff/qr/" class="flex min-h-12 items-center bg-amber-400 px-5 text-[11px] font-black uppercase tracking-[.12em] text-black">Otwórz Live →</a>
+              <a href="/staff/qr/" class={staffAccentButton}>Otwórz Live →</a>
             </div>
           </div>
         </section>
@@ -193,7 +193,7 @@ export function AdmissionTab({ events }: { events: EventItem[] }) {
             />
             <button
               disabled={busy || !issue.eventSlug || !issue.fanEmail}
-              class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50"
+              class={staffAccentButton}
             >
               Wydaj wejściówkę
             </button>
