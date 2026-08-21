@@ -32,7 +32,7 @@ const copy = lang === "pl" ? {
         {copy.items.map(([key, label, description, href]) => (
           <a href={href} aria-current={active === key ? "page" : undefined} class:list={["group border-l p-4 transition-colors", active === key ? "border-amber-300 bg-amber-400/[.05]" : "border-zinc-800 bg-zinc-900/20 hover:border-zinc-600 hover:bg-zinc-900/50"]}>
             <span class:list={["text-sm font-black", active === key ? "text-amber-200" : "text-white"]}>{label}</span>
-            <span class="mt-1 block text-xs leading-5 text-zinc-500 group-hover:text-zinc-400">{description}</span>
+            <span class="mt-1 block text-xs leading-5 text-zinc-400 group-hover:text-zinc-300">{description}</span>
           </a>
         ))}
       </nav>
