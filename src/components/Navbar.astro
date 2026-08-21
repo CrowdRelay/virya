@@ -1,6 +1,5 @@
 ---
 import { t, lp, type Lang } from "../i18n/t"
-import BlurImage from "./BlurImage.astro"
 
 interface Props {
   lang?: Lang
@@ -44,16 +43,22 @@ const moreActive = more.some(item => item.key === activePage)
       href={lp(lang, "/")}
       aria-label={t(lang, "nav.home")}
     >
-      <BlurImage
+      {/* Deliberately not BlurImage: the placeholder is a 24px bitmap painted
+          behind the image, and this logo is transparent, so the blur shows
+          through it. The inline onload that clears it also never fires when a
+          view transition swaps in an already-complete node, which left the mark
+          permanently soft. At 3.3 KB and eager, it has nothing to blur up from. */}
+      <img
         src="/virya.webp"
         title="Virya"
         loading="eager"
+        fetchpriority="high"
+        decoding="sync"
         alt="Virya"
         width="46"
         height="46"
-        sizes="46px"
         class:list={[
-          "logo-ring h-[46px] w-[46px] rounded-full ring-1 ring-offset-2 ring-offset-black/80 transition-[filter,box-shadow,transform] duration-200 group-hover:brightness-110",
+          "logo-ring h-[46px] w-[46px] rounded-full ring-1 ring-offset-2 ring-offset-black/80 transition-[filter,box-shadow] duration-200 group-hover:brightness-110",
           activePage === "home" ? "ring-amber-300" : "ring-amber-400/45",
         ]}
       />
