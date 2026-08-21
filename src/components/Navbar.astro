@@ -201,8 +201,10 @@ const moreActive = more.some(item => item.key === activePage)
   }
 
   :global([data-area-experience] nav[aria-label="VIRYA Area modes"]) {
-    top: 81px;
-    transition: top 200ms ease;
+    top: 0;
+    transform: translateY(81px);
+    transition: transform 200ms ease;
+    will-change: transform;
   }
 </style>
 
@@ -217,38 +219,25 @@ const moreActive = more.some(item => item.key === activePage)
 
     document.addEventListener("astro:before-preparation", () => controller.abort(), { once: true, signal })
 
+    const areaNav = document.querySelector<HTMLElement>('[data-area-experience] nav[aria-label="VIRYA Area modes"]')
+    const setAreaNavVisible = (visible: boolean) => {
+      areaNav?.style.setProperty("transform", visible ? "translateY(81px)" : "translateY(0)")
+    }
+
     let lastY = window.scrollY
     let ticking = false
-    let areaSyncFrame = 0
-    const syncAreaNav = () => {
-      const areaNav = document.querySelector<HTMLElement>('[data-area-experience] nav[aria-label="VIRYA Area modes"]')
-      if (!areaNav) return
-      const bottom = Math.max(0, Math.round(nav.getBoundingClientRect().bottom))
-      areaNav.style.top = `${bottom}px`
-    }
-    const animateAreaNavSync = () => {
-      cancelAnimationFrame(areaSyncFrame)
-      const started = performance.now()
-      const tick = (now: number) => {
-        syncAreaNav()
-        if (now - started < 240) areaSyncFrame = requestAnimationFrame(tick)
-      }
-      areaSyncFrame = requestAnimationFrame(tick)
-    }
-    syncAreaNav()
-    window.addEventListener("resize", syncAreaNav, { signal })
-
     const updateScrollState = () => {
       const y = window.scrollY
+      const navVisible = y < 18 || y <= lastY
       nav.classList.toggle("is-scrolled", y > 18)
       if (document.body.style.position !== "fixed") {
-        if (y < 18 || y < lastY) {
+        if (navVisible) {
           nav.style.transform = "translateY(0)"
-          animateAreaNavSync()
+          setAreaNavVisible(true)
         } else if (y > lastY + 4) {
           nav.style.transform = "translateY(-100%)"
           closeMenu()
-          animateAreaNavSync()
+          setAreaNavVisible(false)
         }
       }
       lastY = y
@@ -259,6 +248,7 @@ const moreActive = more.some(item => item.key === activePage)
       ticking = true
       requestAnimationFrame(updateScrollState)
     }
+    setAreaNavVisible(window.scrollY < 18)
     updateScrollState()
     window.addEventListener("scroll", onScroll, { passive: true, signal })
 
@@ -283,7 +273,7 @@ const moreActive = more.some(item => item.key === activePage)
       document.getElementById("icon-close")?.classList.toggle("hidden", !opening)
       if (opening) {
         nav.style.transform = "translateY(0)"
-        animateAreaNavSync()
+        setAreaNavVisible(true)
       }
     }, { signal })
 
