@@ -140,6 +140,39 @@ const description = isPl
             </div>
           </section>
 
+          <section data-demand class="hidden border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
+            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">{isPl ? "Popyt" : "Demand"}</p>
+            <h2 class="mt-2 text-2xl font-black">{isPl ? "Ilu ludzi czeka" : "Who is waiting"}</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+              {isPl
+                ? "Liczby z pierwszej ręki — prosto z Sygnału Viryi, Bandsintown i YouTube. Nie z panelu reklamowego, tylko od ludzi, którzy sami poprosili o kontakt."
+                : "First-party numbers — straight from the Virya Signal, Bandsintown and YouTube. Not an ad dashboard: people who asked to hear from us."}
+            </p>
+
+            <div data-demand-home class="mt-6 hidden border border-amber-400/30 bg-amber-400/[0.05] p-5 sm:p-6">
+              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">
+                {isPl ? "Twoje miasto" : "Your city"}
+              </p>
+              <p class="mt-3 text-4xl font-black tabular-nums text-white"><span data-demand-home-count></span></p>
+              <p class="mt-2 text-sm leading-6 text-zinc-300"><span data-demand-home-label></span></p>
+            </div>
+
+            <dl data-demand-grid class="mt-6 grid gap-px border-y border-zinc-800 bg-zinc-800 sm:grid-cols-2 lg:grid-cols-4"></dl>
+
+            <div data-demand-cities class="mt-6 hidden">
+              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                {isPl ? "Gdzie jeszcze czekają" : "Where else they wait"}
+              </p>
+              <ul data-demand-city-list class="mt-3 divide-y divide-zinc-800/70 border-y border-zinc-800/70"></ul>
+            </div>
+
+            <p class="mt-4 text-[11px] leading-5 text-zinc-600">
+              {isPl
+                ? "Widzisz to, bo jesteś Latarnikiem. Te liczby nie są publiczne."
+                : "You see this because you are a Beacon. These numbers are not public."}
+            </p>
+          </section>
+
           <section id="aktualnosci" class="border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
             <div class="flex flex-wrap items-end justify-between gap-4">
               <div>
@@ -396,6 +429,110 @@ const description = isPl
       return response.json()
     }
 
+    const normalizeCity = value =>
+      String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "")
+
+    // Beacons are invited promoters and media on a noindex page, so unlike the
+    // public EPK this panel shows every number as it stands. A small count is
+    // useful here: it is the concrete "seven people in your city asked for this".
+    const renderDemand = async member => {
+      const panel = root.querySelector("[data-demand]")
+      if (!panel) return
+
+      let traction
+      try {
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), 6500)
+        try {
+          const response = await fetch("/api/traction", {
+            headers: { Accept: "application/json" },
+            signal: controller.signal,
+          })
+          if (!response.ok) return
+          traction = await response.json()
+        } finally { clearTimeout(timer) }
+      } catch { return }
+
+      const cities = Array.isArray(traction.topCities) ? traction.topCities : []
+      const home = member.city
+        ? cities.find(city => normalizeCity(city.name) === normalizeCity(member.city))
+        : null
+
+      const homeCard = root.querySelector("[data-demand-home]")
+      if (homeCard) {
+        const count = home ? home.fans : member.city ? 0 : null
+        if (count === null) homeCard.classList.add("hidden")
+        else {
+          homeCard.classList.remove("hidden")
+          text("[data-demand-home-count]", new Intl.NumberFormat(lang).format(count))
+          text(
+            "[data-demand-home-label]",
+            count === 0
+              ? (lang === "pl"
+                  ? `Nikt z ${member.city} nie jest jeszcze w Sygnale. Jesteś pierwszym punktem kontaktu w tym mieście.`
+                  : `Nobody from ${member.city} is in the Signal yet. You are the first point of contact there.`)
+              : (lang === "pl"
+                  ? `${count === 1 ? "Osoba prosi" : "Osób prosi"} o powiadomienie, kiedy Virya zagra w ${member.city}.`
+                  : `${count === 1 ? "person has" : "people have"} asked to be told when Virya plays ${member.city}.`),
+          )
+        }
+      }
+
+      const metrics = [
+        ["signalFans", lang === "pl" ? "Fani w Sygnale" : "Signal fans"],
+        ["activeCities", lang === "pl" ? "Miasta z popytem" : "Cities with demand"],
+        ["trackers", lang === "pl" ? "Obserwujący na Bandsintown" : "Bandsintown trackers"],
+        ["youtubeViews", lang === "pl" ? "Wyświetlenia na YouTube" : "Recent YouTube views"],
+      ]
+      const grid = root.querySelector("[data-demand-grid]")
+      if (grid) {
+        grid.replaceChildren()
+        for (const [key, label] of metrics) {
+          const value = traction[key]
+          if (typeof value !== "number") continue
+          const cell = document.createElement("div")
+          cell.className = "bg-zinc-950 p-5"
+          const term = document.createElement("dt")
+          term.className = "text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500"
+          term.textContent = label
+          const definition = document.createElement("dd")
+          definition.className = "mt-2 text-2xl font-black tabular-nums text-white"
+          definition.textContent = new Intl.NumberFormat(lang).format(value)
+          cell.append(term, definition)
+          grid.append(cell)
+        }
+      }
+
+      const others = cities.filter(city => city !== home && city.fans > 0)
+      const wrap = root.querySelector("[data-demand-cities]")
+      const list = root.querySelector("[data-demand-city-list]")
+      if (wrap && list) {
+        list.replaceChildren()
+        if (!others.length) wrap.classList.add("hidden")
+        else {
+          wrap.classList.remove("hidden")
+          for (const city of others) {
+            const row = document.createElement("li")
+            row.className = "flex items-center justify-between py-3"
+            const name = document.createElement("span")
+            name.className = "text-sm text-zinc-300"
+            name.textContent = `${city.name}${city.countryCode && city.countryCode !== "--" ? ` · ${city.countryCode}` : ""}`
+            const fans = document.createElement("span")
+            fans.className = "text-sm font-black tabular-nums text-zinc-100"
+            fans.textContent = new Intl.NumberFormat(lang).format(city.fans)
+            row.append(name, fans)
+            list.append(row)
+          }
+        }
+      }
+
+      panel.classList.remove("hidden")
+    }
+
     const renderMember = data => {
       text("[data-member-name]", data.displayName)
       text("[data-member-kind]", String(data.beaconKind || "").replaceAll("_", " "))
@@ -515,6 +652,7 @@ const description = isPl
       if (!response.ok) throw new Error(`beacon_me_${response.status}`)
       const data = await response.json()
       renderMember(data)
+      void renderDemand(data)
       const requestedEvent = /^[0-9a-fA-F-]{36}$/.test(deepLinkEventId)
         ? (Array.isArray(data.nearbyEvents) ? data.nearbyEvents.find(event => event.id === deepLinkEventId) : null)
         : null
