@@ -226,6 +226,14 @@ export const AREA_COPY = {
       cta: "Enter the Area",
       signal: "Pilot map online",
     },
+    mode: {
+      hunt: "Map",
+      collection: "Collection",
+      rewards: "Rewards",
+      collectionCta: "See your collection",
+      lockedHint:
+        "Locked lines open once you verify a find at a live zone.",
+    },
   },
   pl: {
     meta: {
@@ -453,6 +461,14 @@ export const AREA_COPY = {
         "Dotrzyj do aktualnie aktywnego sygnału, odkoduj wers z naszych tekstów i odbierz nagrodę tej kampanii.",
       cta: "Otwórz Grę Virya",
       signal: "Mapa pilota online",
+    },
+    mode: {
+      hunt: "Mapa",
+      collection: "Kolekcja",
+      rewards: "Nagrody",
+      collectionCta: "Zobacz kolekcję",
+      lockedHint:
+        "Zablokowane wersy odblokujesz po potwierdzonym namierzeniu sygnału w aktywnej strefie.",
     },
   },
 } satisfies Record<AreaLang, Record<string, unknown>>

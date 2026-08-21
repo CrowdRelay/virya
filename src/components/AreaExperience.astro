@@ -14,6 +14,10 @@ interface Props {
 const { lang = "en" } = Astro.props
 const copy = AREA_COPY[lang] ?? AREA_COPY.en
 const signalCopy = SIGNAL_COPY[lang] ?? SIGNAL_COPY.en
+// Mode navigation labels. Fall back to English so a missing translation
+// degrades to a readable label instead of throwing during SSR and
+// truncating the whole page.
+const modeCopy = copy.mode ?? AREA_COPY.en.mode
 let areaDrops = FALLBACK_AREA_DROPS
 let activeDropIds = new Set<string>()
 try {
