@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "preact/hooks"
-import AudienceIntelligence from "./AudienceIntelligence"
+import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks"
 import {
   type EventItem,
   type LoadState,
@@ -14,8 +13,28 @@ import {
   SignalTab,
   StatusCard,
 } from "./AdminConsoleTabs"
-import { TicketingTab } from "./AdminTicketingTab"
+import LazyPanel, { type Panel, warmPanel } from "./LazyPanel"
 import { staffLogoutButton, staffSecondaryButton } from "./staffButtons"
+
+// The three heaviest sections are fetched the first time they are opened.
+// Keeping them out of the console's first script is what makes "Dzisiaj"
+// interactive without also parsing ticketing, Fan 360 and the Latarnik network.
+type LazyTab = "audience" | "ticketing" | "beacons"
+const LAZY: Record<LazyTab, { label: string; load: () => Promise<Panel> }> = {
+  audience: {
+    label: "Pobieram Fan 360…",
+    load: () => import("./AudienceIntelligence").then(module => module.default as Panel),
+  },
+  ticketing: {
+    label: "Pobieram sprzedaż biletów…",
+    load: () => import("./AdminTicketingTab").then(module => module.TicketingTab as Panel),
+  },
+  beacons: {
+    label: "Pobieram sieć Latarników…",
+    load: () => import("./StaffBeaconsManager").then(module => module.default as Panel),
+  },
+}
+const isLazy = (value: Tab): value is LazyTab => value in LAZY
 
 export default function AdminConsole() {
   const [state, setState] = useState<LoadState>("checking")
@@ -47,6 +66,18 @@ export default function AdminConsole() {
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab")
     if (tabs.some(item => item.key === requested)) setTab(requested as Tab)
+  }, [])
+
+  // The sidebar and the address bar both have to follow the section the
+  // operator is actually looking at, otherwise a reload or a shared link
+  // lands somewhere else than the highlighted entry.
+  const openTab = useCallback((next: Tab) => {
+    setTab(next)
+    const url = new URL(window.location.href)
+    if (next === "overview") url.searchParams.delete("tab")
+    else url.searchParams.set("tab", next)
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`)
+    dispatchEvent(new CustomEvent("staff:tab", { detail: next }))
   }, [])
 
   async function checkSession(signal?: AbortSignal) {
@@ -218,7 +249,14 @@ export default function AdminConsole() {
         {tabs.map(item => (
           <button
             key={item.key}
-            onClick={() => setTab(item.key)}
+            onClick={() => openTab(item.key)}
+            onPointerEnter={() => {
+              if (isLazy(item.key)) void warmPanel(item.key, LAZY[item.key].load)
+            }}
+            onFocus={() => {
+              if (isLazy(item.key)) void warmPanel(item.key, LAZY[item.key].load)
+            }}
+            aria-current={tab === item.key ? "page" : undefined}
             class={`min-h-12 shrink-0 border-b-2 px-4 py-2 text-left transition ${tab === item.key ? "border-amber-400 bg-amber-400/[.08] text-white" : "border-transparent text-zinc-400 hover:border-zinc-700 hover:text-white"}`}
           >
             <strong class="block text-sm">{item.label}</strong>
@@ -244,9 +282,15 @@ export default function AdminConsole() {
         <OverviewTab overview={overview} loading={overviewLoading} />
       )}
       {tab === "signal" && <SignalTab />}
-      {tab === "audience" && <AudienceIntelligence />}
-      {tab === "ticketing" && <TicketingTab events={events} />}
       {tab === "admission" && <AdmissionTab events={events} />}
+      {isLazy(tab) && (
+        <LazyPanel
+          id={tab}
+          label={LAZY[tab].label}
+          load={LAZY[tab].load}
+          props={tab === "ticketing" ? { events } : tab === "beacons" ? { embedded: true } : {}}
+        />
+      )}
     </section>
   )
 }
