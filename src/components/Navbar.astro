@@ -240,24 +240,28 @@ const moreActive = more.some(item => item.key === activePage)
     document.addEventListener("astro:before-preparation", () => controller.abort(), { once: true, signal })
 
     const areaNav = document.querySelector<HTMLElement>('[data-area-experience] nav[aria-label="VIRYA Area modes"] > div')
-    const setAreaNavVisible = (visible: boolean) => {
-      areaNav?.style.setProperty("transform", visible ? "translateY(81px)" : "translateY(0)")
+    const syncAreaToMainNav = () => {
+      if (!areaNav) return
+      const transform = nav.style.transform || getComputedStyle(nav).transform
+      areaNav.style.transform = transform.includes("-100%")
+        ? "translateY(0)"
+        : "translateY(81px)"
     }
+    const navObserver = new MutationObserver(syncAreaToMainNav)
+    navObserver.observe(nav, { attributes: true, attributeFilter: ["style"] })
+    syncAreaToMainNav()
 
     let lastY = window.scrollY
     let ticking = false
     const updateScrollState = () => {
       const y = window.scrollY
-      const navVisible = y < 18 || y <= lastY
       nav.classList.toggle("is-scrolled", y > 18)
       if (document.body.style.position !== "fixed") {
-        if (navVisible) {
+        if (y < 18 || y < lastY) {
           nav.style.transform = "translateY(0)"
-          setAreaNavVisible(true)
         } else if (y > lastY + 4) {
           nav.style.transform = "translateY(-100%)"
           closeMenu()
-          setAreaNavVisible(false)
         }
       }
       lastY = y
@@ -268,7 +272,6 @@ const moreActive = more.some(item => item.key === activePage)
       ticking = true
       requestAnimationFrame(updateScrollState)
     }
-    setAreaNavVisible(window.scrollY < 18)
     updateScrollState()
     window.addEventListener("scroll", onScroll, { passive: true, signal })
 
@@ -291,10 +294,7 @@ const moreActive = more.some(item => item.key === activePage)
       btn.setAttribute("aria-expanded", String(opening))
       document.getElementById("icon-hamburger")?.classList.toggle("hidden", opening)
       document.getElementById("icon-close")?.classList.toggle("hidden", !opening)
-      if (opening) {
-        nav.style.transform = "translateY(0)"
-        setAreaNavVisible(true)
-      }
+      if (opening) nav.style.transform = "translateY(0)"
     }, { signal })
 
     nav.querySelectorAll<HTMLElement>(".mobile-nav-link").forEach(link => {
