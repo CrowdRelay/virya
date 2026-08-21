@@ -1,5 +1,6 @@
 import { readServerEnv } from "./runtimeEnv.ts"
 import { readLimitedJson } from "./readLimitedJson.ts"
+import { getYoutubeChannel, type YoutubeVideo } from "./youtube.ts"
 
 // Live traction numbers for the EPK and for booking one-pagers. Every source is
 // a free public endpoint we already talk to elsewhere, so this adds reach data
@@ -32,6 +33,11 @@ export type Traction = {
   signalFans: number | null
   /** Cities with at least one registered fan. */
   activeCities: number | null
+  /** Views across the 15 most recent YouTube uploads. */
+  youtubeViews: number | null
+  /** Null unless YOUTUBE_API_KEY is configured. */
+  youtubeSubscribers: number | null
+  latestVideo: YoutubeVideo | null
   topCities: TractionCity[]
   fetchedAt: string
   /** True when at least one upstream failed and the numbers are partial. */
@@ -43,6 +49,9 @@ const EMPTY: Traction = {
   upcomingEvents: null,
   signalFans: null,
   activeCities: null,
+  youtubeViews: null,
+  youtubeSubscribers: null,
+  latestVideo: null,
   topCities: [],
   fetchedAt: new Date(0).toISOString(),
   degraded: true,
@@ -152,9 +161,10 @@ let cached: { value: Traction; expiresAt: number; staleUntil: number } | null = 
 let inFlight: Promise<Traction> | null = null
 
 const collect = async (): Promise<Traction> => {
-  const [bandsintown, signal] = await Promise.allSettled([
+  const [bandsintown, signal, youtube] = await Promise.allSettled([
     loadBandsintown(),
     loadSignalCities(),
+    getYoutubeChannel(),
   ])
 
   const result: Traction = {
@@ -178,6 +188,15 @@ const collect = async (): Promise<Traction> => {
   } else {
     result.degraded = true
     console.warn("[traction] crowdrelay cities unavailable", signal.reason)
+  }
+
+  if (youtube.status === "fulfilled") {
+    result.youtubeViews = youtube.value.recentViews
+    result.youtubeSubscribers = youtube.value.subscribers
+    result.latestVideo = youtube.value.latest
+  } else {
+    result.degraded = true
+    console.warn("[traction] youtube unavailable", youtube.reason)
   }
 
   return result
