@@ -50,6 +50,6 @@ test("backend-backed admin sections expose scoped loading overlays", () => {
   }
   assert.match(ecosystem, /BackendLoader/)
   assert.match(ecosystem, /Pobieram control plane i proofy/)
-  assert.match(loader, /animate-spin/)
+  assert.match(loader, /animate-pulse/)
   assert.match(loader, /role="status"/)
 })
