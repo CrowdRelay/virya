@@ -4,6 +4,7 @@ import BackendLoader from "./BackendLoader"
 import type { BeaconNetworkOverview } from "./StaffLatarnikNetworkManager"
 import type { BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
 import { staffApi, type StaffApiError } from "./staffApi"
+import { staffSecondaryButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type EligibilityKind = "all_active" | "event_interest" | "synesthesia_completion"
@@ -550,7 +551,7 @@ export default function StaffCommerceManager() {
   return (
     <div class="relative grid gap-6">
       {loading && <BackendLoader overlay label="Pobieram merch, magazyn i losowania…" />}
-      <section class="rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
+      <section class="border-b border-zinc-800 pb-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">CrowdRelay / commerce</p>
@@ -560,7 +561,7 @@ export default function StaffCommerceManager() {
             </p>
           </div>
           <button type="button" disabled={busy || loading} onClick={() => void refresh()}
-            class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-zinc-200 hover:bg-white/10 disabled:opacity-50">
+            class={staffSecondaryButton}>
             {loading ? "ODŚWIEŻAM…" : "ODŚWIEŻ"}
           </button>
         </div>
