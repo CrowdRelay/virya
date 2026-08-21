@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { generateQr, type GeneratedQr } from "../../../lib/qrCode"
 import { staffApi, type StaffApiError } from "./staffApi"
+import { staffLogoutButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type ApiError = StaffApiError
@@ -282,7 +283,7 @@ export default function StaffPairingManager() {
             type="button"
             onClick={() => void logout()}
             disabled={busy}
-            class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-zinc-200 hover:bg-white/10 disabled:opacity-50"
+            class={staffLogoutButton}
           >
             Wyloguj
           </button>

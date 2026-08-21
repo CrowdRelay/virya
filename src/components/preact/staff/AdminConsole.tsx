@@ -15,6 +15,7 @@ import {
   StatusCard,
 } from "./AdminConsoleTabs"
 import { TicketingTab } from "./AdminTicketingTab"
+import { staffLogoutButton } from "./staffButtons"
 
 export default function AdminConsole() {
   const [state, setState] = useState<LoadState>("checking")
@@ -202,7 +203,7 @@ export default function AdminConsole() {
             <button
               disabled={busy}
               onClick={() => void logout()}
-              class="rounded-xl border border-rose-400/30 px-4 py-2 text-sm font-bold text-rose-200 hover:bg-rose-400/10 disabled:opacity-50"
+              class={staffLogoutButton}
             >
               Wyloguj
             </button>
