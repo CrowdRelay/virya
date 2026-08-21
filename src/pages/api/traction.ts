@@ -1,4 +1,5 @@
 import { getTraction } from "../../server/traction.ts"
+import { readDelta, recordSnapshot } from "../../server/tractionHistory.ts"
 import type { APIRoute } from "astro"
 
 export const prerender = false
@@ -9,7 +10,12 @@ const DEGRADED_CACHE = "public, max-age=60, s-maxage=300"
 
 export const GET: APIRoute = async () => {
   const traction = await getTraction()
-  return new Response(JSON.stringify(traction), {
+  // First healthy read of the day lays down that day's snapshot, so the series
+  // builds itself without a scheduler. Neither call is allowed to fail the
+  // response: the numbers matter more than their history.
+  await recordSnapshot(traction).catch(() => {})
+  const delta = await readDelta(traction).catch(() => ({ since: null, change: {} }))
+  return new Response(JSON.stringify({ ...traction, delta }), {
     status: 200,
     headers: {
       "Content-Type": "application/json",
