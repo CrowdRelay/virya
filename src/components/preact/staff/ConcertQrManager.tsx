@@ -11,6 +11,7 @@ import type {
   StaffQrOverview,
 } from "../../../server/staffQrApi"
 import { staffApi, type StaffApiError } from "./staffApi"
+import { staffLogoutButton, staffSecondaryButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type Language = "pl" | "en"
@@ -422,7 +423,7 @@ export default function ConcertQrManager() {
           <button type="button" onClick={() => void refreshData()} disabled={busy || dataLoading} class={secondaryButton}>
             Odśwież
           </button>
-          <button type="button" onClick={() => void logout()} disabled={busy} class={secondaryButton}>
+          <button type="button" onClick={() => void logout()} disabled={busy} class={staffLogoutButton}>
             Wyloguj
           </button>
         </div>
@@ -637,7 +638,7 @@ const eyebrowClass = "text-[9px] font-black uppercase tracking-[.28em] text-ambe
 const labelClass = "mt-5 block min-w-0 text-[9px] font-black uppercase tracking-widest text-zinc-400"
 const inputClass = "virya-input mt-2 w-full min-w-0 max-w-full px-3 text-sm"
 const primaryButton = "virya-button virya-button--primary min-h-[44px] min-w-0 px-4"
-const secondaryButton = "virya-button virya-button--secondary min-h-[44px] min-w-0 px-4"
+const secondaryButton = staffSecondaryButton
 
 function toLocalInput(value: Date) {
   const adjusted = new Date(value.getTime() - value.getTimezoneOffset() * 60_000)
