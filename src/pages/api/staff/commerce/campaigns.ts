@@ -76,6 +76,58 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         // forward the standalone raw inviteToken returned by CrowdRelay.
         return areaJson({ displayName, inviteUrl, expiresAt }, 201)
       }
+      if (action === "test_beacon") {
+        // Discovery plus a consent review is the right gate for strangers found
+        // on the public web and the wrong one for putting our own people on the
+        // network to exercise it. Staff-minted, so identity is known and the
+        // outreach consent is our own.
+        const displayNameInput = typeof record.displayName === "string" ? record.displayName.trim() : ""
+        const contactEmail = typeof record.contactEmail === "string" ? record.contactEmail.trim() : ""
+        const beaconKind = typeof record.beaconKind === "string" ? record.beaconKind : "promoter"
+        const cityId = typeof record.cityId === "string" && record.cityId ? record.cityId : null
+        if (!displayNameInput || displayNameInput.length > 200
+          || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) || contactEmail.length > 320
+          || !/^[a-z_]{3,32}$/.test(beaconKind)
+          || (cityId !== null && !/^[0-9a-f-]{36}$/i.test(cityId))) {
+          return areaJson({ error: "Invalid test beacon" }, 400)
+        }
+        const created = await staffApiRequest<Record<string, unknown>>("admin/autopilot/beacons", {
+          method: "POST", idempotencyKey,
+          body: {
+            beacon_id: null, city_id: cityId, beacon_kind: beaconKind,
+            display_name: displayNameInput, contact_email: contactEmail,
+            destination_url: null, source_url: null,
+            active: true, verified: true, accepts_outreach: true, do_not_contact: false,
+            relationship_score: 100, relevance_basis_points: 10_000, confidence_basis_points: 10_000,
+            metadata: { origin: "staff_test_beacon" }, expected_version: 0,
+          },
+        })
+        const beacon = created.beacon && typeof created.beacon === "object" ? created.beacon as Record<string, unknown> : {}
+        const beaconId = [created.beaconId, created.beacon_id, created.id, beacon.id]
+          .find((value): value is string => typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value))
+        if (!beaconId) throw new Error("Beacon created without a usable id")
+
+        const upstream = await staffApiRequest<Record<string, unknown>>(`admin/autopilot/beacons/${beaconId}/signal-invites`, {
+          method: "POST", body: { ttl_days: 30, radius_km: 100, locale: "pl" },
+        })
+        const displayName = typeof upstream.displayName === "string" ? upstream.displayName.trim() : ""
+        const inviteUrl = typeof upstream.inviteUrl === "string" ? upstream.inviteUrl.trim() : ""
+        const expiresAt = typeof upstream.expiresAt === "string" ? upstream.expiresAt.trim() : ""
+        let validInvite = false
+        try {
+          const parsed = new URL(inviteUrl)
+          const invite = parsed.searchParams.getAll("invite")
+          validInvite = parsed.protocol === "https:" && parsed.hostname === "virya.music"
+            && ["/latarnik", "/latarnik/", "/pl/latarnik", "/pl/latarnik/"].includes(parsed.pathname)
+            && parsed.username === "" && parsed.password === "" && parsed.hash === ""
+            && [...parsed.searchParams.keys()].every(key => key === "invite")
+            && invite.length === 1 && /^[A-Za-z0-9_-]{24,128}$/.test(invite[0] ?? "")
+        } catch { /* invalid upstream capability */ }
+        if (!displayName || displayName.length > 200 || !validInvite || !Number.isFinite(Date.parse(expiresAt))) {
+          throw new Error("Invalid Latarnik invite response")
+        }
+        return areaJson({ beaconId, displayName, inviteUrl, expiresAt }, 201)
+      }
       if (action === "preview_invites" || action === "queue_invites") {
         const beaconIds = Array.isArray(record.beaconIds) ? record.beaconIds.filter((value): value is string => typeof value === "string") : []
         const unique = [...new Set(beaconIds)]

@@ -19,7 +19,7 @@ test("standalone staff tabs use the same scoped backend loader as Control Center
     assert.ok(source.includes(label), `missing loader label: ${label}`)
     assert.match(source, /overlay/)
   }
-  assert.match(loader, /animate-spin/)
+  assert.match(loader, /animate-pulse/)
 })
 
 test("staff commerce manages every draw and only exposes fail-closed deletion", () => {

@@ -146,18 +146,20 @@ export default function StaffBeaconsManager() {
     setInviteUrl("")
     setCopied(false)
     try {
-      const result = await api<{ invite?: { inviteUrl?: string } }>(
-        "/api/staff/admin/beacon-test",
+      const result = await api<{ inviteUrl?: string }>(
+        "/api/staff/commerce/campaigns",
         {
           method: "POST",
           body: {
+            kind: "beacon_network",
+            action: "test_beacon",
             displayName: testName.trim(),
             contactEmail: testEmail.trim(),
             beaconKind: testKind,
           },
         },
       )
-      const url = result.invite?.inviteUrl ?? ""
+      const url = result.inviteUrl ?? ""
       if (!url.startsWith("https://virya.music/")) {
         throw new Error("Nieoczekiwany adres zaproszenia")
       }
