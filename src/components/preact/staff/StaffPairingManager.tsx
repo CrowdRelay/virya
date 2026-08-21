@@ -265,7 +265,7 @@ export default function StaffPairingManager() {
 
   return (
     <div class="grid gap-6">
-      <section class="rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
+      <section class="border-b border-zinc-800 pb-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">

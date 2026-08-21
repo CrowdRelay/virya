@@ -15,6 +15,7 @@ import {
   formatDate,
   money,
 } from "./adminConsoleShared"
+import { staffSecondaryButton } from "./staffButtons"
 
 function validateTicketForm(form: TicketForm): string | null {
   const currency = form.currency.trim().toUpperCase()
@@ -226,7 +227,7 @@ export function TicketingTab({ events }: { events: EventItem[] }) {
               type="button"
               disabled={busy || loading}
               onClick={() => void load(eventSlug)}
-              class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
+              class={staffSecondaryButton}
             >
               Odśwież sprzedaż
             </button>

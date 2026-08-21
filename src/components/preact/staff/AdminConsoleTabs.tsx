@@ -9,6 +9,7 @@ import {
   api,
   formatDate,
 } from "./adminConsoleShared"
+import { staffSecondaryButton } from "./staffButtons"
 
 export function OverviewTab({
   overview,
@@ -278,7 +279,7 @@ export function SignalTab() {
   return (
     <div class="relative grid gap-5" aria-busy={loading}>
       {loading && <BackendLoader overlay label="Pobieram statystyki Sygnału…" />}
-      <section class="rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-5 sm:p-6">
+      <section class="border-b border-zinc-800 pb-5">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">
@@ -294,7 +295,7 @@ export function SignalTab() {
             type="button"
             disabled={loading}
             onClick={() => void load()}
-            class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
+            class={staffSecondaryButton}
           >
             {loading ? "Odświeżam…" : "Odśwież"}
           </button>

@@ -30,7 +30,7 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
               </a>
             </h3>
             <p class="text-xs text-justify text-zinc-400 leading-snug mb-3 line-clamp-4">{text}</p>
-            <div class="flex gap-2 flex-wrap">
+            <div class="portfolio-actions grid grid-flow-col auto-cols-fr gap-1.5">
               {item.link && (
                 <a href={item.link} rel="noreferrer" target="_blank" aria-label={`${t(lang, "music.listen")}: ${item.title}`} class="virya-button virya-button--accent-outline">
                   {t(lang, "music.listen")}
@@ -71,3 +71,21 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
     </div>
   </div>
 </div>
+
+<style>
+  /* Up to four actions share one narrow card column, so the row trades the
+     button's roomy inline padding for equal columns. Without this the fourth
+     action wrapped onto its own line and the card lost its rhythm. */
+  .portfolio-actions > .virya-button {
+    min-width: 0;
+    padding-inline: 0.5rem;
+    letter-spacing: 0.06em;
+  }
+
+  @media (min-width: 1024px) {
+    .portfolio-actions > .virya-button {
+      padding-inline: 0.375rem;
+      font-size: 0.625rem;
+    }
+  }
+</style>

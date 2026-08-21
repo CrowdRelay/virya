@@ -15,7 +15,7 @@ import {
   StatusCard,
 } from "./AdminConsoleTabs"
 import { TicketingTab } from "./AdminTicketingTab"
-import { staffLogoutButton } from "./staffButtons"
+import { staffLogoutButton, staffSecondaryButton } from "./staffButtons"
 
 export default function AdminConsole() {
   const [state, setState] = useState<LoadState>("checking")
@@ -179,7 +179,7 @@ export default function AdminConsole() {
 
   return (
     <section class="grid gap-5">
-      <header class="rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-6 sm:p-8">
+      <header class="border-b border-zinc-800 pb-6">
         <div class="flex flex-wrap items-start justify-between gap-5">
           <div>
             <p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">
@@ -196,7 +196,7 @@ export default function AdminConsole() {
             <button
               disabled={busy || overviewLoading}
               onClick={() => void loadOverview()}
-              class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
+              class={staffSecondaryButton}
             >
               {overviewLoading ? "Odświeżam…" : "Odśwież"}
             </button>
