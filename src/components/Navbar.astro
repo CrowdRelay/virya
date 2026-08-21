@@ -233,9 +233,22 @@ const moreActive = more.some(item => item.key === activePage)
     color: var(--virya-signal-hot);
   }
 
-  #main-nav .logo-link.is-section-active .logo-ring {
-    box-shadow: 0 0 0 4px rgb(132 180 172 / 0.08), 0 0 28px rgb(132 180 172 / 0.12);
-    transform: scale(1.035);
+  /* The accent sits on the link, not the image: a box-shadow on .logo-ring
+     replaces the Tailwind ring (rings are box-shadows too) and a
+     transform: scale() resampled the 46px bitmap onto fractional pixels,
+     which is what made the active logo look blurry. */
+  #main-nav .logo-link {
+    transition: filter 200ms ease;
+  }
+
+  #main-nav .logo-link.is-section-active {
+    filter: drop-shadow(0 0 9px rgb(147 198 192 / .38));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #main-nav .logo-link {
+      transition: none;
+    }
   }
 </style>
 
@@ -281,12 +294,30 @@ const moreActive = more.some(item => item.key === activePage)
       .map(id => document.getElementById(id))
       .filter((element): element is HTMLElement => Boolean(element))
 
+    // Fraction of the viewport height the section detector ignores at the top.
+    // The logo reuses it so it hands over to the first section link at exactly
+    // the point that link lights up.
+    const SECTION_BAND_TOP = 0.28
+
     const setSectionState = (sectionId: string | null) => {
       nav.querySelectorAll<HTMLElement>("[data-section]").forEach(link => {
         link.classList.toggle("is-section-active", link.dataset.section === sectionId)
       })
-      const logo = nav.querySelector<HTMLElement>("a.logo-link")
-      logo?.classList.toggle("is-section-active", sectionId === null)
+    }
+
+    // The logo stands for the top of the page, not "no section matched". Only
+    // some sections carry a nav link, so the home page has long unobserved
+    // stretches (signal, area, about, endorsements) where nothing matches --
+    // keying the logo off a null match lit it across all of them.
+    const logoLink = nav.querySelector<HTMLElement>("a.logo-link")
+    const firstSection = sections.length > 0
+      ? sections.reduce((first, section) =>
+          first.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_PRECEDING ? section : first)
+      : null
+    const syncLogoState = () => {
+      if (!logoLink || !firstSection) return
+      const reached = firstSection.getBoundingClientRect().top <= window.innerHeight * SECTION_BAND_TOP
+      logoLink.classList.toggle("is-section-active", !reached)
     }
 
     if (sections.length > 0) {
@@ -300,7 +331,7 @@ const moreActive = more.some(item => item.key === activePage)
           .find(([, ratio]) => ratio > 0)
         setSectionState(best?.[0] ?? null)
       }, {
-        rootMargin: "-28% 0px -56% 0px",
+        rootMargin: `-${SECTION_BAND_TOP * 100}% 0px -56% 0px`,
         threshold: [0, 0.1, 0.25, 0.5, 0.75],
       })
       sections.forEach(section => sectionObserver.observe(section))
@@ -312,6 +343,7 @@ const moreActive = more.some(item => item.key === activePage)
     const updateScrollState = () => {
       const y = window.scrollY
       nav.classList.toggle("is-scrolled", y > 18)
+      syncLogoState()
       if (document.body.style.position !== "fixed") {
         if (y < 18 || y < lastY) {
           if (navHidden) setNavHidden(false)
