@@ -5,6 +5,13 @@ import { StaffQrUpstreamError, staffApiRequest } from "../../../../server/staffQ
 import { forwardedMutationKey } from "../../../../server/mutationSafety"
 
 export const prerender = false
+
+class StageError extends Error {
+  constructor(message: string, readonly httpStatus: number) {
+    super(message)
+    this.name = "StageError"
+  }
+}
 const status = (error: unknown) =>
   error instanceof StaffQrUpstreamError && [400, 404, 409, 422, 503].includes(error.status)
     ? error.status
@@ -91,7 +98,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           || (cityId !== null && !/^[0-9a-f-]{36}$/i.test(cityId))) {
           return areaJson({ error: "Invalid test beacon" }, 400)
         }
-        const created = await staffApiRequest<Record<string, unknown>>("admin/autopilot/beacons", {
+        // Report which leg failed and what CrowdRelay said. The shared catch
+        // below collapses everything into one message, which is fine for the
+        // established actions and useless for a two-call flow.
+        const stage = async <T>(label: string, run: () => Promise<T>): Promise<T> => {
+          try { return await run() } catch (error) {
+            const upstream = error instanceof StaffQrUpstreamError
+              ? `${error.status}${error.detail ? ` ${String(error.detail).slice(0, 160)}` : ""}`
+              : String((error as Error)?.message ?? "unknown").slice(0, 160)
+            throw new StageError(`${label}: ${upstream}`, error instanceof StaffQrUpstreamError ? error.status : 502)
+          }
+        }
+        const created = await stage("beacon create", () => staffApiRequest<Record<string, unknown>>("admin/autopilot/beacons", {
           method: "POST", idempotencyKey,
           body: {
             beacon_id: null, city_id: cityId, beacon_kind: beaconKind,
@@ -101,15 +119,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             relationship_score: 100, relevance_basis_points: 10_000, confidence_basis_points: 10_000,
             metadata: { origin: "staff_test_beacon" }, expected_version: 0,
           },
-        })
+        }))
         const beacon = created.beacon && typeof created.beacon === "object" ? created.beacon as Record<string, unknown> : {}
         const beaconId = [created.beaconId, created.beacon_id, created.id, beacon.id]
           .find((value): value is string => typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value))
-        if (!beaconId) throw new Error("Beacon created without a usable id")
+        if (!beaconId) {
+          throw new StageError(`beacon create: no id in ${Object.keys(created).join(",").slice(0, 120)}`, 502)
+        }
 
-        const upstream = await staffApiRequest<Record<string, unknown>>(`admin/autopilot/beacons/${beaconId}/signal-invites`, {
+        const upstream = await stage("invite", () => staffApiRequest<Record<string, unknown>>(`admin/autopilot/beacons/${beaconId}/signal-invites`, {
           method: "POST", body: { ttl_days: 30, radius_km: 100, locale: "pl" },
-        })
+        }))
         const displayName = typeof upstream.displayName === "string" ? upstream.displayName.trim() : ""
         const inviteUrl = typeof upstream.inviteUrl === "string" ? upstream.inviteUrl.trim() : ""
         const expiresAt = typeof upstream.expiresAt === "string" ? upstream.expiresAt.trim() : ""
@@ -124,7 +144,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             && invite.length === 1 && /^[A-Za-z0-9_-]{24,128}$/.test(invite[0] ?? "")
         } catch { /* invalid upstream capability */ }
         if (!displayName || displayName.length > 200 || !validInvite || !Number.isFinite(Date.parse(expiresAt))) {
-          throw new Error("Invalid Latarnik invite response")
+          throw new StageError(
+            `invite response invalid: name=${Boolean(displayName)} url=${validInvite} expires=${Boolean(expiresAt)}`,
+            502,
+          )
         }
         return areaJson({ beaconId, displayName, inviteUrl, expiresAt }, 201)
       }
@@ -173,6 +196,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return areaJson(await staffApiRequest("admin/reward-campaigns", { method: "POST", idempotencyKey: forwardedMutationKey(request, "staff-post"), body }), 201)
   } catch (error) {
     console.error("[staff-commerce-campaign-create]", error)
+    if (error instanceof StageError) {
+      return areaJson({ error: error.message }, error.httpStatus)
+    }
     return areaJson({ error: "Could not update campaign" }, status(error))
   }
 }
