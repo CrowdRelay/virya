@@ -55,7 +55,7 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,json,md}\"",
     "check": "tsc --noEmit",
     "audit:area": "node scripts/audit-area.mjs",
-    "test": "npm run check && npm run test:unit && npm run audit:assets && npm run audit:area && npm run audit:signal && npm run audit:admin && npm run audit:live && npm run audit:ui && npm run audit:v2 && npm run audit:lighthouse && npm run audit:ci && npm run audit:size && npm run audit:bff && npm run audit:rum && npm run audit:release && npm run audit:jsonld",
+    "test": "npm run check && npm run test:unit && npm run audit:assets && npm run audit:area && npm run audit:signal && npm run audit:admin && npm run audit:live && npm run audit:ui && npm run audit:v2 && npm run audit:lighthouse && npm run audit:ci && npm run audit:size && npm run audit:bff && npm run audit:rum && npm run audit:release && npm run audit:jsonld && npm run audit:merch-pickup && npm run audit:synesthesia-fallback && npm run audit:gates",
     "audit:signal": "node scripts/audit-signal.mjs",
     "audit:admin": "node scripts/audit-admin.mjs",
     "audit:live": "node scripts/audit-live.mjs",
@@ -72,7 +72,10 @@
     "audit:jsonld": "node scripts/audit-json-ld.mjs",
     "security:audit": "node scripts/audit-dependencies.mjs",
     "audit:v2": "node scripts/audit-v2.mjs",
-    "audit:lighthouse": "node scripts/audit-lighthouse.mjs"
+    "audit:lighthouse": "node scripts/audit-lighthouse.mjs",
+    "audit:merch-pickup": "node scripts/test-merch-event-pickup.mjs",
+    "audit:synesthesia-fallback": "python3 scripts/test_synesthesia_signal_fallback_contract.py",
+    "audit:gates": "node scripts/check-contract-gate-coverage.mjs"
   },
   "overrides": {
     "ipx": {
