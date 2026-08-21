@@ -222,7 +222,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </dl>
     </section>
 
-    <nav aria-label={lang === "pl" ? "Tryby Gry Virya" : "VIRYA Area modes"} class="sticky top-[81px] z-20 border-y border-zinc-800/80 bg-[#070908]/95 px-4 backdrop-blur-md sm:px-6 lg:px-12">
+    <nav aria-label={lang === "pl" ? "Tryby Gry Virya" : "VIRYA Area modes"} class="area-mode-nav sticky z-20 border-y border-zinc-800/80 bg-[#070908]/95 px-4 backdrop-blur-md sm:px-6 lg:px-12">
       <div class="mx-auto flex max-w-7xl overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {[
           ["#area-map", modeCopy.hunt],
@@ -673,6 +673,21 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 </main>
 
 <style>
+  /* Rides flush under the fixed main navbar. Navbar.astro keeps
+     --virya-nav-offset equal to the navbar height while it is visible and
+     drops it to 0 when the navbar slides away, so this bar follows the same
+     200ms motion instead of leaving a gap behind it. */
+  .area-mode-nav {
+    top: var(--virya-nav-offset, 0px);
+    transition: top 200ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .area-mode-nav {
+      transition: none;
+    }
+  }
+
   .area-grid {
     background-image:
       linear-gradient(rgba(132, 180, 172, 0.055) 1px, transparent 1px),

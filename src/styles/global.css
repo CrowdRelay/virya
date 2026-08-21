@@ -41,6 +41,15 @@
   --virya-container: 80rem;
   --virya-container-wide: 90rem;
   --virya-prose-width: 46rem;
+  /* Height of the fixed main navbar, remeasured by Navbar.astro. Sticky
+     sub-navigation offsets itself by --virya-nav-offset so it rides directly
+     under the navbar and slides to the top edge when the navbar hides. */
+  --virya-nav-h: 81px;
+  --virya-nav-offset: var(--virya-nav-h);
+}
+
+:root.nav-hidden {
+  --virya-nav-offset: 0px;
 }
 
 @layer base {

@@ -237,33 +237,6 @@ const moreActive = more.some(item => item.key === activePage)
     box-shadow: 0 0 0 4px rgb(132 180 172 / 0.08), 0 0 28px rgb(132 180 172 / 0.12);
     transform: scale(1.035);
   }
-
-  :global([data-area-experience] nav[aria-label="VIRYA Area modes"]) {
-    top: 0;
-    border-color: transparent;
-    background: transparent;
-    backdrop-filter: none;
-  }
-
-  :global([data-area-experience] nav[aria-label="VIRYA Area modes"] > div) {
-    position: relative;
-    isolation: isolate;
-    transform: translateY(81px);
-    transition: transform 200ms ease;
-  }
-
-  :global([data-area-experience] nav[aria-label="VIRYA Area modes"] > div::before) {
-    content: "";
-    position: absolute;
-    inset: 0;
-    left: 50%;
-    width: 100vw;
-    transform: translateX(-50%);
-    border-block: 1px solid rgb(39 39 42 / .8);
-    background: rgb(7 9 8 / .95);
-    backdrop-filter: blur(12px);
-    z-index: -1;
-  }
 </style>
 
 <script>
@@ -277,17 +250,29 @@ const moreActive = more.some(item => item.key === activePage)
 
     document.addEventListener("astro:before-preparation", () => controller.abort(), { once: true, signal })
 
-    const areaNav = document.querySelector<HTMLElement>('[data-area-experience] nav[aria-label="VIRYA Area modes"] > div')
-    const syncAreaToMainNav = () => {
-      if (!areaNav) return
-      const transform = nav.style.transform || getComputedStyle(nav).transform
-      areaNav.style.transform = transform.includes("-100%")
-        ? "translateY(0)"
-        : "translateY(81px)"
+    // Sticky sub-navigation (e.g. the Area mode bar) rides directly under this
+    // navbar. Publish the navbar height and its visibility on the root element
+    // so those bars can offset themselves with plain CSS and stay in sync with
+    // the navbar's own 200ms slide.
+    const root = document.documentElement
+    const measureNav = () => {
+      const menu = document.getElementById("mobile-menu")
+      if (menu && !menu.hidden) return
+      const height = Math.round(nav.getBoundingClientRect().height)
+      if (height > 0) root.style.setProperty("--virya-nav-h", `${height}px`)
     }
-    const navObserver = new MutationObserver(syncAreaToMainNav)
-    navObserver.observe(nav, { attributes: true, attributeFilter: ["style"] })
-    syncAreaToMainNav()
+    measureNav()
+    const navResizeObserver = new ResizeObserver(measureNav)
+    navResizeObserver.observe(nav)
+    signal.addEventListener("abort", () => navResizeObserver.disconnect(), { once: true })
+
+    let navHidden = false
+    const setNavHidden = (hidden: boolean) => {
+      navHidden = hidden
+      nav.style.transform = hidden ? "translateY(-100%)" : "translateY(0)"
+      root.classList.toggle("nav-hidden", hidden)
+    }
+    setNavHidden(false)
 
     const sectionLinks = Array.from(nav.querySelectorAll<HTMLAnchorElement>("[data-section]"))
       .filter(link => link.dataset.section)
@@ -329,10 +314,12 @@ const moreActive = more.some(item => item.key === activePage)
       nav.classList.toggle("is-scrolled", y > 18)
       if (document.body.style.position !== "fixed") {
         if (y < 18 || y < lastY) {
-          nav.style.transform = "translateY(0)"
+          if (navHidden) setNavHidden(false)
         } else if (y > lastY + 4) {
-          nav.style.transform = "translateY(-100%)"
-          closeMenu()
+          if (!navHidden) {
+            setNavHidden(true)
+            closeMenu()
+          }
         }
       }
       lastY = y
@@ -365,7 +352,8 @@ const moreActive = more.some(item => item.key === activePage)
       btn.setAttribute("aria-expanded", String(opening))
       document.getElementById("icon-hamburger")?.classList.toggle("hidden", opening)
       document.getElementById("icon-close")?.classList.toggle("hidden", !opening)
-      if (opening) nav.style.transform = "translateY(0)"
+      if (opening) setNavHidden(false)
+      else measureNav()
     }, { signal })
 
     nav.querySelectorAll<HTMLElement>(".mobile-nav-link").forEach(link => {

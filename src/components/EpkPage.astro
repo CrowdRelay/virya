@@ -5,6 +5,7 @@ import Footer from "./Footer.astro"
 import ScrollToTop from "./ScrollToTop.astro"
 import BlurImage from "./BlurImage.astro"
 import ManagerEcosystem from "./ManagerEcosystem.astro"
+import TractionBand from "./TractionBand.astro"
 import { t, lp, type Lang } from "../i18n/t"
 import { getSeoTags } from "../utils/seo"
 import items from "./portfolio/items.json"
@@ -79,6 +80,8 @@ const members = [
                 <p>{t(lang, "epk.bio2")}</p>
               </div>
             </section>
+
+            <TractionBand lang={lang} />
 
             <section class="grid gap-px border-y border-zinc-800 bg-zinc-800 sm:grid-cols-2">
               <div class="bg-zinc-950 p-5 sm:p-6">

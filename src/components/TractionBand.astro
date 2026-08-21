@@ -1,0 +1,122 @@
+---
+import { getTraction, type Traction } from "../server/traction.ts"
+import { t, type Lang } from "../i18n/t"
+
+interface Props { lang: Lang }
+const { lang } = Astro.props
+
+// A metric only earns a place on a public EPK once it argues for us. Below the
+// floor it is hidden rather than shown small — the raw values stay available on
+// /api/traction for internal booking material, where every fan counts.
+const DISPLAY_FLOOR: Record<string, number> = {
+  trackers: 100,
+  upcomingEvents: 2,
+  signalFans: 100,
+  activeCities: 3,
+}
+
+let traction: Traction | null = null
+try {
+  traction = await getTraction()
+} catch (error) {
+  console.warn("[traction-band] falling back to a hidden band", error)
+}
+
+const METRICS = [
+  ["trackers", "epk.trackers"],
+  ["upcomingEvents", "epk.upcomingEvents"],
+  ["signalFans", "epk.signalFans"],
+  ["activeCities", "epk.activeCities"],
+] as const
+
+const format = (value: number) => new Intl.NumberFormat(lang).format(value)
+const clears = (key: string, value: number | null) =>
+  value !== null && value >= (DISPLAY_FLOOR[key] ?? 0)
+
+const visible = METRICS.filter(([key]) =>
+  clears(key, traction ? traction[key] : null),
+)
+---
+
+<section
+  data-traction-band
+  data-floors={JSON.stringify(DISPLAY_FLOOR)}
+  hidden={visible.length === 0}
+  aria-label={t(lang, "epk.tractionHeading")}
+>
+  <p class="virya-eyebrow text-zinc-500">{t(lang, "epk.tractionHeading")}</p>
+  <dl class="mt-5 grid gap-px border-y border-zinc-800 bg-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
+    {METRICS.map(([key, labelKey]) => (
+      <div
+        class="bg-zinc-950 p-5 sm:p-6"
+        data-traction-metric={key}
+        hidden={!clears(key, traction ? traction[key] : null)}
+      >
+        <dt class="text-[11px] font-bold uppercase tracking-[.12em] text-zinc-500">
+          {t(lang, labelKey)}
+        </dt>
+        <dd
+          class="mt-3 text-3xl font-black tabular-nums text-white"
+          data-traction-value
+        >
+          {clears(key, traction ? traction[key] : null)
+            ? format(traction![key] as number)
+            : "—"}
+        </dd>
+      </div>
+    ))}
+  </dl>
+  <p class="mt-3 text-[11px] uppercase tracking-[.1em] text-zinc-600">
+    {t(lang, "epk.tractionNote")}
+  </p>
+</section>
+
+<script>
+  // The EPK is prerendered, so the numbers baked at build time go stale between
+  // deploys. Refresh them from the cached API on load and re-apply the floor.
+  const refreshTraction = async () => {
+    const band = document.querySelector<HTMLElement>("[data-traction-band]")
+    if (!band) return
+
+    let floors: Record<string, number> = {}
+    try {
+      floors = JSON.parse(band.dataset.floors ?? "{}")
+    } catch {
+      return
+    }
+
+    let traction: Record<string, unknown>
+    try {
+      const response = await fetch("/api/traction", {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(6000),
+      })
+      if (!response.ok) return
+      traction = await response.json()
+    } catch {
+      return
+    }
+
+    const locale = document.documentElement.lang || "en"
+    let shown = 0
+
+    band.querySelectorAll<HTMLElement>("[data-traction-metric]").forEach(cell => {
+      const key = cell.dataset.tractionMetric ?? ""
+      const value = traction[key]
+      const passes = typeof value === "number" && value >= (floors[key] ?? 0)
+      cell.hidden = !passes
+      if (!passes) return
+      shown += 1
+      const target = cell.querySelector<HTMLElement>("[data-traction-value]")
+      if (target) target.textContent = new Intl.NumberFormat(locale).format(value as number)
+    })
+
+    band.hidden = shown === 0
+  }
+
+  if (!window.__viryaTractionInstalled) {
+    window.__viryaTractionInstalled = true
+    document.addEventListener("astro:page-load", refreshTraction)
+  }
+  refreshTraction()
+</script>
