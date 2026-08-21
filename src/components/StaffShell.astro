@@ -1,5 +1,5 @@
 ---
-type Active = "home" | "qr" | "commerce" | "accounting" | "pair"
+type Active = "home" | "qr" | "commerce" | "accounting" | "pair" | "beacons"
 const { active = "home" } = Astro.props as { active?: Active }
 
 const groups = [
@@ -19,6 +19,7 @@ const groups = [
       { key: "home", href: "/staff/?tab=signal", label: "Sygnał" },
       { key: "home", href: "/staff/?tab=audience", label: "Fani" },
       { key: "home", href: "/staff/?tab=admission", label: "Goście" },
+      { key: "beacons", href: "/staff/beacons/", label: "Latarnicy" },
     ],
   },
   {
