@@ -66,6 +66,7 @@ const moreActive = more.some(item => item.key === activePage)
             <a
               href={item.href}
               data-section={item.section}
+              data-nav-key={item.key}
               aria-current={activePage === item.key ? "page" : undefined}
               class:list={[
                 "nav-link inline-flex min-h-12 items-center px-3 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors xl:px-4",
@@ -93,6 +94,7 @@ const moreActive = more.some(item => item.key === activePage)
                 <a
                   href={item.href}
                   data-section={item.section}
+                  data-nav-key={item.key}
                   aria-current={activePage === item.key ? "page" : undefined}
                   class:list={[
                     "nav-link flex min-h-12 items-center border-b border-white/[.045] px-3 text-[11px] font-bold uppercase tracking-[.13em] transition-colors last:border-0",
@@ -163,6 +165,7 @@ const moreActive = more.some(item => item.key === activePage)
           <a
             href={item.href}
             data-section={item.section}
+            data-nav-key={item.key}
             aria-current={activePage === item.key ? "page" : undefined}
             class:list={[
               "mobile-nav-link nav-link flex min-h-[56px] items-center border-b border-white/[.055] py-3 text-lg font-black uppercase tracking-[-.015em] transition-colors",
@@ -179,6 +182,7 @@ const moreActive = more.some(item => item.key === activePage)
           <a
             href={item.href}
             data-section={item.section}
+            data-nav-key={item.key}
             aria-current={activePage === item.key ? "page" : undefined}
             class:list={[
               "mobile-nav-link nav-link flex min-h-12 items-center border-b border-white/[.04] text-[11px] font-bold uppercase tracking-[.12em] transition-colors",
@@ -198,6 +202,40 @@ const moreActive = more.some(item => item.key === activePage)
   #main-nav:has(#mobile-menu:not([hidden])) {
     border-bottom-color: rgb(39 50 47 / .86);
     background: rgb(7 9 8 / .98);
+  }
+
+  #main-nav .nav-link {
+    position: relative;
+  }
+
+  #main-nav .nav-link:not(.mobile-nav-link)::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0.75rem;
+    bottom: 0.35rem;
+    height: 1px;
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: var(--virya-signal-hot);
+    opacity: 0;
+    transition: transform 240ms cubic-bezier(.22,.61,.36,1), opacity 180ms ease;
+  }
+
+  #main-nav .nav-link:hover::after,
+  #main-nav .nav-link.is-section-active::after,
+  #main-nav .nav-link[aria-current="page"]::after {
+    transform: scaleX(1);
+    opacity: 0.9;
+  }
+
+  #main-nav .nav-link.is-section-active,
+  #main-nav .nav-link[aria-current="page"] {
+    color: var(--virya-signal-hot);
+  }
+
+  #main-nav .logo-link.is-section-active .logo-ring {
+    box-shadow: 0 0 0 4px rgb(132 180 172 / 0.08), 0 0 28px rgb(132 180 172 / 0.12);
+    transform: scale(1.035);
   }
 
   :global([data-area-experience] nav[aria-label="VIRYA Area modes"]) {
@@ -250,6 +288,39 @@ const moreActive = more.some(item => item.key === activePage)
     const navObserver = new MutationObserver(syncAreaToMainNav)
     navObserver.observe(nav, { attributes: true, attributeFilter: ["style"] })
     syncAreaToMainNav()
+
+    const sectionLinks = Array.from(nav.querySelectorAll<HTMLAnchorElement>("[data-section]"))
+      .filter(link => link.dataset.section)
+    const sectionIds = Array.from(new Set(sectionLinks.map(link => link.dataset.section!)))
+    const sections = sectionIds
+      .map(id => document.getElementById(id))
+      .filter((element): element is HTMLElement => Boolean(element))
+
+    const setSectionState = (sectionId: string | null) => {
+      nav.querySelectorAll<HTMLElement>("[data-section]").forEach(link => {
+        link.classList.toggle("is-section-active", link.dataset.section === sectionId)
+      })
+      const logo = nav.querySelector<HTMLElement>("a.logo-link")
+      logo?.classList.toggle("is-section-active", sectionId === null)
+    }
+
+    if (sections.length > 0) {
+      const visibleSections = new Map<string, number>()
+      const sectionObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          visibleSections.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0)
+        })
+        const best = [...visibleSections.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .find(([, ratio]) => ratio > 0)
+        setSectionState(best?.[0] ?? null)
+      }, {
+        rootMargin: "-28% 0px -56% 0px",
+        threshold: [0, 0.1, 0.25, 0.5, 0.75],
+      })
+      sections.forEach(section => sectionObserver.observe(section))
+      signal.addEventListener("abort", () => sectionObserver.disconnect(), { once: true })
+    }
 
     let lastY = window.scrollY
     let ticking = false
