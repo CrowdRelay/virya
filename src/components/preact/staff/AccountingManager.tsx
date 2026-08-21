@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { safeFormatDate } from "../../../lib/safeDateFormat"
 import BackendLoader from "./BackendLoader"
 import { staffApi, type StaffApiError } from "./staffApi"
-import { staffSecondaryButton } from "./staffButtons"
+import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
 import StaffLogoutButton from "./StaffLogoutButton"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
@@ -269,7 +269,7 @@ export default function AccountingManager() {
       <h1 class="mt-2 text-3xl font-black text-white">Księgowość biletów</h1>
       <form class="mt-6 space-y-4" onSubmit={login}>
         <label class="block text-sm font-semibold text-zinc-200">Hasło panelu<input ref={passwordRef} value={password} onInput={event => setPassword(event.currentTarget.value)} type="password" autocomplete="current-password" class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" /></label>
-        <button disabled={busy} class="w-full rounded-xl bg-amber-300 px-4 py-3 font-black text-zinc-950 disabled:opacity-50">{busy ? "Loguję…" : "Wejdź"}</button>
+        <button disabled={busy} class={`${staffAccentButton} w-full`}>{busy ? "Loguję…" : "Wejdź"}</button>
       </form>
       {message && <p class="mt-4 text-sm text-rose-300" role="alert">{message}</p>}
     </section>
@@ -304,7 +304,7 @@ export default function AccountingManager() {
 
         <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5">
           <div class="flex flex-wrap items-start justify-between gap-4"><div><h2 class="text-xl font-black text-white">Dokument miesięczny</h2><p class="mt-1 text-sm text-zinc-400">{date(preview.period_start)} – {date(preview.period_end)} · {preview.totals.sale_entry_count} płatności · {preview.totals.refund_entry_count} refundów</p></div><button onClick={() => setProfileOpen(value => !value)} class="text-sm font-bold text-amber-300 hover:text-amber-200">{profileOpen ? "Ukryj dane firmy" : "Dane firmy"}</button></div>
-          {preview.finalized_document ? <div class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-emerald-400/25 bg-emerald-400/10 p-4"><div><p class="font-black text-emerald-200">Zamknięty: {preview.finalized_document.document_number}</p><p class="mt-1 text-xs text-zinc-400">Snapshot z {dateTime(preview.finalized_document.finalized_at)}</p></div><a class="rounded-xl bg-emerald-300 px-4 py-3 font-black text-zinc-950" href={`/api/staff/accounting/documents/${preview.finalized_document.id}/csv`}>Pobierz CSV do Saldeo</a></div> : <div class="mt-5 grid gap-3 md:grid-cols-[1fr_auto]"><label class="text-sm font-semibold text-zinc-200">Numer dokumentu<input value={documentNumber} onInput={event => setDocumentNumber(event.currentTarget.value)} maxlength={100} class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" /></label><button disabled={busy || loadedMonth !== month || (preview.sales.length === 0 && preview.adjustments.length === 0)} onClick={() => void finalize()} class="self-end rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40">Zamknij miesiąc</button></div>}
+          {preview.finalized_document ? <div class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-emerald-400/25 bg-emerald-400/10 p-4"><div><p class="font-black text-emerald-200">Zamknięty: {preview.finalized_document.document_number}</p><p class="mt-1 text-xs text-zinc-400">Snapshot z {dateTime(preview.finalized_document.finalized_at)}</p></div><a class="rounded-xl bg-emerald-300 px-4 py-3 font-black text-zinc-950" href={`/api/staff/accounting/documents/${preview.finalized_document.id}/csv`}>Pobierz CSV do Saldeo</a></div> : <div class="mt-5 grid gap-3 md:grid-cols-[1fr_auto]"><label class="text-sm font-semibold text-zinc-200">Numer dokumentu<input value={documentNumber} onInput={event => setDocumentNumber(event.currentTarget.value)} maxlength={100} class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" /></label><button disabled={busy || loadedMonth !== month || (preview.sales.length === 0 && preview.adjustments.length === 0)} onClick={() => void finalize()} class={`${staffAccentButton} self-end`}>Zamknij miesiąc</button></div>}
         </section>
 
         {profileOpen && profile && <ProfileForm profile={profile} setProfile={setProfile} onSubmit={saveProfile} busy={busy} />}

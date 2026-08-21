@@ -1,5 +1,6 @@
 import { useMemo, useState } from "preact/hooks"
 import { staffApi } from "./staffApi"
+import { staffAccentButton, staffAccentChip } from "./staffButtons"
 
 type Pool = {
   activeReleaseLatarnicy: number
@@ -191,7 +192,7 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
         <button type="button" disabled={disabled || busy || !title.trim() || !sku} onClick={() => void create(false)} class="rounded-xl border border-white/15 px-4 py-3 text-xs font-black text-zinc-200 disabled:opacity-40">ZAPISZ SZKIC</button>
         <button type="button" disabled={disabled || busy || !title.trim() || !sku || launchBlocked} onClick={() => {
           if (window.confirm(`Uruchomić kampanię dla ${pool.activeReleaseLatarnicy} aktywnych Latarników i zarezerwować ${pool.activeReleaseLatarnicy} szt. ${sku}?`)) void create(true)
-        }} class="rounded-xl bg-amber-300 px-5 py-3 text-xs font-black text-zinc-950 disabled:opacity-40">UTWÓRZ I URUCHOM</button>
+        }} class={staffAccentButton}>UTWÓRZ I URUCHOM</button>
       </div>
       {launchBlocked ? (
         <p class="mt-3 text-xs leading-5 text-amber-200/80">
@@ -227,7 +228,7 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
                   { action: "launch", campaignId: campaign.id },
                   "Kampania uruchomiona i maile zakolejkowane.",
                   `Uruchomić „${campaign.title}” dla aktualnej pełnej puli Latarników?`,
-                )} class="mt-4 rounded-lg bg-amber-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-40">URUCHOM</button>
+                )} class={`${staffAccentChip} mt-4`}>URUCHOM</button>
               ) : campaign.status === "open" ? (
                 <button type="button" disabled={disabled || busy || campaign.confirmedCount + campaign.preparedCount > 0} onClick={() => void action(
                   { action: "close", campaignId: campaign.id },
@@ -261,7 +262,7 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
                       </div>
                       <div class="mt-3 flex flex-wrap gap-2">
                         {person.status === "confirmed" && <button disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "prepared" }, `${person.displayName}: przygotowana.`)} class="rounded-lg bg-white px-2 py-1.5 text-[10px] font-black text-zinc-950">PRZYGOTOWANA</button>}
-                        {["confirmed", "prepared"].includes(person.status) && <button disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "sent" }, `${person.displayName}: wysłana; zapisano promotional_issue.`)} class="rounded-lg bg-amber-300 px-2 py-1.5 text-[10px] font-black text-zinc-950">WYSŁANA</button>}
+                        {["confirmed", "prepared"].includes(person.status) && <button disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "sent" }, `${person.displayName}: wysłana; zapisano promotional_issue.`)} class={staffAccentChip}>WYSŁANA</button>}
                         {person.status === "sent" && <button disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "delivered" }, `${person.displayName}: dostarczona.`)} class="rounded-lg bg-emerald-300 px-2 py-1.5 text-[10px] font-black text-zinc-950">DOSTARCZONA</button>}
                         {["notified", "confirmed", "prepared"].includes(person.status) && <button disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "cancelled" }, `${person.displayName}: anulowana i zwolniono sztukę.`, `Anulować egzemplarz dla ${person.displayName}?`)} class="rounded-lg border border-red-400/30 px-2 py-1.5 text-[10px] font-black text-red-300">ANULUJ</button>}
                       </div>

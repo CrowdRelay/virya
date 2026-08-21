@@ -14,7 +14,7 @@ import {
   StatusCard,
 } from "./AdminConsoleTabs"
 import LazyPanel, { type Panel, warmPanel } from "./LazyPanel"
-import { staffLogoutButton, staffSecondaryButton } from "./staffButtons"
+import { staffAccentButton, staffLogoutButton, staffSecondaryButton } from "./staffButtons"
 
 // The three heaviest sections are fetched the first time they are opened.
 // Keeping them out of the console's first script is what makes "Dzisiaj"
@@ -191,7 +191,7 @@ export default function AdminConsole() {
           </label>
           <button
             disabled={busy || !password}
-            class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50"
+            class={staffAccentButton}
           >
             {busy ? "Loguję…" : "Wejdź do panelu"}
           </button>

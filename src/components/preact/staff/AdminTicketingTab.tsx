@@ -15,7 +15,7 @@ import {
   formatDate,
   money,
 } from "./adminConsoleShared"
-import { staffSecondaryButton } from "./staffButtons"
+import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
 
 function validateTicketForm(form: TicketForm): string | null {
   const currency = form.currency.trim().toUpperCase()
@@ -449,7 +449,7 @@ export function TicketingTab({ events }: { events: EventItem[] }) {
 
             <button
               disabled={busy}
-              class="mt-5 min-h-12 w-full rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50"
+              class={`${staffAccentButton} mt-5 w-full`}
             >
               {busy ? "Zapisuję…" : "Zapisz konfigurację sprzedaży"}
             </button>

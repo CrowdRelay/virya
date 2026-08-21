@@ -4,7 +4,7 @@ import BackendLoader from "./BackendLoader"
 import StaffLatarnikNetworkManager, { type BeaconNetworkOverview } from "./StaffLatarnikNetworkManager"
 import StaffLatarnikReleaseManager, { type BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
 import { staffApi, type StaffApiError } from "./staffApi"
-import { staffSecondaryButton } from "./staffButtons"
+import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 
@@ -206,7 +206,7 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
               onInput={event => setPassword(event.currentTarget.value)}
               class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" />
           </label>
-          <button disabled={busy || !password} class="rounded-xl bg-amber-300 px-5 py-3 font-black text-zinc-950 disabled:opacity-50">
+          <button disabled={busy || !password} class={staffAccentButton}>
             {busy ? "LOGUJĘ…" : "ZALOGUJ"}
           </button>
         </form>
@@ -270,7 +270,7 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
             </label>
           </div>
           <button disabled={busy || !testName.trim() || !testEmail.trim()}
-            class="rounded-xl bg-amber-300 px-5 py-3 text-xs font-black text-zinc-950 disabled:opacity-40 sm:col-span-3">
+            class={`${staffAccentButton} sm:col-span-3`}>
             {busy ? "TWORZĘ…" : "UTWÓRZ I WYBIJ ZAPROSZENIE"}
           </button>
         </form>

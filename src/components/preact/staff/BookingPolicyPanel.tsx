@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks"
 import { staffApi, type StaffApiError } from "./staffApi"
+import { staffAccentButton } from "./staffButtons"
 
 const REQUEST_TIMEOUT_MS = 10_000
 
@@ -138,7 +139,7 @@ export default function BookingPolicyPanel({ summary, onSaved }: Props) {
           {error && <p role="alert" class="rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{error}</p>}
           {saved && <p role="status" class="rounded-xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-sm text-emerald-100">{saved}</p>}
           <div>
-            <button type="button" disabled={busy} onClick={() => void save()} class="min-h-11 rounded-xl bg-amber-300 px-5 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">
+            <button type="button" disabled={busy} onClick={() => void save()} class={staffAccentButton}>
               {busy ? "ZAPISUJĘ…" : "ZAPISZ POLITYKĘ BOOKINGOWĄ"}
             </button>
           </div>
