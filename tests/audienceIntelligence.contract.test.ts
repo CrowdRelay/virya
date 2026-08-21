@@ -15,7 +15,9 @@ const fanTags = read("src/pages/api/staff/admin/audience/fans/[id]/tags/index.ts
 const campaigns = read("src/pages/api/staff/admin/communications/campaigns/index.ts")
 
 test("control center exposes Audience Intelligence without exposing admin credentials", () => {
-  for (const marker of ['key: "audience"', '<AudienceIntelligence />', 'Fan 360 i komunikacja']) {
+  // The panel is code-split, so the console references it by its lazy import
+  // rather than by an eager element.
+  for (const marker of ['key: "audience"', 'import("./AudienceIntelligence")', 'Fan 360 i komunikacja']) {
     assert.ok(consoleUi.includes(marker), marker)
   }
   assert.doesNotMatch(audienceUi, /CROWDRELAY_(ADMIN|COMMERCE)_API_KEY/)

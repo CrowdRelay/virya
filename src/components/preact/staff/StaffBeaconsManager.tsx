@@ -54,8 +54,10 @@ const KINDS: Array<[string, string]> = [
   ["community", "Społeczność"],
 ]
 
-export default function StaffBeaconsManager() {
-  const [state, setState] = useState<LoadState>("checking")
+export default function StaffBeaconsManager({ embedded = false }: { embedded?: boolean } = {}) {
+  // Inside the staff console the session is already established, so the panel
+  // skips its own status round trip and its own login form.
+  const [state, setState] = useState<LoadState>(embedded ? "ready" : "checking")
   const [password, setPassword] = useState("")
   const [overview, setOverview] = useState<Overview | null>(null)
   const [loading, setLoading] = useState(false)
@@ -100,6 +102,13 @@ export default function StaffBeaconsManager() {
 
   useEffect(() => {
     const controller = new AbortController()
+    if (embedded) {
+      void refresh()
+      return () => {
+        controller.abort()
+        requestRef.current?.abort()
+      }
+    }
     void api<{ authenticated: boolean; configured: boolean }>("/api/staff/qr/status", {
       signal: controller.signal,
     })
@@ -214,7 +223,9 @@ export default function StaffBeaconsManager() {
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">CrowdRelay / latarnicy</p>
-            <h1 class="mt-2 text-3xl font-black text-white sm:text-4xl">Sieć Latarników</h1>
+            {embedded
+              ? <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">Sieć Latarników</h2>
+              : <h1 class="mt-2 text-3xl font-black text-white sm:text-4xl">Sieć Latarników</h1>}
             <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
               Promotorzy, kluby, media i partnerzy sceny. Każdy widzi popyt w swoim
               mieście i materiały prasowe pod ręką.

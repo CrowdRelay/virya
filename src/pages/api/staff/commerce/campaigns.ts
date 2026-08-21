@@ -22,8 +22,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
   let body: unknown
   try { body = await readSmallJson(request) } catch { return areaJson({ error: "Invalid request" }, 400) }
+  const record = body && typeof body === "object" ? body as Record<string, unknown> : {}
+  const mutation = [record.kind, record.action]
+    .filter((value): value is string => typeof value === "string" && /^[a-z_]{1,40}$/.test(value))
+    .join("/") || "reward-campaign"
   try {
-    const record = body && typeof body === "object" ? body as Record<string, unknown> : {}
     if (record.kind === "beacon_network") {
       const action = typeof record.action === "string" ? record.action : ""
       const idempotencyKey = forwardedMutationKey(request, `staff-latarnik-network-${action || "mutation"}`)
@@ -128,7 +131,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         const upstream = await stage("invite", () => staffApiRequest<Record<string, unknown>>(`admin/autopilot/beacons/${beaconId}/signal-invites`, {
-          method: "POST", body: { ttl_days: 30, radius_km: 100, locale: "pl" },
+          method: "POST", body: { ttlDays: 30, radiusKm: 100, locale: "pl" },
         }))
         const displayName = typeof upstream.displayName === "string" ? upstream.displayName.trim() : ""
         const inviteUrl = typeof upstream.inviteUrl === "string" ? upstream.inviteUrl.trim() : ""
@@ -199,6 +202,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     if (error instanceof StageError) {
       return areaJson({ error: error.message }, error.httpStatus)
     }
-    return areaJson({ error: "Could not update campaign" }, status(error))
+    // "Could not update campaign" told the operator nothing and told us less.
+    // The upstream status separates a rejected payload from a capability that
+    // is switched off, and CrowdRelay's problem detail is already sanitised.
+    const upstream = error instanceof StaffQrUpstreamError
+      ? `CrowdRelay ${error.status}${error.detail ? ` — ${error.detail.slice(0, 160)}` : ""}`
+      : "no response from CrowdRelay"
+    return areaJson({ error: `Could not update campaign (${mutation}: ${upstream})` }, status(error))
   }
 }

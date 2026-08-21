@@ -282,6 +282,22 @@
     border-color: var(--virya-signal);
   }
 
+  /* Staff panels write `class="input"`; keep the one definition here instead
+     of re-declaring it inside every panel page. */
+  .input {
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    background: #09090b;
+    padding: 0.75rem 1rem;
+    color: white;
+    outline: none;
+  }
+
+  .input:focus {
+    border-color: var(--virya-signal);
+  }
+
   .virya-button {
     display: inline-flex;
     min-height: 3rem;

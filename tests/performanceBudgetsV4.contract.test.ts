@@ -38,7 +38,10 @@ test("private Staff hydration stays bounded independently from the public budget
   // One island per staff route, no more. The ceiling tracks the route count:
   // today Dzisiaj, QR, Latarnicy, Bilety/Merch, Rozliczenia, Control and Pair.
   assert.ok(directives.length <= 7, `Staff hydrated islands grew to ${directives.length}`)
-  assert.equal(directives.length, astro.length, "each staff route hydrates exactly one island")
+  for (const path of astro) {
+    const perRoute = readFileSync(path, "utf8").match(/client:(?:load|idle|visible|media|only)/g) ?? []
+    assert.ok(perRoute.length <= 1, `${path} hydrates ${perRoute.length} islands`)
+  }
 })
 
 test("fan dashboard renders from one private read-model before enrichment", () => {

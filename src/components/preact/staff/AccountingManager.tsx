@@ -3,6 +3,7 @@ import { safeFormatDate } from "../../../lib/safeDateFormat"
 import BackendLoader from "./BackendLoader"
 import { staffApi, type StaffApiError } from "./staffApi"
 import { staffSecondaryButton } from "./staffButtons"
+import StaffLogoutButton from "./StaffLogoutButton"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type ApiError = StaffApiError
@@ -279,7 +280,7 @@ export default function AccountingManager() {
       {loading && <BackendLoader overlay label="Pobieram sprzedaż, Stripe i księgowość…" />}
       <header class="grid gap-5 border-b border-zinc-800 pb-6 lg:grid-cols-[1fr_auto] lg:items-end">
         <div><p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">WB Soft · sprzedaż Virya</p><h1 class="mt-2 text-3xl font-black text-white sm:text-4xl">WEW i kontrola Stripe</h1><p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">Wybierz miesiąc, sprawdź brutto/netto/VAT, wpisz numer dokumentu i zamknij niezmienny snapshot. Prowizja Stripe jest kosztem, nie pomniejsza przychodu.</p></div>
-        <div class="flex flex-wrap gap-2"><input aria-label="Miesiąc" type="month" value={month} onInput={event => setMonth(event.currentTarget.value)} class="rounded-xl border border-white/10 bg-black px-4 py-3 text-white" /><button disabled={busy || loading} onClick={() => void loadMonth(month)} class={staffSecondaryButton}>{loading ? "Liczenie…" : "Przelicz"}</button></div>
+        <div class="flex flex-wrap gap-2"><input aria-label="Miesiąc" type="month" value={month} onInput={event => setMonth(event.currentTarget.value)} class="rounded-xl border border-white/10 bg-black px-4 py-3 text-white" /><button disabled={busy || loading} onClick={() => void loadMonth(month)} class={staffSecondaryButton}>{loading ? "Liczenie…" : "Przelicz"}</button><StaffLogoutButton disabled={busy} /></div>
       </header>
 
       {message && <div role="status" class="rounded-lg border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">{message}</div>}

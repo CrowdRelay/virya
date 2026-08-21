@@ -5,6 +5,7 @@ import type { BeaconNetworkOverview } from "./StaffLatarnikNetworkManager"
 import type { BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
 import { staffApi, type StaffApiError } from "./staffApi"
 import { staffSecondaryButton } from "./staffButtons"
+import StaffLogoutButton from "./StaffLogoutButton"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type EligibilityKind = "all_active" | "event_interest" | "synesthesia_completion"
@@ -560,10 +561,13 @@ export default function StaffCommerceManager() {
               Jeden stan magazynowy dla strony, Virya Signal, sprzedaży Stripe i nagród. Operacje są idempotentne, a nowe funkcje mają osobne kill switche.
             </p>
           </div>
-          <button type="button" disabled={busy || loading} onClick={() => void refresh()}
-            class={staffSecondaryButton}>
-            {loading ? "ODŚWIEŻAM…" : "ODŚWIEŻ"}
-          </button>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" disabled={busy || loading} onClick={() => void refresh()}
+              class={staffSecondaryButton}>
+              {loading ? "ODŚWIEŻAM…" : "ODŚWIEŻ"}
+            </button>
+            <StaffLogoutButton disabled={busy} />
+          </div>
         </div>
         {overview?.degraded.active ? (
           <p class="mt-5 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
