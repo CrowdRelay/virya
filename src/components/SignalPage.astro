@@ -107,14 +107,14 @@ const schema = {
           </div>
 
           <aside class="border-l border-amber-400/45 pl-5 sm:pl-7">
-            <p class="virya-eyebrow text-zinc-500">{lang === "pl" ? "W skrócie" : "In short"}</p>
+            <p class="virya-eyebrow text-zinc-400">{lang === "pl" ? "W skrócie" : "In short"}</p>
             <dl class="mt-5 divide-y divide-zinc-800/70 border-y border-zinc-800/70">
               {(lang === "pl"
                 ? [["Miasto", "koncerty i alerty"], ["Konto", "bez hasła"], ["Dane", "bez sprzedaży reklamodawcom"]]
                 : [["City", "shows and alerts"], ["Account", "no password"], ["Data", "never sold to advertisers"]]
               ).map(([label, value]) => (
                 <div class="grid grid-cols-[5rem_1fr] gap-4 py-3 text-sm">
-                  <dt class="font-bold uppercase tracking-[.08em] text-zinc-500">{label}</dt>
+                  <dt class="font-bold uppercase tracking-[.08em] text-zinc-400">{label}</dt>
                   <dd class="text-zinc-200">{value}</dd>
                 </div>
               ))}

@@ -42,6 +42,13 @@ expect(
 )
 
 expect(
+  ![signalPage, ecosystemRail].some(source =>
+    source.includes("text-zinc-500") || source.includes("text-zinc-600")
+  ),
+  "Public Signal and ecosystem secondary copy must stay above the zinc-500 contrast floor on near-black surfaces.",
+)
+
+expect(
   showcase.includes('preload="none"') &&
     showcase.includes("prewarmShowcase") &&
     showcase.includes("saveData") &&
