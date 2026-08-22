@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro"
-import { areaJson } from "../../../../server/areaHttp"
+import { areaJson, upstreamTiming } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, isStaffApiConfigured, staffApiRequest, type StaffQrOverview } from "../../../../server/staffQrApi"
 
@@ -37,6 +37,8 @@ export const GET: APIRoute = async ({ cookies }) => {
   // Staff is an action surface, not an observability dashboard. Keep this read
   // model limited to data a band member can act on. Health/readiness/push queue
   // diagnostics have dedicated ops endpoints and belong in Control Plane.
+  const startedAt = performance.now()
+  const upstreamStartedAt = performance.now()
   const results = await Promise.allSettled([
     staffApiRequest<StaffQrOverview>("admin/event-qr/overview", {
       timeoutMs: 8_000,
@@ -52,6 +54,8 @@ export const GET: APIRoute = async ({ cookies }) => {
       cacheMs: 60_000,
     }),
   ] as const)
+
+  const upstreamMs = performance.now() - upstreamStartedAt
 
   const names: SourceName[] = ["operations", "events", "cities"]
   const unavailableSources = results.flatMap((result, index) =>
@@ -80,14 +84,18 @@ export const GET: APIRoute = async ({ cookies }) => {
   const events = valueOr(eventsResult, { events: [] })
   const cities = valueOr(citiesResult, { items: [] })
 
-  return areaJson({
-    operations,
-    publicEvents: events.events,
-    cities: cities.items,
-    degraded: {
-      active: unavailableSources.length > 0,
-      unavailableSources,
+  return areaJson(
+    {
+      operations,
+      publicEvents: events.events,
+      cities: cities.items,
+      degraded: {
+        active: unavailableSources.length > 0,
+        unavailableSources,
+      },
+      generatedAt: new Date().toISOString(),
     },
-    generatedAt: new Date().toISOString(),
-  })
+    200,
+    upstreamTiming(startedAt, upstreamMs),
+  )
 }

@@ -27,15 +27,25 @@ export const getAreaWalletId = (cookies: AreaCookieJar) => {
   return id
 }
 
-export const areaJson = (body: unknown, status = 200) =>
+export const areaJson = (body: unknown, status = 200, serverTiming?: string) =>
   new Response(JSON.stringify(body), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
+      ...(serverTiming ? { "Server-Timing": serverTiming } : {}),
     },
   })
+
+/**
+ * Split a route's wall time into the part spent waiting on CrowdRelay and the
+ * part spent in this function, so "the staff panel is slow" is answerable from
+ * DevTools instead of from guesswork. CrowdRelay already reports its own
+ * `app;dur=` on every response; this is the hop in front of it.
+ */
+export const upstreamTiming = (startedAt: number, upstreamMs: number) =>
+  `upstream;dur=${Math.round(upstreamMs)}, bff;dur=${Math.round(performance.now() - startedAt - upstreamMs)}`
 
 export const isSameOriginRequest = (request: Request) => {
   const origin = request.headers.get("origin")
