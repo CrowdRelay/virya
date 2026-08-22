@@ -2,7 +2,7 @@ import type { APIRoute } from "astro"
 import { areaJson, isSameOriginRequest, readSmallJson } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
 import { StaffQrUpstreamError, staffApiRequest } from "../../../../server/staffQrApi"
-import { forwardedMutationKey } from "../../../../server/mutationSafety"
+import { forwardedMutationKey, mutationPrefix } from "../../../../server/mutationSafety"
 
 export const prerender = false
 
@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     if (record.kind === "beacon_network") {
       const action = typeof record.action === "string" ? record.action : ""
-      const idempotencyKey = forwardedMutationKey(request, `staff-latarnik-network-${action || "mutation"}`)
+      const idempotencyKey = forwardedMutationKey(request, mutationPrefix("staff-latarnik-network", action))
       if (action === "discover") {
         const countryCode = typeof record.countryCode === "string" ? record.countryCode.trim().toUpperCase() : "PL"
         const targetCount = Number(record.targetCount)
@@ -175,7 +175,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       const action = typeof record.action === "string" ? record.action : ""
       const campaignId = typeof record.campaignId === "string" ? record.campaignId : ""
       const beaconId = typeof record.beaconId === "string" ? record.beaconId : ""
-      const idempotencyKey = forwardedMutationKey(request, `staff-latarnik-${action || "mutation"}`)
+      const idempotencyKey = forwardedMutationKey(request, mutationPrefix("staff-latarnik", action))
       if (action === "create") {
         const payload = {
           slug: record.slug,
@@ -207,7 +207,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // is switched off, and CrowdRelay's problem detail is already sanitised.
     const upstream = error instanceof StaffQrUpstreamError
       ? `CrowdRelay ${error.status}${error.detail ? ` — ${error.detail.slice(0, 160)}` : ""}`
-      : "no response from CrowdRelay"
+      // Every transport failure already arrives as StaffQrUpstreamError, so this
+      // branch is a local fault before the call. Say so instead of blaming the
+      // upstream we never reached.
+      : `local ${String((error as Error)?.message ?? "unknown").replace(/[^\x20-\x7e]/g, " ").slice(0, 160)}`
     return areaJson({ error: `Could not update campaign (${mutation}: ${upstream})` }, status(error))
   }
 }
