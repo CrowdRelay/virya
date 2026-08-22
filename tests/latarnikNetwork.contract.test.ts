@@ -26,6 +26,15 @@ test("public discovery remains research until explicit reviewed consent evidence
   assert.match(campaigns, /parsed\.protocol === "https:"/)
 })
 
+test("a manually minted Latarnik can be given the home city its radar needs", () => {
+  const beacons = read("src/components/preact/staff/StaffBeaconsManager.tsx")
+  assert.match(beacons, /public\/cities\?limit=100/)
+  assert.match(beacons, /citySlug: testCity/)
+  assert.match(campaigns, /city_slug: citySlug/)
+  // A city id and a city slug in one request would silently pick a winner.
+  assert.match(campaigns, /citySlug !== "" && \(cityId !== null/)
+})
+
 test("staff can request Polish discovery and invite only approved selected candidates", () => {
   assert.match(panel, /SZUKAJ LATARNIKÓW PL/)
   assert.match(panel, /countryCode: "PL"/)

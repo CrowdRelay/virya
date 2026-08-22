@@ -42,6 +42,13 @@ const EMPTY_RELEASES: BeaconReleaseOverview = {
   recipients: [],
 }
 
+type City = { slug: string; name: string }
+
+// The public city list is the only city source a browser surface may read: it
+// carries slugs and no ids, and CrowdRelay resolves the slug when the beacon is
+// written. Reading it straight from CrowdRelay keeps the BFF route budget free.
+const CITIES_URL = `${(import.meta.env.PUBLIC_CROWDRELAY_API_URL as string | undefined)?.replace(/\/+$/, "") || "https://signal-api.virya.music/v1"}/public/cities?limit=100`
+
 const KINDS: Array<[string, string]> = [
   ["promoter", "Promotor"],
   ["venue", "Klub"],
@@ -66,6 +73,8 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
   const [testName, setTestName] = useState("")
   const [testEmail, setTestEmail] = useState("")
   const [testKind, setTestKind] = useState("promoter")
+  const [testCity, setTestCity] = useState("")
+  const [cities, setCities] = useState<City[]>([])
   const [inviteUrl, setInviteUrl] = useState("")
   const [copied, setCopied] = useState(false)
   const passwordRef = useRef<HTMLInputElement | null>(null)
@@ -99,6 +108,22 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
       if (!controller.signal.aborted) setLoading(false)
     }
   }
+
+  // Cities only gate the optional home city on a manual beacon, so a failed
+  // read leaves the picker empty instead of blocking the panel.
+  useEffect(() => {
+    const controller = new AbortController()
+    void fetch(CITIES_URL, { signal: controller.signal, headers: { Accept: "application/json" } })
+      .then(response => (response.ok ? response.json() : null))
+      .then(payload => {
+        const items = Array.isArray(payload?.items) ? payload.items : []
+        setCities(items
+          .filter((city: City) => typeof city?.slug === "string" && typeof city?.name === "string")
+          .map((city: City) => ({ slug: city.slug, name: city.name })))
+      })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -166,6 +191,9 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
             displayName: testName.trim(),
             contactEmail: testEmail.trim(),
             beaconKind: testKind,
+            // Distances are measured from the home city; without one the
+            // Latarnik's local radar stays empty whatever radius they pick.
+            ...(testCity ? { citySlug: testCity } : {}),
           },
         },
       )
@@ -247,7 +275,7 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
           sprawdzenia, jak sieć wygląda z drugiej strony. Dla obcych kontaktów
           bramka zgody obowiązuje bez wyjątku.
         </p>
-        <form onSubmit={mintTestBeacon} class="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <form onSubmit={mintTestBeacon} class="mt-5 grid gap-3 sm:grid-cols-2 sm:items-end">
           <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
             Nazwa
             <input value={testName} onInput={event => setTestName(event.currentTarget.value)}
@@ -260,17 +288,24 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
               placeholder="ty@example.com"
               class="min-h-11 rounded-xl border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-amber-300" />
           </label>
-          <div class="grid gap-1">
-            <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
-              Rodzaj
-              <select value={testKind} onChange={event => setTestKind(event.currentTarget.value)}
-                class="min-h-11 rounded-xl border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-amber-300">
-                {KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-              </select>
-            </label>
-          </div>
+          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+            Rodzaj
+            <select value={testKind} onChange={event => setTestKind(event.currentTarget.value)}
+              class="min-h-11 rounded-xl border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-amber-300">
+              {KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </label>
+          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+            Miasto
+            <select value={testCity} onChange={event => setTestCity(event.currentTarget.value)}
+              disabled={cities.length === 0}
+              class="min-h-11 rounded-xl border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-amber-300 disabled:opacity-50">
+              <option value="">{cities.length === 0 ? "Lista miast niedostępna" : "Bez miasta (radar nie działa)"}</option>
+              {cities.map(city => <option key={city.slug} value={city.slug}>{city.name}</option>)}
+            </select>
+          </label>
           <button disabled={busy || !testName.trim() || !testEmail.trim()}
-            class={`${staffAccentButton} sm:col-span-3`}>
+            class={`${staffAccentButton} sm:col-span-2`}>
             {busy ? "TWORZĘ…" : "UTWÓRZ I WYBIJ ZAPROSZENIE"}
           </button>
         </form>

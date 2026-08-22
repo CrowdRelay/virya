@@ -95,10 +95,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         const contactEmail = typeof record.contactEmail === "string" ? record.contactEmail.trim() : ""
         const beaconKind = typeof record.beaconKind === "string" ? record.beaconKind : "promoter"
         const cityId = typeof record.cityId === "string" && record.cityId ? record.cityId : null
+        // The panel picks a home city from the public city list, which is keyed
+        // by slug; CrowdRelay resolves it. Without a city the Latarnik's local
+        // radar returns nothing whatever radius they set.
+        const citySlug = typeof record.citySlug === "string" ? record.citySlug.trim() : ""
         if (!displayNameInput || displayNameInput.length > 200
           || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) || contactEmail.length > 320
           || !/^[a-z_]{3,32}$/.test(beaconKind)
-          || (cityId !== null && !/^[0-9a-f-]{36}$/i.test(cityId))) {
+          || (cityId !== null && !/^[0-9a-f-]{36}$/i.test(cityId))
+          || (citySlug !== "" && (cityId !== null || !/^[a-z0-9-]{2,96}$/.test(citySlug)))) {
           return areaJson({ error: "Invalid test beacon" }, 400)
         }
         // Report which leg failed and what CrowdRelay said. The shared catch
@@ -115,7 +120,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         const created = await stage("beacon create", () => staffApiRequest<Record<string, unknown>>("admin/autopilot/beacons", {
           method: "POST", idempotencyKey,
           body: {
-            beacon_id: null, city_id: cityId, beacon_kind: beaconKind,
+            beacon_id: null, city_id: cityId, ...(citySlug ? { city_slug: citySlug } : {}), beacon_kind: beaconKind,
             display_name: displayNameInput, contact_email: contactEmail,
             destination_url: null, source_url: null,
             active: true, verified: true, accepts_outreach: true, do_not_contact: false,

@@ -88,10 +88,18 @@ const description = isPl
               <p class="text-[10px] font-black uppercase tracking-[0.22em] text-amber-400">{isPl ? "Twój lokalny radar" : "Your local radar"}</p>
               <h2 class="mt-2 text-3xl font-black"><span data-member-name></span></h2>
               <p class="mt-2 text-sm text-zinc-500"><span data-member-kind></span><span data-member-city-wrap class="hidden"> · <span data-member-city></span></span></p>
-              <div class="mt-7 flex flex-wrap gap-3">
-                <label class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  {isPl ? "Promień" : "Radius"}
-                  <select data-radius class="ml-2 min-h-10 border border-zinc-700 bg-zinc-950 px-3 text-zinc-100">
+              {/* Distance is measured from the beacon's home city. Without one
+                  the radius is inert, so say that instead of letting the picker
+                  imply a radar that cannot run. */}
+              <p data-no-city class="mt-4 hidden border border-amber-400/40 bg-amber-400/[0.06] px-4 py-3 text-sm leading-6 text-amber-200">
+                {isPl
+                  ? "Nie masz jeszcze przypisanego miasta, więc promień nic nie filtruje i lista koncertów pozostaje pusta. Napisz do nas, dopiszemy Twoje miasto."
+                  : "No home city is assigned yet, so the radius filters nothing and the show list stays empty. Write to us and we will add your city."}
+              </p>
+              <div class="mt-7 grid gap-3 sm:grid-cols-2">
+                <label class="grid gap-2" data-radius-field>
+                  <span class="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">{isPl ? "Promień" : "Radius"}</span>
+                  <select data-radius class="min-h-11 w-full border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100">
                     <option value="25">25 km</option>
                     <option value="50">50 km</option>
                     <option value="100">100 km</option>
@@ -99,28 +107,33 @@ const description = isPl
                     <option value="300">300 km</option>
                   </select>
                 </label>
-                <label class="inline-flex min-h-10 items-center gap-2 border border-zinc-800 px-3 text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  <input data-nearby type="checkbox" class="accent-amber-400" />
-                  {isPl ? "Powiadomienia lokalne" : "Local alerts"}
-                </label>
-                <label class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  {isPl ? "Język" : "Language"}
-                  <select data-locale class="ml-2 min-h-10 border border-zinc-700 bg-zinc-950 px-3 text-zinc-100">
+                <label class="grid gap-2">
+                  <span class="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">{isPl ? "Język" : "Language"}</span>
+                  <select data-locale class="min-h-11 w-full border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100">
                     <option value="pl">PL</option>
                     <option value="en">EN</option>
                   </select>
                 </label>
               </div>
-              <div class="mt-4 flex flex-wrap gap-2" data-topics>
+              {/* Same settings-list geometry as the Signal app: one full-width
+                  row per choice, label leading, switch trailing. The old chip
+                  grid wrapped into ragged pairs and read as filters, not as
+                  choices the Latarnik owns. */}
+              <div class="mt-5 grid overflow-hidden border border-zinc-800 bg-zinc-950" data-topics>
                 {[
+                  ["nearby", isPl ? "Powiadomienia lokalne" : "Local alerts"],
                   ["shows", isPl ? "Koncerty" : "Shows"],
                   ["press_materials", isPl ? "Materiały prasowe" : "Press assets"],
                   ["releases", isPl ? "Premiery" : "Releases"],
                   ["interviews", isPl ? "Wywiady" : "Interviews"],
                   ["accreditation", isPl ? "Akredytacje" : "Accreditation"],
                 ].map(([value, label]) => (
-                  <label class="inline-flex min-h-9 items-center gap-2 border border-zinc-800 px-3 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    <input data-topic={value} type="checkbox" class="accent-amber-400" />{label}
+                  <label class="flex min-h-13 cursor-pointer items-center justify-between gap-4 border-b border-zinc-800 px-4 py-2.5 last:border-b-0 active:bg-white/[0.03]">
+                    <span class="min-w-0 text-sm text-zinc-300">{label}</span>
+                    {value === "nearby"
+                      ? <input data-nearby type="checkbox" class="peer sr-only" />
+                      : <input data-topic={value} type="checkbox" class="peer sr-only" />}
+                    <span class="relative h-7 w-12 shrink-0 rounded-full border border-zinc-700 bg-zinc-800 transition after:absolute after:left-[3px] after:top-1/2 after:-mt-[10px] after:h-5 after:w-5 after:rounded-full after:bg-zinc-500 after:transition peer-checked:border-amber-400 peer-checked:bg-amber-400/25 peer-checked:after:translate-x-[18px] peer-checked:after:bg-amber-400 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-amber-400 motion-reduce:transition-none motion-reduce:after:transition-none"></span>
                   </label>
                 ))}
               </div>
@@ -537,8 +550,15 @@ const description = isPl
       text("[data-member-name]", data.displayName)
       text("[data-member-kind]", String(data.beaconKind || "").replaceAll("_", " "))
       const cityWrap = root.querySelector("[data-member-city-wrap]")
-      if (data.city) { text("[data-member-city]", data.city); cityWrap?.classList.remove("hidden") }
+      const hasCity = Boolean(data.city)
+      if (hasCity) { text("[data-member-city]", data.city); cityWrap?.classList.remove("hidden") }
+      // CrowdRelay measures every distance from the beacon's home city and
+      // returns nothing at all when there is none. Mirror that here instead of
+      // offering a radius that silently cannot match anything.
+      root.querySelector("[data-no-city]")?.classList.toggle("hidden", hasCity)
+      root.querySelector("[data-radius-field]")?.classList.toggle("opacity-50", !hasCity)
       const radius = root.querySelector("[data-radius]")
+      if (radius instanceof HTMLSelectElement) radius.disabled = !hasCity
       if (radius instanceof HTMLSelectElement) {
         if (![...radius.options].some(option => Number(option.value) === data.preferences.radiusKm)) {
           radius.add(new Option(`${data.preferences.radiusKm} km`, String(data.preferences.radiusKm)))
@@ -560,7 +580,9 @@ const description = isPl
         if (!rows.length) {
           const empty = document.createElement("p")
           empty.className = "py-4 text-sm text-zinc-500"
-          empty.textContent = lang === "pl" ? "Na razie cisza w ustawionym promieniu." : "Nothing in your radius right now."
+          empty.textContent = !hasCity
+            ? (lang === "pl" ? "Radar ruszy, gdy przypiszemy Ci miasto." : "The radar starts once a home city is assigned to you.")
+            : lang === "pl" ? "Na razie cisza w ustawionym promieniu." : "Nothing in your radius right now."
           events.replaceChildren(empty)
         } else {
           events.replaceChildren(...rows.map(event => {
