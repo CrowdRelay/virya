@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { safeFormatDate } from "../../../lib/safeDateFormat"
 import BackendLoader from "./BackendLoader"
-import { staffApi, type StaffApiError } from "./staffApi"
+import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
 import StaffLogoutButton from "./StaffLogoutButton"
 
@@ -149,18 +149,24 @@ export default function AccountingManager() {
 
   useEffect(() => {
     const controller = new AbortController()
-    void api<{ authenticated: boolean; configured: boolean }>("/api/staff/qr/status", { signal: controller.signal })
-      .then(status => {
-        if (!status.configured) return setState("unconfigured")
-        if (!status.authenticated) {
-          setState("login")
-          queueMicrotask(() => passwordRef.current?.focus())
-          return
-        }
+    // One invocation: the month preview carries the session verdict with it.
+    // The invoice list follows only once the session is known to be good.
+    void bootstrapStaffPanel<Preview>(
+      `/api/staff/accounting/preview?month=${encodeURIComponent(month)}&currency=${currency}`,
+      { signal: controller.signal },
+    ).then(result => {
+      if (controller.signal.aborted) return
+      if (result.state === "ready" && result.data) {
         setState("ready")
-        void loadMonth(month)
-      })
-      .catch(() => setState("error"))
+        applyPreview(result.data, month)
+        void loadInvoices(month)
+        return
+      }
+      setState(result.state === "ready" ? "error" : result.state)
+      if (result.state === "login") {
+        queueMicrotask(() => passwordRef.current?.focus())
+      }
+    })
     return () => { controller.abort(); requestRef.current?.abort() }
   }, [])
 
@@ -174,6 +180,27 @@ export default function AccountingManager() {
       reconciles: complete && totals.gross_minor - totals.stripe_fee_minor === totals.stripe_net_minor,
     }
   }, [preview])
+
+  function applyPreview(nextPreview: Preview, nextMonth: string) {
+    setPreview(nextPreview)
+    setLoadedMonth(nextMonth)
+    setProfile(nextPreview.profile)
+    setDocumentNumber(
+      nextPreview.finalized_document?.document_number ?? nextPreview.suggested_document_number,
+    )
+  }
+
+  async function loadInvoices(nextMonth: string) {
+    try {
+      const result = await api<{ items: InvoiceRequest[] }>(
+        `/api/staff/accounting/invoice-requests?month=${encodeURIComponent(nextMonth)}&currency=${currency}`,
+      )
+      setInvoices(result.items)
+      setInvoiceListAvailable(true)
+    } catch {
+      setInvoiceListAvailable(false)
+    }
+  }
 
   async function loadMonth(nextMonth = month) {
     requestRef.current?.abort()
@@ -189,11 +216,7 @@ export default function AccountingManager() {
       if (controller.signal.aborted) return
       if (previewResult.status === "rejected") throw previewResult.reason
 
-      const nextPreview = previewResult.value
-      setPreview(nextPreview)
-      setLoadedMonth(nextMonth)
-      setProfile(nextPreview.profile)
-      setDocumentNumber(nextPreview.finalized_document?.document_number ?? nextPreview.suggested_document_number)
+      applyPreview(previewResult.value, nextMonth)
       if (invoiceResult.status === "fulfilled") {
         setInvoices(invoiceResult.value.items)
         setInvoiceListAvailable(true)

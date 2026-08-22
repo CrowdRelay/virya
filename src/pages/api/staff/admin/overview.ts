@@ -1,11 +1,7 @@
 import type { APIRoute } from "astro"
 import { areaJson } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
-import {
-  StaffQrUpstreamError,
-  staffApiRequest,
-  type StaffQrOverview,
-} from "../../../../server/staffQrApi"
+import { StaffQrUpstreamError, isStaffApiConfigured, staffApiRequest, type StaffQrOverview } from "../../../../server/staffQrApi"
 
 export const prerender = false
 
@@ -36,7 +32,7 @@ const valueOr = <T>(result: PromiseSettledResult<T>, fallback: T) =>
   result.status === "fulfilled" ? result.value : fallback
 
 export const GET: APIRoute = async ({ cookies }) => {
-  if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
+  if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized", configured: isStaffApiConfigured() }, 401)
 
   // Staff is an action surface, not an observability dashboard. Keep this read
   // model limited to data a band member can act on. Health/readiness/push queue
@@ -45,10 +41,16 @@ export const GET: APIRoute = async ({ cookies }) => {
     staffApiRequest<StaffQrOverview>("admin/event-qr/overview", {
       timeoutMs: 8_000,
     }),
+    // Public catalogues, not operations data: a minute of staleness on a staff
+    // screen is invisible, and it removes two upstream round trips per load.
     staffApiRequest<PublicEvents>("public/events?limit=100", {
       timeoutMs: 8_000,
+      cacheMs: 60_000,
     }),
-    staffApiRequest<Cities>("public/cities?limit=100", { timeoutMs: 8_000 }),
+    staffApiRequest<Cities>("public/cities?limit=100", {
+      timeoutMs: 8_000,
+      cacheMs: 60_000,
+    }),
   ] as const)
 
   const names: SourceName[] = ["operations", "events", "cities"]

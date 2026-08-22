@@ -1,10 +1,7 @@
 import type { APIRoute } from "astro"
 import { areaJson } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
-import {
-  StaffQrUpstreamError,
-  staffApiRequest,
-} from "../../../../server/staffQrApi"
+import { StaffQrUpstreamError, isStaffApiConfigured, staffApiRequest } from "../../../../server/staffQrApi"
 import type {
   InventoryActivation,
   InventoryOverview,
@@ -32,7 +29,7 @@ const valueOr = <T,>(result: PromiseSettledResult<T>, fallback: T) =>
   result.status === "fulfilled" ? result.value : fallback
 
 export const GET: APIRoute = async ({ cookies }) => {
-  if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
+  if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized", configured: isStaffApiConfigured() }, 401)
 
   const [catalog, activation, inventory, campaigns, draws, fulfillments, recommendations, beaconReleases, beaconNetwork] =
     await Promise.allSettled([
