@@ -34,6 +34,18 @@ export const stableMutationKey = (prefix: string, intent: unknown): string => {
   return `${prefix}-${digest.slice(0, 48)}`
 }
 
+/**
+ * Build a key prefix from an upstream action name. CrowdRelay actions are
+ * snake_case and may be long; the prefix grammar is lowercase, hyphenated and
+ * capped, so fold the name instead of letting a valid action throw here and
+ * surface as an upstream failure it never reached.
+ */
+export const mutationPrefix = (scope: string, action: string): string =>
+  `${scope}-${(action || "mutation").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`
+    .replace(/-+/g, "-")
+    .slice(0, 48)
+    .replace(/-+$/, "")
+
 /** Forward a browser-owned operation key, or mint a fresh one for a direct caller. */
 export const forwardedMutationKey = (request: Request, prefix: string): string => {
   if (!PREFIX.test(prefix)) throw new TypeError("invalid mutation key prefix")

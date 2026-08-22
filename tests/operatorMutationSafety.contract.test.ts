@@ -4,7 +4,7 @@ import path from "node:path"
 import test from "node:test"
 import { fileURLToPath } from "node:url"
 
-import { forwardedMutationKey, stableMutationKey } from "../src/server/mutationSafety.ts"
+import { forwardedMutationKey, mutationPrefix, stableMutationKey } from "../src/server/mutationSafety.ts"
 import { staffApi } from "../src/components/preact/staff/staffApi.ts"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -30,6 +30,17 @@ test("server transport forwards an operation key without inventing eternal conte
   const fresh = forwardedMutationKey(new Request("https://virya.music"), "staff-post")
   assert.match(fresh, /^staff-post-[0-9a-f-]{36}$/)
   assert.notEqual(fresh, supplied)
+})
+
+test("snake_case upstream actions mint a key instead of throwing before the call", () => {
+  const request = new Request("https://virya.music")
+  for (const action of ["test_beacon", "single_invite", "preview_invites", "queue_invites", "discover", "recipient-status"]) {
+    const key = forwardedMutationKey(request, mutationPrefix("staff-latarnik-network", action))
+    assert.match(key, /^[A-Za-z0-9][A-Za-z0-9._:/-]{7,199}$/, action)
+  }
+  // A 40-character action still has to fit the prefix cap.
+  assert.equal(mutationPrefix("staff-latarnik-network", "a".repeat(40)).length, 48)
+  assert.equal(mutationPrefix("staff-latarnik-network", "test_beacon"), "staff-latarnik-network-test-beacon")
 })
 
 test("browser retries reuse one pending operation key but a completed later action gets a fresh key", async () => {
