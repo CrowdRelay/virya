@@ -90,3 +90,7 @@ src/srcsets.json
 *.tmp
 *~
 .recovery-backup
+
+# Local Claude Code context (not part of the product)
+CLAUDE.md
+.claude/
