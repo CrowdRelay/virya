@@ -299,9 +299,9 @@ const description = isPl
       try { localStorage.setItem(storageKey, value); return true } catch { return false }
     }
     const clearToken = () => { try { localStorage.removeItem(storageKey) } catch {} }
-    const api = async (path, init = {}, bearer = token()) => {
+    const api = async (path, init = {}, bearer = token(), timeoutMs = 6500) => {
       const controller = new AbortController()
-      const timer = setTimeout(() => controller.abort(), 6500)
+      const timer = setTimeout(() => controller.abort(), timeoutMs)
       try {
         const headers = new Headers(init.headers || {})
         headers.set("Accept", "application/json")
@@ -664,18 +664,60 @@ const description = isPl
       return true
     }
 
-    root.querySelector('[data-action="activate"]')?.addEventListener("click", async () => {
+    const activateButton = root.querySelector('[data-action="activate"]')
+    activateButton?.addEventListener("click", async () => {
       const error = root.querySelector("[data-error]")
       error?.classList.add("hidden")
+      const fail = message => {
+        if (!error) return
+        error.textContent = message
+        error.classList.remove("hidden")
+      }
+      // One shot per token: a second POST would be rejected as "already used".
+      if (activateButton instanceof HTMLButtonElement) activateButton.disabled = true
       try {
-        const response = await api("beacon/invitations/exchange", { method: "POST", body: JSON.stringify({ inviteToken: invite, clientKind: "web" }) }, "")
-        if (!response.ok) throw new Error(`exchange_${response.status}`)
+        // Exchange is a single write on a small box and has been measured above
+        // five seconds. The shared 6.5s read timeout aborted it mid-transaction,
+        // which rolled the join back and reported it as an invalid invitation.
+        const response = await api(
+          "beacon/invitations/exchange",
+          { method: "POST", body: JSON.stringify({ inviteToken: invite, clientKind: "web" }) },
+          "",
+          25_000,
+        )
+        if (response.status === 401 || response.status === 404) {
+          fail(lang === "pl" ? "Zaproszenie jest nieprawidłowe, wygasło albo zostało już użyte." : "This invitation is invalid, expired or already used.")
+          return
+        }
+        if (response.status === 409) {
+          fail(lang === "pl" ? "Ten dostęp jest już aktywny. Otwórz link na urządzeniu, na którym go aktywowałeś, albo poproś o nowe zaproszenie." : "This access is already active. Open the link on the device you activated it on, or ask for a new invitation.")
+          return
+        }
+        // Anything else (5xx, a dropped connection, an aborted request) leaves
+        // the invitation unused. Say so and keep the token in the URL so the
+        // fan can simply press the button again.
+        if (!response.ok) {
+          fail(lang === "pl" ? "Nie udało się połączyć z serwerem. Zaproszenie jest nadal ważne — spróbuj ponownie za chwilę." : "Could not reach the server. Your invitation is still valid — try again in a moment.")
+          if (activateButton instanceof HTMLButtonElement) activateButton.disabled = false
+          return
+        }
         const data = await response.json()
+        // The token is spent from here on: save the session before touching the
+        // URL, and never report a post-exchange failure as a bad invitation.
+        if (!saveToken(data.bearerToken)) {
+          fail(lang === "pl" ? "Dostęp został przyznany, ale przeglądarka zablokowała zapis sesji. Wyłącz tryb prywatny lub blokadę danych witryn i otwórz link ponownie." : "Access was granted, but the browser blocked session storage. Turn off private mode or site-data blocking and open the link again.")
+          return
+        }
         cleanInviteUrl()
-        if (!saveToken(data.bearerToken)) throw new Error("storage_unavailable")
-        await loadMe(data.bearerToken)
+        try {
+          await loadMe(data.bearerToken)
+        } catch {
+          fail(lang === "pl" ? "Dostęp został przyznany, ale nie udało się wczytać panelu. Odśwież stronę." : "Access was granted, but the panel could not load. Refresh the page.")
+        }
       } catch {
-        if (error) { error.textContent = lang === "pl" ? "Zaproszenie jest nieprawidłowe, wygasło albo zostało już użyte." : "This invitation is invalid, expired or already used."; error.classList.remove("hidden") }
+        // Network-level failure: nothing was exchanged, so the token still works.
+        fail(lang === "pl" ? "Nie udało się połączyć z serwerem. Zaproszenie jest nadal ważne — spróbuj ponownie za chwilę." : "Could not reach the server. Your invitation is still valid — try again in a moment.")
+        if (activateButton instanceof HTMLButtonElement) activateButton.disabled = false
       }
     })
 
