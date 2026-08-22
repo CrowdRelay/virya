@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
 import type { BeaconNetworkOverview } from "./StaffLatarnikNetworkManager"
 import type { BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
-import { staffApi, type StaffApiError } from "./staffApi"
+import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { staffAccentButton, staffAccentChip, staffSecondaryButton } from "./staffButtons"
 import StaffLogoutButton from "./StaffLogoutButton"
 
@@ -303,25 +303,22 @@ export default function StaffCommerceManager() {
 
   useEffect(() => {
     const controller = new AbortController()
-    void api<{ authenticated: boolean; configured: boolean }>(
-      "/api/staff/qr/status",
-      { signal: controller.signal },
-    )
-      .then(status => {
-        if (!status.configured) return setState("unconfigured")
-        if (!status.authenticated) {
-          setState("login")
-          queueMicrotask(() => passwordRef.current?.focus())
-          return
-        }
+    // One invocation: the overview carries the session verdict with it.
+    void bootstrapStaffPanel<Overview>("/api/staff/commerce/overview", {
+      signal: controller.signal,
+    }).then(result => {
+      if (controller.signal.aborted) return
+      if (result.state === "ready" && result.data) {
+        setOverview(result.data)
+        setLoading(false)
         setState("ready")
-        void refresh()
-      })
-      .catch(error => {
-        if (!(error instanceof DOMException && error.name === "AbortError")) {
-          setState("error")
-        }
-      })
+        return
+      }
+      setState(result.state === "ready" ? "error" : result.state)
+      if (result.state === "login") {
+        queueMicrotask(() => passwordRef.current?.focus())
+      }
+    })
     return () => {
       controller.abort()
       requestRef.current?.abort()

@@ -91,6 +91,31 @@ const safeProblemDetail = (value: unknown): string | null => {
     : null
 }
 
+// Public reads that back a staff screen change on the order of minutes and are
+// fetched again on every panel load. A warm function container can answer them
+// without another CrowdRelay round trip; a cold one pays for it once. Opt-in
+// per call site and GET only — admin read models are never served from here.
+const MAX_CACHED_READS = 16
+const readCache = new Map<string, { expiresAt: number; value: unknown }>()
+
+const cachedRead = <T>(path: string): T | undefined => {
+  const entry = readCache.get(path)
+  if (!entry) return undefined
+  if (entry.expiresAt <= Date.now()) {
+    readCache.delete(path)
+    return undefined
+  }
+  return entry.value as T
+}
+
+const rememberRead = (path: string, value: unknown, ttlMs: number) => {
+  if (readCache.size >= MAX_CACHED_READS) {
+    const oldest = readCache.keys().next()
+    if (!oldest.done) readCache.delete(oldest.value)
+  }
+  readCache.set(path, { expiresAt: Date.now() + ttlMs, value })
+}
+
 export const staffQrRequest = async <T>(
   path: string,
   options: {
@@ -99,10 +124,18 @@ export const staffQrRequest = async <T>(
     timeoutMs?: number
     idempotencyKey?: string
     correlationId?: string
+    /** Serve this GET from the in-process cache for up to this many ms. */
+    cacheMs?: number
   } = {},
 ): Promise<T> => {
   const key = adminKey()
   if (!key) throw new StaffQrUpstreamError(503)
+  const cacheable =
+    (options.method ?? "GET") === "GET" && options.body === undefined && (options.cacheMs ?? 0) > 0
+  if (cacheable) {
+    const hit = cachedRead<T>(path)
+    if (hit !== undefined) return hit
+  }
 
   const controller = new AbortController()
   const timeout = setTimeout(
@@ -150,11 +183,13 @@ export const staffQrRequest = async <T>(
     }
     if (response.status === 204) return undefined as T
 
-    return await readLimitedJson<T>(
+    const value = await readLimitedJson<T>(
       response,
       MAX_UPSTREAM_BYTES,
       () => new StaffQrUpstreamError(502),
     )
+    if (cacheable) rememberRead(path, value, options.cacheMs ?? 0)
+    return value
   } catch (error) {
     if (error instanceof StaffQrUpstreamError) throw error
     throw new StaffQrUpstreamError(502)

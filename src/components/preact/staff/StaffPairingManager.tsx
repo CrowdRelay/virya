@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { generateQr, type GeneratedQr } from "../../../lib/qrCode"
-import { staffApi, type StaffApiError } from "./staffApi"
+import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { staffAccentButton, staffLogoutButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
@@ -92,26 +92,20 @@ export default function StaffPairingManager() {
   }, [envelope])
 
   async function checkStatus(signal?: AbortSignal) {
-    try {
-      const status = await api<{ authenticated: boolean; configured: boolean }>(
-        "/api/staff/pairing",
-        { signal },
-      )
-      if (!status.configured) {
-        setState("unconfigured")
-        return
-      }
-      if (!status.authenticated) {
-        setState("login")
-        queueMicrotask(() => passwordRef.current?.focus())
-        return
-      }
+    // One invocation: the session list carries the session verdict with it.
+    const result = await bootstrapStaffPanel<{ sessions: DeviceSession[] }>(
+      "/api/staff/pairing/sessions",
+      { signal },
+    )
+    if (signal?.aborted) return
+    if (result.state === "ready" && result.data) {
+      setSessions(result.data.sessions)
       setState("ready")
-      void loadSessions()
-    } catch (error) {
-      if (!(error instanceof DOMException && error.name === "AbortError")) {
-        setState("error")
-      }
+      return
+    }
+    setState(result.state === "ready" ? "error" : result.state)
+    if (result.state === "login") {
+      queueMicrotask(() => passwordRef.current?.focus())
     }
   }
 

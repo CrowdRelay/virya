@@ -1,6 +1,6 @@
 export type StaffApiError = Error & {
   status?: number
-  payload?: { error?: string }
+  payload?: { error?: string; configured?: boolean }
   /** True when transport failed after the mutation may already have reached CrowdRelay. */
   ambiguous?: boolean
 }
@@ -156,5 +156,34 @@ export const staffApi = async <T,>(
     if (clearPending) clearPendingMutation(pendingStorageKey)
     window.clearTimeout(timeout)
     options.signal?.removeEventListener("abort", forwardAbort)
+  }
+}
+
+export type StaffPanelState = "ready" | "login" | "unconfigured" | "error"
+
+/**
+ * Load a panel's first payload and derive the session state from the same
+ * response.
+ *
+ * The panels used to ask /status first and only then fetch what they render.
+ * Both are SSR function invocations, and the platform's per-invocation floor is
+ * an order of magnitude above CrowdRelay's own response time, so the extra
+ * round trip — not the read model behind it — was most of the wait before a
+ * staff screen showed anything. The data endpoints now answer 401 with the same
+ * `configured` flag /status returned, which is all the panel needed it for.
+ */
+export const bootstrapStaffPanel = async <T>(
+  path: string,
+  options: StaffApiOptions = {},
+): Promise<{ state: StaffPanelState; data?: T }> => {
+  try {
+    return { state: "ready", data: await staffApi<T>(path, options) }
+  } catch (error) {
+    const failure = error as StaffApiError
+    if (failure.status === 401) {
+      return { state: failure.payload?.configured === false ? "unconfigured" : "login" }
+    }
+    if (failure.status === 503) return { state: "unconfigured" }
+    return { state: "error" }
   }
 }

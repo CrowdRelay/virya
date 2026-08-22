@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks"
 import {
+  REQUEST_TIMEOUT_MS,
   type EventItem,
   type LoadState,
   type Overview,
@@ -7,6 +8,7 @@ import {
   api,
   tabs,
 } from "./adminConsoleShared"
+import { bootstrapStaffPanel } from "./staffApi"
 import {
   AdmissionTab,
   OverviewTab,
@@ -81,25 +83,24 @@ export default function AdminConsole() {
   }, [])
 
   async function checkSession(signal?: AbortSignal) {
-    try {
-      const status = await api<{
-        authenticated: boolean
-        configured: boolean
-      }>("/api/staff/admin/status", { signal })
-      if (!status.configured) {
-        setState("unconfigured")
-        return
-      }
-      if (!status.authenticated) {
-        setState("login")
-        queueMicrotask(() => passwordRef.current?.focus())
-        return
-      }
+    // The overview answers the session question itself, so opening the panel is
+    // one function invocation instead of a status call and then a data call.
+    setOverviewLoading(true)
+    setMessage("")
+    const result = await bootstrapStaffPanel<Overview>("/api/staff/admin/overview", {
+      signal,
+      timeoutMs: REQUEST_TIMEOUT_MS,
+    })
+    if (signal?.aborted) return
+    setOverviewLoading(false)
+    if (result.state === "ready" && result.data) {
+      setOverview(result.data)
       setState("ready")
-      await loadOverview(signal)
-    } catch (error) {
-      if (!(error instanceof DOMException && error.name === "AbortError"))
-        setState("error")
+      return
+    }
+    setState(result.state === "ready" ? "error" : result.state)
+    if (result.state === "login") {
+      queueMicrotask(() => passwordRef.current?.focus())
     }
   }
 

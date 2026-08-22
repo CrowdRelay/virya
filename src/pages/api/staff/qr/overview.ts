@@ -1,11 +1,7 @@
 import type { APIRoute } from "astro"
 import { areaJson } from "../../../../server/areaHttp"
 import { hasStaffQrSession } from "../../../../server/staffQrAuth"
-import {
-  StaffQrUpstreamError,
-  staffQrRequest,
-  type StaffQrOverview,
-} from "../../../../server/staffQrApi"
+import { StaffQrUpstreamError, isStaffApiConfigured, staffQrRequest, type StaffQrOverview } from "../../../../server/staffQrApi"
 
 export const prerender = false
 
@@ -16,7 +12,7 @@ const upstreamStatus = (error: unknown) =>
 
 export const GET: APIRoute = async ({ cookies }) => {
   if (!hasStaffQrSession(cookies)) {
-    return areaJson({ error: "Unauthorized" }, 401)
+    return areaJson({ error: "Unauthorized", configured: isStaffApiConfigured() }, 401)
   }
 
   try {

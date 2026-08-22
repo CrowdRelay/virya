@@ -10,7 +10,7 @@ import type {
   StaffQrEvent,
   StaffQrOverview,
 } from "../../../server/staffQrApi"
-import { staffApi, type StaffApiError } from "./staffApi"
+import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { staffLogoutButton, staffSecondaryButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
@@ -56,26 +56,21 @@ export default function ConcertQrManager() {
 
   useEffect(() => {
     const controller = new AbortController()
-    void api<{ authenticated: boolean; configured: boolean }>(
-      "/api/staff/qr/status",
-      { signal: controller.signal },
-    )
-      .then(status => {
-        if (!status.configured) {
-          setState("unconfigured")
-          return
-        }
-        if (!status.authenticated) {
-          setState("login")
-          queueMicrotask(() => passwordRef.current?.focus())
-          return
-        }
+    // One invocation: the overview carries the session verdict with it.
+    void bootstrapStaffPanel<StaffQrOverview>("/api/staff/qr/overview", {
+      signal: controller.signal,
+    }).then(result => {
+      if (controller.signal.aborted) return
+      if (result.state === "ready" && result.data) {
         setState("ready")
-        void loadData()
-      })
-      .catch(error => {
-        if (!isAbortError(error)) setState("error")
-      })
+        applyOverview(result.data)
+        return
+      }
+      setState(result.state === "ready" ? "error" : result.state)
+      if (result.state === "login") {
+        queueMicrotask(() => passwordRef.current?.focus())
+      }
+    })
 
     return () => {
       controller.abort()
@@ -140,6 +135,28 @@ export default function ConcertQrManager() {
     }
   }
 
+  function applyOverview(overview: StaffQrOverview) {
+    const upcoming = [...overview.events]
+      .filter(event => Date.parse(event.starts_at) > Date.now() - 36 * 60 * 60 * 1000)
+      .sort((left, right) => Date.parse(left.starts_at) - Date.parse(right.starts_at))
+    setEvents(upcoming)
+    setCampaigns(overview.campaigns)
+    setSelectedCampaignId(current =>
+      overview.campaigns.some(campaign => campaign.id === current)
+        ? current
+        : overview.campaigns.find(campaign => campaign.active && campaign.token)?.id ?? null,
+    )
+    const nextEvent = upcoming.find(event => event.slug === selectedEvent) ?? upcoming[0]
+    if (nextEvent && nextEvent.slug !== selectedEvent) selectEvent(nextEvent)
+    if (!nextEvent) {
+      setSelectedEvent("")
+      setLabel("")
+      setValidFrom("")
+      setValidUntil("")
+    }
+    setDataLoaded(true)
+  }
+
   async function loadData() {
     dataRequestRef.current?.abort()
     const controller = new AbortController()
@@ -152,26 +169,7 @@ export default function ConcertQrManager() {
         signal: controller.signal,
       })
       if (controller.signal.aborted) return
-
-      const upcoming = [...overview.events]
-        .filter(event => Date.parse(event.starts_at) > Date.now() - 36 * 60 * 60 * 1000)
-        .sort((left, right) => Date.parse(left.starts_at) - Date.parse(right.starts_at))
-      setEvents(upcoming)
-      setCampaigns(overview.campaigns)
-      setSelectedCampaignId(current =>
-        overview.campaigns.some(campaign => campaign.id === current)
-          ? current
-          : overview.campaigns.find(campaign => campaign.active && campaign.token)?.id ?? null,
-      )
-      const nextEvent = upcoming.find(event => event.slug === selectedEvent) ?? upcoming[0]
-      if (nextEvent && nextEvent.slug !== selectedEvent) selectEvent(nextEvent)
-      if (!nextEvent) {
-        setSelectedEvent("")
-        setLabel("")
-        setValidFrom("")
-        setValidUntil("")
-      }
-      setDataLoaded(true)
+      applyOverview(overview)
     } catch (error) {
       if (isAbortError(error)) return
       if ((error as ApiError).status === 401) {

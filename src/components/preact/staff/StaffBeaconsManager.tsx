@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
 import StaffLatarnikNetworkManager, { type BeaconNetworkOverview } from "./StaffLatarnikNetworkManager"
 import StaffLatarnikReleaseManager, { type BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
-import { staffApi, type StaffApiError } from "./staffApi"
+import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
@@ -109,22 +109,22 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
         requestRef.current?.abort()
       }
     }
-    void api<{ authenticated: boolean; configured: boolean }>("/api/staff/qr/status", {
+    // One invocation: the overview carries the session verdict with it.
+    void bootstrapStaffPanel<Overview>("/api/staff/commerce/overview", {
       signal: controller.signal,
-    })
-      .then(status => {
-        if (!status.configured) return setState("unconfigured")
-        if (!status.authenticated) {
-          setState("login")
-          queueMicrotask(() => passwordRef.current?.focus())
-          return
-        }
+      timeoutMs: REQUEST_TIMEOUT_MS,
+    }).then(result => {
+      if (controller.signal.aborted) return
+      if (result.state === "ready" && result.data) {
+        setOverview(result.data)
         setState("ready")
-        void refresh()
-      })
-      .catch(error => {
-        if (!(error instanceof DOMException && error.name === "AbortError")) setState("error")
-      })
+        return
+      }
+      setState(result.state === "ready" ? "error" : result.state)
+      if (result.state === "login") {
+        queueMicrotask(() => passwordRef.current?.focus())
+      }
+    })
     return () => {
       controller.abort()
       requestRef.current?.abort()
