@@ -29,12 +29,13 @@ test("Synesthesia leaderboard is public, privacy-safe and lazy", () => {
   assert.match(leaderboard, /publikacja jest dobrowolna/i)
 })
 
-test("Synesthesia is hidden from public acquisition surfaces while remaining available inside Signal", () => {
+test("Synesthesia leaderboard stays inside Signal and off general acquisition surfaces", () => {
   const mySignal = readFileSync(
     new URL("../src/components/preact/signal/MySignal.tsx", import.meta.url),
     "utf8",
   )
-  for (const source of [signalPage, ecosystem, ecosystemRail]) {
+  assert.match(signalPage, /<SynesthesiaLeaderboard\b/)
+  for (const source of [ecosystem, ecosystemRail]) {
     assert.doesNotMatch(source, /Synesthesia|synesthesia/)
   }
   assert.match(mySignal, /synesthesia\.virya\.music/)
