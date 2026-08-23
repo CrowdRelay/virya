@@ -71,6 +71,16 @@ const CONTEXT_LABELS: Record<string, string> = {
   live_opportunity: "Koncerty / festiwale",
 }
 
+const TEAM_MEMBER_LABELS: Record<string, string> = {
+  "Team Member 1": "Wojtek",
+  "Team Member 2": "Lubek",
+  "Team Member 3": "Kuba",
+  "Team Member 4": "Marcin",
+  "Team Member 5": "Marek",
+}
+
+const teamMemberLabel = (value: string) => TEAM_MEMBER_LABELS[value] ?? value
+
 const humanAction = (value: string) =>
   ACTION_LABELS[value] ?? value
     .replace(/^apply_/, "zgłoszenie: ")
@@ -199,7 +209,7 @@ export default function AutopilotHandoffs() {
                 <strong class="block text-white">{humanAction(item.action_kind)}</strong>
                 <p class="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">{humanContext(item.context)} · {item.subject_kind}</p>
                 <p class="mt-2 text-sm text-zinc-300">
-                  Owner: <b class="text-amber-200">{item.assignee?.display_name ?? "przypisuję…"}</b>
+                  Owner: <b class="text-amber-200">{item.assignee ? teamMemberLabel(item.assignee.display_name) : "przypisuję…"}</b>
                   {" · "}deadline: {date(item.assignment_due_at ?? item.approval_expires_at)}
                 </p>
               </div>
@@ -216,7 +226,7 @@ export default function AutopilotHandoffs() {
                     >
                       {!item.assignee && <option value="">wybierz…</option>}
                       {assignees.map(person => (
-                        <option key={person.member_id} value={person.member_key}>{person.display_name}</option>
+                        <option key={person.member_id} value={person.member_key}>{teamMemberLabel(person.display_name)}</option>
                       ))}
                     </select>
                   </label>
