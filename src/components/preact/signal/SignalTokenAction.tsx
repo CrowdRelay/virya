@@ -132,17 +132,9 @@ export default function SignalTokenAction({ lang, action }: Props) {
     try {
       await crowdrelay.requestFanAccess(normalized, lang)
       setResendDone(true)
-      setMessage(
-        lang === "pl"
-          ? "Jeśli ten e-mail jest zapisany w Virya Signal, wysłaliśmy nowy link. Możesz ustawić nowy PIN na tym lub innym urządzeniu."
-          : "If this email belongs to Virya Signal, we sent a new link. You can set a new PIN on this or another device.",
-      )
+      setMessage(copy.resendSent)
     } catch {
-      setMessage(
-        lang === "pl"
-          ? "Nie udało się teraz wysłać linku. Spróbuj ponownie za chwilę."
-          : "We could not send the link right now. Please try again shortly.",
-      )
+      setMessage(copy.resendFailed)
     } finally {
       setResending(false)
     }

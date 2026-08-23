@@ -129,6 +129,8 @@ export interface SignalCopy {
     appChoice: string
     openInApp: string
     confirmHere: string
+    resendSent: string
+    resendFailed: string
     account: string
     home: string
   }
@@ -354,6 +356,8 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       appChoice: "You have Virya Signal on this device. Open the link there to set your PIN straight away \u2014 the code in it works only once, so confirming here would use it up.",
       openInApp: "OPEN IN THE APP",
       confirmHere: "CONFIRM IN THE BROWSER",
+      resendSent: "If this email belongs to Virya Signal, we sent a new link. You can set a new PIN on this or another device.",
+      resendFailed: "We could not send the link right now. Please try again shortly.",
       account: "Open My Signal",
       home: "Back to Virya",
     },
@@ -596,6 +600,8 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       appChoice: "Masz na tym urządzeniu Virya Signal. Otwórz link w aplikacji, żeby od razu ustawić PIN \u2014 kod z linku działa tylko raz, więc potwierdzenie tutaj go zużyje.",
       openInApp: "OTWÓRZ W APLIKACJI",
       confirmHere: "POTWIERDŹ W PRZEGLĄDARCE",
+      resendSent: "Jeśli ten e-mail jest zapisany w Virya Signal, wysłaliśmy nowy link. Możesz ustawić nowy PIN na tym lub innym urządzeniu.",
+      resendFailed: "Nie udało się teraz wysłać linku. Spróbuj ponownie za chwilę.",
       account: "Otwórz Mój Sygnał",
       home: "Wróć do Viryi",
     },
