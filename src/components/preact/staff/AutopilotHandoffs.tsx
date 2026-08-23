@@ -153,13 +153,29 @@ export default function AutopilotHandoffs() {
     if (!memberKey || memberKey === item.assignee?.member_key) return
     setBusy(item.id)
     setError("")
+    const person = assignees.find(candidate => candidate.member_key === memberKey)
+    if (!person) {
+      setBusy(null)
+      return
+    }
     try {
       await staffApi("/api/staff/admin/autopilot", {
         method: "POST",
         body: { action_id: item.id, operation: "assign", member_key: memberKey },
         timeoutMs: REQUEST_TIMEOUT_MS,
       })
-      await load()
+      setItems(current => current.map(candidate =>
+        candidate.id === item.id
+          ? {
+              ...candidate,
+              assignee: {
+                member_id: person.member_id,
+                member_key: person.member_key,
+                display_name: person.display_name,
+              },
+            }
+          : candidate,
+      ))
     } catch (value) {
       setError(value instanceof Error ? value.message : "Nie udało się zmienić ownera")
     } finally {
@@ -176,7 +192,7 @@ export default function AutopilotHandoffs() {
         body: { action_id: item.id, operation: action },
         timeoutMs: REQUEST_TIMEOUT_MS,
       })
-      await load()
+      setItems(current => current.filter(candidate => candidate.id !== item.id))
     } catch (value) {
       setError(value instanceof Error ? value.message : "Nie udało się zapisać decyzji")
     } finally {
