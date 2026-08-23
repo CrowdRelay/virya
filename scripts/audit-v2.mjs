@@ -10,7 +10,6 @@ const navbar = read("src/components/Navbar.astro")
 const signalPage = read("src/components/SignalPage.astro")
 const signalEcosystem = read("src/components/SignalEcosystem.astro")
 const ecosystemRail = read("src/components/EcosystemRail.astro")
-const showcase = read("src/components/Showcase.astro")
 const merch = read("src/components/preact/merch/MerchClient.jsx")
 const productCard = read("src/components/preact/merch/productCard.jsx")
 const area = read("src/components/AreaExperience.astro")
@@ -46,14 +45,6 @@ expect(
     source.includes("text-zinc-500") || source.includes("text-zinc-600")
   ),
   "Public Signal and ecosystem secondary copy must stay above the zinc-500 contrast floor on near-black surfaces.",
-)
-
-expect(
-  showcase.includes('preload="none"') &&
-    showcase.includes("prewarmShowcase") &&
-    showcase.includes("saveData") &&
-    showcase.includes("IntersectionObserver"),
-  "Showcase must remain poster-first with adaptive, data-aware prewarming.",
 )
 
 expect(
