@@ -138,9 +138,21 @@ export function rememberSignalCity(city: string): void {
 
 export function readFragmentToken(): string | null {
   if (typeof window === "undefined") return null
-  const token = new URLSearchParams(window.location.hash.slice(1)).get("token")
+  // The fragment is the form worth preferring, because it never reaches a
+  // server. CrowdRelay also mails the query form, and mail clients and link
+  // rewriters hand back whichever they please, so a page that reads only the
+  // fragment reports a missing token for a link that is perfectly valid
+  // everywhere else. Accept both, and strip whichever one carried it so the
+  // one-time credential does not linger in the address bar, history or a
+  // referrer header.
+  const token =
+    new URLSearchParams(window.location.hash.slice(1)).get("token")
+    ?? new URLSearchParams(window.location.search).get("token")
   if (token) {
-    history.replaceState(null, "", `${location.pathname}${location.search}`)
+    const search = new URLSearchParams(window.location.search)
+    search.delete("token")
+    const query = search.toString()
+    history.replaceState(null, "", `${location.pathname}${query ? `?${query}` : ""}`)
   }
   return token
 }
