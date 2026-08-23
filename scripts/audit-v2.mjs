@@ -37,8 +37,8 @@ expect(
 )
 
 expect(
-  ![signalPage, signalEcosystem, ecosystemRail].some(source => source.toLowerCase().includes("synesthesia")),
-  "Public Signal acquisition surfaces must not showcase Synesthesia.",
+  ![signalEcosystem, ecosystemRail].some(source => source.toLowerCase().includes("synesthesia")),
+  "Public Signal ecosystem surfaces must not showcase Synesthesia; the main Signal surface may expose the private Signal experience leaderboard.",
 )
 
 expect(
