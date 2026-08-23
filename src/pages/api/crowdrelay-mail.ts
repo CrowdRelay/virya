@@ -156,7 +156,7 @@ const layout = ({
   footer?: string | null
 }) => {
   const cta = button && buttonUrl
-    ? `<p style="margin:30px 0"><a href="${escapeHtml(buttonUrl)}" style="display:inline-block;background:#fbbf24;color:#09090b;padding:16px 22px;text-decoration:none;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em">${escapeHtml(button)}</a></p>`
+    ? `<p style="margin:30px 0"><a href="${escapeHtml(buttonUrl)}" style="display:inline-block;background:#84b4ac;color:#09090b;padding:16px 22px;text-decoration:none;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em">${escapeHtml(button)}</a></p>`
     : ""
   const footerBlock = footer
     ? `<p style="margin-top:34px;color:#71717a;font-size:12px;line-height:1.7">${footer}</p>`
@@ -414,16 +414,7 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
       subject: isPolish
         ? `Kod −${discount}% na najbliższy koncert Viryi`
         : `A ${discount}% code for Virya's nearest show`,
-      text: `${hello}
-
-${intro}
-
-${isPolish ? "Twój kod" : "Your code"}: ${code}
-${isPolish ? "Rabat" : "Discount"}: ${discount}%
-${isPolish ? "Ważny do" : "Valid until"}: ${expiresAt}
-
-${isPolish ? "Najbliższe koncerty" : "Upcoming shows"}:
-${textEvents}`,
+      text: `${hello}\n\n${intro}\n\n${isPolish ? "Twój kod" : "Your code"}: ${code}\n${isPolish ? "Rabat" : "Discount"}: ${discount}%\n${isPolish ? "Ważny do" : "Valid until"}: ${expiresAt}\n\n${isPolish ? "Najbliższe koncerty" : "Upcoming shows"}:\n${textEvents}`,
       html: layout({
         eyebrow: "VIRYA // LIVE REWARD",
         title: isPolish ? "Kod na najbliższy koncert" : "A code for the nearest show",
