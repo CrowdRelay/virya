@@ -4,6 +4,7 @@ import Navbar from "./Navbar.astro"
 import Footer from "./Footer.astro"
 import ScrollToTop from "./ScrollToTop.astro"
 import SignalHub from "./preact/signal/SignalHub"
+import SynesthesiaLeaderboard from "./SynesthesiaLeaderboard.astro"
 import { SIGNAL_COPY } from "../data/signalCopy"
 import { getSeoTags } from "../utils/seo"
 import { lp, type Lang } from "../i18n/t"
@@ -145,6 +146,7 @@ const schema = {
       </section>
 
       <SignalHub client:visible lang={lang} />
+      <SynesthesiaLeaderboard compact lang={lang} />
 
       <section class="virya-section signal-deferred border-t border-zinc-800/60">
         <div class="virya-section__inner grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
