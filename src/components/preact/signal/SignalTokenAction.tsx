@@ -14,7 +14,20 @@ interface Props {
   action: "confirm" | "unsubscribe"
 }
 
-type State = "working" | "success" | "error"
+type State = "working" | "choice" | "success" | "error"
+
+const ANDROID_USER_AGENT = /android/i
+
+/// Android routes a verified App Link straight into Virya Signal. When it does
+/// not — an unverified install, a mail client with its own in-app browser, a
+/// tap that lands here anyway — the page must not spend the token on arrival.
+/// It is a one-time credential, and burning it here is precisely what leaves
+/// the fan with a confirmed address in a browser tab and an app that can no
+/// longer redeem anything.
+const prefersTheApp = (action: Props["action"]): boolean =>
+  action === "confirm"
+  && typeof navigator !== "undefined"
+  && ANDROID_USER_AGENT.test(navigator.userAgent)
 
 export default function SignalTokenAction({ lang, action }: Props) {
   const copy = SIGNAL_COPY[lang].action
@@ -22,6 +35,7 @@ export default function SignalTokenAction({ lang, action }: Props) {
   const [message, setMessage] = useState(
     action === "confirm" ? copy.confirmWorking : copy.unsubscribeWorking,
   )
+  const [pendingToken, setPendingToken] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [resending, setResending] = useState(false)
   const [resendDone, setResendDone] = useState(false)
@@ -33,7 +47,18 @@ export default function SignalTokenAction({ lang, action }: Props) {
       setMessage(copy.missingToken)
       return
     }
+    setPendingToken(token)
+    if (prefersTheApp(action)) {
+      setState("choice")
+      setMessage(copy.appChoice)
+      return
+    }
+    return exchange(token)
+  }, [action, copy])
 
+  function exchange(token: string) {
+    setState("working")
+    setMessage(action === "confirm" ? copy.confirmWorking : copy.unsubscribeWorking)
     let cancelled = false
     const request =
       action === "confirm"
@@ -97,7 +122,7 @@ export default function SignalTokenAction({ lang, action }: Props) {
     return () => {
       cancelled = true
     }
-  }, [action, copy])
+  }
 
   async function resendAccess(event: SubmitEvent) {
     event.preventDefault()
@@ -169,6 +194,23 @@ export default function SignalTokenAction({ lang, action }: Props) {
         </form>
       )}
       <div class="mt-7 flex flex-wrap gap-3">
+        {state === "choice" && pendingToken && (
+          <>
+            <a
+              href={`virya-signal://fan/confirm?source=mail&token=${encodeURIComponent(pendingToken)}`}
+              class="virya-button virya-button--primary min-h-[46px] px-5"
+            >
+              {copy.openInApp}
+            </a>
+            <button
+              type="button"
+              onClick={() => exchange(pendingToken)}
+              class="virya-button virya-button--secondary min-h-[46px] px-5"
+            >
+              {copy.confirmHere}
+            </button>
+          </>
+        )}
         {state === "success" && action === "confirm" && (
           <a
             href={pagePath(lang, "/my-signal/")}

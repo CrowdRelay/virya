@@ -126,6 +126,9 @@ export interface SignalCopy {
     unsubscribeSuccess: string
     unsubscribeError: string
     missingToken: string
+    appChoice: string
+    openInApp: string
+    confirmHere: string
     account: string
     home: string
   }
@@ -348,6 +351,9 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       unsubscribeSuccess: "You have been unsubscribed from Virya messages.",
       unsubscribeError: "This unsubscribe link is invalid or has expired.",
       missingToken: "The secure token is missing from this link.",
+      appChoice: "You have Virya Signal on this device. Open the link there to set your PIN straight away \u2014 the code in it works only once, so confirming here would use it up.",
+      openInApp: "OPEN IN THE APP",
+      confirmHere: "CONFIRM IN THE BROWSER",
       account: "Open My Signal",
       home: "Back to Virya",
     },
@@ -587,6 +593,9 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       unsubscribeSuccess: "Wypisano Cię z wiadomości Viryi.",
       unsubscribeError: "Ten link wypisania jest nieprawidłowy albo wygasł.",
       missingToken: "W tym linku brakuje bezpiecznego tokena.",
+      appChoice: "Masz na tym urządzeniu Virya Signal. Otwórz link w aplikacji, żeby od razu ustawić PIN \u2014 kod z linku działa tylko raz, więc potwierdzenie tutaj go zużyje.",
+      openInApp: "OTWÓRZ W APLIKACJI",
+      confirmHere: "POTWIERDŹ W PRZEGLĄDARCE",
       account: "Otwórz Mój Sygnał",
       home: "Wróć do Viryi",
     },
