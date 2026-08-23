@@ -11,6 +11,23 @@ const statusFor = (error: unknown) =>
     ? error.status
     : 502
 
+// One generic string for every upstream status made a stale queue read as a
+// broken button: "already approved" and "CrowdRelay is down" looked identical.
+// The upstream detail is already captured; only these bounded messages are
+// exposed, so nothing from the backend is echoed verbatim to the browser.
+const ACTION_FAILURES: Record<number, string> = {
+  404: "Tej akcji już nie ma — odśwież kolejkę.",
+  409: "Ktoś już podjął tę decyzję albo zgoda wygasła — odśwież kolejkę.",
+  422: "Nieprawidłowa akcja.",
+  429: "Za dużo prób naraz — spróbuj za chwilę.",
+  503: "CrowdRelay chwilowo niedostępny.",
+}
+
+const actionFailure = (error: unknown) => {
+  const status = statusFor(error)
+  return ACTION_FAILURES[status] ?? "Autopilot chwilowo niedostępny."
+}
+
 const actionId = (value: unknown): string | null => {
   const id = typeof value === "string" ? value.trim() : ""
   return /^[0-9a-f-]{36}$/i.test(id) ? id : null
@@ -121,6 +138,6 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       timeoutMs: 8_000,
     }))
   } catch (error) {
-    return areaJson({ error: "Autopilot action unavailable" }, statusFor(error))
+    return areaJson({ error: actionFailure(error) }, statusFor(error))
   }
 }

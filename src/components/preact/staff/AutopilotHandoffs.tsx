@@ -17,6 +17,11 @@ type PendingAction = {
     member_key: string
     display_name: string
   } | null
+  // False means approving this queues it and nothing happens: no live executor
+  // advertises the capability it needs, so CrowdRelay parks it. Presenting such
+  // an item as ordinary work promises an outcome the system cannot deliver.
+  executor_ready?: boolean
+  required_capability?: string | null
 }
 type TeamAssignee = {
   member_id: string
@@ -212,6 +217,13 @@ export default function AutopilotHandoffs() {
                   Owner: <b class="text-amber-200">{item.assignee ? teamMemberLabel(item.assignee.display_name) : "przypisuję…"}</b>
                   {" · "}deadline: {date(item.assignment_due_at ?? item.approval_expires_at)}
                 </p>
+                {item.executor_ready === false && (
+                  <p class="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
+                    Akceptacja nic tu nie uruchomi: żaden executor nie zgłasza
+                    zdolności <b>{item.required_capability ?? "wymaganej przez tę akcję"}</b>.
+                    Akcja trafi do kolejki i będzie czekać.
+                  </p>
+                )}
               </div>
               <div class="flex flex-wrap items-center gap-2">
                 {assignees.length > 0 && (
@@ -231,7 +243,13 @@ export default function AutopilotHandoffs() {
                     </select>
                   </label>
                 )}
-                <button type="button" disabled={busy === item.id} onClick={() => void mutate(item, "approve")} class="rounded-xl bg-emerald-300 px-4 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">AKCEPTUJ I PUŚĆ DALEJ</button>
+                <button
+                  type="button"
+                  disabled={busy === item.id}
+                  onClick={() => void mutate(item, "approve")}
+                  title={item.executor_ready === false ? "Zostanie zakolejkowane, ale nikt tego nie wykona" : undefined}
+                  class={`rounded-xl px-4 py-2 text-xs font-black disabled:opacity-50 ${item.executor_ready === false ? "border border-amber-300/40 bg-amber-300/20 text-amber-100" : "bg-emerald-300 text-zinc-950"}`}
+                >{item.executor_ready === false ? "AKCEPTUJ (BEZ WYKONAWCY)" : "AKCEPTUJ I PUŚĆ DALEJ"}</button>
                 <button type="button" disabled={busy === item.id} onClick={() => void mutate(item, "cancel")} class="rounded-xl border border-rose-400/30 px-4 py-2 text-xs font-black text-rose-200 disabled:opacity-50">ODRZUĆ</button>
               </div>
             </div>
