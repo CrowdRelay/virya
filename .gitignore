@@ -20,16 +20,16 @@ coverage
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
+# Grunt intermediate files
 .grunt
 
-# Bower dependency directory (https://bower.io/)
+# Bower dependency directory
 bower_components
 
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (http://nodejs.org/api/addons.html)
+# Compiled binary addons
 build/Release
 
 # Dependency directories
@@ -65,25 +65,23 @@ typings/
 yarn-error.log
 .pnp/
 .pnp.js
-# Yarn Integrity file
 .yarn-integrity
 
 # Local Netlify folder
 .netlify
-
 !public/_redirects
+
+# Local tooling / generated output
 .claude
 .devin
 .astro
 .agents
 dist/
-# Generated responsive image variants
 public/resp/
 src/srcsets.json
-
 .test-dist/
 
-# Editor/recovery files must never enter source packages.
+# Editor/recovery files
 *.bak
 *.orig
 *.rej
@@ -91,6 +89,10 @@ src/srcsets.json
 *~
 .recovery-backup
 
-# Local Claude Code context (not part of the product)
+# Local Claude Code context
 CLAUDE.md
 .claude/
+
+# Public docs are intentionally minimal; keep architecture canonical.
+docs/*
+!docs/ARCHITECTURE.md
