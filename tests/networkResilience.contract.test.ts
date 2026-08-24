@@ -57,11 +57,10 @@ test('interactive public request paths are bounded', () => {
 
 test("Bandsintown fallback stays server-only and bounds upstream response bytes", () => {
   const live = read('src/server/liveEvents.ts')
-  const limitedBody = read('src/server/readLimitedBody.ts')
+  // The shared bounded-read mechanics are pinned by assetPerformance and
+  // upstreamJsonBounds; this gate owns the Bandsintown-specific facts only.
   assert.match(live, /MAX_RESPONSE_BYTES = 512 \* 1024/)
   assert.match(live, /AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/)
-  assert.match(live, /readLimitedJson<unknown>\(response, MAX_RESPONSE_BYTES/)
-  assert.match(limitedBody, /totalBytes > maxBytes/)
   assert.match(live, /rest\.bandsintown\.com\/artists\/virya\/events/)
 })
 

@@ -29,7 +29,10 @@ export type TractionDelta = Partial<Record<TractionMetric, number>>
 
 const store = () => getStore({ name: STORE_NAME, consistency: "strong" })
 const dayKey = (day: string) => `days/${day}`
-const today = () => new Date().toISOString().slice(0, 10)
+// Warsaw's calendar day, not UTC: the snapshot boundary must match the day the
+// operator actually lives in, or a 02:00 boost lands "yesterday".
+const today = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Warsaw" }).format(new Date())
 
 const normalize = (value: unknown): TractionSnapshot | null => {
   if (!value || typeof value !== "object") return null

@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro"
 import { getProduct, sizeInStock } from "../../data/products"
 import { getSiteMailer } from "../../server/siteMailer"
+import { consumePublicFormRateLimit, publicRequestNetwork } from "../../server/publicFormRate"
+import { readServerEnv } from "../../server/runtimeEnv"
 import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 
 const MAX_BODY_BYTES = 2048
@@ -10,11 +12,29 @@ const MAX_SIZE_LENGTH = 16
 const json = (payload: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(payload), {
     status,
-    headers: { "Content-Type": "application/json; charset=utf-8" },
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
+    },
   })
+
+// Same secret chain the other public forms use; without it the limiter would
+// be silently absent.
+const rateSecret = () => {
+  const dedicated = readServerEnv("CONTACT_RATE_SECRET", import.meta.env.CONTACT_RATE_SECRET)
+  if (typeof dedicated === "string" && dedicated.length >= 32) return dedicated
+  const existing = readServerEnv("AREA_AUTH_SECRET", import.meta.env.AREA_AUTH_SECRET)
+  return typeof existing === "string" && existing.length >= 32 ? existing : null
+}
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const origin = request.headers.get("origin")?.trim().toLowerCase()
+    const ownOrigin = new URL(request.url).origin.toLowerCase()
+    if (origin && origin !== ownOrigin) return json({ error: "Forbidden origin" }, 403)
+
     const contentType = request.headers
       .get("content-type")
       ?.split(";", 1)[0]
@@ -51,6 +71,24 @@ export const POST: APIRoute = async ({ request }) => {
     const size = typeof body.size === "string" ? body.size.trim() : ""
     if (!id || id.length > MAX_ID_LENGTH || !size || size.length > MAX_SIZE_LENGTH) {
       return json({ error: "Invalid request" }, 400)
+    }
+
+    // Every mail-sending public form is metered; this one triggers a real
+    // SMTP send, so an unbounded loop here is a mail bomb.
+    const secret = rateSecret()
+    if (!secret) return json({ error: "Restock requests unavailable" }, 503)
+    try {
+      const allowed = await consumePublicFormRateLimit(
+        "size-demand",
+        publicRequestNetwork(request),
+        secret,
+        6,
+        60 * 60 * 1_000,
+      )
+      if (!allowed) return json({ error: "Too many requests" }, 429)
+    } catch {
+      console.error("[size-demand] rate limiter unavailable")
+      return json({ error: "Restock requests unavailable" }, 503)
     }
 
     const product = getProduct(id)

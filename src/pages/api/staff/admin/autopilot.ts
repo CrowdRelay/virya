@@ -23,6 +23,20 @@ const ACTION_FAILURES: Record<number, string> = {
   503: "CrowdRelay chwilowo niedostępny.",
 }
 
+// "Zrobione sami" dotyczy odkrycia (decyzji), nie zaparkowanej akcji.
+const DECISION_FAILURES: Record<number, string> = {
+  404: "Tego odkrycia już nie ma — odśwież kolejkę.",
+  409: "To odkrycie zostało właśnie obsłużone gdzie indziej — odśwież kolejkę.",
+  422: "Nieprawidłowe odkrycie.",
+  429: "Za dużo prób naraz — spróbuj za chwilę.",
+  503: "CrowdRelay chwilowo niedostępny.",
+}
+
+const decisionFailure = (error: unknown) => {
+  const status = statusFor(error)
+  return DECISION_FAILURES[status] ?? "Autopilot chwilowo niedostępny."
+}
+
 const actionFailure = (error: unknown) => {
   const status = statusFor(error)
   return ACTION_FAILURES[status] ?? "Autopilot chwilowo niedostępny."
@@ -68,12 +82,15 @@ const bookingPolicy = (value: unknown) => {
 
 export const GET: APIRoute = async ({ cookies }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
-  const [overviewResult, policyResult] = await Promise.allSettled([
+  const [overviewResult, policyResult, opportunitiesResult] = await Promise.allSettled([
     staffApiRequest<Record<string, unknown>>("admin/autopilot/overview", { timeoutMs: 8_000 }),
     staffApiRequest<Record<string, unknown>>(
       "admin/autopilot/manager-config/booking-policy",
       { timeoutMs: 2_000 },
     ),
+    // The ranked opportunity board: findings the agent parked. A miss here
+    // degrades one card, never the whole panel.
+    staffApiRequest<unknown[]>("admin/autopilot/next-best-actions", { timeoutMs: 8_000 }),
   ])
   if (overviewResult.status === "rejected") {
     return areaJson({ error: "Autopilot overview unavailable" }, statusFor(overviewResult.reason))
@@ -82,6 +99,10 @@ export const GET: APIRoute = async ({ cookies }) => {
   return areaJson({
     ...overview,
     booking_policy: policyResult.status === "fulfilled" ? policyResult.value : null,
+    opportunities: opportunitiesResult.status === "fulfilled"
+      && Array.isArray(opportunitiesResult.value)
+      ? opportunitiesResult.value
+      : null,
   })
 }
 
@@ -113,6 +134,26 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       }))
     } catch (error) {
       return areaJson({ error: "Booking policy update unavailable" }, statusFor(error))
+    }
+  }
+
+  // "Zrobione sami": człowiek załatwił odkrycie poza systemem. To pierwszy
+  // klasowo wynik, nie odrzucenie — CrowdRelay zapisuje to w ledgerze i
+  // przestaje o tym przypominać.
+  const decisionId = actionId(body.decision_id)
+  if (body.operation === "handled_externally") {
+    if (!decisionId) return areaJson({ error: "Invalid decision" }, 422)
+    try {
+      return areaJson(await staffApiRequest(
+        `admin/autopilot/decisions/${encodeURIComponent(decisionId)}/handled-externally`,
+        {
+          method: "POST",
+          idempotencyKey: mutationKeyForRequest(request, "autopilot-decision", { decisionId }),
+          timeoutMs: 8_000,
+        },
+      ))
+    } catch (error) {
+      return areaJson({ error: decisionFailure(error) }, statusFor(error))
     }
   }
 

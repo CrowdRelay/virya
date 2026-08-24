@@ -11,10 +11,13 @@ const DEGRADED_CACHE = "public, max-age=60, s-maxage=300"
 export const GET: APIRoute = async () => {
   const traction = await getTraction()
   // First healthy read of the day lays down that day's snapshot, so the series
-  // builds itself without a scheduler. Neither call is allowed to fail the
-  // response: the numbers matter more than their history.
-  await recordSnapshot(traction).catch(() => {})
-  const delta = await readDelta(traction).catch(() => ({ since: null, change: {} }))
+  // builds itself without a scheduler. The two calls are independent and run
+  // together; neither is allowed to fail the response — the numbers matter
+  // more than their history.
+  const [delta] = await Promise.all([
+    readDelta(traction).catch(() => ({ since: null, change: {} })),
+    recordSnapshot(traction).catch(() => undefined),
+  ])
   return new Response(JSON.stringify({ ...traction, delta }), {
     status: 200,
     headers: {

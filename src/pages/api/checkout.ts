@@ -1,7 +1,8 @@
 import { readServerEnv } from "../../server/runtimeEnv.ts"
+import { stripeFor } from "../../server/stripeClient.ts"
+import type Stripe from "stripe"
 import type { APIRoute } from "astro"
 import { siteOriginForRequest } from "../../config"
-import Stripe from "stripe"
 import {
   getProduct,
   SHIPPING_PLN,
@@ -18,6 +19,7 @@ import {
 import {
   AREA_REWARD_CHECKOUT_SECONDS,
   attachAreaRewardCheckout,
+  releaseAreaRewardCode,
   reserveAreaRewardCode,
 } from "../../server/areaReward"
 import {
@@ -29,6 +31,7 @@ import {
 } from "../../server/crowdrelayCommerce"
 import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 import { loadLiveEvent } from "../../server/liveEvents"
+import { consumePublicFormRateLimit, publicRequestNetwork } from "../../server/publicFormRate"
 
 const MAX_QTY = 20
 const MAX_LINES = 50
@@ -101,6 +104,27 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: "Invalid request origin" }, 403)
     }
     const siteOrigin = siteOriginForRequest(request)
+
+    // Each checkout call fans out to the merch catalog and creates a Stripe
+    // session, so anonymous callers are metered like the other public forms.
+    const rateSecret = readServerEnv("CONTACT_RATE_SECRET", import.meta.env.CONTACT_RATE_SECRET)
+      ?? readServerEnv("AREA_AUTH_SECRET", import.meta.env.AREA_AUTH_SECRET)
+    if (typeof rateSecret !== "string" || rateSecret.length < 32) {
+      return json({ error: "Checkout temporarily unavailable" }, 503)
+    }
+    try {
+      const allowed = await consumePublicFormRateLimit(
+        "checkout",
+        publicRequestNetwork(request),
+        rateSecret,
+        10,
+        60 * 60 * 1_000,
+      )
+      if (!allowed) return json({ error: "Too many requests" }, 429)
+    } catch {
+      console.error("[checkout] rate limiter unavailable")
+      return json({ error: "Checkout temporarily unavailable" }, 503)
+    }
 
     const contentType = request.headers
       .get("content-type")
@@ -326,7 +350,7 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: "Select an InPost Paczkomat" }, 400)
     }
 
-    const stripe = new Stripe(stripeKey)
+    const stripe = stripeFor(stripeKey)
     const ispl = lang === "pl"
     const successPath = ispl ? "/pl/merch/success" : "/merch/success"
     const cancelPath = ispl ? "/pl/merch" : "/merch"
@@ -337,6 +361,18 @@ export const POST: APIRoute = async ({ request }) => {
     let rewardReservation:
       | Awaited<ReturnType<typeof reserveAreaRewardCode>>
       | null = null
+
+  // Releases the reward taken by this request on deterministic failure paths.
+  // Never called after an ambiguous Stripe error: there the reservation is
+  // held for the safe retry and bounded by expiry instead.
+  const releaseReservedReward = async () => {
+    if (rewardReservation?.ok) {
+      await releaseAreaRewardCode({
+        codeHash: rewardReservation.record.codeHash,
+        reservationId: checkoutRequestId,
+      })
+    }
+  }
     if (rewardCode) {
       rewardReservation = await reserveAreaRewardCode(
         rewardCode,
@@ -384,6 +420,11 @@ export const POST: APIRoute = async ({ request }) => {
         null as CartEntry | null)
       : null
     if (rewardCode && !freeEntry) {
+      // Deterministic client error: release the reservation we took, or the
+      // code stays locked away from its owner until expiry.
+      await releaseReservedReward().catch(error =>
+        console.error("[checkout:reward-release-no-eligible]", error),
+      )
       return json({ error: "No reward-eligible item in cart" }, 400)
     }
 
@@ -473,6 +514,11 @@ export const POST: APIRoute = async ({ request }) => {
         quantity,
       }))
       if (inventoryItems.length === 0) {
+        // Our own mapping is incomplete — a server bug, but a deterministic
+        // one. Release the reward so the code is not held hostage by it.
+        await releaseReservedReward().catch(error =>
+          console.error("[checkout:reward-release-inventory-mapping]", error),
+        )
         return json({ error: "Inventory mapping is incomplete" }, 503)
       }
       try {
@@ -492,6 +538,9 @@ export const POST: APIRoute = async ({ request }) => {
         metadata.merch_checkout_request_id = checkoutRequestId
       } catch (error) {
         if (error instanceof CrowdRelayCommerceError && error.status === 409) {
+          await releaseReservedReward().catch(releaseError =>
+            console.error("[checkout:reward-release-inventory-409]", releaseError),
+          )
           return json(
             {
               error: "One of the selected items is no longer available",
@@ -501,6 +550,9 @@ export const POST: APIRoute = async ({ request }) => {
           )
         }
         console.error("[checkout:inventory-reserve]", error)
+        // Ambiguous transport: the reservation may or may not exist upstream.
+        // Hold the reward like the inventory — the deterministic retry below
+        // re-reserves it safely, and expiry bounds both if nobody retries.
         return json(
           {
             error: "Stock confirmation is temporarily unavailable",

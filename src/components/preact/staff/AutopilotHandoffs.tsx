@@ -59,6 +59,7 @@ const date = (value: string | null | undefined) => {
     timeZone: "Europe/Warsaw",
   }).format(parsed)
 }
+export { date, humanAction, humanContext }
 
 const ACTION_LABELS: Record<string, string> = {
   "show.growth.request": "Wzmocnij frekwencję / merch",

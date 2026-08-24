@@ -4,10 +4,10 @@ import assert from "node:assert/strict"
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 
-test("live event JSON uses the shared streaming byte budget", () => {
-  const source = read("src/server/liveEvents.ts")
+test("the shared JSON reader streams and enforces its byte budget", () => {
+  // Which callers use readLimitedJson is pinned by upstreamJsonBounds; this
+  // gate owns the reader's own streaming mechanics.
   const reader = read("src/server/readLimitedBody.ts")
-  assert.match(source, /readLimitedJson<unknown>\(response, MAX_RESPONSE_BYTES/)
   assert.match(reader, /response\.body\.getReader\(\)/)
   assert.match(reader, /totalBytes \+= value\.byteLength/)
   assert.match(reader, /totalBytes > maxBytes/)

@@ -45,6 +45,10 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     build: {
+      // Splitting stays on: with it off, the client and server Vite builds
+      // each emit a ~130 KB stylesheet hash and every page links BOTH.
+      // Known cosmetic waste either way (the server-side copy is never
+      // fetched by browsers); revisit if Astro unifies the two builds.
       cssCodeSplit: true,
     },
   },

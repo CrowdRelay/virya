@@ -1,7 +1,8 @@
 import { readServerEnv } from "../../server/runtimeEnv.ts"
+import { stripeFor } from "../../server/stripeClient.ts"
+import type Stripe from "stripe"
 import type { APIRoute } from "astro"
 import { siteOriginForRequest } from "../../config"
-import Stripe from "stripe"
 import {
   bindTicketCheckout,
   cancelTicketOrder,
@@ -10,6 +11,7 @@ import {
 } from "../../server/crowdrelayTicketing"
 import { staffApiRequest } from "../../server/staffQrApi"
 import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
+import { consumePublicFormRateLimit, publicRequestNetwork } from "../../server/publicFormRate"
 
 export const prerender = false
 
@@ -154,6 +156,26 @@ export const POST: APIRoute = async ({ request }) => {
   const requestOrigin = new URL(request.url).origin
   if (request.headers.get("origin") !== requestOrigin) {
     return json({ error: "Invalid request origin" }, 403)
+  }
+  // Anonymous session creation is metered like merch checkout: every call
+  // reserves inventory capacity and a Stripe session upstream.
+  const rateSecret = readServerEnv("CONTACT_RATE_SECRET", import.meta.env.CONTACT_RATE_SECRET)
+    ?? readServerEnv("AREA_AUTH_SECRET", import.meta.env.AREA_AUTH_SECRET)
+  if (typeof rateSecret !== "string" || rateSecret.length < 32) {
+    return json({ error: "Checkout temporarily unavailable" }, 503)
+  }
+  try {
+    const allowed = await consumePublicFormRateLimit(
+      "ticket-checkout",
+      publicRequestNetwork(request),
+      rateSecret,
+      10,
+      60 * 60 * 1_000,
+    )
+    if (!allowed) return json({ error: "Too many requests" }, 429)
+  } catch {
+    console.error("[ticket-checkout] rate limiter unavailable")
+    return json({ error: "Checkout temporarily unavailable" }, 503)
   }
   const contentType = request.headers
     .get("content-type")
@@ -311,7 +333,7 @@ export const POST: APIRoute = async ({ request }) => {
   const prefix = lang === "pl" ? "/pl" : ""
   const eventPath = `${prefix}/live/${encodeURIComponent(eventSlug)}/`
   const origin = siteOrigin(request)
-  const stripe = new Stripe(stripeKey)
+  const stripe = stripeFor(stripeKey)
   const metadata = {
     virya_order_kind: "ticket",
     crowdrelay_ticket_order_id: reservation.order.order_id,

@@ -1,7 +1,7 @@
 import { readServerEnv } from "../../../../server/runtimeEnv.ts"
 import type { APIRoute } from "astro"
-import nodemailer from "nodemailer"
 import { VIRYA_OPERATIONS_EMAIL, siteOriginForRequest } from "../../../../config"
+import { getSiteMailer } from "../../../../server/siteMailer"
 import {
   consumeAreaAuthRateLimit,
   getAreaClientNetwork,
@@ -61,10 +61,6 @@ const sendMagicLink = async (
   base.pathname = lang === "pl" ? "/pl/area/" : "/area/"
   base.hash = new URLSearchParams({ auth: token }).toString()
   const link = base.toString()
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user, pass },
-  })
   const subject =
     lang === "pl" ? "Twój link do VIRYA Area" : "Your VIRYA Area sign-in link"
   const intro =
@@ -76,8 +72,12 @@ const sendMagicLink = async (
       ? "Jeżeli to nie Ty, zignoruj tę wiadomość."
       : "If you did not request this, ignore this message."
 
-  await transporter.sendMail({
-    from: `"VIRYA Area" <${user}>`,
+  // The shared cached transport (bounded timeouts, one SMTP handshake) instead
+  // of a fresh nodemailer transporter per sign-in request.
+  const mailer = getSiteMailer()
+  if (!mailer) throw new Error("Magic-link delivery is not configured")
+  await mailer.send({
+    fromName: "VIRYA Area",
     to: email,
     subject,
     text: `${intro}\n\n${link}\n\n${ignore}`,
