@@ -253,7 +253,12 @@ export default function AutopilotHandoffs() {
                       onChange={event => void assign(item, event.currentTarget.value)}
                       class="bg-transparent text-xs font-bold normal-case tracking-normal text-zinc-100 outline-none"
                     >
-                      {!item.assignee && <option value="">wybierz…</option>}
+                      {!item.assignee && (
+                        <>
+                          <option value="">wybierz…</option>
+                          <option value="auto">AUTO (równomiernie, wg umiejętności)</option>
+                        </>
+                      )}
                       {assignees.map(person => (
                         <option key={person.member_id} value={person.member_key}>{teamMemberLabel(person.display_name)}</option>
                       ))}
