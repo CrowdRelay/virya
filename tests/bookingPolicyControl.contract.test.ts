@@ -27,7 +27,7 @@ test("booking policy input is bounded before it reaches CrowdRelay", () => {
 })
 
 test("Autopilot overview survives an unavailable booking-policy enrichment", () => {
-  assert.match(route, /const \[overviewResult, policyResult\] = await Promise\.allSettled/)
+  assert.match(route, /const \[overviewResult, policyResult, opportunitiesResult\] = await Promise\.allSettled/)
   assert.match(route, /if \(overviewResult\.status === "rejected"\)/)
   assert.match(route, /booking_policy: policyResult\.status === "fulfilled" \? policyResult\.value : null/)
   assert.match(route, /manager-config\/booking-policy"[\s\S]*timeoutMs: 2_000/)

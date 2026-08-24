@@ -194,10 +194,18 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     await handleEnvelope(envelope)
-    await store.setJSON(key, {
-      type: envelope.type,
-      processedAt: new Date().toISOString(),
-    })
+    // onlyIfNew closes the concurrent-delivery window the get/set pair leaves
+    // open: two simultaneous deliveries of one event both pass the `existing`
+    // check, but only the first write wins and only it has already mailed.
+    const written = await store.setJSON(
+      key,
+      {
+        type: envelope.type,
+        processedAt: new Date().toISOString(),
+      },
+      { onlyIfNew: true },
+    )
+    if (written && !written.modified) return json({ ok: true, duplicate: true })
     return json({ ok: true })
   } catch (error) {
     console.error("[crowdrelay-webhook]", envelope.id, envelope.type, error)

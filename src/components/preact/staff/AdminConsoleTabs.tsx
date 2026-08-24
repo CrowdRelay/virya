@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
 import AutopilotHandoffs from "./AutopilotHandoffs"
+import OpportunityBoard from "./OpportunityBoard"
 import { Field, Metric } from "./AdminConsoleUi"
 import {
   type EventItem,
@@ -38,6 +39,8 @@ export function OverviewTab({
       )}
 
       <AutopilotHandoffs />
+
+      <OpportunityBoard />
 
       {next ? (
         <section class="border border-amber-400/25 bg-[radial-gradient(circle_at_90%_0%,rgba(132,180,172,.12),transparent_35%),rgba(16,23,21,.65)] p-5 sm:p-7">

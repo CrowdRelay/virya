@@ -159,15 +159,24 @@ const call = async (
         ...(init.headers ?? {}),
       },
     })
-    const body = await readBoundedJson(response)
     if (!response.ok) {
+      // Status first: an error body that is empty or non-JSON must still
+      // surface the upstream status (409 drop full, 401, 404) instead of
+      // collapsing into a generic retryable 503.
+      let parsed: unknown = null
+      try {
+        parsed = await readBoundedJson(response)
+      } catch {
+        parsed = null
+      }
       throw new CrowdRelayAreaError(
         response.status,
-        body && typeof body === "object"
-          ? (body as BackendErrorBody)
+        parsed && typeof parsed === "object"
+          ? (parsed as BackendErrorBody)
           : { error: "AREA backend error", code: "TEMPORARY" },
       )
     }
+    const body = await readBoundedJson(response)
     return { status: response.status, body }
   } finally {
     clearTimeout(timeout)

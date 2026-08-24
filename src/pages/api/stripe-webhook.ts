@@ -1,6 +1,7 @@
 import { readServerEnv } from "../../server/runtimeEnv.ts"
+import { stripeFor } from "../../server/stripeClient.ts"
+import type Stripe from "stripe"
 import type { APIRoute } from "astro"
-import Stripe from "stripe"
 import { sendOrderEmail } from "../../utils/orderEmail"
 import { createInpostShipment } from "../../utils/inpostShipment"
 import {
@@ -43,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response("Stripe webhook not configured", { status: 500 })
   }
 
-  const stripe = new Stripe(stripeKey)
+  const stripe = stripeFor(stripeKey)
   let rawBody: string
   try {
     rawBody = await readLimitedText(request, MAX_BODY_BYTES)
