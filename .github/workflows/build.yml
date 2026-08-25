@@ -59,11 +59,19 @@ jobs:
           python3 scripts/build_metrics.py dist artifacts/build-metrics.json
           previous_run="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/build.yml/runs?branch=main&status=success&per_page=10" --jq '.workflow_runs[0].id // empty' 2>/dev/null || true)"
           if [[ -n "${previous_run}" ]]; then
-            gh run download "${previous_run}" --repo "${GITHUB_REPOSITORY}" -n virya-build-metrics -D artifacts/previous >/dev/null 2>&1 || true
+            # Retry once: artifact propagation right after a run finishes is
+            # occasionally slow, and silently skipping the ratchet on a
+            # transient download error hides real regressions.
+            gh run download "${previous_run}" --repo "${GITHUB_REPOSITORY}" -n virya-build-metrics -D artifacts/previous >/dev/null 2>&1 \
+              || gh run download "${previous_run}" --repo "${GITHUB_REPOSITORY}" -n virya-build-metrics -D artifacts/previous >/dev/null 2>&1 \
+              || true
           fi
           if [[ -s artifacts/previous/build-metrics.json ]]; then
             python3 scripts/compare_build_metrics.py artifacts/build-metrics.json artifacts/previous/build-metrics.json
           else
+            # Pass-on-missing-baseline stays (first runs have no baseline), but
+            # the inactive ratchet must be visible, never silent.
+            echo "::warning::Build-regression ratchet INACTIVE: no virya-build-metrics baseline could be fetched (run: ${previous_run:-none}). Size regressions are NOT being compared for this build."
             echo "VIRYA_BUILD_REGRESSION=BASELINE_PENDING"
           fi
       - name: Upload build metrics baseline

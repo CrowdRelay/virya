@@ -24,6 +24,20 @@ test("every news post is bilingual, substantive and image-backed", () => {
   }
 })
 
+// newsPosts is the single canonical ordering point (sorted newest-first in
+// src/data/news.ts); this guards that the exported accessor stays sorted even
+// when new entries are appended with misdated publishedAt values.
+test("news feed is ordered newest-first regardless of authoring order", () => {
+  for (let index = 1; index < newsPosts.length; index += 1) {
+    const previous = newsPosts[index - 1].publishedAt
+    const current = newsPosts[index].publishedAt
+    assert.ok(
+      previous.localeCompare(current) >= 0,
+      `expected "${previous}" >= "${current}" at positions ${index - 1}/${index}`,
+    )
+  }
+})
+
 test("news has static bilingual index and detail routes", () => {
   assert.match(read("src/pages/news.astro"), /NewsIndexPage lang="en"/)
   assert.match(read("src/pages/pl/news.astro"), /NewsIndexPage lang="pl"/)

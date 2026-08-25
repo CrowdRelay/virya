@@ -2,6 +2,7 @@ import type { JSX } from "preact"
 import type { Lang } from "../../i18n/t"
 import type { PublicEvent } from "../../lib/crowdrelay-client"
 import { campaignIdFromLocation, crowdrelay } from "../../lib/crowdrelay"
+import { safeTimeZone } from "../../lib/safeDateFormat"
 import { normalizeTicketInventory } from "../../lib/ticketInventory"
 import TicketInventoryBar from "./tickets/TicketInventoryBar"
 
@@ -46,14 +47,17 @@ const isCrowdRelayEvent = (event: PublicEvent) => event.source === "crowdrelay"
 const detailsUrl = (event: PublicEvent, lang: Lang) =>
   localizedPath(lang, `/live/${encodeURIComponent(event.slug)}/`)
 
-const eventFormatters = (locale: string): EventFormatters => {
-  const cached = formatters.get(locale)
+// Formatters are pinned to the event's venue timezone so SSR (UTC) and
+// client hydration produce identical output and fans see venue-local times.
+const eventFormatters = (locale: string, timeZone: string): EventFormatters => {
+  const cacheKey = `${locale}:${timeZone}`
+  const cached = formatters.get(cacheKey)
   if (cached) return cached
 
   const created = {
-    day: new Intl.DateTimeFormat(locale, { day: "2-digit" }),
-    month: new Intl.DateTimeFormat(locale, { month: "short" }),
-    weekday: new Intl.DateTimeFormat(locale, { weekday: "short" }),
+    day: new Intl.DateTimeFormat(locale, { day: "2-digit", timeZone }),
+    month: new Intl.DateTimeFormat(locale, { month: "short", timeZone }),
+    weekday: new Intl.DateTimeFormat(locale, { weekday: "short", timeZone }),
     dateLine: new Intl.DateTimeFormat(locale, {
       weekday: "short",
       day: "2-digit",
@@ -61,9 +65,10 @@ const eventFormatters = (locale: string): EventFormatters => {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      timeZone,
     }),
   }
-  formatters.set(locale, created)
+  formatters.set(cacheKey, created)
   return created
 }
 
@@ -141,7 +146,7 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
   const calendar = isCrowdRelayEvent(event)
     ? crowdrelay.eventCalendarUrl(event.slug, resolvedCampaignId ?? undefined)
     : null
-  const formatter = eventFormatters(locale)
+  const formatter = eventFormatters(locale, safeTimeZone(event.timezone))
   const day = formatter.day.format(date)
   const month = trimPeriod(formatter.month.format(date))
   const weekday = trimPeriod(formatter.weekday.format(date))
