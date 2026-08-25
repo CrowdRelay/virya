@@ -2,14 +2,31 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import test from "node:test"
 
-const en = readFileSync(new URL("../src/pages/gallery.astro", import.meta.url), "utf8")
-const pl = readFileSync(new URL("../src/pages/pl/gallery.astro", import.meta.url), "utf8")
+const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 
-test("Polish and English gallery lightboxes share loading UX", () => {
-  for (const source of [en, pl]) {
-    assert.match(source, /id="modal-spinner"/)
-    assert.match(source, /modalSpinner!\.classList\.remove\("hidden"\)/)
-    assert.match(source, /modalSpinner!\.classList\.add\("hidden"\)/)
-    assert.match(source, /bg-cover bg-center/)
+const en = read("src/pages/gallery.astro")
+const pl = read("src/pages/pl/gallery.astro")
+const shared = read("src/components/GalleryGrid.astro")
+
+// Both locales render one shared gallery component; the lightbox loading UX
+// lives there exactly once instead of being copy-pasted per locale (which had
+// already drifted: PL grew alt_pl support the EN page never picked up).
+test("both gallery locales render the shared grid + lightbox component", () => {
+  for (const [name, source] of [["en", en], ["pl", pl]] as const) {
+    assert.match(source, /<GalleryGrid lang=\{lang\}/, `${name} must render GalleryGrid`)
+    assert.doesNotMatch(source, /modal-spinner|photo-btn/, `${name} must not keep a private lightbox copy`)
+  }
+})
+
+test("shared lightbox keeps its loading and navigation behavior", () => {
+  for (const pattern of [
+    /id="modal-spinner"/,
+    /modalSpinner!\.classList\.remove\("hidden"\)/,
+    /modalSpinner!\.classList\.add\("hidden"\)/,
+    /createDialogFocus/,
+    /ArrowLeft/,
+    /touchstart/,
+  ]) {
+    assert.match(shared, pattern)
   }
 })

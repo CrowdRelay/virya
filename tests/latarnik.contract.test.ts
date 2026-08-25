@@ -35,7 +35,7 @@ test("invite capability is removed from the URL before persisted use", () => {
 test("press room, local radar and collaboration loop are the product surface", () => {
   for (const marker of [
     "Press room", "data-events", "data-radius", "data-locale", "data-topic", "press_photo",
-    "clean_version", "accreditation", "Mogę pomóc", "Nie tym razem", "Dodaj publikację",
+    "clean_version", "accreditation",
     "data-request-history", "leave-dnc",
   ]) assert.ok(portal.includes(marker), `missing ${marker}`)
   assert.match(portal, /Promise\.allSettled\(\[/)

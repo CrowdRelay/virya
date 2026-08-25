@@ -5,12 +5,36 @@
   const deviceClass = innerWidth < 768 ? "mobile" : innerWidth < 1200 ? "tablet" : "desktop";
   const route = location.pathname.slice(0, 160);
   const sent = new Set();
+  // Assistant-era discovery: bucket referrer HOST ONLY (never the full URL —
+  // these stay identity-free) so we can watch whether LLM/chat surfaces start
+  // sending people our way. Receiver treats metadata as opaque.
+  const AI_SOURCES = [
+    ["chatgpt.com", "chatgpt"],
+    ["openai.com", "chatgpt"],
+    ["perplexity.ai", "perplexity"],
+    ["gemini.google.com", "gemini"],
+    ["copilot.microsoft.com", "copilot"],
+    ["claude.ai", "claude"],
+    ["deepseek.com", "deepseek"],
+    ["mistral.ai", "mistral"],
+  ];
+  const aiSource = () => {
+    try {
+      if (!document.referrer) return null;
+      const host = new URL(document.referrer).hostname.toLowerCase();
+      for (const [suffix, label] of AI_SOURCES) {
+        if (host === suffix || host.endsWith(`.${suffix}`)) return label;
+      }
+    } catch (_) {}
+    return null;
+  };
+  const metadata = aiSource() ? { ai_source: aiSource() } : {};
   function send(metricKey, value) {
     if (!Number.isFinite(value) || value < 0 || sent.has(metricKey)) return;
     sent.add(metricKey);
     const body = JSON.stringify({
       surface: "virya_www", metric_key: metricKey, value,
-      route, device_class: deviceClass, observed_at: new Date().toISOString(), metadata: {},
+      route, device_class: deviceClass, observed_at: new Date().toISOString(), metadata,
     });
     fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true, mode: "cors", credentials: "omit" }).catch(() => {});
   }
