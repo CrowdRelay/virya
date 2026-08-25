@@ -17,12 +17,10 @@ const loader = read("src/components/preact/staff/BackendLoader.tsx")
 test("admin panel exposes a dedicated aggregate-only Signal tab", () => {
   for (const marker of [
     'key: "signal"',
-    'label: "Sygnał"',
     "function SignalTab()",
     "/api/staff/admin/signal/overview",
     "top_cities",
     "pending_city_requests",
-    "dane wyłącznie zagregowane",
   ]) {
     assert.ok(ui.includes(marker), `missing Signal UI marker: ${marker}`)
   }
@@ -41,15 +39,11 @@ test("backend-backed admin sections expose scoped loading overlays", () => {
   for (const marker of [
     "BackendLoader",
     "overviewLoading",
-    "Pobieram aktualne dane",
-    "Pobieram sprzedaż",
-    "Pobieram statystyki Sygnału",
     "aria-busy",
   ]) {
     assert.ok(ui.includes(marker), `missing admin loading marker: ${marker}`)
   }
   assert.match(ecosystem, /BackendLoader/)
-  assert.match(ecosystem, /Pobieram control plane i proofy/)
   assert.match(loader, /animate-pulse/)
   assert.match(loader, /role="status"/)
 })

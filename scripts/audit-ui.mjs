@@ -6,8 +6,7 @@ const music = readFileSync(resolve("src/pages/music/[slug].astro"), "utf8")
 const musicPl = readFileSync(resolve("src/pages/pl/music/[slug].astro"), "utf8")
 const videos = readFileSync(resolve("src/pages/videos.astro"), "utf8")
 const videosPl = readFileSync(resolve("src/pages/pl/videos.astro"), "utf8")
-const gallery = readFileSync(resolve("src/pages/gallery.astro"), "utf8")
-const galleryPl = readFileSync(resolve("src/pages/pl/gallery.astro"), "utf8")
+const galleryGrid = readFileSync(resolve("src/components/GalleryGrid.astro"), "utf8")
 const failures = []
 const expect = (condition, message) => { if (!condition) failures.push(message) }
 
@@ -27,7 +26,7 @@ for (const [label, source] of [["music", music], ["music-pl", musicPl]]) {
 }
 
 
-for (const [label, source] of [["videos", videos], ["videos-pl", videosPl], ["gallery", gallery], ["gallery-pl", galleryPl]]) {
+for (const [label, source] of [["videos", videos], ["videos-pl", videosPl], ["gallery-grid (en+pl)", galleryGrid]]) {
   expect(source.includes("astro:before-preparation"), `${label} modal must clean up before Astro navigation`)
   expect(source.includes("closeModal(); ac.abort()"), `${label} modal must release body/focus state before navigation`)
 }
