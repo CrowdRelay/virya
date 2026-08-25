@@ -77,7 +77,10 @@ jobs:
       - name: Upload build metrics baseline
         # An earlier quality/build failure legitimately means metrics were never
         # produced. Do not mask the real failure with a second artifact error.
+        # Observability only: a storage-quota cap must never fail the build over
+        # a baseline the ratchet already tolerates missing.
         if: success()
+        continue-on-error: true
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: virya-build-metrics
@@ -137,7 +140,11 @@ jobs:
   deploy:
     name: Promote exact build artifact to Netlify
     needs: build
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # Artifact promotion via Actions is an on-demand tool now: routine
+    # production deploys go through scripts/deploy-local.sh, which assembles
+    # and promotes the same immutable artifact without spending Actions
+    # minutes (and without depending on artifact storage quota).
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
