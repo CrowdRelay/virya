@@ -145,7 +145,7 @@ export default function OpportunityBoard() {
                 </div>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                {item.action_id ? (
+                {item.action_id && item.authority === "awaiting_approval" ? (
                   <button
                     type="button"
                     disabled={busy !== null}
@@ -156,7 +156,7 @@ export default function OpportunityBoard() {
                       : "min-h-[44px] rounded-xl bg-emerald-300 px-4 py-2 text-xs font-black text-zinc-950 disabled:opacity-50"}
                   >{busy === `do:${item.decision_id}` ? "PUSZCZAM…" : confirming === `do:${item.decision_id}` ? "POTWIERDŹ" : "ZRÓB TO"}</button>
                 ) : (
-                  <span class="max-w-[180px] text-right text-xs leading-snug text-zinc-500">brak kroku do wykonania — załatw po swojemu</span>
+                  <span class="max-w-[180px] text-right text-xs leading-snug text-zinc-500">{item.authority === "auto_executing" ? "już zatwierdzone — wykonuje się" : "brak kroku do wykonania — załatw po swojemu"}</span>
                 )}
                 <button
                   type="button"
