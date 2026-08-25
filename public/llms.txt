@@ -1,20 +1,20 @@
-# Virya
+# VIRYA
 
-Virya is a modern metalcore band from Poland (Wrocław). Heavy, melodic, bilingual (EN/PL).
-This file orients AI assistants and answer engines; all pages also ship JSON-LD
-(MusicGroup, MusicEvent) and the news feed below is machine-readable.
+> Virya is a modern metalcore band from Poland. Heavy, melodic, bilingual EN/PL.
+> All pages ship JSON-LD (MusicGroup, MusicEvent); this file orients AI assistants.
 
-## Facts
-- Genre: modern metalcore / heavy alternative
-- Origin: Poland
-- Site: https://www.virya.music (Polish mirror under /pl)
+## Pages
 
-## Authoritative links
-- Tour dates and events: https://www.virya.music/ (JSON-LD MusicEvent per show)
-- News feed (JSON): https://www.virya.music/feed.json
-- Music and releases: https://www.virya.music/music
-- Videos: https://www.virya.music/videos
-- Merch store (EU shipping, InPost): https://www.virya.music/merch
-- Band press kit (EPK): https://www.virya.music/epk
-- Photo gallery (press-cleared): https://www.virya.music/gallery
-- Contact and booking: https://www.virya.music/join
+- [Home](https://www.virya.music/): tour dates with MusicEvent JSON-LD
+- [News feed](https://www.virya.music/feed.json): machine-readable JSON feed
+- [Music](https://www.virya.music/music): releases and lyrics
+- [Videos](https://www.virya.music/videos): official videos
+- [Merch](https://www.virya.music/merch): EU store, InPost shipping
+- [Press kit](https://www.virya.music/epk): EPK and press photos
+- [Gallery](https://www.virya.music/gallery): press-cleared photos
+- [Contact](https://www.virya.music/join): booking and contact
+
+## Notes
+
+- Polish mirror lives under /pl with identical routes.
+- Identity-free telemetry only; no cookies for analytics.
