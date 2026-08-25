@@ -96,3 +96,4 @@ CLAUDE.md
 # Public docs are intentionally minimal; keep architecture canonical.
 docs/*
 !docs/ARCHITECTURE.md
+.env.local
