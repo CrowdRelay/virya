@@ -3,7 +3,14 @@ import { staffApi, type StaffApiError } from "./staffApi"
 // Shared types and bounded browser helpers for the staff control center.
 
 export type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
-export type Tab = "overview" | "signal" | "audience" | "ticketing" | "admission" | "beacons"
+export type Tab =
+  | "overview"
+  | "signal"
+  | "audience"
+  | "ticketing"
+  | "admission"
+  | "beacons"
+  | "releases"
 export type ApiError = StaffApiError
 export type EventItem = {
   id: string
@@ -238,4 +245,5 @@ export const tabs: Array<{ key: Tab; label: string; hint: string }> = [
   { key: "ticketing", label: "Bilety", hint: "sprzedaż i pule" },
   { key: "admission", label: "Goście", hint: "wejściówki" },
   { key: "beacons", label: "Latarnicy", hint: "sieć i wysyłki" },
+  { key: "releases", label: "Wydania", hint: "plany premiery i fale" },
 ]

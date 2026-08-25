@@ -21,7 +21,7 @@ import { staffAccentButton, staffLogoutButton, staffSecondaryButton } from "./st
 // The three heaviest sections are fetched the first time they are opened.
 // Keeping them out of the console's first script is what makes "Dzisiaj"
 // interactive without also parsing ticketing, Fan 360 and the Latarnik network.
-type LazyTab = "audience" | "ticketing" | "beacons"
+type LazyTab = "audience" | "ticketing" | "beacons" | "releases"
 const LAZY: Record<LazyTab, { label: string; load: () => Promise<Panel> }> = {
   audience: {
     label: "Pobieram Fan 360…",
@@ -30,6 +30,11 @@ const LAZY: Record<LazyTab, { label: string; load: () => Promise<Panel> }> = {
   ticketing: {
     label: "Pobieram sprzedaż biletów…",
     load: () => import("./AdminTicketingTab").then(module => module.TicketingTab as Panel),
+  },
+  releases: {
+    label: "Pobieram wydania…",
+    load: () =>
+      import("./StaffReleasePlansPanel").then(module => module.default as Panel),
   },
   beacons: {
     label: "Pobieram sieć Latarników…",
