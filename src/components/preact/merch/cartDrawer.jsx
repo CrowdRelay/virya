@@ -411,7 +411,10 @@ const CartDrawer = () => {
                   <div class="border border-amber-400/30 bg-amber-400/[.04] px-3 py-2">
                     <p class="text-xs font-bold text-amber-400">{pickupEvent.title}</p>
                     <p class="text-[11px] text-zinc-400 mt-1">
-                      {new Date(pickupEvent.starts_at).toLocaleDateString(lang === "pl" ? "pl-PL" : "en-GB")}
+                      {new Date(pickupEvent.starts_at).toLocaleDateString(
+                        lang === "pl" ? "pl-PL" : "en-GB",
+                        { timeZone: pickupEvent.timezone || undefined },
+                      )}
                       {pickupEvent.venue ? ` · ${pickupEvent.venue}` : ""}
                       {pickupEvent.city?.name ? ` · ${pickupEvent.city.name}` : ""}
                     </p>

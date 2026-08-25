@@ -9,12 +9,20 @@ on:
     paths:
       - "src/lib/crowdrelay-client.ts"
       - "src/server/crowdrelayArea.ts"
+      - "src/server/crowdrelayCommerce.ts"
+      - "src/server/crowdrelayTicketing.ts"
+      - "src/server/liveEvents.ts"
+      - "src/server/staffQrApi.ts"
       - "scripts/**"
       - ".github/workflows/upstream-contract.yml"
   pull_request:
     paths:
       - "src/lib/crowdrelay-client.ts"
       - "src/server/crowdrelayArea.ts"
+      - "src/server/crowdrelayCommerce.ts"
+      - "src/server/crowdrelayTicketing.ts"
+      - "src/server/liveEvents.ts"
+      - "src/server/staffQrApi.ts"
       - "scripts/**"
       - ".github/workflows/upstream-contract.yml"
 

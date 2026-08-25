@@ -20,7 +20,7 @@ export interface NewsPost {
   latarnikContext: LocalizedText
 }
 
-export const newsPosts: NewsPost[] = [
+const curatedNewsPosts: NewsPost[] = [
   {
     slug: "marcin-janusinski-wokalista-virya",
     publishedAt: "2026-08-17",
@@ -118,6 +118,15 @@ export const newsPosts: NewsPost[] = [
     },
   },
 ]
+
+// Single canonical ordering point: every consumer (index page, feed.json,
+// detail routes, Latarnik teaser) renders newest-first, and appending a
+// misdated entry can no longer break the feed order. The stable sort keeps
+// the curated order for equal publishedAt dates.
+const byPublishedDesc = (left: NewsPost, right: NewsPost) =>
+  right.publishedAt.localeCompare(left.publishedAt)
+
+export const newsPosts: NewsPost[] = [...curatedNewsPosts].sort(byPublishedDesc)
 
 export const formatNewsDate = (value: string, lang: NewsLang) =>
   new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {

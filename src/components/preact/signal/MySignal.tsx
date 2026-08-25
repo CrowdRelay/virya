@@ -724,7 +724,7 @@ export default function MySignal({ lang }: Props) {
               >
                 <div>
                   <p class="font-mono text-[8px] uppercase tracking-widest text-amber-400">
-                    {formatDate(event.starts_at, locale)}
+                    {formatDate(event.starts_at, locale, event.timezone)}
                   </p>
                   <h3 class="mt-2 text-sm font-black uppercase text-white">
                     {event.title}
@@ -785,14 +785,14 @@ function formatElapsed(elapsedMs: number): string {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`
 }
 
-function formatDate(value: string, locale: string): string {
+function formatDate(value: string, locale: string, timezone?: string): string {
   return formatWithCache(value, locale, dateTimeFormatters, {
     day: "2-digit",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  })
+  }, timezone)
 }
 
 function formatDateOnly(value: string, locale: string): string {
@@ -804,14 +804,19 @@ function formatWithCache(
   locale: string,
   cache: Map<string, Intl.DateTimeFormat>,
   options?: Intl.DateTimeFormatOptions,
+  timezone?: string,
 ): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
 
-  let formatter = cache.get(locale)
+  // Event times render in the venue timezone; timestamps without one
+  // (e.g. fan-local interest marks) keep the viewer's zone.
+  const timeZone = timezone && timezone.trim() !== "" ? timezone : undefined
+  const cacheKey = `${locale}:${timeZone ?? "local"}`
+  let formatter = cache.get(cacheKey)
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat(locale, options)
-    cache.set(locale, formatter)
+    formatter = new Intl.DateTimeFormat(locale, { ...options, timeZone })
+    cache.set(cacheKey, formatter)
   }
   return formatter.format(date)
 }
