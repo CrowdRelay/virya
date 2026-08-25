@@ -154,7 +154,7 @@ export default function OpportunityBoard() {
                     class={confirming === `do:${item.decision_id}`
                       ? "min-h-[44px] rounded-xl border border-amber-300/40 bg-amber-300/20 px-4 py-2 text-xs font-black text-amber-100 disabled:opacity-50"
                       : "min-h-[44px] rounded-xl bg-emerald-300 px-4 py-2 text-xs font-black text-zinc-950 disabled:opacity-50"}
-                  >{busy === `do:${item.decision_id}` ? "PUŚCZAM…" : confirming === `do:${item.decision_id}` ? "POTWIERDŹ" : "ZRÓB TO"}</button>
+                  >{busy === `do:${item.decision_id}` ? "PUSZCZAM…" : confirming === `do:${item.decision_id}` ? "POTWIERDŹ" : "ZRÓB TO"}</button>
                 ) : (
                   <span class="max-w-[180px] text-right text-xs leading-snug text-zinc-500">brak kroku do wykonania — załatw po swojemu</span>
                 )}
