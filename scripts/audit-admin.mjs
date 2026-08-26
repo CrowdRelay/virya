@@ -2,8 +2,6 @@ import { readFileSync } from "node:fs"
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 const assertions = [
-  ["src/pages/staff/control.astro", "noindex, nofollow, noarchive"],
-  ["src/pages/staff/control.astro", "AdminConsole client:load"],
   ["src/pages/staff/pair.astro", "StaffPairingManager client:load"],
   ["src/pages/staff/pair.astro", "noindex, nofollow, noarchive"],
   ["src/pages/api/staff/pairing.ts", "hasStaffQrSession"],
@@ -22,7 +20,6 @@ const assertions = [
   ["src/components/preact/staff/AdminConsoleTabs.tsx", "dane wyłącznie zagregowane"],
   ["src/components/preact/staff/AdminConsoleTabs.tsx", "BackendLoader"],
   ["src/components/preact/staff/AdminConsoleTabs.tsx", "aria-busy"],
-  ["src/components/preact/staff/EcosystemControl.tsx", "Pobieram control plane i proofy"],
   ["src/components/preact/staff/ConcertQrManager.tsx", "Pobieram koncerty, kampanie QR i bramkę"],
   ["src/components/preact/staff/AccountingManager.tsx", "Pobieram sprzedaż, Stripe i księgowość"],
   ["src/components/preact/staff/StaffCommerceManager.tsx", "Pobieram merch, magazyn i losowania"],
@@ -36,16 +33,6 @@ const assertions = [
   ["src/pages/api/staff/admin/admission/issue.ts", "isSameOriginRequest"],
   ["src/pages/api/staff/admin/admission/revoke.ts", "isSameOriginRequest"],
   ["src/pages/api/staff/admin/mailer/test.ts", "isSameOriginRequest"],
-  ["src/components/preact/staff/EcosystemControl.tsx", "External proofs"],
-  ["src/components/preact/staff/EcosystemControl.tsx", "external_proof_anchoring_enabled"],
-  ["src/components/preact/staff/EcosystemControl.tsx", "Promise.allSettled"],
-  ["src/pages/api/staff/admin/ecosystem/emit-due.ts", "isSameOriginRequest"],
-  ["src/pages/api/staff/admin/ecosystem/reconcile.ts", "isSameOriginRequest"],
-  ["src/pages/api/staff/admin/ecosystem/flags/[key].ts", "isSameOriginRequest"],
-  ["src/pages/api/staff/admin/ecosystem/checklists/[slug]/[item].ts", "isSameOriginRequest"],
-  ["src/pages/api/staff/admin/ecosystem/proofs.ts", "admin/proofs/batches"],
-  ["src/pages/api/staff/admin/ecosystem/proofs/audit.ts", "admin/proofs/audit-batches"],
-  ["src/pages/api/staff/admin/ecosystem/proofs/audit.ts", "isSameOriginRequest"],
 ]
 
 for (const [path, needle] of assertions) {

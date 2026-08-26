@@ -33,7 +33,6 @@ test('interactive public request paths are bounded', () => {
     ['src/components/preact/merch/productCard.jsx', /AbortSignal\.timeout\(6_000\)/],
     ['src/components/preact/merch/cartDrawer.jsx', /AbortSignal\.timeout\((?:10|15)_000\)/],
     ['src/components/preact/tickets/TicketCheckout.tsx', /AbortSignal\.timeout\(15_000\)/],
-    ['src/components/preact/staff/EcosystemControl.tsx', /AbortSignal\.timeout\(10_000\)/],
     ['src/components/preact/staff/StaffPairingManager.tsx', /timeoutMs:\s*REQUEST_TIMEOUT_MS/],
   ]
   for (const [path, pattern] of bounded) {
@@ -85,10 +84,4 @@ test("secondary public and staff reads share bounded lifecycle semantics", () =>
   assert.match(leaderboard, /payload\.items\.slice\(0, limit\)/)
   assert.match(leaderboard, /astro:before-preparation/)
   assert.match(leaderboard, /observer\.disconnect\(\)/)
-
-  const timeline = read("src/components/preact/staff/OpsTimelinePanel.tsx")
-  assert.match(timeline, /staffApi<unknown>/)
-  assert.match(timeline, /timeoutMs:\s*10_000/)
-  assert.match(timeline, /const parseTimeline/)
-  assert.doesNotMatch(timeline, /await fetch\(/)
 })

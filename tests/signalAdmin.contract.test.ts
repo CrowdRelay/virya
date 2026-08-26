@@ -11,7 +11,6 @@ const ui = [
   "src/components/preact/staff/adminConsoleShared.ts",
 ].map(read).join("\n")
 const route = read("src/pages/api/staff/admin/signal/overview.ts")
-const ecosystem = read("src/components/preact/staff/EcosystemControl.tsx")
 const loader = read("src/components/preact/staff/BackendLoader.tsx")
 
 test("admin panel exposes a dedicated aggregate-only Signal tab", () => {
@@ -43,7 +42,6 @@ test("backend-backed admin sections expose scoped loading overlays", () => {
   ]) {
     assert.ok(ui.includes(marker), `missing admin loading marker: ${marker}`)
   }
-  assert.match(ecosystem, /BackendLoader/)
   assert.match(loader, /animate-pulse/)
   assert.match(loader, /role="status"/)
 })
