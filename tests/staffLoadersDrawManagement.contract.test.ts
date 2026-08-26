@@ -28,7 +28,7 @@ test("staff commerce manages every draw and only exposes fail-closed deletion", 
   const deletion = read("src/pages/api/staff/commerce/draws/[id]/delete.ts")
 
   assert.match(overview, /admin\/reward-draws/)
-  assert.match(panel, /Wszystkie weighted draws/)
+  assert.match(panel, /Wszystkie losowania/)
   assert.match(panel, /USUŃ BŁĘDNE LOSOWANIE/)
   assert.match(panel, /draw\.can_delete/)
   assert.match(panel, /run_count/)

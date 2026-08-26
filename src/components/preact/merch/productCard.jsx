@@ -303,7 +303,7 @@ const ProductCard = ({ product, images, index = 0, inventory }) => {
             </span>
           )}
           {inventory?.status === "unavailable" && (
-            <span class="text-[11px] font-bold uppercase tracking-widest text-zinc-600">
+            <span class="text-[11px] font-bold uppercase tracking-widest text-zinc-400">
               {lang === "pl" ? "Cenę i stan potwierdzimy przy zakupie" : "Price and stock confirmed at checkout"}
             </span>
           )}

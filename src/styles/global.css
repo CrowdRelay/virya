@@ -18,6 +18,15 @@
   --color-amber-800: #26655d;
   --color-amber-900: #21413d;
   --color-amber-950: #122724;
+  /* The synesthesia/signal surfaces were built on Tailwind's true cyan,
+     which read as a second brand beside the sage palette. Alias the ramp
+     the same way so both families resolve to one signal hue. */
+  --color-cyan-100: #dcece8;
+  --color-cyan-200: #bddbd5;
+  --color-cyan-300: #93c6c0;
+  /* Two near-identical blacks (#09090b vs #070908) banded where footer
+     met body; route the neutral through the brand background instead. */
+  --color-zinc-950: #070908;
 }
 
 :root {
@@ -619,10 +628,10 @@
   .virya-ticket-inventory__reserved {
     background: repeating-linear-gradient(
       135deg,
-      rgb(253 230 138 / 0.7) 0,
-      rgb(253 230 138 / 0.7) 0.3rem,
-      rgb(180 83 9 / 0.45) 0.3rem,
-      rgb(180 83 9 / 0.45) 0.6rem
+      rgb(243 197 26 / 0.6) 0,
+      rgb(243 197 26 / 0.6) 0.3rem,
+      rgb(97 76 12 / 0.5) 0.3rem,
+      rgb(97 76 12 / 0.5) 0.6rem
     );
   }
 
@@ -680,10 +689,10 @@
   .virya-ticket-inventory__key--reserved {
     background: repeating-linear-gradient(
       135deg,
-      rgb(253 230 138 / 0.7) 0,
-      rgb(253 230 138 / 0.7) 0.18rem,
-      rgb(180 83 9 / 0.45) 0.18rem,
-      rgb(180 83 9 / 0.45) 0.36rem
+      rgb(243 197 26 / 0.6) 0,
+      rgb(243 197 26 / 0.6) 0.18rem,
+      rgb(97 76 12 / 0.5) 0.18rem,
+      rgb(97 76 12 / 0.5) 0.36rem
     );
   }
 

@@ -154,7 +154,7 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
     } catch (error) {
       const status = typeof error === "object" && error && "status" in error ? Number((error as { status?: number }).status) : 0
       if (status === 503) {
-        setMessage("Executor n8n dla tej operacji nie jest jeszcze aktywny/atestowany. Nic nie zostało wysłane ani obiecane.")
+        setMessage("Automatyczna wysyłka jest chwilowo wyłączona po stronie technicznej. Nic nie zostało wysłane ani obiecane.")
       } else {
         setMessage(error instanceof Error && error.message ? `Nie udało się: ${error.message}` : "Nie udało się wykonać operacji.")
       }
@@ -226,22 +226,22 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
         method: "POST", timeoutMs: REQUEST_TIMEOUT_MS,
         body: { kind: "beacon_network", action: "preview_invites", ...inviteConfig() },
       })
-      if (value.tokensMinted !== false) throw new Error("Preview unexpectedly minted invite capabilities")
+      if (value.tokensMinted !== false) throw new Error("Podglądarka testowa utworzyła zaproszenia — to błąd systemu, zgłoś go")
       setPreview(value)
       setPreviewKey(JSON.stringify(inviteConfig()))
-      setMessage(`Preview gotowy: ${value.beaconCount} kontaktów, zero utworzonych tokenów.`)
+      setMessage(`Podgląd gotowy: ${value.beaconCount} kontaktów, żadne zaproszenie nie zostało jeszcze wysłane.`)
     } catch (error) {
       setPreview(null); setPreviewKey("")
-      setMessage(error instanceof Error ? `Nie udało się przygotować preview: ${error.message}` : "Nie udało się przygotować preview.")
+      setMessage(error instanceof Error ? `Nie udało się przygotować podglądu: ${error.message}` : "Nie udało się przygotować podglądu.")
     } finally { setBusy(false) }
   }
 
   const queueInvites = () => {
     if (selectedApproved.length === 0) return
-    if (!preview || preview.beaconCount !== selectedApproved.length || previewKey !== JSON.stringify(inviteConfig())) { setMessage("Najpierw zrób aktualny PREVIEW tej dokładnej fali."); return }
-    if (!window.confirm(`Zakolejkować wysyłkę do ${selectedApproved.length} zatwierdzonych kontaktów? Tokeny powstaną dopiero przy jednorazowym claimie executora.`)) return
+    if (!preview || preview.beaconCount !== selectedApproved.length || previewKey !== JSON.stringify(inviteConfig())) { setMessage("Najpierw zrób aktualny PODGLĄD dokładnie tej fali."); return }
+    if (!window.confirm(`Zakolejkować wysyłkę do ${selectedApproved.length} zatwierdzonych kontaktów? Zaproszenia powstaną i trafią do wysyłki w tle.`)) return
     if (selectedApproved.length > 50 && !window.confirm(`To duża fala (${selectedApproved.length}). Potwierdź drugi raz, że chcesz ją uruchomić teraz.`)) return
-    void post({ action: "queue_invites", ...inviteConfig() }, `Zakolejkowano invite job dla ${selectedApproved.length} Latarników.`).then(() => {
+    void post({ action: "queue_invites", ...inviteConfig() }, `Zakolejkowano wysyłkę zaproszeń dla ${selectedApproved.length} Latarników.`).then(() => {
       setSelected(new Set()); setPreview(null); setPreviewKey("")
     })
   }
@@ -254,7 +254,7 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
         method: "POST", timeoutMs: REQUEST_TIMEOUT_MS,
         body: { kind: "beacon_network", action: "single_invite", beaconId: candidate.id, ...boundedInvite() },
       })
-      if (!value.inviteUrl.startsWith("https://virya.music/")) throw new Error("Unexpected invite URL")
+      if (!value.inviteUrl.startsWith("https://virya.music/")) throw new Error("System zwrócił nieoczekiwany adres zaproszenia — zgłoś to")
       setInviteQr({ ...value, qr: qrDataUrl(value.inviteUrl, 7, 4) })
       setMessage("QR utworzony. Link istnieje tylko w tym otwartym oknie.")
       await onRefresh()
@@ -364,7 +364,7 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
           <button type="button" disabled={disabled || busy || (data.approvedCandidates ?? []).length === 0} onClick={toggleAll} class="rounded-lg border border-white/15 px-3 py-2 text-[10px] font-black text-zinc-300 disabled:opacity-40">ZAZNACZ / WYCZYŚĆ</button>
         </div>
         <div class="mt-4 grid gap-3 rounded-lg border border-white/10 bg-black/25 p-4 sm:grid-cols-4 sm:items-end">
-          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">TTL dni
+          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">Ważność (dni)
             <input class="input" type="number" min="1" max="30" value={ttlDays} onInput={event => { setTtlDays(Number(event.currentTarget.value)); setPreview(null); setPreviewKey("") }} />
           </label>
           <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">Promień km
@@ -374,8 +374,8 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
             <select class="input" value={locale} onChange={event => { setLocale(event.currentTarget.value === "en" ? "en" : "pl"); setPreview(null); setPreviewKey("") }}><option value="pl">PL</option><option value="en">EN</option></select>
           </label>
           <div class="flex flex-wrap gap-2">
-            <button type="button" disabled={disabled || busy || selectedApproved.length === 0} onClick={() => void previewInvites()} class="rounded-lg border border-cyan-300/40 px-4 py-2 text-[10px] font-black text-cyan-200 disabled:opacity-40">PREVIEW ({selectedApproved.length})</button>
-            <button type="button" disabled={disabled || busy || selectedApproved.length === 0 || !preview} onClick={queueInvites} class="rounded-lg bg-cyan-300 px-4 py-2 text-[10px] font-black text-zinc-950 disabled:opacity-40">WYŚLIJ FALĘ</button>
+            <button type="button" disabled={disabled || busy || selectedApproved.length === 0} onClick={() => void previewInvites()} class="rounded-lg border border-cyan-300/40 px-4 py-2 text-[10px] font-black text-cyan-200 disabled:opacity-40">PODGLĄD ({selectedApproved.length})</button>
+            <button type="button" disabled={disabled || busy || selectedApproved.length === 0 || !preview} onClick={queueInvites} class="rounded-lg bg-cyan-300 px-4 py-2 text-[10px] font-black text-zinc-950 disabled:opacity-40">WYŚLIJ ZAPROSZENIA</button>
           </div>
         </div>
         {preview ? <div class="mt-3 rounded-lg border border-cyan-300/20 bg-cyan-300/[0.04] p-4 text-xs text-zinc-300">

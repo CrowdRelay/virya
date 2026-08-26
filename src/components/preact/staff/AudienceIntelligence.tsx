@@ -10,6 +10,7 @@ import type {
   SegmentPreview,
 } from "../../../types/audience"
 import { staffApi, type StaffApiError } from "./staffApi"
+import { ConfirmButton } from "./AdminConsoleUi"
 
 type Pane = "fans" | "segments" | "campaigns" | "analytics"
 type RequestError = StaffApiError
@@ -148,7 +149,7 @@ export default function AudienceIntelligence() {
           <p class="text-[10px] font-black uppercase tracking-[.28em] text-cyan-300">Audience Intelligence</p>
           <h2 class="mt-1 text-2xl font-black text-white">Relacja z fanem, nie licznik followersów</h2>
           <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
-            Jeden read model łączy pozyskanie, zainteresowanie koncertami, bilety, wejścia, polecenia, nagrody i Synesthesię.
+            Wszystko o fanie w jednym miejscu: pozyskanie, zainteresowanie koncertami, bilety, wejścia, polecenia, nagrody i Synesthesia.
           </p>
         </div>
         <button disabled={busy} onClick={() => void refresh()} class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50">
@@ -167,7 +168,7 @@ export default function AudienceIntelligence() {
       )}
       {dashboard && !dashboard.features.communication_campaigns_enabled && (
         <Notice tone="safe">
-          Campaign delivery jest bezpiecznie wyłączone. Możesz budować segmenty i drafty; wysyłka nie ruszy, dopóki nie włączysz <code>communication_campaigns_enabled</code> po podpięciu adaptera.
+          Wysyłka wiadomości do fanów jest bezpiecznie wyłączona. Segmenty i szkice możesz tworzzyć swobodnie — nic nikomu nie zostanie wysłane, dopóki osoba prowadząca techniczną stronę nie włączy wysyłki.
         </Notice>
       )}
       {message && <Notice tone="warn">{message}</Notice>}
@@ -302,7 +303,9 @@ function FanDetailPane({ detail, close, reload }: { detail: AudienceFanDetail | 
       </div>
       <div class="mt-4 flex flex-wrap gap-2">
         {detail.tags.map(value => (
-          <button key={value} disabled={busy} onClick={() => void mutateTag(value, true)} title="Usuń tag" class="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-200">{value} ×</button>
+          <ConfirmButton key={value} disabled={busy} busyLabel="USUWAM…" confirmLabel="USUŃ TAG" onConfirm={() => void mutateTag(value, true)}>
+            {value} ×
+          </ConfirmButton>
         ))}
       </div>
       <form class="mt-3 flex gap-2" onSubmit={event => { event.preventDefault(); void mutateTag(tag.trim().toLowerCase()) }}>
@@ -352,13 +355,13 @@ function SegmentsPane({ dashboard, reload }: { dashboard: AudienceDashboard | nu
       <Panel>
         <h3 class="text-lg font-black text-white">Nowy segment</h3>
         <form onSubmit={create} class="mt-4 grid gap-3">
-          <input required value={name} onInput={event => setName(event.currentTarget.value)} placeholder="Nazwa, np. Gorzów — warm audience" class={inputClass} />
+          <input required value={name} onInput={event => setName(event.currentTarget.value)} placeholder="Nazwa, np. Gorzów — zainteresowani" class={inputClass} />
           <input required value={slug} onInput={event => setSlug(event.currentTarget.value.replace(/[^a-zA-Z0-9_-]/g, "-").toLowerCase())} placeholder="slug" class={inputClass} />
           <input value={cities} onInput={event => setCities(event.currentTarget.value)} placeholder="miasta po przecinku" class={inputClass} />
           <input value={tags} onInput={event => setTags(event.currentTarget.value)} placeholder="tagi wymagane po przecinku" class={inputClass} />
-          <input value={minReferrals} onInput={event => setMinReferrals(event.currentTarget.value)} inputMode="numeric" placeholder="min. qualified referrals" class={inputClass} />
+          <input value={minReferrals} onInput={event => setMinReferrals(event.currentTarget.value)} inputMode="numeric" placeholder="min. liczba poleceń" class={inputClass} />
           <label class={labelClass}>Synesthesia<select value={synesthesia} onChange={event => setSynesthesia(event.currentTarget.value as typeof synesthesia)} class={inputClass}><option value="any">dowolnie</option><option value="yes">ukończona</option><option value="no">nieukończona</option></select></label>
-          <label class={labelClass}>Marketing consent<select value={consent} onChange={event => setConsent(event.currentTarget.value as typeof consent)} class={inputClass}><option value="yes">tak</option><option value="any">dowolnie</option><option value="no">nie</option></select></label>
+          <label class={labelClass}>Zgoda na wiadomości<select value={consent} onChange={event => setConsent(event.currentTarget.value as typeof consent)} class={inputClass}><option value="yes">tak</option><option value="any">dowolnie</option><option value="no">nie</option></select></label>
           <button disabled={busy || !slug || !name} class={primaryButton}>{busy ? "Zapisuję…" : "Utwórz segment"}</button>
           {message && <p class="text-xs text-rose-300">{message}</p>}
         </form>
@@ -442,7 +445,7 @@ function CampaignsPane({ campaigns, dashboard, reload }: { campaigns: Communicat
           <input required value={slug} onInput={event => setSlug(event.currentTarget.value.replace(/[^a-zA-Z0-9_-]/g, "-").toLowerCase())} placeholder="slug" class={inputClass} />
           <select required value={segment} onChange={event => setSegment(event.currentTarget.value)} class={inputClass}><option value="">Wybierz segment</option>{dashboard?.segments.filter(item => item.active).map(item => <option key={item.id} value={item.slug}>{item.name}</option>)}</select>
           <select value={channel} onChange={event => setChannel(event.currentTarget.value as CommunicationCampaign["channel"])} class={inputClass}><option value="email">email</option><option value="push">push</option><option value="in_app">in-app</option></select>
-          <input required value={template} onInput={event => setTemplate(event.currentTarget.value)} placeholder="template key" class={inputClass} />
+          <input required value={template} onInput={event => setTemplate(event.currentTarget.value)} placeholder="szablon wiadomości" class={inputClass} />
           <input value={subject} onInput={event => setSubject(event.currentTarget.value)} placeholder="temat (email)" class={inputClass} />
           <button disabled={busy || !name || !slug || !segment || !template} class={primaryButton}>{busy ? "Zapisuję…" : "Utwórz draft"}</button>
           {message && <p class="text-xs text-rose-300">{message}</p>}

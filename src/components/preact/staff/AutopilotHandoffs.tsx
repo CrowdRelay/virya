@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks"
 import { staffApi } from "./staffApi"
+import { Notice } from "./AdminConsoleUi"
 import BookingPolicyPanel, { type BookingPolicySummary } from "./BookingPolicyPanel"
 
 const REQUEST_TIMEOUT_MS = 10_000
@@ -196,6 +197,143 @@ function useQueueMutation(reload: () => void) {
   return { busy, error, send }
 }
 
+const authorityLabel = (item: AutopilotOpportunity) =>
+  item.authority === "awaiting_approval"
+    ? "CZEKA NA ZGODĘ"
+    : item.authority === "recommended"
+      ? "SUGEROWANE"
+      : item.authority === "auto_executing"
+        ? "WYKONUJE SIĘ"
+        : "OBSERWACJA"
+
+// Kolejka „znajdź, potem zrób”: agent odkrywa i parkuje, człowiek decyduje.
+// Żyje w tym samym komponencie co kolejka decyzji, żeby ta sama rzecz nie była
+// zatwierdzalna z dwóch miejsc naraz.
+function AgentBoard({ feed }: { feed: AutopilotFeed }) {
+  const { overview, loading } = feed
+  const [items, setItems] = useState<AutopilotOpportunity[] | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState<string | null>(null)
+  const [error, setError] = useState("")
+
+  const queue: AutopilotOpportunity[] = items ?? (overview === null ? [] : overview.opportunities ?? [])
+  const awaiting = queue.filter(item => item.authority === "awaiting_approval").length
+
+  async function decide(item: AutopilotOpportunity, operation: "do" | "done") {
+    const key = `${operation}:${item.decision_id}`
+    if (busy !== null) return
+    if (confirming !== key) {
+      setConfirming(key)
+      return
+    }
+    setConfirming(null)
+    setBusy(key)
+    setError("")
+    try {
+      if (operation === "do" && item.action_id) {
+        await staffApi("/api/staff/admin/autopilot", {
+          method: "POST",
+          body: { action_id: item.action_id, operation: "approve" },
+          timeoutMs: REQUEST_TIMEOUT_MS,
+        })
+      } else {
+        await staffApi("/api/staff/admin/autopilot", {
+          method: "POST",
+          body: { decision_id: item.decision_id, operation: "handled_externally" },
+          timeoutMs: REQUEST_TIMEOUT_MS,
+        })
+      }
+      setItems(current => (current ?? queue).filter(candidate => candidate.decision_id !== item.decision_id))
+      feed.reload()
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Nie udało się zapisać decyzji")
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <details class="mt-6 border-t border-white/10 pt-5 group">
+      <summary class="flex min-h-11 cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:content-none [&::-webkit-details-marker]:hidden">
+        <span class="flex items-center gap-3">
+          <span class="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Kolejka agenta</span>
+          <span class="text-sm text-zinc-500">znalezione możliwości — zdecyduj, gdy masz czas</span>
+        </span>
+        <span class="flex items-center gap-2">
+          {queue.length > 0 && (
+            <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${awaiting > 0 ? "border-amber-300/25 bg-amber-300/10 text-amber-100" : "border-white/10 bg-white/5 text-zinc-400"}`}>
+              {queue.length}{awaiting > 0 ? ` · ${awaiting} czeka` : ""}
+            </span>
+          )}
+          <span aria-hidden="true" class="text-zinc-500 transition group-open:rotate-180">▾</span>
+        </span>
+      </summary>
+      <div class="mt-4 grid gap-3">
+        {error && <Notice tone="error">{error}</Notice>}
+        {queue.map(item => (
+          <article key={item.decision_id} class="rounded-lg border border-white/10 bg-black/30 p-4">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div class="min-w-0">
+                <strong class="block text-white">#{item.position} {humanAction(item.recommended_action)}</strong>
+                <p class="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">{humanContext(item.context)} · {item.decision_kind.replaceAll("_", " ")}</p>
+                <p class="mt-2 text-sm text-zinc-300">{item.reason}</p>
+                <p class="mt-1 text-xs text-zinc-500">termin: {date(item.due_at)}</p>
+                {item.consequence && (
+                  <p class="mt-2 rounded-lg border border-amber-300/20 bg-amber-300/[.06] px-3 py-2 text-xs text-amber-100">
+                    Jeśli zignorujesz: {item.consequence}
+                  </p>
+                )}
+                <div class="mt-2 flex flex-wrap gap-2" aria-label={`Fakty o ${humanAction(item.recommended_action)}`}>
+                  <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${item.authority === "awaiting_approval" ? "border-amber-300/25 bg-amber-300/10 text-amber-100" : item.authority === "observed" ? "border-white/10 bg-white/5 text-zinc-500" : "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"}`}>
+                    {authorityLabel(item)}
+                  </span>
+                  <span class="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">PEWNOŚĆ {Math.round(item.confidence / 100)}%</span>
+                  {item.value_tier && (
+                    <span class="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">
+                      WARTOŚĆ {item.value_tier === "downstream" ? "BIZNES" : item.value_tier.toUpperCase()}
+                    </span>
+                  )}
+                  {item.deviation_basis_points !== null && item.deviation_basis_points !== undefined && (
+                    <span class="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">
+                      RUCH {(item.deviation_basis_points / 100).toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                {item.action_id && item.authority === "awaiting_approval" ? (
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    title={confirming === `do:${item.decision_id}` ? "Kliknij ponownie, aby puścić zaparkowaną akcję" : undefined}
+                    onClick={() => void decide(item, "do")}
+                    class={confirming === `do:${item.decision_id}`
+                      ? "min-h-[44px] rounded-xl border border-amber-300/40 bg-amber-300/20 px-4 py-2 text-xs font-black text-amber-100 disabled:opacity-50"
+                      : "min-h-[44px] rounded-xl bg-emerald-300 px-4 py-2 text-xs font-black text-zinc-950 disabled:opacity-50"}
+                  >{busy === `do:${item.decision_id}` ? "PUSZCZAM…" : confirming === `do:${item.decision_id}` ? "POTWIERDŹ" : "ZRÓB TO"}</button>
+                ) : (
+                  <span class="max-w-[180px] text-right text-xs leading-snug text-zinc-500">{item.authority === "auto_executing" ? "już zatwierdzone — wykonuje się" : "brak kroku do wykonania — załatw po swojemu"}</span>
+                )}
+                <button
+                  type="button"
+                  disabled={busy !== null}
+                  onClick={() => void decide(item, "done")}
+                  class={confirming === `done:${item.decision_id}`
+                    ? "min-h-[44px] rounded-xl bg-amber-300 px-4 py-2 text-xs font-black text-zinc-950 disabled:opacity-50"
+                    : "min-h-[44px] rounded-xl border border-white/15 px-4 py-2 text-xs font-black text-zinc-200 disabled:opacity-50"}
+                >{busy === `done:${item.decision_id}` ? "ZAPISUJĘ…" : confirming === `done:${item.decision_id}` ? "POTWIERDŹ" : "JUŻ ZROBIONE"}</button>
+              </div>
+            </div>
+          </article>
+        ))}
+        {!loading && !error && queue.length === 0 && (
+          <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Agent niczego teraz nie odkłada — pojawi się tu, gdy tylko jakiś detektor coś znajdzie.</p>
+        )}
+      </div>
+    </details>
+  )
+}
+
 export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
   const { overview, loading, error, reload } = feed
   const { busy, error: mutationError, send } = useQueueMutation(reload)
@@ -261,9 +399,8 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
                 </p>
                 {item.executor_ready === false && (
                   <p class="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
-                    Akceptacja nic tu nie uruchomi: żaden executor nie zgłasza
-                    zdolności <b>{item.required_capability ?? "wymaganej przez tę akcję"}</b>.
-                    Akcja trafi do kolejki i będzie czekać.
+                    Akceptacja tylko trafi do kolejki — na razie żaden system nie
+                    potrafi tej akcji wykonać automatycznie. Ktoś musi ją zrobić ręcznie.
                   </p>
                 )}
               </div>
@@ -296,7 +433,7 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
                   onClick={() => void mutate(item, "approve")}
                   title={item.executor_ready === false ? "Zostanie zakolejkowane, ale nikt tego nie wykona" : undefined}
                   class={`rounded-xl px-4 py-2 text-xs font-black disabled:opacity-50 ${item.executor_ready === false ? "border border-amber-300/40 bg-amber-300/20 text-amber-100" : "bg-emerald-300 text-zinc-950"}`}
-                >{item.executor_ready === false ? "AKCEPTUJ (BEZ WYKONAWCY)" : "AKCEPTUJ I PUŚĆ DALEJ"}</button>
+                >{item.executor_ready === false ? "AKCEPTUJ (TYLKO KOLEJKA)" : "AKCEPTUJ I PUŚĆ DALEJ"}</button>
                 <button type="button" disabled={busy === item.id} onClick={() => void mutate(item, "cancel")} class="rounded-xl border border-rose-400/30 px-4 py-2 text-xs font-black text-rose-200 disabled:opacity-50">ODRZUĆ</button>
               </div>
             </div>
@@ -304,6 +441,8 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
         ))}
         {!loading && !error && items.length === 0 && <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Nic nie wymaga teraz ręcznej decyzji.</p>}
       </div>
+
+      <AgentBoard feed={feed} />
 
       <details class="mt-6 border-t border-white/10 pt-5 group" open={false}>
         <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 marker:content-none [&::-webkit-details-marker]:hidden">

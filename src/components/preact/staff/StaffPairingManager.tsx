@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { generateQr, type GeneratedQr } from "../../../lib/qrCode"
 import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
+import { StaffLoginCard, StaffStatusCard } from "./AdminConsoleUi"
 import { staffAccentButton, staffLogoutButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
@@ -206,54 +207,36 @@ export default function StaffPairingManager() {
     setSecondsLeft(0)
   }
 
-  if (state === "checking") return <StatusCard title="Sprawdzam dostęp…" />
+  if (state === "checking") return <StaffStatusCard title="Sprawdzam dostęp…" />
   if (state === "unconfigured") {
     return (
-      <StatusCard
+      <StaffStatusCard
         title="Parowanie nie jest skonfigurowane"
-        body="Ustaw istniejące zmienne logowania staff, adres CrowdRelay i serwerowy klucz administratora. QR zawiera tylko jednorazowy kod parowania."
+        body="Panel nie ma jeszcze włączonego dostępu. Poproś osobę prowadzącą techniczną stronę o jego konfigurację."
       />
     )
   }
   if (state === "error") {
     return (
-      <StatusCard
+      <StaffStatusCard
         title="Generator jest chwilowo niedostępny"
-        body="Odśwież stronę albo sprawdź logi funkcji Netlify."
+        body="Odśwież stronę za chwilę. Jeśli problem nie zniknie, napisz do osoby prowadzącej techniczną stronę."
       />
     )
   }
   if (state === "login") {
     return (
-      <section class="mx-auto max-w-lg rounded-xl border border-white/10 bg-zinc-900/80 p-7 shadow-2xl">
-        <p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">
-          Virya Signal / staff
-        </p>
-        <h1 class="mt-3 text-3xl font-black text-white">Parowanie telefonu</h1>
-        <p class="mt-3 text-sm leading-6 text-zinc-400">
-          Zaloguj się tym samym hasłem co do QR, bramki i Control Center.
-        </p>
-        <form onSubmit={login} class="mt-6 grid gap-4">
-          <label class="text-sm font-semibold text-zinc-200">
-            Hasło staff
-            <input
-              ref={passwordRef}
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onInput={event => setPassword(event.currentTarget.value)}
-              class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300"
-            />
-          </label>
-          <button
-            disabled={busy || !password}
-            class={staffAccentButton}
-          >
-            {busy ? "LOGUJĘ…" : "ZALOGUJ"}
-          </button>
-        </form>
-        {message ? <Message>{message}</Message> : null}
-      </section>
+      <StaffLoginCard
+        eyebrow="Virya Signal / staff"
+        title="Parowanie telefonu"
+        description="Zaloguj się tym samym hasłem co do QR i panelu zespołu."
+        passwordRef={passwordRef}
+        password={password}
+        onPasswordInput={setPassword}
+        busy={busy}
+        message={message ? { tone: "error", text: message } : null}
+        onSubmit={login}
+      />
     )
   }
 
@@ -399,18 +382,6 @@ export default function StaffPairingManager() {
       </section>
       {message ? <Message>{message}</Message> : null}
     </div>
-  )
-}
-
-function StatusCard({ title, body }: { title: string; body?: string }) {
-  return (
-    <section class="mx-auto max-w-2xl rounded-xl border border-white/10 bg-zinc-900/80 p-7">
-      <p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">
-        Virya Signal / staff
-      </p>
-      <h1 class="mt-3 text-3xl font-black text-white">{title}</h1>
-      {body ? <p class="mt-3 text-sm leading-6 text-zinc-400">{body}</p> : null}
-    </section>
   )
 }
 

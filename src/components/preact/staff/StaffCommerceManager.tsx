@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact"
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
+import { ConfirmButton, Notice, StaffLoginCard, StaffStatusCard, type NoticeState } from "./AdminConsoleUi"
 import type { BeaconNetworkOverview } from "./StaffLatarnikNetworkManager"
 import type { BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
 import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
@@ -267,7 +268,7 @@ export default function StaffCommerceManager() {
   const [overview, setOverview] = useState<Overview | null>(null)
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState<NoticeState>(null)
   const [stockSku, setStockSku] = useState("")
   const [stockDelta, setStockDelta] = useState(1)
   const [stockReason, setStockReason] = useState("")
@@ -347,7 +348,7 @@ export default function StaffCommerceManager() {
     const controller = new AbortController()
     requestRef.current = controller
     setLoading(true)
-    setMessage("")
+    setMessage(null)
     try {
       const next = await api<Overview>("/api/staff/commerce/overview", {
         signal: controller.signal,
@@ -357,9 +358,9 @@ export default function StaffCommerceManager() {
       if ((error as ApiError).status === 401) {
         setState("login")
         setOverview(null)
-        setMessage("Sesja wygasła. Zaloguj się ponownie.")
+        setMessage({ tone: "error", text: "Sesja wygasła. Zaloguj się ponownie." })
       } else if (!(error instanceof DOMException && error.name === "AbortError")) {
-        setMessage("Nie udało się odświeżyć danych commerce.")
+        setMessage({ tone: "error", text: "Nie udało się odświeżyć danych sklepu." })
       }
     } finally {
       if (!controller.signal.aborted) setLoading(false)
@@ -370,18 +371,19 @@ export default function StaffCommerceManager() {
     event.preventDefault()
     if (!password || busy) return
     setBusy(true)
-    setMessage("")
+    setMessage(null)
     try {
       await api("/api/staff/qr/login", { method: "POST", body: { password } })
       setPassword("")
       setState("ready")
       await refresh()
     } catch (error) {
-      setMessage(
-        (error as ApiError).status === 429
+      setMessage({
+        tone: "error",
+        text: (error as ApiError).status === 429
           ? "Za dużo prób. Spróbuj ponownie później."
           : "Nieprawidłowe hasło.",
-      )
+      })
     } finally {
       setBusy(false)
     }
@@ -390,27 +392,28 @@ export default function StaffCommerceManager() {
   async function mutate(path: string, body?: unknown, success = "Zapisano.") {
     if (busy) return false
     setBusy(true)
-    setMessage("")
+    setMessage(null)
     try {
       await api(path, { method: "POST", body: body ?? {} })
-      setMessage(success)
+      setMessage({ tone: "success", text: success })
       await refresh()
       return true
     } catch (error) {
       const apiError = error as ApiError
       const status = apiError.status
       if (status === 401) setState("login")
-      setMessage(
-        apiError.ambiguous
+      setMessage({
+        tone: "error",
+        text: apiError.ambiguous
           ? "Nie udało się potwierdzić wyniku operacji. Nie zmieniaj danych: odśwież stan albo ponów — retry użyje tego samego ID operacji i nie powinien wykonać jej drugi raz."
           : status === 409
           ? path.includes("/draws/")
-            ? "Tego losowania nie można już usunąć: istnieje run, zwycięzca, Proof of Fair albo stan nie pozwala na usunięcie."
+            ? "Tego losowania nie można już usunąć: istnieje wykonane losowanie, zwycięzca albo dowód uczciwego losowania."
             : "Operacja koliduje z aktualnym stanem lub dostępnym magazynem."
           : status === 503
             ? "Funkcja jest wyłączona albo CrowdRelay jest chwilowo niedostępny."
             : "Operacja nie powiodła się.",
-      )
+      })
       return false
     } finally {
       setBusy(false)
@@ -419,10 +422,6 @@ export default function StaffCommerceManager() {
 
   async function deleteDraw(draw: RewardDraw) {
     if (busy || loading || !draw.can_delete) return
-    const confirmed = window.confirm(
-      `Usunąć błędne losowanie „${draw.name}”?\n\nTa akcja nie usuwa koncertu. Jest dostępna tylko przed pierwszym runem, zwycięzcą i Proof of Fair.`,
-    )
-    if (!confirmed) return
     await mutate(
       `/api/staff/commerce/draws/${draw.id}/delete`,
       {},
@@ -453,7 +452,7 @@ export default function StaffCommerceManager() {
   async function saveExactStock(event: SubmitEvent) {
     event.preventDefault()
     if (!stocktakeComplete || inventoryItems.length === 0) {
-      setMessage("Uzupełnij dokładny stan każdego aktywnego wariantu, również zera.")
+      setMessage({ tone: "error", text: "Uzupełnij dokładny stan każdego aktywnego wariantu, również zera." })
       return
     }
     await mutate(
@@ -484,7 +483,7 @@ export default function StaffCommerceManager() {
     if (!campaign.name.trim() || !campaign.slug || !campaign.prizeSku) return
     const dates = [campaign.opensAt, campaign.closesAt, campaign.drawAt].map(value => new Date(value))
     if (dates.some(value => !Number.isFinite(value.getTime()))) {
-      setMessage("Daty kampanii są nieprawidłowe.")
+      setMessage({ tone: "error", text: "Daty kampanii są nieprawidłowe." })
       return
     }
     const ok = await mutate(
@@ -517,32 +516,26 @@ export default function StaffCommerceManager() {
     if (ok) setCampaign(initialCampaign())
   }
 
-  if (state === "checking") return <StatusCard title="Sprawdzam dostęp…" />
+  if (state === "checking") return <StaffStatusCard title="Sprawdzam dostęp…" />
   if (state === "unconfigured") {
-    return <StatusCard title="Panel nie jest skonfigurowany" body="Ustaw istniejące zmienne logowania staff i klucz administratora CrowdRelay w Netlify." />
+    return <StaffStatusCard title="Panel nie jest skonfigurowany" body="Panel nie ma jeszcze włączonego dostępu. Poproś osobę prowadzącą techniczną stronę o jego konfigurację." />
   }
   if (state === "error") {
-    return <StatusCard title="Panel jest chwilowo niedostępny" body="Odśwież stronę albo sprawdź logi funkcji Netlify." />
+    return <StaffStatusCard title="Panel jest chwilowo niedostępny" body="Odśwież stronę za chwilę. Jeśli problem nie zniknie, napisz do osoby prowadzącej techniczną stronę." />
   }
   if (state === "login") {
     return (
-      <section class="mx-auto max-w-lg rounded-xl border border-white/10 bg-zinc-900/80 p-7 shadow-2xl">
-        <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">Virya / commerce staff</p>
-        <h1 class="mt-3 text-3xl font-black text-white">Merch i kampanie</h1>
-        <p class="mt-3 text-sm leading-6 text-zinc-400">Zaloguj się tym samym hasłem co do QR i Control Center.</p>
-        <form onSubmit={login} class="mt-6 grid gap-4">
-          <label class="text-sm font-semibold text-zinc-200">
-            Hasło staff
-            <input ref={passwordRef} type="password" autoComplete="current-password" value={password}
-              onInput={event => setPassword(event.currentTarget.value)}
-              class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" />
-          </label>
-          <button disabled={busy || !password} class={staffAccentButton}>
-            {busy ? "LOGUJĘ…" : "ZALOGUJ"}
-          </button>
-        </form>
-        {message ? <Message>{message}</Message> : null}
-      </section>
+      <StaffLoginCard
+        eyebrow="Virya / merch"
+        title="Merch i kampanie"
+        description="Zaloguj się tym samym hasłem co do QR i panelu zespołu."
+        passwordRef={passwordRef}
+        password={password}
+        onPasswordInput={setPassword}
+        busy={busy}
+        message={message ?? undefined}
+        onSubmit={login}
+      />
     )
   }
 
@@ -555,7 +548,7 @@ export default function StaffCommerceManager() {
             <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">CrowdRelay / commerce</p>
             <h1 class="mt-3 text-3xl font-black text-white sm:text-4xl">Merch, magazyn i losowania</h1>
             <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400 sm:text-base">
-              Jeden stan magazynowy dla strony, Virya Signal, sprzedaży Stripe i nagród. Operacje są idempotentne, a nowe funkcje mają osobne kill switche.
+              Jeden stan magazynowy dla strony, Virya Signal, sprzedaży Stripe i nagród.
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
@@ -571,7 +564,7 @@ export default function StaffCommerceManager() {
             Tryb częściowy: niedostępne sekcje {overview.degraded.unavailable.join(", ")}.
           </p>
         ) : null}
-        {message ? <Message>{message}</Message> : null}
+        {message ? <div class="mt-5"><Notice tone={message.tone}>{message.text}</Notice></div> : null}
       </section>
 
       {!inventoryReady ? (
@@ -604,7 +597,7 @@ export default function StaffCommerceManager() {
           <form onSubmit={saveExactStock} class="mt-6">
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {inventoryItems.length === 0 ? (
-                <Empty>Katalog lub overview magazynu jest chwilowo niedostępny. Migracja 0028 seeduje katalog automatycznie.</Empty>
+                <Empty>Lista produktów jest chwilowo niedostępna. Odśwież stronę — katalog załaduje się automatycznie.</Empty>
               ) : inventoryItems.map(item => (
                 <label key={item.variant_id} class={`rounded-lg border p-4 ${item.counted ? "border-emerald-400/20 bg-emerald-400/[0.04]" : "border-white/10 bg-black/30"}`}>
                   <span class="block text-sm font-black text-white">{item.product_name} — {item.variant_label}</span>
@@ -819,10 +812,17 @@ export default function StaffCommerceManager() {
                 {item.status === "draft" ? (
                   <div class="mt-4 flex flex-wrap gap-2">
                     <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/campaigns/${item.id}/schedule`, {}, "Kampania została zaplanowana.")} class="rounded-lg bg-emerald-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">ZAPLANUJ</button>
-                    <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/campaigns/${item.id}/cancel`, {}, "Kampania anulowana, stock zwolniony.")} class="rounded-lg border border-red-400/30 px-3 py-2 text-xs font-black text-red-300 disabled:opacity-50">ANULUJ</button>
+                    <ConfirmButton busy={busy} busyLabel="ANULUJĘ…" confirmLabel="TAK, ANULUJ" onConfirm={() => void mutate(`/api/staff/commerce/campaigns/${item.id}/cancel`, {}, "Kampania anulowana, zarezerwowane sztuki wróciły do magazynu.")}>ANULUJ</ConfirmButton>
                   </div>
                 ) : item.status === "scheduled" ? (
-                  <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/campaigns/${item.id}/cancel`, {}, "Kampania anulowana, stock zwolniony.")} class="mt-4 rounded-lg border border-red-400/30 px-3 py-2 text-xs font-black text-red-300 disabled:opacity-50">ANULUJ I ZWOLNIJ STOCK</button>
+                  <div class="mt-4">
+                    <ConfirmButton
+                      busy={busy}
+                      busyLabel="ANULUJĘ…"
+                      confirmLabel="TAK, ZWOLNIJ MAGAZYN"
+                      onConfirm={() => void mutate(`/api/staff/commerce/campaigns/${item.id}/cancel`, {}, "Kampania anulowana, zarezerwowane sztuki wróciły do magazynu.")}
+                    >ANULUJ I ZWOLNIJ MAGAZYN</ConfirmButton>
+                  </div>
                 ) : null}
               </article>
             ))}
@@ -832,9 +832,9 @@ export default function StaffCommerceManager() {
 
       <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
         <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Losowania / administracja</p>
-        <h2 class="mt-2 text-2xl font-black text-white">Wszystkie weighted draws</h2>
+        <h2 class="mt-2 text-2xl font-black text-white">Wszystkie losowania</h2>
         <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
-          Tu są także losowania wejściówek, które nie mają merchowego stocku. Błędny draw możesz usunąć tylko zanim powstanie pierwszy run, zwycięzca albo Proof of Fair. Koncert nie jest usuwany.
+          Tu są także losowania wejściówek, które nie mają merchowego magazynu. Błędne losowanie usuniesz tylko do momentu pierwszego wykonania, ogłoszenia zwycięzców albo wygenerowania publicznego dowodu uczciwości. Koncert nie jest usuwany.
         </p>
         <div class="mt-5 grid gap-3">
           {(overview?.draws ?? []).length === 0 ? <Empty>Brak skonfigurowanych losowań.</Empty> : overview?.draws.map(draw => (
@@ -869,20 +869,20 @@ export default function StaffCommerceManager() {
                   IDŹ DO LOSOWANIA ↗
                 </a>
                 {draw.can_delete && (
-                  <button
-                    type="button"
-                    disabled={busy || loading}
-                    onClick={() => void deleteDraw(draw)}
-                    class="rounded-lg border border-red-400/35 bg-red-400/[.04] px-3 py-2 text-xs font-black text-red-300 hover:bg-red-400/10 disabled:opacity-50"
+                  <ConfirmButton
+                    busy={busy || loading}
+                    busyLabel="USUWAM…"
+                    confirmLabel="TAK, USUŃ"
+                    onConfirm={() => void deleteDraw(draw)}
                   >
                     USUŃ BŁĘDNE LOSOWANIE
-                  </button>
+                  </ConfirmButton>
                 )}
               </div>
               {!draw.can_delete && (
                 <p class="mt-3 text-xs font-semibold text-zinc-500">
                   {draw.run_count > 0 || draw.selected_winners > 0 || draw.proof_count > 0
-                    ? "Zablokowane: istnieje już trwała historia losowania / Proof of Fair."
+                    ? "Zablokowane: to losowanie ma już trwałą historię lub publiczny dowód uczciwości."
                     : "Zablokowane w aktualnym stanie losowania."}
                 </p>
               )}
@@ -892,7 +892,7 @@ export default function StaffCommerceManager() {
       </section>
 
       <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
-        <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Fulfillment</p>
+        <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Realizacja</p>
         <h2 class="mt-2 text-2xl font-black text-white">Wydawanie nagród</h2>
         <div class="mt-5 grid gap-3 md:grid-cols-2">
           {(overview?.fulfillments ?? []).length === 0 ? <Empty>Po losowaniu pojawią się tutaj zwycięzcy i statusy nagród.</Empty> : overview?.fulfillments.map(item => (
@@ -907,7 +907,7 @@ export default function StaffCommerceManager() {
               {item.status === "pending" ? (
                 <div class="mt-4 flex gap-2">
                   <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "prepared", actor_id: "virya-staff-web", note: "prepared in staff panel" }, "Nagroda oznaczona jako przygotowana.")} class={staffAccentChip}>PRZYGOTOWANA</button>
-                  <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "cancelled", actor_id: "virya-staff-web", note: "cancelled in staff panel" }, "Nagroda anulowana i wróciła do dostępnego stocku.")} class="rounded-lg border border-red-400/30 px-3 py-2 text-xs font-black text-red-300 disabled:opacity-50">ANULUJ</button>
+                  <ConfirmButton busy={busy} busyLabel="ANULUJĘ…" confirmLabel="TAK, ANULUJ" onConfirm={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "cancelled", actor_id: "virya-staff-web", note: "cancelled in staff panel" }, "Nagroda anulowana i wróciła do dostępnego magazynu.")}>ANULUJ</ConfirmButton>
                 </div>
               ) : item.status === "prepared" ? (
                 <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "delivered", actor_id: "virya-staff-web", note: "delivered in staff panel" }, "Nagroda wydana; zapisano rozchód promocyjny.")} class="mt-4 rounded-lg bg-emerald-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">OZNACZ JAKO WYDANĄ</button>
@@ -929,14 +929,6 @@ function Metric({ label, value }: { label: string; value: number }) {
   return <div class="rounded-lg bg-white/[0.04] px-2 py-2"><strong class="block text-base text-white">{value}</strong><span class="text-zinc-500">{label}</span></div>
 }
 
-function Message({ children }: { children: ComponentChildren }) {
-  return <p class="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100" role="status">{children}</p>
-}
-
 function Empty({ children }: { children: ComponentChildren }) {
   return <p class="rounded-xl border border-dashed border-white/10 px-4 py-6 text-sm text-zinc-500">{children}</p>
-}
-
-function StatusCard({ title, body }: { title: string; body?: string }) {
-  return <section class="mx-auto max-w-2xl rounded-xl border border-white/10 bg-zinc-900/80 p-7"><h1 class="text-2xl font-black text-white">{title}</h1>{body ? <p class="mt-3 text-sm leading-6 text-zinc-400">{body}</p> : null}</section>
 }
