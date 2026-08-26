@@ -1,4 +1,46 @@
-// @generated-contract openapi-sha256: 521c5be6761394d341dc78921a558dcd17debc0f3fe9a3839f314989a0fea887
+// @generated-contract openapi-sha256: 4fa4581d66e53dbe150e04e0a3b19238bb772ded07626e7bbfdb92b12903507d
+
+// ---- Label portfolio & fanbase surfaces (contract 0110-0113) ----
+
+export interface Fanbase {
+  id: string
+  name: string
+  source_kind:
+    | 'http_json_pull'
+    | 'csv_inline'
+    | 'manual_import'
+    | 'meta_lead_ads'
+    | 'bandsintown_followers'
+    | 'google_customer_match'
+    | 'reddit_community'
+  fetch_url: string | null
+  consent_attested_by: string | null
+  enabled: boolean
+  created_at: string
+}
+
+export interface FanbaseIngestionCounters {
+  received: number
+  importedPending: number
+  confirmationResent: number
+  alreadyActive: number
+  skippedSuppressed: number
+  cooldownSkipped: number
+  invalid: number
+}
+
+export interface AmplificationConsent {
+  id: string
+  from_workspace_id: string
+  to_workspace_id: string
+  purpose: 'cross_promote' | 'release_feature' | 'event_crossbill'
+  scope: 'all_active' | 'double_opt_in'
+  status: 'proposed' | 'active' | 'paused' | 'revoked'
+  max_campaigns_per_month: number
+  cooldown_days: number
+  campaigns_this_month: number
+}
+
 export interface EventCity {
   id: string
   slug: string
