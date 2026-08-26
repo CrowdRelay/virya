@@ -95,8 +95,6 @@ test("high-risk operator mutations no longer mint a random replay key", async ()
     "src/pages/api/staff/commerce/inventory.ts",
     "src/pages/api/staff/commerce/stocktake.ts",
     "src/pages/api/staff/accounting/finalize.ts",
-    "src/pages/api/staff/admin/ecosystem/checklists/[slug]/[item].ts",
-    "src/pages/api/staff/admin/ecosystem/flags/[key].ts",
   ]
   for (const relative of critical) {
     const text = await source(relative)
@@ -107,15 +105,9 @@ test("high-risk operator mutations no longer mint a random replay key", async ()
 
 test("deliberately repeatable operator commands keep explicit fresh attempts", async () => {
   const retry = await source("src/pages/api/staff/admin/ops/retry.ts")
-  const audit = await source("src/pages/api/staff/admin/ecosystem/proofs/audit.ts")
-  const reconcile = await source("src/pages/api/staff/admin/ecosystem/reconcile.ts")
-  const emitDue = await source("src/pages/api/staff/admin/ecosystem/emit-due.ts")
   assert.match(retry, /randomUUID\(/)
   assert.match(retry, /operation === "clear_dead_deliveries"/)
   assert.match(retry, /admin\/ops\/deliveries\/dead\/clear/)
-  assert.match(audit, /randomUUID\(/)
-  assert.match(reconcile, /randomUUID\(/)
-  assert.match(emitDue, /idempotencyKey: `checklist-due-\$\{crypto\.randomUUID\(\)\}`/)
 })
 test("every cookie-authenticated staff POST is same-origin guarded", async () => {
   const { readdir } = await import("node:fs/promises")

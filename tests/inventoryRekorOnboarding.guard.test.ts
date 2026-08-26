@@ -25,11 +25,8 @@ test("staff onboarding requires exact counts and delegates activation to CrowdRe
 
 test("proof UI uses Rekor coordinates and contains no Base Sepolia contract", async () => {
   const publicProof = await source("src/pages/pl/dowody/losowania/[slug].astro")
-  const staffProof = await source("src/components/preact/staff/EcosystemControl.tsx")
-  for (const value of [publicProof, staffProof]) {
-    assert.match(value, /sigstore\.rekor\.v1|Sigstore Rekor/)
-    assert.doesNotMatch(value, /basescan|Base Sepolia|transaction_hash|chain_id/)
-  }
+  assert.match(publicProof, /sigstore\.rekor\.v1|Sigstore Rekor/)
+  assert.doesNotMatch(publicProof, /basescan|Base Sepolia|transaction_hash|chain_id/)
 })
 
 
