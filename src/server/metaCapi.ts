@@ -25,7 +25,7 @@ let cachedConfig: CapiConfig | null | undefined
 async function loadConfig(): Promise<CapiConfig | null> {
   if (cachedConfig !== undefined) return cachedConfig
   try {
-    const store = getStore(BLOB_STORE)
+    const store = getStore({ name: BLOB_STORE, consistency: "strong" })
     const [pixelId, accessToken, testEventCode] = await Promise.all([
       store.get("pixel_id"),
       store.get("access_token"),
@@ -39,7 +39,12 @@ async function loadConfig(): Promise<CapiConfig | null> {
       accessToken: str(accessToken).trim(),
       testEventCode: str(testEventCode).trim(),
     }
-    if (!cachedConfig.pixelId || !cachedConfig.accessToken) cachedConfig = null
+    if (!cachedConfig.pixelId || !cachedConfig.accessToken) {
+      console.error("[meta-capi] config incomplete: pixelId=", Boolean(cachedConfig.pixelId), "accessToken=", Boolean(cachedConfig.accessToken), "testEventCode=", Boolean(cachedConfig.testEventCode))
+      cachedConfig = null
+    } else {
+      console.log("[meta-capi] config loaded: pixelId=", cachedConfig.pixelId, "testEventCode=", cachedConfig.testEventCode || "(none)")
+    }
   } catch (error) {
     console.error("[meta-capi] config load failed:", error instanceof Error ? error.message : error)
     cachedConfig = null
@@ -105,9 +110,11 @@ export async function sendMetaEvent(input: MetaEventInput): Promise<boolean> {
       },
     )
     if (!response.ok) {
-      console.error("[meta-capi]", input.eventName, "rejected:", response.status)
+      const body = await response.text().catch(() => "?")
+      console.error("[meta-capi]", input.eventName, "rejected:", response.status, body.slice(0, 200))
       return false
     }
+    console.log("[meta-capi]", input.eventName, "sent OK, event_id=", input.eventId)
     return true
   } catch (error) {
     // Measurement must never break checkout or fulfilment.
