@@ -43,10 +43,7 @@ async function loadConfig(): Promise<CapiConfig | null> {
       testEventCode: str(testEventCode).trim(),
     }
     if (!cachedConfig.pixelId || !cachedConfig.accessToken) {
-      console.error("[meta-capi] config incomplete: pixelId=", Boolean(cachedConfig.pixelId), "accessToken=", Boolean(cachedConfig.accessToken), "testEventCode=", Boolean(cachedConfig.testEventCode))
       cachedConfig = null
-    } else {
-      console.log("[meta-capi] config loaded: pixelId=", cachedConfig.pixelId, "testEventCode=", cachedConfig.testEventCode || "(none)")
     }
     cachedAt = Date.now()
   } catch (error) {
@@ -114,11 +111,9 @@ export async function sendMetaEvent(input: MetaEventInput): Promise<boolean> {
       },
     )
     if (!response.ok) {
-      const body = await response.text().catch(() => "?")
-      console.error("[meta-capi]", input.eventName, "rejected:", response.status, body.slice(0, 200))
+      console.error("[meta-capi]", input.eventName, "rejected:", response.status)
       return false
     }
-    console.log("[meta-capi]", input.eventName, "sent OK, event_id=", input.eventId)
     return true
   } catch (error) {
     // Measurement must never break checkout or fulfilment.
