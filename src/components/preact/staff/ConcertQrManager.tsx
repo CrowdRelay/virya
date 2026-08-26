@@ -64,6 +64,7 @@ export default function ConcertQrManager() {
     // One invocation: the overview carries the session verdict with it.
     void bootstrapStaffPanel<StaffQrOverview>("/api/staff/qr/overview", {
       signal: controller.signal,
+      timeoutMs: REQUEST_TIMEOUT_MS,
     }).then(result => {
       if (controller.signal.aborted) return
       if (result.state === "ready" && result.data) {
