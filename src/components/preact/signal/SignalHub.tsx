@@ -211,6 +211,12 @@ export default function SignalHub({ lang }: Props) {
           policy_version: "virya-signal-v1",
         },
       })
+      void fetch("/api/track/signal-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, ...(campaignId ? { campaign_id: campaignId } : {}) }),
+        keepalive: true,
+      }).catch(() => {})
 
       rememberSignalCity(citySlug)
       setSelectedCity(citySlug)

@@ -12,6 +12,8 @@ import {
 import { staffApiRequest } from "../../server/staffQrApi"
 import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 import { consumePublicFormRateLimit, publicRequestNetwork } from "../../server/publicFormRate"
+import { loadLiveEvent } from "../../server/liveEvents"
+import { sendMetaEvent } from "../../server/metaCapi"
 
 export const prerender = false
 
@@ -28,6 +30,10 @@ const COUNTRY_CODE_PATTERN = /^[A-Z]{2}$/
 const STRIPE_MINIMUM_EXPIRY_SECONDS = 30 * 60
 const STRIPE_TARGET_EXPIRY_SECONDS = 31 * 60
 const FEATURE_FLAG_CACHE_MS = 10_000
+// Ticket types whose slug starts with this prefix are priced for Signal
+// members and are only purchasable together with a Signal join opt-in.
+// CrowdRelay keeps the ledger price, so the discount is config, not math.
+const SIGNAL_TYPE_PREFIX = "signal"
 
 type FeatureFlag = { key: string; enabled: boolean }
 let ticketSalesFlagCache: { enabled: boolean; expiresAt: number } | null = null
@@ -208,6 +214,9 @@ export const POST: APIRoute = async ({ request }) => {
   const checkoutRequestId = cleanText(body.checkoutRequestId, 36, true)?.toLowerCase()
   const lang = body.lang === "pl" ? "pl" : "en"
   const invoiceRequested = body.invoiceRequested === true
+  const signalJoin = body.signalJoin === true
+  const signalCitySlug = cleanText(body.signalCitySlug, 128)
+  const campaignId = cleanText(body.campaignId, 36)
   const invoiceDetails = invoiceRequested
     ? parseInvoiceDetails(body.invoiceDetails)
     : undefined
@@ -258,6 +267,39 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (error) {
     console.error("[ticket-checkout] feature flag unavailable")
     return json({ error: "Ticket checkout temporarily unavailable" }, 503)
+  }
+
+  // Signal-member pricing: discounted types are only reservable together with
+  // a Signal join opt-in on this very checkout. The join is attempted first so
+  // an unentitled order never reserves inventory it could not keep.
+  const hasSignalItems = [...quantities.keys()].some(slug => slug.startsWith(SIGNAL_TYPE_PREFIX))
+  if (hasSignalItems) {
+    if (!signalJoin) {
+      return json(
+        { error: "Signal discount requires joining Signal", code: "signal_join_required", signalJoinRequired: true },
+        422,
+      )
+    }
+    const event = await loadLiveEvent(eventSlug)
+    const citySlug = signalCitySlug ?? event?.city?.slug ?? null
+    if (!citySlug) {
+      return json(
+        { error: "Signal discount unavailable for this event", code: "signal_city_missing", signalJoinRequired: true },
+        422,
+      )
+    }
+    const joined = await joinSignalFan({
+      email: buyerEmail,
+      citySlug,
+      locale: lang,
+      campaignId: campaignId ?? undefined,
+    })
+    if (!joined.ok) {
+      return json(
+        { error: "Signal signup temporarily unavailable", code: "signal_unavailable", signalJoinRequired: true },
+        503,
+      )
+    }
   }
 
   const stripeKey = readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY)?.trim()
@@ -333,6 +375,12 @@ export const POST: APIRoute = async ({ request }) => {
   const prefix = lang === "pl" ? "/pl" : ""
   const eventPath = `${prefix}/live/${encodeURIComponent(eventSlug)}/`
   const origin = siteOrigin(request)
+  // Carry the acquisition context onto the wallet page so the post-purchase
+  // Signal bridge can attribute the same campaign the landing captured.
+  const successParams = new URLSearchParams()
+  if (campaignId && UUID_PATTERN.test(campaignId)) successParams.set("campaign_id", campaignId)
+  if (signalCitySlug) successParams.set("city", signalCitySlug)
+  const walletSuccessQuery = `ticket_checkout=success&session_id={CHECKOUT_SESSION_ID}${successParams.size ? `&${successParams.toString()}` : ""}`
   const stripe = stripeFor(stripeKey)
   const metadata = {
     virya_order_kind: "ticket",
@@ -367,7 +415,7 @@ export const POST: APIRoute = async ({ request }) => {
         payment_intent_data: { metadata },
         billing_address_collection: invoiceRequested ? "required" : "auto",
         expires_at: stripeExpiresAt,
-        success_url: `${origin}${prefix}/tickets/${encodeURIComponent(reservation.order.order_id)}/?ticket_checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${origin}${prefix}/tickets/${encodeURIComponent(reservation.order.order_id)}/?${walletSuccessQuery}`,
         cancel_url: `${origin}${eventPath}?ticket_checkout=cancelled`,
       },
       { idempotencyKey: `ticket-checkout-${reservation.order.order_id}` },
@@ -454,6 +502,21 @@ export const POST: APIRoute = async ({ request }) => {
     )
   }
 
+  // Server-side funnel signal for ad-platform optimisation. Best effort:
+  // measurement failures never block a created checkout.
+  void sendMetaEvent({
+    eventName: "InitiateCheckout",
+    eventId: `init-${reservation.order.order_id}`,
+    email: buyerEmail,
+    valueMajor:
+      reservation.order.items.reduce(
+        (sum, item) => sum + item.unit_gross_minor * item.quantity,
+        0,
+      ) / 100,
+    currency: reservation.order.currency,
+    sourceUrl: `${origin}${eventPath}`,
+  })
+
   return json({
     url: session.url,
     orderId: reservation.order.order_id,
@@ -465,3 +528,45 @@ export const POST: APIRoute = async ({ request }) => {
 
 const matchesCheckoutStatus = (status: string) =>
   status === "reserved" || status === "checkout_created"
+
+// Server-side Signal join for the checkout discount path. Mirrors the public
+// fans endpoint the Signal hub uses, but runs here so the discounted ticket
+// type can never be reserved without the join actually happening. An existing
+// member re-opting in counts as entitled too.
+async function joinSignalFan(input: {
+  email: string
+  citySlug: string
+  locale: "pl" | "en"
+  campaignId?: string
+}): Promise<{ ok: boolean; conflict: boolean }> {
+  const base = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)
+    ?? "https://signal-api.virya.music/v1/"
+  const url = new URL(base)
+  url.pathname = `${url.pathname.replace(/\/+$/, "")}/fans`
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+        "idempotency-key": crypto.randomUUID(),
+      },
+      body: JSON.stringify({
+        email: input.email,
+        city_slug: input.citySlug,
+        locale: input.locale,
+        ...(input.campaignId ? { campaign_id: input.campaignId } : {}),
+        consent: { marketing: true, policy_version: "virya-signal-v1" },
+      }),
+      signal: AbortSignal.timeout(6_000),
+    })
+    if (response.ok) return { ok: true, conflict: false }
+    // Already a fan (or already pending confirmation) still earns the discount.
+    if (response.status === 409) return { ok: true, conflict: true }
+    console.error("[ticket-checkout] signal join rejected:", response.status)
+    return { ok: false, conflict: false }
+  } catch (error) {
+    console.error("[ticket-checkout] signal join failed:", error instanceof Error ? error.message : error)
+    return { ok: false, conflict: false }
+  }
+}

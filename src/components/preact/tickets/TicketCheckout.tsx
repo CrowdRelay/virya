@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks"
 import type { Lang } from "../../../i18n/t"
 import type { TicketSaleOffer } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
-import { crowdrelay } from "../../../lib/crowdrelay"
+import { crowdrelay, campaignIdFromLocation } from "../../../lib/crowdrelay"
 import { storeTicketOrder } from "../../../lib/ticketWallet"
 import { normalizeTicketInventory } from "../../../lib/ticketInventory"
 import TicketInventoryBar from "./TicketInventoryBar"
@@ -67,6 +67,15 @@ const copy = {
     ticketsSelected: "Wybrane bilety",
     decrease: "Zmniejsz liczbę biletów",
     increase: "Zwiększ liczbę biletów",
+    signalBadge: "SYGNAŁ −10%",
+    signalJoinTitle: "Tania biletowa: dołącz do Sygnału",
+    signalJoinBody:
+      "Ten bilet jest 10% tańszy, bo należy do fanów zapisanych do Sygnału. Zaznacz, a przy płatności zapiszemy Cię automatycznie (potwierdzenie mailowo).",
+    signalJoinCheckbox: "Zapisuję się do Sygnału i korzystam z −10%",
+    signalJoinRequired:
+      "Wybrany bilet Sygnał wymaga zaznaczenia zapisu do Sygnału. Odznacz go albo zaznacz zapis.",
+    signalJoinUnavailable:
+      "Nie udało się zapisać do Sygnału. Spróbuj ponownie za chwilę.",
   },
   en: {
     eyebrow: "VIRYA // TICKETS",
@@ -105,6 +114,15 @@ const copy = {
     ticketsSelected: "Tickets selected",
     decrease: "Decrease ticket quantity",
     increase: "Increase ticket quantity",
+    signalBadge: "SIGNAL −10%",
+    signalJoinTitle: "Cheaper with Signal",
+    signalJoinBody:
+      "This ticket is 10% cheaper because it belongs to Signal members. Tick the box and we will sign you up during checkout (confirmation by e-mail).",
+    signalJoinCheckbox: "I am joining Signal and taking −10%",
+    signalJoinRequired:
+      "The Signal ticket requires joining Signal. Untick it, or tick the signup box below.",
+    signalJoinUnavailable:
+      "Signal signup did not go through. Please try again in a moment.",
   },
 } as const
 
@@ -192,6 +210,7 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
   })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [signalJoin, setSignalJoin] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -219,19 +238,25 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
   }, [slug, initialSale])
 
   const selection = useMemo(() => {
-    if (state.kind !== "ready") return { count: 0, gross: 0, vat: 0 }
+    if (state.kind !== "ready") return { count: 0, gross: 0, vat: 0, signalCount: 0 }
     let count = 0
     let gross = 0
+    let signalCount = 0
     for (const type of state.sale.ticket_types) {
       const quantity = quantities[type.slug] ?? 0
       count += quantity
       gross += quantity * type.price_gross_minor
+      if (type.slug.startsWith("signal")) signalCount += quantity
     }
     const net = Math.round(
       (gross * 10_000) / (10_000 + state.sale.vat_rate_basis_points),
     )
-    return { count, gross, vat: gross - net }
+    return { count, gross, vat: gross - net, signalCount }
   }, [quantities, state])
+
+  const hasSignalTypes =
+    state.kind === "ready" &&
+    state.sale.ticket_types.some(type => type.active && type.slug.startsWith("signal"))
 
   const updateQuantity = (ticketSlug: string, value: number) => {
     if (state.kind !== "ready") return
@@ -265,6 +290,10 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
     ) {
       return
     }
+    if (selection.signalCount > 0 && !signalJoin) {
+      setError(text.signalJoinRequired)
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
@@ -279,6 +308,8 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
           lang,
           checkoutRequestId: newCheckoutId(),
           invoiceRequested,
+          signalJoin: selection.signalCount > 0 && signalJoin,
+          campaignId: campaignIdFromLocation() ?? null,
           invoiceDetails: invoiceRequested
             ? {
                 buyerType: invoiceType,
@@ -300,8 +331,18 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
             .filter(item => item.quantity > 0),
         }),
       })
-      const result = (await response.json()) as CheckoutResponse | { error?: string }
+      const result = (await response.json()) as
+        | (CheckoutResponse & { code?: string })
+        | { error?: string; code?: string }
       if (!response.ok || !("url" in result)) {
+        if (result.code === "signal_join_required") {
+          setError(text.signalJoinRequired)
+          return
+        }
+        if (result.code === "signal_unavailable") {
+          setError(text.signalJoinUnavailable)
+          return
+        }
         throw new CheckoutStartError(response.status)
       }
       storeTicketOrder({
@@ -412,7 +453,14 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                     <div key={type.id} class="virya-ticket-type">
                       <div class="min-w-0">
                         <div class="flex flex-wrap items-baseline justify-between gap-3">
-                          <h3 class="text-sm font-black uppercase text-white">{type.name}</h3>
+                          <h3 class="text-sm font-black uppercase text-white">
+                            {type.slug.startsWith("signal") && (
+                              <span class="mr-2 rounded-full bg-emerald-400/15 px-2 py-0.5 align-middle text-[9px] font-black tracking-widest text-emerald-300">
+                                {text.signalBadge}
+                              </span>
+                            )}
+                            {type.name}
+                          </h3>
                           <strong class="text-lg text-amber-400">
                             {money(type.price_gross_minor, sale.currency, lang)}
                           </strong>
@@ -506,6 +554,23 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
               />
               {text.invoice}
             </label>
+
+            {hasSignalTypes && (
+              <label class="flex min-h-11 items-start gap-3 rounded-lg border border-emerald-400/30 bg-emerald-400/[.04] p-3 text-xs font-bold text-zinc-200">
+                <input
+                  type="checkbox"
+                  checked={signalJoin}
+                  onChange={event => setSignalJoin(event.currentTarget.checked)}
+                  class="mt-0.5 h-5 w-5 accent-emerald-400"
+                />
+                <span>
+                  <strong class="block text-emerald-300">{text.signalJoinCheckbox}</strong>
+                  <small class="mt-1 block font-normal leading-relaxed text-zinc-400">
+                    {text.signalJoinBody}
+                  </small>
+                </span>
+              </label>
+            )}
 
             {invoiceRequested && (
               <fieldset class="grid gap-4 border-l-2 border-amber-400 bg-amber-400/[.025] p-4 sm:grid-cols-2">
