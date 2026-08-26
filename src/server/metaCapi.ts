@@ -21,9 +21,12 @@ type CapiConfig = {
 }
 
 let cachedConfig: CapiConfig | null | undefined
+let cachedAt = 0
+const CACHE_TTL_MS = 60_000
 
 async function loadConfig(): Promise<CapiConfig | null> {
-  if (cachedConfig !== undefined) return cachedConfig
+  if (cachedConfig !== undefined && Date.now() - cachedAt < CACHE_TTL_MS) return cachedConfig
+  cachedConfig = undefined
   try {
     const store = getStore({ name: BLOB_STORE, consistency: "strong" })
     const [pixelId, accessToken, testEventCode] = await Promise.all([
@@ -45,6 +48,7 @@ async function loadConfig(): Promise<CapiConfig | null> {
     } else {
       console.log("[meta-capi] config loaded: pixelId=", cachedConfig.pixelId, "testEventCode=", cachedConfig.testEventCode || "(none)")
     }
+    cachedAt = Date.now()
   } catch (error) {
     console.error("[meta-capi] config load failed:", error instanceof Error ? error.message : error)
     cachedConfig = null
