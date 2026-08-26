@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
-import AutopilotHandoffs, { useAutopilotFeed } from "./AutopilotHandoffs"
+import AutopilotHandoffs, { type AutopilotFeed } from "./AutopilotHandoffs"
 import { ConfirmButton, Field, Metric, Notice } from "./AdminConsoleUi"
 import {
   type EventItem,
@@ -14,11 +14,12 @@ import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
 export function OverviewTab({
   overview,
   loading,
+  feed,
 }: {
   overview: Overview | null
   loading: boolean
+  feed: AutopilotFeed
 }) {
-  const feed = useAutopilotFeed()
   const upcoming = (overview?.publicEvents ?? [])
     .filter(event => Date.parse(event.starts_at) >= Date.now() - 12 * 60 * 60 * 1000)
     .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at))
