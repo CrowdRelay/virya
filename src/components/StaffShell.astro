@@ -34,11 +34,14 @@ const groups = [
   },
   {
     label: "WIĘCEJ",
-    items: [{ key: "pair", tab: null, href: "/staff/pair/", label: "Urządzenia" }],
+    items: [
+      { key: "home", tab: "releases", href: "/staff/?tab=releases", label: "Wydania" },
+      { key: "pair", tab: null, href: "/staff/pair/", label: "Urządzenia" },
+    ],
   },
 ] as const
 
-const consoleTabs = ["overview", "signal", "audience", "ticketing", "admission", "beacons"]
+const consoleTabs = ["overview", "signal", "audience", "ticketing", "admission", "beacons", "releases"]
 const requested = Astro.url.searchParams.get("tab")
 const currentTab = requested && consoleTabs.includes(requested) ? requested : "overview"
 const isCurrent = (item: { key: string; tab: string | null }) =>
@@ -99,7 +102,10 @@ const IDLE_LINK = "border-transparent text-zinc-400 hover:border-zinc-700 hover:
       <summary class="flex min-h-16 cursor-pointer list-none flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em] text-zinc-500 marker:content-none"><span aria-hidden="true">•••</span>Więcej</summary>
       <div class="absolute bottom-[calc(100%+.5rem)] right-2 w-48 border border-zinc-800 bg-zinc-950 p-2 shadow-2xl">
         <a href="/staff/?tab=ticketing" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Bilety</a>
+        <a href="/staff/?tab=admission" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Goście</a>
+        <a href="/staff/?tab=signal" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Sygnał</a>
         <a href="/staff/?tab=beacons" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Latarnicy</a>
+        <a href="/staff/?tab=releases" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Wydania</a>
         <a href="/staff/accounting/" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Rozliczenia</a>
         <a href="/staff/pair/" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Urządzenia</a>
       </div>

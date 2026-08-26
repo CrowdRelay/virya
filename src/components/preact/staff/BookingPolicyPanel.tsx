@@ -102,7 +102,7 @@ export default function BookingPolicyPanel({ summary, onSaved }: Props) {
   }
 
   return (
-    <div class="mt-6 border-t border-white/10 pt-5">
+    <div>
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Booking manager · guardrails</p>

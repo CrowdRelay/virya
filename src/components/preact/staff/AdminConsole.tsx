@@ -72,7 +72,12 @@ export default function AdminConsole() {
 
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab")
-    if (tabs.some(item => item.key === requested)) setTab(requested as Tab)
+    if (tabs.some(item => item.key === requested)) {
+      setTab(requested as Tab)
+      // The server-rendered sidebar cannot know the ?tab= deep link; announce
+      // the restored section once so the highlighted entry matches on first paint.
+      dispatchEvent(new CustomEvent("staff:tab", { detail: requested }))
+    }
   }, [])
 
   // The sidebar and the address bar both have to follow the section the
