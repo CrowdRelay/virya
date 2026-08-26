@@ -18,6 +18,7 @@ export const GET: APIRoute = async ({ cookies }) => {
   try {
     const overview = await staffQrRequest<StaffQrOverview>(
       "admin/event-qr/overview",
+      { timeoutMs: 10_000 },
     )
     return areaJson(overview)
   } catch (error) {
