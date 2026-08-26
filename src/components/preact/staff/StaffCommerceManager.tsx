@@ -268,6 +268,9 @@ export default function StaffCommerceManager() {
   const [overview, setOverview] = useState<Overview | null>(null)
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
+  // Klucz klikniętego wiersza: tylko on pokazuje „ZAPISUJĘ…” i jest zablokowany,
+  // pozostałe wiersze zostają klikalne (retry chroni staffApi).
+  const [rowBusy, setRowBusy] = useState<string | null>(null)
   const [message, setMessage] = useState<NoticeState>(null)
   const [stockSku, setStockSku] = useState("")
   const [stockDelta, setStockDelta] = useState(1)
@@ -389,9 +392,10 @@ export default function StaffCommerceManager() {
     }
   }
 
-  async function mutate(path: string, body?: unknown, success = "Zapisano.") {
+  async function mutate(path: string, body?: unknown, success = "Zapisano.", rowKey?: string) {
     if (busy) return false
     setBusy(true)
+    setRowBusy(rowKey ?? path)
     setMessage(null)
     try {
       await api(path, { method: "POST", body: body ?? {} })
@@ -417,6 +421,7 @@ export default function StaffCommerceManager() {
       return false
     } finally {
       setBusy(false)
+      setRowBusy(null)
     }
   }
 
@@ -810,19 +815,26 @@ export default function StaffCommerceManager() {
                   <span>Wydano: {item.delivered_fulfillments}/{item.selected_winners}</span>
                 </div>
                 {item.status === "draft" ? (
-                  <div class="mt-4 flex flex-wrap gap-2">
-                    <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/campaigns/${item.id}/schedule`, {}, "Kampania została zaplanowana.")} class="rounded-lg bg-emerald-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">ZAPLANUJ</button>
-                    <ConfirmButton busy={busy} busyLabel="ANULUJĘ…" confirmLabel="TAK, ANULUJ" onConfirm={() => void mutate(`/api/staff/commerce/campaigns/${item.id}/cancel`, {}, "Kampania anulowana, zarezerwowane sztuki wróciły do magazynu.")}>ANULUJ</ConfirmButton>
-                  </div>
+                  (() => {
+                    const scheduleKey = `/api/staff/commerce/campaigns/${item.id}/schedule`
+                    const cancelKey = `/api/staff/commerce/campaigns/${item.id}/cancel`
+                    return <div class="mt-4 flex flex-wrap gap-2">
+                      <button type="button" disabled={(rowBusy !== null && rowBusy !== scheduleKey) || busy} onClick={() => void mutate(scheduleKey, {}, "Kampania została zaplanowana.", scheduleKey)} class="rounded-lg bg-emerald-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">{rowBusy === scheduleKey ? "ZAPISUJĘ…" : "ZAPLANUJ"}</button>
+                      <ConfirmButton busy={(rowBusy !== null && rowBusy !== cancelKey) || busy} busyLabel="ANULUJĘ…" confirmLabel="TAK, ANULUJ" onConfirm={() => void mutate(cancelKey, {}, "Kampania anulowana, zarezerwowane sztuki wróciły do magazynu.", cancelKey)}>ANULUJ</ConfirmButton>
+                    </div>
+                  })()
                 ) : item.status === "scheduled" ? (
-                  <div class="mt-4">
-                    <ConfirmButton
-                      busy={busy}
-                      busyLabel="ANULUJĘ…"
-                      confirmLabel="TAK, ZWOLNIJ MAGAZYN"
-                      onConfirm={() => void mutate(`/api/staff/commerce/campaigns/${item.id}/cancel`, {}, "Kampania anulowana, zarezerwowane sztuki wróciły do magazynu.")}
-                    >ANULUJ I ZWOLNIJ MAGAZYN</ConfirmButton>
-                  </div>
+                  (() => {
+                    const cancelKey = `/api/staff/commerce/campaigns/${item.id}/cancel`
+                    return <div class="mt-4">
+                      <ConfirmButton
+                        busy={(rowBusy !== null && rowBusy !== cancelKey) || busy}
+                        busyLabel="ANULUJĘ…"
+                        confirmLabel="TAK, ZWOLNIJ MAGAZYN"
+                        onConfirm={() => void mutate(cancelKey, {}, "Kampania anulowana, zarezerwowane sztuki wróciły do magazynu.", cancelKey)}
+                      >ANULUJ I ZWOLNIJ MAGAZYN</ConfirmButton>
+                    </div>
+                  })()
                 ) : null}
               </article>
             ))}
@@ -905,13 +917,19 @@ export default function StaffCommerceManager() {
                 <span class="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black text-zinc-200">{fulfillmentStatus(item.status)}</span>
               </div>
               {item.status === "pending" ? (
-                <div class="mt-4 flex gap-2">
-                  <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "prepared", actor_id: "virya-staff-web", note: "prepared in staff panel" }, "Nagroda oznaczona jako przygotowana.")} class={staffAccentChip}>PRZYGOTOWANA</button>
-                  <ConfirmButton busy={busy} busyLabel="ANULUJĘ…" confirmLabel="TAK, ANULUJ" onConfirm={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "cancelled", actor_id: "virya-staff-web", note: "cancelled in staff panel" }, "Nagroda anulowana i wróciła do dostępnego magazynu.")}>ANULUJ</ConfirmButton>
-                </div>
-              ) : item.status === "prepared" ? (
-                <button type="button" disabled={busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "delivered", actor_id: "virya-staff-web", note: "delivered in staff panel" }, "Nagroda wydana; zapisano rozchód promocyjny.")} class="mt-4 rounded-lg bg-emerald-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">OZNACZ JAKO WYDANĄ</button>
-              ) : null}
+                (() => {
+                  const preparedKey = `fulfillments/${item.winner_id}/prepared`
+                  const cancelledKey = `fulfillments/${item.winner_id}/cancelled`
+                  const rowLocked = (rowBusy !== null && rowBusy !== undefined && rowBusy.startsWith(`fulfillments/${item.winner_id}`)) || (busy && !rowBusy)
+                  return <div class="mt-4 flex gap-2">
+                    <button type="button" disabled={rowLocked} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "prepared", actor_id: "virya-staff-web", note: "prepared in staff panel" }, "Nagroda oznaczona jako przygotowana.", preparedKey)} class={staffAccentChip}>{rowBusy === preparedKey ? "ZAPISUJĘ…" : "PRZYGOTOWANA"}</button>
+                    <ConfirmButton busy={rowBusy === cancelledKey} disabled={rowLocked} busyLabel="ANULUJĘ…" confirmLabel="TAK, ANULUJ" onConfirm={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "cancelled", actor_id: "virya-staff-web", note: "cancelled in staff panel" }, "Nagroda anulowana i wróciła do dostępnego magazynu.", cancelledKey)}>ANULUJ</ConfirmButton>
+                  </div>
+                })()
+              ) : item.status === "prepared" ? (() => {
+                const deliveredKey = `fulfillments/${item.winner_id}/delivered`
+                return <button type="button" disabled={(rowBusy !== null) || busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "delivered", actor_id: "virya-staff-web", note: "delivered in staff panel" }, "Nagroda wydana; zapisano rozchód promocyjny.", deliveredKey)} class="mt-4 rounded-lg bg-emerald-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">{rowBusy === deliveredKey ? "ZAPISUJĘ…" : "OZNACZ JAKO WYDANĄ"}</button>
+              })() : null}
             </article>
           ))}
         </div>

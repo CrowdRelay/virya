@@ -51,6 +51,10 @@ export default function ConcertQrManager() {
   const [message, setMessage] = useState<NoticeState>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
+  // Świeżość danych na bramce: licznik check-inów nie może po cichu starzeć się
+  // podczas koncertu, więc aktywna kampania odświeża się sama co 15 s.
+  const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null)
+  const [, tickClock] = useState(0)
   const passwordRef = useRef<HTMLInputElement | null>(null)
   const fullscreenCloseRef = useRef<HTMLButtonElement | null>(null)
   const dataRequestRef = useRef<AbortController | null>(null)
@@ -126,6 +130,21 @@ export default function ConcertQrManager() {
     }
   }, [checkinUrl])
 
+  // Ticker zegara dla etykiety świeżości (co 5 s przelicza „X s temu”).
+  useEffect(() => {
+    const timer = setInterval(() => tickClock(value => value + 1), 5000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const autoRefresh = Boolean(activeCampaign?.active)
+  useEffect(() => {
+    if (!autoRefresh) return
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") void loadData()
+    }, 15_000)
+    return () => clearInterval(timer)
+  }, [autoRefresh])
+
   async function refreshData() {
     if (busy) return
     setBusy(true)
@@ -156,6 +175,7 @@ export default function ConcertQrManager() {
       setValidUntil("")
     }
     setDataLoaded(true)
+    setLastLoadedAt(new Date())
   }
 
   async function loadData() {
@@ -420,6 +440,13 @@ export default function ConcertQrManager() {
         <Metric label="Aktywne kampanie" value={String(campaigns.filter(campaign => campaign.active).length)} />
         <Metric label="Łączne check-iny" value={String(campaigns.reduce((sum, campaign) => sum + campaign.checkin_count, 0))} />
       </section>
+      {lastLoadedAt && (
+        <p class="-mt-2 flex items-center gap-2 text-xs text-zinc-500" role="status">
+          <span class={`inline-block h-2 w-2 rounded-full ${autoRefresh ? "bg-emerald-400" : "bg-zinc-600"}`} aria-hidden="true"></span>
+          Dane z {Math.max(0, Math.round((Date.now() - lastLoadedAt.getTime()) / 1000))} s temu
+          {autoRefresh ? " · odświeżam automatycznie co 15 s" : ""}
+        </p>
+      )}
 
       <div class="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <form onSubmit={createCampaign} class={panelClass}>
