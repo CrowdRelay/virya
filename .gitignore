@@ -102,3 +102,7 @@ src/placeholders.json
 deploy-artifact/
 deploy-artifact-manifest.json
 release-provenance.json
+
+# Local netlify-cli dev artifacts
+deno.lock
+.netlify/
