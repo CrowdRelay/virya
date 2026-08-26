@@ -121,11 +121,10 @@ jobs:
           echo "VIRYA_NETLIFY_ARTIFACT=PASS static=$(find deploy-artifact/site -type f | wc -l | tr -d ' ') functions=$(find deploy-artifact/functions -type f | wc -l | tr -d ' ')"
 
       - name: Upload immutable Netlify promotion artifact
-        # Only needed by the dispatch-only promotion job below; routine deploys
-        # go through scripts/deploy-local.sh, so a storage-quota cap must not
-        # fail an otherwise good build.
+        # Promotion on every main push downloads exactly this artifact, so a
+        # failed upload must fail the build loudly — silent skips produced
+        # green CI with stale production.
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        continue-on-error: true
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: virya-netlify-${{ github.sha }}
@@ -138,8 +137,7 @@ jobs:
           # Astro's Netlify SSR bundle contains required files below
           # functions/ssr/.netlify; upload-artifact excludes them by default.
           include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 14
+          retention-days: 7
 
   deploy:
     name: Promote exact build artifact to Netlify
