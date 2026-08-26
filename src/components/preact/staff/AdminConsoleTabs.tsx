@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
-import AutopilotHandoffs from "./AutopilotHandoffs"
+import AutopilotHandoffs, { useAutopilotFeed } from "./AutopilotHandoffs"
 import OpportunityBoard from "./OpportunityBoard"
 import { Field, Metric } from "./AdminConsoleUi"
 import {
@@ -19,6 +19,7 @@ export function OverviewTab({
   overview: Overview | null
   loading: boolean
 }) {
+  const feed = useAutopilotFeed()
   const upcoming = (overview?.publicEvents ?? [])
     .filter(event => Date.parse(event.starts_at) >= Date.now() - 12 * 60 * 60 * 1000)
     .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at))
@@ -37,10 +38,6 @@ export function OverviewTab({
           Część danych jest chwilowo niedostępna. Możesz nadal korzystać z pozostałych funkcji Staff.
         </div>
       )}
-
-      <AutopilotHandoffs />
-
-      <OpportunityBoard />
 
       {next ? (
         <section class="border border-amber-400/25 bg-[radial-gradient(circle_at_90%_0%,rgba(132,180,172,.12),transparent_35%),rgba(16,23,21,.65)] p-5 sm:p-7">
@@ -66,6 +63,8 @@ export function OverviewTab({
         <div class="bg-zinc-950 p-5"><dt class="text-[11px] font-bold uppercase tracking-[.12em] text-zinc-500">Fani</dt><dd class="mt-2 text-3xl font-black text-white">{totalFans}</dd></div>
       </dl>
 
+      <AutopilotHandoffs feed={feed} />
+
       <section class="border border-zinc-800 bg-zinc-900/35">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4">
           <div><h2 class="text-lg font-black text-white">Nadchodzące</h2><p class="mt-1 text-sm text-zinc-500">Najważniejsze rzeczy przed kolejnymi koncertami.</p></div>
@@ -83,6 +82,8 @@ export function OverviewTab({
           ))}
         </div>
       </section>
+
+      <OpportunityBoard feed={feed} />
     </div>
   )
 }

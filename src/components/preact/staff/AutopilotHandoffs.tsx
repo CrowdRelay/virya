@@ -4,7 +4,7 @@ import BookingPolicyPanel, { type BookingPolicySummary } from "./BookingPolicyPa
 
 const REQUEST_TIMEOUT_MS = 10_000
 
-type PendingAction = {
+export type PendingAction = {
   id: string
   context: string
   action_kind: string
@@ -41,12 +41,40 @@ type RecentAction = {
   status: string
   manual_steps?: ManualStep[]
 }
-type Overview = {
+export type AutopilotOpportunity = {
+  position: number
+  decision_id: string
+  action_id: string | null
+  context: string
+  decision_kind: string
+  subject_kind: string
+  authority: "awaiting_approval" | "recommended" | "observed" | "auto_executing"
+  confidence: number
+  reason: string
+  recommended_action: string
+  ranked_by: string
+  consequence: string
+  due_at: string | null
+  value_tier: string | null
+  deviation_basis_points: number | null
+}
+
+export type AutopilotOverview = {
   runtime_enabled: boolean
   needs_you: PendingAction[]
   available_assignees?: TeamAssignee[]
   recent_actions?: RecentAction[]
+  opportunities?: AutopilotOpportunity[] | null
   booking_policy?: BookingPolicySummary | null
+}
+
+// One fetch feeds both human surfaces on Dzisiaj: the decision queue below and
+// the collapsed agent board, so the overview never calls the BFF twice.
+export type AutopilotFeed = {
+  overview: AutopilotOverview | null
+  loading: boolean
+  error: string
+  reload: () => void
 }
 
 const date = (value: string | null | undefined) => {
@@ -113,28 +141,19 @@ function ReadinessChip({ ok, pending = false, label }: { ok: boolean; pending?: 
   return <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${tone}`}>{pending ? "SPRAWDZAM…" : label}</span>
 }
 
-export default function AutopilotHandoffs() {
-  const [items, setItems] = useState<PendingAction[]>([])
-  const [assignees, setAssignees] = useState<TeamAssignee[]>([])
-  const [manualActions, setManualActions] = useState<RecentAction[]>([])
-  const [bookingPolicy, setBookingPolicy] = useState<BookingPolicySummary | null>(null)
-  const [runtimeEnabled, setRuntimeEnabled] = useState<boolean | null>(null)
+export function useAutopilotFeed(): AutopilotFeed {
+  const [overview, setOverview] = useState<AutopilotOverview | null>(null)
   const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState("")
 
   async function load(signal?: AbortSignal) {
     setLoading(true)
     try {
-      const overview = await staffApi<Overview>("/api/staff/admin/autopilot", {
+      const nextOverview = await staffApi<AutopilotOverview>("/api/staff/admin/autopilot", {
         signal,
         timeoutMs: REQUEST_TIMEOUT_MS,
       })
-      setItems(overview.needs_you ?? [])
-      setAssignees(overview.available_assignees ?? [])
-      setManualActions((overview.recent_actions ?? []).filter(action => (action.manual_steps?.length ?? 0) > 0))
-      setBookingPolicy(overview.booking_policy ?? null)
-      setRuntimeEnabled(Boolean(overview.runtime_enabled))
+      setOverview(nextOverview)
       setError("")
     } catch (value) {
       if (!(value instanceof DOMException && value.name === "AbortError"))
@@ -150,55 +169,59 @@ export default function AutopilotHandoffs() {
     return () => controller.abort()
   }, [])
 
-  async function assign(item: PendingAction, memberKey: string) {
-    if (!memberKey || memberKey === item.assignee?.member_key) return
+  return { overview, loading, error, reload: () => void load() }
+}
+
+function useQueueMutation(reload: () => void) {
+  const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState("")
+
+  async function send(item: PendingAction, body: Record<string, unknown>, failureMessage: string) {
     setBusy(item.id)
     setError("")
-    const person = assignees.find(candidate => candidate.member_key === memberKey)
-    if (!person) {
-      setBusy(null)
-      return
-    }
     try {
       await staffApi("/api/staff/admin/autopilot", {
         method: "POST",
-        body: { action_id: item.id, operation: "assign", member_key: memberKey },
+        body,
         timeoutMs: REQUEST_TIMEOUT_MS,
       })
-      setItems(current => current.map(candidate =>
-        candidate.id === item.id
-          ? {
-              ...candidate,
-              assignee: {
-                member_id: person.member_id,
-                member_key: person.member_key,
-                display_name: person.display_name,
-              },
-            }
-          : candidate,
-      ))
+      reload()
     } catch (value) {
-      setError(value instanceof Error ? value.message : "Nie udało się zmienić ownera")
+      setError(value instanceof Error ? value.message : failureMessage)
     } finally {
       setBusy(null)
     }
   }
 
+  return { busy, error, send }
+}
+
+export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
+  const { overview, loading, error, reload } = feed
+  const { busy, error: mutationError, send } = useQueueMutation(reload)
+
+  if (!overview && !loading && !error) return null
+
+  const items = overview?.needs_you ?? []
+  const assignees = overview?.available_assignees ?? []
+  const manualActions = (overview?.recent_actions ?? []).filter(action => (action.manual_steps?.length ?? 0) > 0)
+  const bookingPolicy = overview?.booking_policy ?? null
+  const runtimeEnabled = overview === null ? null : Boolean(overview.runtime_enabled)
+  const visibleError = mutationError || error
+
+  async function assign(item: PendingAction, memberKey: string) {
+    if (!memberKey || memberKey === item.assignee?.member_key || busy !== null) return
+    const person = assignees.find(candidate => candidate.member_key === memberKey)
+    if (!person) return
+    await send(
+      item,
+      { action_id: item.id, operation: "assign", member_key: memberKey },
+      "Nie udało się zmienić ownera",
+    )
+  }
+
   async function mutate(item: PendingAction, action: "approve" | "cancel") {
-    setBusy(item.id)
-    setError("")
-    try {
-      await staffApi("/api/staff/admin/autopilot", {
-        method: "POST",
-        body: { action_id: item.id, operation: action },
-        timeoutMs: REQUEST_TIMEOUT_MS,
-      })
-      setItems(current => current.filter(candidate => candidate.id !== item.id))
-    } catch (value) {
-      setError(value instanceof Error ? value.message : "Nie udało się zapisać decyzji")
-    } finally {
-      setBusy(null)
-    }
+    await send(item, { action_id: item.id, operation: action }, "Nie udało się zapisać decyzji")
   }
 
   return (
@@ -208,21 +231,23 @@ export default function AutopilotHandoffs() {
           <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">Chief of Staff · Needs you</p>
           <h2 class="mt-2 text-xl font-black text-white">Rzeczy wymagające człowieka</h2>
           <p class="mt-1 max-w-3xl text-sm text-zinc-400">
-            Jedna kolejka decyzji zespołu. Właściciel jest dobierany według kompetencji i obciążenia; mail pozostaje tylko przypomnieniem, nie drugim task systemem.
+            Kolejka decyzji zespołu: przypisz ownera, zaakceptuj lub odrzuć.
           </p>
         </div>
-        <button type="button" disabled={loading} onClick={() => void load()} class="rounded-xl border border-white/10 px-3 py-2 text-xs font-black text-zinc-200 disabled:opacity-50">
+        <button type="button" disabled={loading} onClick={reload} class="min-h-[44px] rounded-xl border border-white/10 px-3 py-2 text-xs font-black text-zinc-200 disabled:opacity-50">
           {loading ? "ODŚWIEŻAM…" : "ODŚWIEŻ"}
         </button>
       </div>
-      {error && <p role="alert" class="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{error}</p>}
-      <div class="mt-4 flex flex-wrap gap-2" aria-label="Stan automatów">
-        <ReadinessChip
-          ok={runtimeEnabled === true}
-          pending={loading && runtimeEnabled === null}
-          label={runtimeEnabled === null ? "AUTOMATY · BRAK DANYCH" : runtimeEnabled ? "AUTOMATY ON" : "AUTOMATY OFF"}
-        />
-      </div>
+      {visibleError && <p role="alert" class="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{visibleError}</p>}
+      {!visibleError && (
+        <div class="mt-4 flex flex-wrap gap-2" aria-label="Stan automatów">
+          <ReadinessChip
+            ok={runtimeEnabled === true}
+            pending={loading && runtimeEnabled === null}
+            label={runtimeEnabled === null ? "AUTOMATY · BRAK DANYCH" : runtimeEnabled ? "AUTOMATY ON" : "AUTOMATY OFF"}
+          />
+        </div>
+      )}
       <div class="mt-4 grid gap-3">
         {items.map(item => (
           <article key={item.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
@@ -277,15 +302,32 @@ export default function AutopilotHandoffs() {
             </div>
           </article>
         ))}
-        {!loading && items.length === 0 && <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Nic nie wymaga teraz ręcznej decyzji.</p>}
+        {!loading && !error && items.length === 0 && <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Nic nie wymaga teraz ręcznej decyzji.</p>}
       </div>
 
-      <BookingPolicyPanel summary={bookingPolicy} onSaved={() => load()} />
+      <details class="mt-6 border-t border-white/10 pt-5 group" open={false}>
+        <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 marker:content-none [&::-webkit-details-marker]:hidden">
+          <span>
+            <span class="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Guardrails automatów</span>
+            <span class="ml-3 text-sm text-zinc-500">Polityka bookingowa · ile gramy i gdzie cisnąć</span>
+          </span>
+          {bookingPolicy && (
+            <span class="rounded-full border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">v{bookingPolicy.version} · {bookingPolicy.source}</span>
+          )}
+        </summary>
+        <div class="mt-4">
+          <BookingPolicyPanel summary={bookingPolicy} onSaved={reload} />
+        </div>
+      </details>
 
       {manualActions.length > 0 && (
-        <div class="mt-6 border-t border-white/10 pt-5">
-          <p class="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Autopilot zrobił co mógł · dokończ ręcznie</p>
-          <p class="mt-1 text-sm text-zinc-400">Tylko kroki, których nie wolno lub nie da się bezpiecznie zautomatyzować, np. CAPTCHA, logowanie albo link weryfikacyjny.</p>
+        <details class="mt-5 border-t border-white/10 pt-5" open={manualActions.length <= 3}>
+          <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 marker:content-none [&::-webkit-details-marker]:hidden">
+            <span>
+              <span class="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Dokończ ręcznie</span>
+              <span class="ml-3 text-sm text-zinc-500">{manualActions.length} {manualActions.length === 1 ? "rzecz" : "rzeczy"}, których automat nie zrobi bezpiecznie</span>
+            </span>
+          </summary>
           <div class="mt-3 grid gap-3">
             {manualActions.flatMap(action => (action.manual_steps ?? []).map((step, index) => {
               const href = safeExternalUrl(step.url)
@@ -303,7 +345,7 @@ export default function AutopilotHandoffs() {
               )
             }))}
           </div>
-        </div>
+        </details>
       )}
     </section>
   )
