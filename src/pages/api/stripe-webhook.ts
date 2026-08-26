@@ -10,6 +10,7 @@ import {
   completeFulfillmentLease,
   releaseFulfillmentLease,
 } from "../../server/fulfillmentLedger"
+import { sendMetaEvent } from "../../server/metaCapi"
 import {
   redeemAreaRewardCode,
   releaseAreaRewardCode,
@@ -167,6 +168,16 @@ export const POST: APIRoute = async ({ request }) => {
         await releaseFulfillmentLease(session.id, leaseId)
         return new Response("Not paid yet", { status: 200 })
       }
+
+      // Server-side Purchase signal for ad-platform optimisation. Best effort
+      // only: measurement must never delay or fail fulfilment.
+      void sendMetaEvent({
+        eventName: "Purchase",
+        eventId: `purchase-${session.id}`,
+        email: session.customer_details?.email ?? session.customer_email,
+        valueMajor: (session.amount_total ?? 0) / 100,
+        currency: session.currency,
+      })
 
       const rewardCodeHash = session.metadata?.area_reward_code_hash
       const rewardReservationId =

@@ -144,11 +144,10 @@ jobs:
   deploy:
     name: Promote exact build artifact to Netlify
     needs: build
-    # Artifact promotion via Actions is an on-demand tool now: routine
-    # production deploys go through scripts/deploy-local.sh, which assembles
-    # and promotes the same immutable artifact without spending Actions
-    # minutes (and without depending on artifact storage quota).
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    # Routine main pushes promote automatically: green CI now means the exact,
+    # provenance-verified artifact is live on production. workflow_dispatch
+    # remains available for deliberate re-promotion of an older artifact.
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

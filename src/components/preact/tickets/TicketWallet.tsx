@@ -37,6 +37,10 @@ const text = {
     resending: "Zlecam wysyłkę…",
     resent: "Wiadomość została dodana do kolejki wysyłkowej.",
     back: "Wróć do koncertu",
+    signalCardTitle: "Dołącz do Sygnału — za darmo",
+    signalCardBody:
+      "Twój bilet i kod na bramkę masz już tutaj. W Sygnale dostaniesz dodatkowo przedsprzedaże, materiały z koncertów i dostęp do losowań.",
+    signalCardCta: "Aktywuj Sygnał",
   },
   en: {
     eyebrow: "VIRYA // YOUR TICKETS",
@@ -55,6 +59,10 @@ const text = {
     resending: "Requesting delivery…",
     resent: "The message has been queued for delivery.",
     back: "Back to the show",
+    signalCardTitle: "Join Signal — it's free",
+    signalCardBody:
+      "Your ticket and door QR already live here. Signal adds presale windows, show materials and members-only draws on top.",
+    signalCardCta: "Activate Signal",
   },
 } as const
 
@@ -180,6 +188,25 @@ export default function TicketWallet({ lang, orderId }: Props) {
             </button>
             {deliveryState === "error" && <span class="text-xs text-red-300">{copy.error}</span>}
           </div>
+          {(() => {
+            // Buyer→Signal bridge: the wallet is the one guaranteed touchpoint
+            // after payment, so this is where the membership ask belongs. The
+            // acquisition campaign rides along from checkout if present.
+            const params = new URLSearchParams(window.location.search)
+            const campaignId = params.get("campaign_id")
+            const signalHref =
+              "/join/" + (campaignId ? `?campaign_id=${encodeURIComponent(campaignId)}` : "")
+            return (
+              <aside class="rounded-xl border border-emerald-400/25 bg-emerald-400/[.04] p-5">
+                <p class="text-[8px] font-black uppercase tracking-[.26em] text-emerald-300">VIRYA // SYGNAŁ</p>
+                <h3 class="mt-2 text-lg font-black uppercase text-white">{copy.signalCardTitle}</h3>
+                <p class="mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">{copy.signalCardBody}</p>
+                <a href={signalHref} class="virya-button virya-button--primary mt-4 min-h-[46px] px-5">
+                  {copy.signalCardCta} →
+                </a>
+              </aside>
+            )
+          })()}
         </div>
       )}
 
