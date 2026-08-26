@@ -149,6 +149,7 @@ export function useAutopilotFeed(): AutopilotFeed {
 
   async function load(signal?: AbortSignal) {
     setLoading(true)
+    setError("")
     try {
       const nextOverview = await staffApi<AutopilotOverview>("/api/staff/admin/autopilot", {
         signal,

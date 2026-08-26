@@ -9,6 +9,7 @@ import {
   tabs,
 } from "./adminConsoleShared"
 import { bootstrapStaffPanel } from "./staffApi"
+import { useAutopilotFeed } from "./AutopilotHandoffs"
 import {
   AdmissionTab,
   OverviewTab,
@@ -57,6 +58,12 @@ export default function AdminConsole() {
   const [message, setMessage] = useState<NoticeState>(null)
   const passwordRef = useRef<HTMLInputElement | null>(null)
 
+  // Fired on mount so it runs in parallel with the overview fetch, not after
+  // it. The overview call determines the session verdict; if it comes back 401
+  // this speculative fetch also gets 401 (a cheap BFF rejection with no
+  // upstream round trip). After a successful login the effect below reloads it.
+  const autopilotFeed = useAutopilotFeed()
+
   const events = useMemo(() => {
     const unique = new Map<string, EventItem>()
     for (const event of overview?.publicEvents ?? [])
@@ -73,6 +80,13 @@ export default function AdminConsole() {
     void checkSession(controller.signal)
     return () => controller.abort()
   }, [])
+
+  // If the speculative autopilot fetch got a 401 (user was not logged in on
+  // mount), reload it once the session is established so OverviewTab has fresh
+  // data without a second sequential round trip.
+  useEffect(() => {
+    if (state === "ready" && autopilotFeed.error) autopilotFeed.reload()
+  }, [state])
 
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab")
@@ -126,6 +140,9 @@ export default function AdminConsole() {
     try {
       await api("/api/staff/qr/login", { method: "POST", body: { password } })
       setPassword("")
+      // The session cookie is set, so both the overview and the autopilot
+      // fetch can run in parallel instead of sequentially after checkSession.
+      autopilotFeed.reload()
       await checkSession()
     } catch (error) {
       setMessage({
@@ -271,7 +288,7 @@ export default function AdminConsole() {
       )}
 
       {tab === "overview" && (
-        <OverviewTab overview={overview} loading={overviewLoading} />
+        <OverviewTab overview={overview} loading={overviewLoading} feed={autopilotFeed} />
       )}
       {tab === "signal" && <SignalTab />}
       {tab === "admission" && <AdmissionTab events={events} />}
