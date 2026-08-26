@@ -59,9 +59,26 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
     <link rel="apple-touch-icon" href="/virya.webp" />
     <title>{title}</title>
     <slot name="head" />
-    <!-- Parse HTML first; the full diagnostic guard is not on the critical rendering path. -->
-    <script is:inline src="/runtime-guard.js" defer></script>
-    <script src="/rum.js" defer></script>
+    <!-- Parse HTML first; the full diagnostic guard and RUM are not on the
+         critical rendering path. Load them in idle callbacks so they never
+         block first paint or contribute to Total Blocking Time. -->
+    <script is:inline>
+      (function() {
+        var ric = 'requestIdleCallback' in window ? requestIdleCallback : function(fn) { return setTimeout(fn, 1500); };
+        ric(function() {
+          var s = document.createElement('script');
+          s.src = '/runtime-guard.js';
+          s.async = true;
+          document.head.appendChild(s);
+        }, { timeout: 2000 });
+        ric(function() {
+          var s = document.createElement('script');
+          s.src = '/rum.js';
+          s.async = true;
+          document.head.appendChild(s);
+        }, { timeout: 3000 });
+      })();
+    </script>
     {enableClientRouter && <ClientRouter />}
     {lang === "en" && <script is:inline set:html={LANG_REDIRECT} />}
     {enableClientRouter && (
