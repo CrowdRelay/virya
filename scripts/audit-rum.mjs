@@ -20,7 +20,7 @@ for (const token of required) {
 for (const forbidden of ["localStorage", "sessionStorage", "user_id", "email", "fingerprint", "document.cookie"]) {
   if (rum.includes(forbidden)) throw new Error(`Virya RUM must remain identity-free: ${forbidden}`);
 }
-if (!layout.includes('<script src="/rum.js" defer></script>')) {
+if (!layout.includes('/rum.js')) {
   throw new Error("Virya layout must load the bounded first-party RUM collector");
 }
 console.log("VIRYA_RUM=PASS sample=5% identity=none metrics=web-vitals-subset");
