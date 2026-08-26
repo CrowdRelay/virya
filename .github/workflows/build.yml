@@ -118,7 +118,13 @@ jobs:
             --lockfile package-lock.json \
             --artifact-manifest deploy-artifact-manifest.json \
             --output release-provenance.json
-          echo "VIRYA_NETLIFY_ARTIFACT=PASS static=$(find deploy-artifact/site -type f | wc -l | tr -d ' ') functions=$(find deploy-artifact/functions -type f | wc -l | tr -d ' ')"
+          # Archive the deploy tree into a single zstd-compressed tarball.
+          # upload-artifact stores 1262 separate files per run otherwise, and
+          # the per-file metadata overhead plus 7-day retention pushed the
+          # repo over the Actions storage quota. A single tar.zst is ~3x
+          # smaller and one artifact entry.
+          tar --zstd -cf deploy-artifact.tar.zst -C deploy-artifact .
+          echo "VIRYA_NETLIFY_ARTIFACT=PASS static=$(find deploy-artifact/site -type f | wc -l | tr -d ' ') functions=$(find deploy-artifact/functions -type f | wc -l | tr -d ' ') archive=$(stat -c%s deploy-artifact.tar.zst) bytes"
 
       - name: Upload immutable Netlify promotion artifact
         # Promotion on every main push downloads exactly this artifact, so a
@@ -129,14 +135,11 @@ jobs:
         with:
           name: virya-netlify-${{ github.sha }}
           path: |
-            deploy-artifact
+            deploy-artifact.tar.zst
             deploy-artifact-manifest.json
             release-provenance.json
             scripts/artifact_manifest.py
             scripts/write_release_provenance.py
-          # Astro's Netlify SSR bundle contains required files below
-          # functions/ssr/.netlify; upload-artifact excludes them by default.
-          include-hidden-files: true
           retention-days: 7
 
   deploy:
@@ -160,6 +163,15 @@ jobs:
         with:
           name: virya-netlify-${{ github.sha }}
           path: promoted
+
+      - name: Extract deploy artifact archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s promoted/deploy-artifact.tar.zst
+          mkdir -p promoted/deploy-artifact
+          tar --zstd -xf promoted/deploy-artifact.tar.zst -C promoted/deploy-artifact
+          test -s promoted/deploy-artifact/site/index.html
 
       - name: Verify immutable artifact
         shell: bash
