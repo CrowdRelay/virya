@@ -294,6 +294,7 @@ export default function AdminConsole() {
       {tab === "admission" && <AdmissionTab events={events} />}
       {isLazy(tab) && (
         <LazyPanel
+          key={tab}
           id={tab}
           label={LAZY[tab].label}
           load={LAZY[tab].load}
