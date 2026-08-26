@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { safeFormatDate } from "../../../lib/safeDateFormat"
 import BackendLoader from "./BackendLoader"
+import { StaffLoginCard, StaffStatusCard, type NoticeState } from "./AdminConsoleUi"
 import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
 import StaffLogoutButton from "./StaffLogoutButton"
@@ -132,6 +133,7 @@ const dateTime = (value: unknown) => safeFormatDate(value, dateTimeFormatter)
 export default function AccountingManager() {
   const [state, setState] = useState<LoadState>("checking")
   const [password, setPassword] = useState("")
+  const [message, setMessage] = useState("")
   const [month, setMonth] = useState(nowMonth())
   const [loadedMonth, setLoadedMonth] = useState<string | null>(null)
   const [currency] = useState("PLN")
@@ -142,7 +144,7 @@ export default function AccountingManager() {
   const [documentNumber, setDocumentNumber] = useState("")
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState("")
+
   const [profileOpen, setProfileOpen] = useState(false)
   const passwordRef = useRef<HTMLInputElement | null>(null)
   const requestRef = useRef<AbortController | null>(null)
@@ -227,7 +229,7 @@ export default function AccountingManager() {
       }
     } catch (error) {
       if ((error as ApiError).status === 401) setState("login")
-      else setMessage("Nie udało się przygotować zestawienia. Sprawdź migracje i połączenie z CrowdRelay.")
+      else setMessage("Nie udało się przygotować zestawienia. Sprawdź połączenie z CrowdRelay i spróbuj ponownie.")
     } finally {
       if (requestRef.current === controller) {
         requestRef.current = null
@@ -283,19 +285,23 @@ export default function AccountingManager() {
     finally { setBusy(false) }
   }
 
-  if (state === "checking") return <StatusCard title="Sprawdzam dostęp…" />
-  if (state === "unconfigured") return <StatusCard title="Panel nie jest skonfigurowany" body="Ustaw STAFF_QR_PASSWORD, STAFF_QR_SESSION_SECRET i CROWDRELAY_ADMIN_API_KEY." />
-  if (state === "error") return <StatusCard title="Panel chwilowo niedostępny" body="Odśwież stronę za moment." />
+  if (state === "checking") return <StaffStatusCard title="Sprawdzam dostęp…" />
+  if (state === "unconfigured") return <StaffStatusCard title="Panel nie jest skonfigurowany" body="Panel nie ma jeszcze włączonego dostępu. Poproś osobę prowadzącą techniczną stronę o jego konfigurację." />
+  if (state === "error") return <StaffStatusCard title="Panel chwilowo niedostępny" body="Odśwież stronę za moment." />
   if (state === "login") return (
-    <section class="mx-auto max-w-md rounded-xl border border-white/10 bg-zinc-900/80 p-6 shadow-2xl">
-      <p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">Virya staff</p>
-      <h1 class="mt-2 text-3xl font-black text-white">Księgowość biletów</h1>
-      <form class="mt-6 space-y-4" onSubmit={login}>
-        <label class="block text-sm font-semibold text-zinc-200">Hasło panelu<input ref={passwordRef} value={password} onInput={event => setPassword(event.currentTarget.value)} type="password" autocomplete="current-password" class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" /></label>
-        <button disabled={busy} class={`${staffAccentButton} w-full`}>{busy ? "Loguję…" : "Wejdź"}</button>
-      </form>
-      {message && <p class="mt-4 text-sm text-rose-300" role="alert">{message}</p>}
-    </section>
+    <StaffLoginCard
+      eyebrow="Virya staff"
+      title="Księgowość biletów"
+      description="Rozliczenia miesięczne, kontrola Stripe i dokumenty WEW."
+      passwordRef={passwordRef}
+      password={password}
+      onPasswordInput={setPassword}
+      busy={busy}
+      message={message ? { tone: "error", text: message } : null}
+      onSubmit={login}
+      submitLabel="Wejdź"
+      busyLabel="Loguję…"
+    />
   )
 
   return (
@@ -322,8 +328,8 @@ export default function AccountingManager() {
           <Metric label="Wpływ netto Stripe" value={money(preview.commerce_totals.stripe_net_minor, currency)} ok={stripeState.reconciles} />
         </div>
 
-        {!stripeState.complete && <div role="status" class="rounded-lg border border-sky-300/30 bg-sky-300/10 px-4 py-3 text-sm text-sky-100">Uzgodnienie Stripe jest niepełne: część historycznych wpisów nie ma jeszcze balance transaction z fee/net. WEW nadal liczy sprzedaż i VAT z ledgeru, ale kontrola wypłat wymaga danych Stripe dla wszystkich wpisów.</div>}
-        {stripeState.complete && !stripeState.reconciles && <div role="alert" class="rounded-lg border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Rozjazd Stripe: brutto minus fee nie zgadza się z net. Nie zamykaj miesiąca bez wyjaśnienia różnicy.</div>}
+        {!stripeState.complete && <div role="status" class="rounded-lg border border-sky-300/30 bg-sky-300/10 px-4 py-3 text-sm text-sky-100">Uzgodnienie ze Stripe jest niepełne: część historycznych zamówień nie ma jeszcze zapisanej prowizji (fee) i kwoty netto. Zestawienie WEW nadal liczy sprzedaż i VAT z ledgeru, ale kontrola wypłat wymaga danych Stripe dla wszystkich wpisów.</div>}
+        {stripeState.complete && !stripeState.reconciles && <div role="alert" class="rounded-lg border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Niezgodność ze Stripe: brutto minus prowizja nie zgadza się z kwotą netto. Nie zamykaj miesiąca bez wyjaśnienia różnicy.</div>}
 
         <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5">
           <div class="flex flex-wrap items-start justify-between gap-4"><div><h2 class="text-xl font-black text-white">Dokument miesięczny</h2><p class="mt-1 text-sm text-zinc-400">{date(preview.period_start)} – {date(preview.period_end)} · {preview.totals.sale_entry_count} płatności · {preview.totals.refund_entry_count} refundów</p></div><button onClick={() => setProfileOpen(value => !value)} class="text-sm font-bold text-amber-300 hover:text-amber-200">{profileOpen ? "Ukryj dane firmy" : "Dane firmy"}</button></div>
@@ -336,14 +342,14 @@ export default function AccountingManager() {
 
         {preview.adjustments.length > 0 && <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5"><h2 class="text-xl font-black text-white">Zwroty i korekty</h2><div class="mt-4 grid gap-3">{preview.adjustments.map(line => <div key={`${line.event_id}:${line.vat_rate_basis_points}`} class="grid gap-2 rounded-lg bg-black/35 p-4 sm:grid-cols-[1fr_auto_auto]"><div><strong class="text-white">{line.event_title}</strong><p class="text-xs text-zinc-500">{line.entry_count} zdarzeń · VAT {line.vat_rate_basis_points / 100}%</p></div><span class="font-bold text-rose-300">{money(line.amount_gross_minor, line.currency)}</span><span class="text-zinc-400">Stripe {money(line.stripe_net_minor, line.currency)}</span></div>)}</div></section>}
 
-        <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5"><div class="flex flex-wrap items-end justify-between gap-3"><div><h2 class="text-xl font-black text-white">Żądania faktury</h2><p class="mt-1 text-sm text-zinc-400">{preview.invoice_request_count} zamówień wymaga osobnego dokumentu dla kupującego i jest wyłączonych ze zbiorczego WEW.</p></div></div>{invoiceListAvailable === false ? <p class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">Nie potwierdzam pustej listy — endpoint żądań faktury jest chwilowo niedostępny. Pozostałe wyliczenia miesiąca są nadal ważne.</p> : invoices.length > 0 ? <div class="mt-4 grid gap-3">{invoices.map(item => <article key={item.order_id} class="rounded-lg border border-white/5 bg-black/30 p-4"><div class="flex flex-wrap justify-between gap-3"><div><strong class="text-white">{item.company_name || item.full_name || item.buyer_email}</strong><p class="mt-1 text-xs text-zinc-500">{item.event_title} · {item.order_reference} · {dateTime(item.paid_at)}</p></div><div class="text-right"><strong class="text-amber-200">{money(item.amount_gross_minor, item.currency)}</strong><p class="mt-1 text-xs text-zinc-500">{item.status === "paid" ? "opłacone" : item.status === "partially_refunded" ? `częściowy zwrot ${money(item.amount_refunded_minor, item.currency)}` : `pełny zwrot ${money(item.amount_refunded_minor, item.currency)}`}</p></div></div><p class="mt-3 text-sm text-zinc-300">{item.tax_id ? `NIP ${item.tax_id} · ` : ""}{item.address_line1}, {item.postal_code} {item.city} · {item.buyer_email}</p>{item.status !== "paid" ? <p class="mt-2 text-xs font-bold text-rose-300">Wymaga uwzględnienia zwrotu lub korekty przed wystawieniem dokumentu.</p> : null}</article>)}</div> : <p class="mt-4 text-sm text-zinc-500">Brak żądań faktury w tym miesiącu.</p>}</section>
+        <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5"><div class="flex flex-wrap items-end justify-between gap-3"><div><h2 class="text-xl font-black text-white">Żądania faktury</h2><p class="mt-1 text-sm text-zinc-400">{preview.invoice_request_count} zamówień wymaga osobnego dokumentu dla kupującego i jest wyłączonych ze zbiorczego WEW.</p></div></div>{invoiceListAvailable === false ? <p class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">Nie potwierdzam pustej listy — lista żądań faktur jest chwilowo niedostępna. Pozostałe wyliczenia miesiąca są nadal ważne.
+</p> : invoices.length > 0 ? <div class="mt-4 grid gap-3">{invoices.map(item => <article key={item.order_id} class="rounded-lg border border-white/5 bg-black/30 p-4"><div class="flex flex-wrap justify-between gap-3"><div><strong class="text-white">{item.company_name || item.full_name || item.buyer_email}</strong><p class="mt-1 text-xs text-zinc-500">{item.event_title} · {item.order_reference} · {dateTime(item.paid_at)}</p></div><div class="text-right"><strong class="text-amber-200">{money(item.amount_gross_minor, item.currency)}</strong><p class="mt-1 text-xs text-zinc-500">{item.status === "paid" ? "opłacone" : item.status === "partially_refunded" ? `częściowy zwrot ${money(item.amount_refunded_minor, item.currency)}` : `pełny zwrot ${money(item.amount_refunded_minor, item.currency)}`}</p></div></div><p class="mt-3 text-sm text-zinc-300">{item.tax_id ? `NIP ${item.tax_id} · ` : ""}{item.address_line1}, {item.postal_code} {item.city} · {item.buyer_email}</p>{item.status !== "paid" ? <p class="mt-2 text-xs font-bold text-rose-300">Wymaga uwzględnienia zwrotu lub korekty przed wystawieniem dokumentu.</p> : null}</article>)}</div> : <p class="mt-4 text-sm text-zinc-500">Brak żądań faktury w tym miesiącu.</p>}</section>
       </>}
     </section>
   )
 }
 
 function Metric({ label, value, ok = true }: { label: string; value: string; ok?: boolean }) { return <div class={`rounded-lg border p-4 ${ok ? "border-white/10 bg-zinc-900/70" : "border-rose-400/40 bg-rose-400/10"}`}><p class="text-xs font-bold uppercase tracking-wider text-zinc-500">{label}</p><p class="mt-2 text-xl font-black tabular-nums text-white">{value}</p></div> }
-function StatusCard({ title, body }: { title: string; body?: string }) { return <section class="mx-auto max-w-xl rounded-xl border border-white/10 bg-zinc-900/80 p-8"><h1 class="text-2xl font-black text-white">{title}</h1>{body && <p class="mt-3 text-zinc-400">{body}</p>}</section> }
 function ProfileForm({ profile, setProfile, onSubmit, busy }: { profile: Profile; setProfile: (profile: Profile) => void; onSubmit: (event: Event) => void; busy: boolean }) {
   const field = (key: keyof Profile, label: string) => <label class="text-sm font-semibold text-zinc-200">{label}<input value={String(profile[key] ?? "")} onInput={event => setProfile({ ...profile, [key]: event.currentTarget.value })} class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300" /></label>
   return <form onSubmit={onSubmit} class="grid gap-4 rounded-xl border border-white/10 bg-zinc-900/70 p-5 md:grid-cols-2"><div class="md:col-span-2"><h2 class="text-xl font-black text-white">Dane sprzedawcy</h2><p class="mt-1 text-sm text-zinc-400">Domyślnie WB Soft. Zmiana wpływa tylko na przyszłe snapshoty.</p></div>{field("seller_name", "Nazwa")}{field("tax_id", "NIP")}{field("address_line1", "Adres")}{field("postal_code", "Kod pocztowy")}{field("city", "Miasto")}{field("document_prefix", "Prefiks dokumentu")}<button disabled={busy} class="rounded-xl bg-white px-4 py-3 font-black text-zinc-950 disabled:opacity-50 md:col-span-2">Zapisz dane</button></form>

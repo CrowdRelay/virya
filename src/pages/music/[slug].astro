@@ -82,27 +82,27 @@ const hasLyrics = (lyricsData as Array<{slug: string}>).some(l => l.slug === slu
             <h2 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">{t(lang, "release.listenHeading")}</h2>
             <div class="flex flex-wrap gap-3">
               {item.link && (
-                <a href={item.link} target="_blank" rel="noreferrer" class="text-[11px] font-bold uppercase tracking-widest px-4 py-2 border border-amber-400/60 text-amber-400 hover:bg-amber-400 hover:text-black transition-colors">
+                <a href={item.link} target="_blank" rel="noreferrer" class="virya-button virya-button--accent-outline">
                   {t(lang, "music.listen")}
                 </a>
               )}
               {item.watch && (
-                <a href={item.watch} target="_blank" rel="noreferrer" class="text-[11px] font-bold uppercase tracking-widest px-4 py-2 border border-zinc-700 text-zinc-300 hover:border-amber-400/60 hover:text-amber-400 transition-colors">
+                <a href={item.watch} target="_blank" rel="noreferrer" class="virya-button virya-button--secondary">
                   {t(lang, "music.watch")}
                 </a>
               )}
               {item.buy && (
-                <a href={item.buy} target="_blank" rel="noreferrer" class="text-[11px] font-bold uppercase tracking-widest px-4 py-2 border border-zinc-700 text-zinc-300 hover:border-amber-400/60 hover:text-amber-400 transition-colors">
+                <a href={item.buy} target="_blank" rel="noreferrer" class="virya-button virya-button--secondary">
                   {t(lang, "music.buy")}
                 </a>
               )}
               {item.merch && (
-                <a href={lp(lang, item.merch)} class="text-[11px] font-bold uppercase tracking-widest px-4 py-2 border border-zinc-700 text-zinc-300 hover:border-amber-400/60 hover:text-amber-400 transition-colors">
+                <a href={lp(lang, item.merch)} class="virya-button virya-button--secondary">
                   {t(lang, "nav.merch")}
                 </a>
               )}
               {hasLyrics && (
-                <a href={lp(lang, `/lyrics/${slug}/`)} class="text-[11px] font-bold uppercase tracking-widest px-4 py-2 border border-zinc-700 text-zinc-300 hover:border-amber-400/60 hover:text-amber-400 transition-colors">
+                <a href={lp(lang, `/lyrics/${slug}/`)} class="virya-button virya-button--secondary">
                   {t(lang, "music.lyrics")}
                 </a>
               )}

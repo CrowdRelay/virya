@@ -11,6 +11,7 @@ import type {
   StaffQrOverview,
 } from "../../../server/staffQrApi"
 import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
+import { ConfirmButton, Notice, StaffLoginCard, StaffStatusCard, type NoticeState } from "./AdminConsoleUi"
 import { staffLogoutButton, staffSecondaryButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
@@ -47,7 +48,7 @@ export default function ConcertQrManager() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [dataLoading, setDataLoading] = useState(false)
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState<NoticeState>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
   const passwordRef = useRef<HTMLInputElement | null>(null)
@@ -162,7 +163,7 @@ export default function ConcertQrManager() {
     const controller = new AbortController()
     dataRequestRef.current = controller
     setDataLoading(true)
-    setMessage("")
+    setMessage(null)
 
     try {
       const overview = await api<StaffQrOverview>("/api/staff/qr/overview", {
@@ -175,7 +176,7 @@ export default function ConcertQrManager() {
       if ((error as ApiError).status === 401) {
         setState("login")
       } else {
-        setMessage("Nie udało się pobrać katalogu wydarzeń i kampanii.")
+        setMessage({ tone: "error", text: "Nie udało się pobrać katalogu wydarzeń i kampanii." })
       }
       setDataLoaded(true)
     } finally {
@@ -198,7 +199,7 @@ export default function ConcertQrManager() {
     event.preventDefault()
     if (busy) return
     setBusy(true)
-    setMessage("")
+    setMessage(null)
     try {
       await api("/api/staff/qr/login", {
         method: "POST",
@@ -208,11 +209,12 @@ export default function ConcertQrManager() {
       setState("ready")
       await loadData()
     } catch (error) {
-      setMessage(
-        (error as ApiError).status === 429
+      setMessage({
+        tone: "error",
+        text: (error as ApiError).status === 429
           ? "Za dużo prób. Spróbuj ponownie za kilkanaście minut."
           : "Nieprawidłowe hasło.",
-      )
+      })
     } finally {
       setBusy(false)
     }
@@ -237,7 +239,7 @@ export default function ConcertQrManager() {
     event.preventDefault()
     if (busy || !selectedEvent || !label || !validFrom || !validUntil) return
     setBusy(true)
-    setMessage("")
+    setMessage(null)
     try {
       const campaign = await api<StaffQrCampaign>("/api/staff/qr/campaigns", {
         method: "POST",
@@ -251,14 +253,15 @@ export default function ConcertQrManager() {
       })
       setCampaigns(current => [campaign, ...current])
       setSelectedCampaignId(campaign.id)
-      setMessage("Kampania QR została utworzona.")
+      setMessage({ tone: "success", text: "Kampania QR została utworzona." })
     } catch (error) {
       const status = (error as ApiError).status
-      setMessage(
-        status === 422
+      setMessage({
+        tone: "error",
+        text: status === 422
           ? "Sprawdź termin. QR może działać od 24 h przed do 36 h po rozpoczęciu koncertu."
           : "Nie udało się utworzyć kampanii QR.",
-      )
+      })
     } finally {
       setBusy(false)
     }
@@ -266,17 +269,16 @@ export default function ConcertQrManager() {
 
   async function revoke(campaign: StaffQrCampaign) {
     if (busy || !campaign.active) return
-    if (!confirm(`Wyłączyć QR „${campaign.label}”? Wydruk przestanie działać natychmiast.`)) return
     setBusy(true)
-    setMessage("")
+    setMessage(null)
     try {
       await api(`/api/staff/qr/campaigns/${encodeURIComponent(campaign.id)}`, {
         method: "POST",
       })
       await loadData()
-      setMessage("Kampania została wyłączona.")
+      setMessage({ tone: "success", text: "Kampania została wyłączona." })
     } catch {
-      setMessage("Nie udało się wyłączyć kampanii.")
+      setMessage({ tone: "error", text: "Nie udało się wyłączyć kampanii." })
     } finally {
       setBusy(false)
     }
@@ -303,9 +305,9 @@ export default function ConcertQrManager() {
     if (!checkinUrl) return
     try {
       await navigator.clipboard.writeText(checkinUrl)
-      setMessage("Link QR skopiowany.")
+      setMessage({ tone: "success", text: "Link QR skopiowany." })
     } catch {
-      setMessage("Nie udało się skopiować linku.")
+      setMessage({ tone: "error", text: "Nie udało się skopiować linku." })
     }
   }
 
@@ -313,7 +315,7 @@ export default function ConcertQrManager() {
     if (!qr || !activeCampaign) return
     const popup = window.open("", "_blank")
     if (!popup) {
-      setMessage("Przeglądarka zablokowała okno wydruku.")
+      setMessage({ tone: "error", text: "Przeglądarka zablokowała okno wydruku." })
       return
     }
     popup.opener = null
@@ -346,59 +348,39 @@ export default function ConcertQrManager() {
   }
 
   if (state === "checking") {
-    return <StatusPanel title="Sprawdzam dostęp…" />
+    return <StaffStatusCard title="Sprawdzam dostęp…" loading />
   }
 
   if (state === "unconfigured") {
     return (
-      <StatusPanel
+      <StaffStatusCard
         title="Panel nie jest skonfigurowany"
-        body="Ustaw STAFF_QR_PASSWORD_SHA256, STAFF_QR_SESSION_SECRET i CROWDRELAY_ADMIN_API_KEY w Netlify."
+        body="Panel nie ma jeszcze włączonego dostępu. Poproś osobę prowadzącą techniczną stronę o jego konfigurację."
       />
     )
   }
 
   if (state === "error") {
-    return <StatusPanel title="Panel chwilowo niedostępny" body="Odśwież stronę lub sprawdź logi funkcji Netlify." />
+    return <StaffStatusCard title="Panel chwilowo niedostępny" body="Odśwież stronę za chwilę. Jeśli problem nie zniknie, napisz do osoby prowadzącej techniczną stronę." />
   }
 
   if (state === "login") {
     return (
-      <form
-        onSubmit={login}
-        class="virya-panel mx-auto max-w-md p-6 sm:p-8"
-      >
-        <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
-          VIRYA // STAFF
-        </p>
-        <h1 class="mt-4 text-3xl font-black uppercase leading-none text-white">
-          Generator QR
-        </h1>
-        <p class="mt-4 text-sm leading-relaxed text-zinc-400">
-          Dostęp tylko dla zespołu. Hasło nie jest zapisywane w przeglądarce.
-        </p>
-        <label class="mt-7 block text-[9px] font-black uppercase tracking-widest text-zinc-400">
-          Hasło
-          <input
-            ref={passwordRef}
-            type="password"
-            value={password}
-            onInput={event => setPassword(event.currentTarget.value)}
-            autocomplete="current-password"
-            required
-            maxlength={256}
-            class="virya-input mt-2 min-h-[48px] px-4 text-sm"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={busy || !password}
-          class="virya-button virya-button--primary mt-5 min-h-[48px] w-full px-5"
-        >
-          {busy ? "Logowanie…" : "Otwórz panel"}
-        </button>
-        {message && <p class="mt-4 text-xs text-red-300" role="alert">{message}</p>}
-      </form>
+      <div class="py-6">
+        <StaffLoginCard
+          eyebrow="VIRYA // STAFF"
+          title="Generator QR"
+          description="Dostęp tylko dla zespołu. Hasło nie jest zapisywane w przeglądarce."
+          passwordRef={passwordRef}
+          password={password}
+          onPasswordInput={setPassword}
+          busy={busy}
+          message={message ?? undefined}
+          onSubmit={login}
+          submitLabel="Otwórz panel"
+          busyLabel="Logowanie…"
+        />
+      </div>
     )
   }
 
@@ -428,9 +410,9 @@ export default function ConcertQrManager() {
       </header>
 
       {message && (
-        <p class="border-l-2 border-amber-400 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300" role="status" aria-live="polite">
-          {message}
-        </p>
+        <div>
+          <Notice tone={message.tone}>{message.text}</Notice>
+        </div>
       )}
 
       <section class="grid gap-3 sm:grid-cols-3" aria-label="Stan panelu QR">
@@ -541,7 +523,6 @@ export default function ConcertQrManager() {
                   <Info label="Check-iny" value={`${activeCampaign.checkin_count}${activeCampaign.max_checkins ? ` / ${activeCampaign.max_checkins}` : ""}`} />
                   <Info label="Od" value={formatDate(activeCampaign.valid_from)} />
                   <Info label="Do" value={formatDate(activeCampaign.valid_until)} />
-                  <Info label="QR" value={`wersja ${qr.version}-M · ${qr.byteLength} B`} />
                 </dl>
                 <label class="mt-5 block text-[9px] font-black uppercase tracking-widest text-zinc-400">
                   Język strony po skanie
@@ -556,9 +537,16 @@ export default function ConcertQrManager() {
                   <button type="button" onClick={downloadPng} class={secondaryButton}>Pobierz PNG</button>
                   <button type="button" onClick={() => void copyLink()} class={secondaryButton}>Kopiuj link</button>
                   {activeCampaign.active && (
-                    <button type="button" onClick={() => void revoke(activeCampaign)} disabled={busy} class="inline-flex min-h-[44px] items-center justify-center border border-red-400/40 px-4 text-[8px] font-black uppercase tracking-widest text-red-300 hover:bg-red-400/10 sm:col-span-2">
-                      Wyłącz ten QR
-                    </button>
+                    <div class="sm:col-span-2">
+                      <ConfirmButton
+                        busy={busy}
+                        busyLabel="WYŁĄCZAM…"
+                        confirmLabel="TAK, WYŁĄCZ — WYDRUK PRZESTANIE DZIAŁAĆ"
+                        onConfirm={() => void revoke(activeCampaign)}
+                      >
+                        Wyłącz ten QR
+                      </ConfirmButton>
+                    </div>
                   )}
                 </div>
               </div>
@@ -577,7 +565,10 @@ export default function ConcertQrManager() {
         {campaigns.length === 0 ? (
           <p class="mt-5 text-xs text-zinc-500">Brak kampanii.</p>
         ) : (
-          <div class="mt-5 w-full max-w-full overflow-x-auto overscroll-x-contain">
+          <>
+            {/* Desktop: pełna tabela. Mobile: karty — na bramce działa się jednym
+                kciukiem i poziomy scroll tabeli był nie do użycia. */}
+            <div class="mt-5 hidden w-full max-w-full overflow-x-auto overscroll-x-contain lg:block">
             <table class="w-full min-w-[760px] border-collapse text-left text-xs">
               <thead class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
                 <tr class="border-b border-zinc-800">
@@ -596,7 +587,24 @@ export default function ConcertQrManager() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+            <div class="mt-5 grid gap-3 lg:hidden">
+              {campaigns.map(campaign => (
+                <article key={campaign.id} class={`rounded-lg border p-4 ${campaign.id === selectedCampaignId ? "border-amber-400/50 bg-amber-400/[.05]" : "border-zinc-800 bg-black/30"}`}>
+                  <div class="flex items-start justify-between gap-3">
+                    <button type="button" onClick={() => setSelectedCampaignId(campaign.id)} class="min-h-[44px] text-left font-bold text-white hover:text-amber-400">{campaign.label}</button>
+                    <span class={`flex-none rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider ${campaign.active ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" : "border-white/10 bg-white/5 text-zinc-500"}`}>{campaign.active ? "Aktywny" : "Wyłączony"}</span>
+                  </div>
+                  <p class="mt-1 text-sm text-zinc-300">{campaign.event_title}</p>
+                  <dl class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                    <div><dt class="text-zinc-500">Ważny od</dt><dd class="font-semibold text-zinc-200">{formatDate(campaign.valid_from)}</dd></div>
+                    <div><dt class="text-zinc-500">Ważny do</dt><dd class="font-semibold text-zinc-200">{formatDate(campaign.valid_until)}</dd></div>
+                    <div><dt class="text-zinc-500">Check-iny</dt><dd class="font-mono font-bold text-amber-400">{campaign.checkin_count}{campaign.max_checkins ? ` / ${campaign.max_checkins}` : ""}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </>
         )}
       </section>
 
@@ -625,10 +633,6 @@ function Metric({ label, value }: { label: string; value: string }) {
       <p class="mt-2 font-mono text-2xl font-black text-white">{value}</p>
     </div>
   )
-}
-
-function StatusPanel({ title, body }: { title: string; body?: string }) {
-  return <div class="virya-panel p-6 sm:p-8"><p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">VIRYA // STAFF</p><h1 class="mt-4 text-2xl font-black uppercase text-white">{title}</h1>{body && <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400">{body}</p>}</div>
 }
 
 const panelClass = "virya-panel min-w-0 max-w-full p-5 sm:p-6"

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
 import AutopilotHandoffs, { useAutopilotFeed } from "./AutopilotHandoffs"
-import OpportunityBoard from "./OpportunityBoard"
-import { Field, Metric } from "./AdminConsoleUi"
+import { ConfirmButton, Field, Metric, Notice } from "./AdminConsoleUi"
 import {
   type EventItem,
   type Overview,
@@ -82,8 +81,6 @@ export function OverviewTab({
           ))}
         </div>
       </section>
-
-      <OpportunityBoard feed={feed} />
     </div>
   )
 }
@@ -97,11 +94,14 @@ export function AdmissionTab({ events }: { events: EventItem[] }) {
   })
   const [reference, setReference] = useState("")
   const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState<{
+    tone: "success" | "error"
+    text: string
+  } | null>(null)
   async function issuePass(event: SubmitEvent) {
     event.preventDefault()
     setBusy(true)
-    setMessage("")
+    setMessage(null)
     try {
       const result = await api<{ public_reference: string; created: boolean }>(
         "/api/staff/admin/admission/issue",
@@ -113,36 +113,42 @@ export function AdmissionTab({ events }: { events: EventItem[] }) {
           },
         },
       )
-      setMessage(
-        `${result.created ? "Wydano" : "Już istniała"} wejściówkę ${result.public_reference}. Mail z linkiem odbioru zostanie wysłany automatycznie.`,
-      )
+      setMessage({
+        tone: "success",
+        text: `${result.created ? "Wydano" : "Już istniała"} wejściówkę ${result.public_reference}. Mail z linkiem odbioru zostanie wysłany automatycznie.`,
+      })
     } catch (error) {
-      setMessage(
-        error instanceof Error
+      setMessage({
+        tone: "error",
+        text: error instanceof Error
           ? error.message
           : "Nie udało się wydać wejściówki",
-      )
+      })
     } finally {
       setBusy(false)
     }
   }
-  async function revokePass(event: SubmitEvent) {
-    event.preventDefault()
+  async function revokePass() {
+    if (!reference) return
     setBusy(true)
-    setMessage("")
+    setMessage(null)
     try {
       await api("/api/staff/admin/admission/revoke", {
         method: "POST",
         body: { publicReference: reference },
       })
-      setMessage(`Wejściówka ${reference} została unieważniona.`)
+      setMessage({
+        tone: "success",
+        text: `Wejściówka ${reference} została unieważniona.`,
+      })
       setReference("")
     } catch (error) {
-      setMessage(
-        error instanceof Error
+      setMessage({
+        tone: "error",
+        text: error instanceof Error
           ? error.message
           : "Nie udało się unieważnić wejściówki",
-      )
+      })
     } finally {
       setBusy(false)
     }
@@ -156,7 +162,7 @@ export function AdmissionTab({ events }: { events: EventItem[] }) {
         >
           <h2 class="text-xl font-black text-white">Wydaj wejściówkę</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-400">
-            Fan musi mieć aktywny, potwierdzony Sygnał. Podaj slug puli skonfigurowanej dla tego koncertu.
+            Fan musi mieć aktywny, potwierdzony Sygnał. Wybierz koncert i pulę biletów ustawioną dla tego wydarzenia (zwykle „paid-tickets”).
           </p>
           <div class="mt-5 grid gap-4">
             <label class="text-sm font-semibold text-zinc-200">
@@ -177,7 +183,7 @@ export function AdmissionTab({ events }: { events: EventItem[] }) {
               </select>
             </label>
             <Field
-              label="Slug puli"
+              label="Pula biletów"
               value={issue.poolSlug}
               onInput={value => setIssue({ ...issue, poolSlug: value })}
             />
@@ -203,37 +209,30 @@ export function AdmissionTab({ events }: { events: EventItem[] }) {
             </button>
           </div>
         </form>
-        <form
-          onSubmit={revokePass}
-          class="rounded-xl border border-white/10 bg-zinc-900/70 p-5"
-        >
+        <div class="rounded-xl border border-white/10 bg-zinc-900/70 p-5">
           <h2 class="text-xl font-black text-white">Unieważnij wejściówkę</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-400">
-            Operacja jest natychmiastowa. Kod QR przestanie działać na bramce.
+            Operacja jest natychmiastowa — kod QR przestanie działać na bramce. Wpisz kod z rezerwacji fana i potwierdź dwuklikiem.
           </p>
           <div class="mt-5 grid gap-4">
             <Field
-              label="Public reference"
+              label="Kod wejściówki"
               value={reference}
               onInput={setReference}
             />
-            <button
-              disabled={busy || !reference}
-              class="rounded-xl border border-rose-400/40 bg-rose-400/10 px-5 py-3 font-black text-rose-100 disabled:opacity-50"
+            <ConfirmButton
+              onConfirm={() => void revokePass()}
+              busy={busy}
+              busyLabel="UNIEWAŻNIAM…"
+              confirmLabel="TAK, UNIEWAŻNIJ"
+              disabled={!reference}
             >
               Unieważnij
-            </button>
+            </ConfirmButton>
           </div>
-        </form>
+        </div>
       </div>
-      {message && (
-        <p
-          role="status"
-          class="rounded-xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
-        >
-          {message}
-        </p>
-      )}
+      {message && <Notice tone={message.tone}>{message.text}</Notice>}
     </div>
   )
 }
@@ -421,15 +420,5 @@ function SignalPair({
         {recent ?? "…"} / {total ?? "…"}
       </dd>
     </div>
-  )
-}
-
-export function StatusCard({ title, body, loading = false }: { title: string; body?: string; loading?: boolean }) {
-  return (
-    <section class="relative mx-auto min-h-40 max-w-xl rounded-xl border border-white/10 bg-zinc-900/80 p-8" aria-busy={loading}>
-      {loading && <BackendLoader overlay label={title} />}
-      <h1 class="text-2xl font-black text-white">{title}</h1>
-      {body && <p class="mt-3 text-zinc-400">{body}</p>}
-    </section>
   )
 }

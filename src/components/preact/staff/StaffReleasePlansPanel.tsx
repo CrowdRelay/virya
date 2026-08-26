@@ -137,7 +137,7 @@ export default function StaffReleasePlansPanel() {
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">Wydania · planowanie</p>
-          <h2 class="mt-2 text-xl font-black text-white">Plany wydawnicze i fale outreach</h2>
+          <h2 class="mt-2 text-xl font-black text-white">Plany wydawnicze i fale kontaktu</h2>
           <p class="mt-1 max-w-3xl text-sm text-zinc-400">
             Plan premiery kotwiczy automat: pitch do kuratorów playlist i mediów wychodzi falą przed datą.
             Fale składają się same — Ty tylko zatwierdzasz gotową paczkę.

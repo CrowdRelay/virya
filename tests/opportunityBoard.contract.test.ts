@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs"
 import test from "node:test"
 
 const route = readFileSync(new URL("../src/pages/api/staff/admin/autopilot.ts", import.meta.url), "utf8")
-const board = readFileSync(new URL("../src/components/preact/staff/OpportunityBoard.tsx", import.meta.url), "utf8")
-const handoffs = readFileSync(new URL("../src/components/preact/staff/AutopilotHandoffs.tsx", import.meta.url), "utf8")
+const board = readFileSync(new URL("../src/components/preact/staff/AutopilotHandoffs.tsx", import.meta.url), "utf8")
+const handoffs = board
 
 test("the staff panel reads the ranked queue without a new BFF route", () => {
   assert.match(route, /admin\/autopilot\/next-best-actions/)
