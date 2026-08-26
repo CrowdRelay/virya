@@ -8,8 +8,8 @@ const read = (path: string) => readFileSync(join(root, path), "utf8")
 
 const cart = read("src/components/preact/merch/cartDrawer.jsx")
 const checkout = read("src/pages/api/checkout.ts")
-const successPl = read("src/pages/pl/merch/success.astro")
-const successEn = read("src/pages/merch/success.astro")
+const successShared = read("src/components/MerchSuccessPage.astro")
+
 
 const staffMutationRoutes = [
   "src/pages/api/staff/commerce/catalog.ts",
@@ -30,9 +30,8 @@ test("checkout identity changes whenever the full Stripe request changes", () =>
 
 test("checkout identity is removed after success and invalidated with cart changes", () => {
   assert.match(cart, /sessionStorage\.removeItem\(CHECKOUT_FINGERPRINT_KEY\)/)
-  assert.match(successPl, /sessionStorage\.removeItem\("virya-checkout-fingerprint"\)/)
-  assert.match(successEn, /sessionStorage\.removeItem\("virya-checkout-fingerprint"\)/)
-  assert.match(cart, /previousCartSignature\.current !== cartSignature[\s\S]*clearRewardCheckout\(\)/)
+  assert.match(successShared, /sessionStorage\.removeItem\("virya-checkout-fingerprint"\)/)
+    assert.match(cart, /previousCartSignature\.current !== cartSignature[\s\S]*clearRewardCheckout\(\)/)
 })
 
 test("ambiguous Stripe failures keep stock reserved for an idempotent retry", () => {
