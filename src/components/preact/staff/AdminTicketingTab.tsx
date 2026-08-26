@@ -87,7 +87,7 @@ function validateTicketForm(form: TicketForm): string | null {
   return null
 }
 
-export function TicketingTab({ events }: { events: EventItem[] }) {
+export function TicketingTab({ events = [] }: { events: EventItem[] }) {
   const [eventSlug, setEventSlug] = useState("")
   const [overview, setOverview] = useState<TicketingOverview | null>(null)
   const [form, setForm] = useState<TicketForm>(blankTicketForm())
