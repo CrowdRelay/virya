@@ -4,8 +4,7 @@ import { resolve } from "node:path"
 const showcase = readFileSync(resolve("src/components/Showcase.astro"), "utf8")
 const music = readFileSync(resolve("src/pages/music/[slug].astro"), "utf8")
 const musicPl = readFileSync(resolve("src/pages/pl/music/[slug].astro"), "utf8")
-const videos = readFileSync(resolve("src/pages/videos.astro"), "utf8")
-const videosPl = readFileSync(resolve("src/pages/pl/videos.astro"), "utf8")
+const videos = readFileSync(resolve("src/components/VideosIndexPage.astro"), "utf8")
 const galleryGrid = readFileSync(resolve("src/components/GalleryGrid.astro"), "utf8")
 const failures = []
 const expect = (condition, message) => { if (!condition) failures.push(message) }
@@ -26,11 +25,13 @@ for (const [label, source] of [["music", music], ["music-pl", musicPl]]) {
 }
 
 
-for (const [label, source] of [["videos", videos], ["videos-pl", videosPl], ["gallery-grid (en+pl)", galleryGrid]]) {
+// Both video locales render one shared page component, so its modal
+// lifecycle is checked once instead of per route file.
+for (const [label, source] of [["videos", videos], ["gallery-grid (en+pl)", galleryGrid]]) {
   expect(source.includes("astro:before-preparation"), `${label} modal must clean up before Astro navigation`)
   expect(source.includes("closeModal(); ac.abort()"), `${label} modal must release body/focus state before navigation`)
 }
-for (const [label, source] of [["videos", videos], ["videos-pl", videosPl]]) {
+for (const [label, source] of [["videos", videos]]) {
   expect(source.includes("modal.dataset.initialized"), `${label} modal must be idempotent across Astro page-load`)
 }
 
