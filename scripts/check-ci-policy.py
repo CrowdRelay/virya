@@ -42,8 +42,9 @@ if netlify.exists():
     ) if workflow_dir.exists() else ""
     if "netlify-cli" in deploy_workflows and "--no-build" not in deploy_workflows:
         failures.append("Netlify deploy workflow must pass --no-build")
-    if "deploy-artifact/functions" in deploy_workflows and "include-hidden-files: true" not in deploy_workflows:
-        failures.append("Netlify SSR promotion artifact must include hidden function build files")
+    if "deploy-artifact/functions" in deploy_workflows and "include-hidden-files: true" not in deploy_workflows \
+            and "deploy-artifact.tar.zst" not in deploy_workflows:
+        failures.append("Netlify SSR promotion artifact must include hidden function build files (raw upload needs include-hidden-files: true; tarball capture them by default)")
 
 # Per-change dependency security belongs to the build job so production
 # deployment cannot pass while advisory scanning is red. Keeping it in that
