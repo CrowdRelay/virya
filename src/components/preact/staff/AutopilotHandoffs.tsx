@@ -364,7 +364,7 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
   }
 
   return (
-    <section class="rounded-xl border border-amber-300/20 bg-zinc-900/70 p-5">
+    <section id="needs-you" class="scroll-mt-24 rounded-xl border border-amber-300/20 bg-zinc-900/70 p-5">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">Chief of Staff · Needs you</p>
