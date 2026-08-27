@@ -6,7 +6,7 @@
   "author": "Virya <virya.crew@gmail.com>",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/wojciechbator/virya"
+    "url": "https://github.com/CrowdRelay/virya"
   },
   "dependencies": {
     "@astrojs/netlify": "^8.2.1",
@@ -42,7 +42,7 @@
   "license": "0BSD",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wojciechbator/virya.git"
+    "url": "git+https://github.com/CrowdRelay/virya.git"
   },
   "scripts": {
     "gen:placeholders": "node scripts/gen-placeholders.mjs",
