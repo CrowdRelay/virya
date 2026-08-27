@@ -195,8 +195,24 @@ const reconcileChargeRefunded = async (
   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
   if (!isTicketMetadata(paymentIntent.metadata)) return false
 
-  const refunds = await stripe.refunds.list({ charge: chargeEvent.id, limit: 100 })
-  const ordered = refunds.data
+  // Paginate through all succeeded refunds for this charge. A cap of 100
+  // would understate the cumulative refunded amount for charges with many
+  // partial refunds, leading to incorrect accounting in CrowdRelay.
+  const allRefunds: Stripe.Refund[] = []
+  let cursor: string | undefined
+  for (;;) {
+    const page = await stripe.refunds.list({
+      charge: chargeEvent.id,
+      limit: 100,
+      ...(cursor ? { starting_after: cursor } : {}),
+    })
+    allRefunds.push(...page.data)
+    if (!page.has_more) break
+    cursor = page.data[page.data.length - 1]?.id
+    if (!cursor) break
+  }
+
+  const ordered = allRefunds
     .filter(refund => refund.status === "succeeded")
     .sort(
       (left, right) => left.created - right.created || left.id.localeCompare(right.id),

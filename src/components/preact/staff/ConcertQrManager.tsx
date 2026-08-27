@@ -12,7 +12,7 @@ import type {
 } from "../../../server/staffQrApi"
 import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { ConfirmButton, Notice, StaffLoginCard, StaffStatusCard, type NoticeState } from "./AdminConsoleUi"
-import { staffLogoutButton, staffSecondaryButton } from "./staffButtons"
+import { staffAccentButton, staffLogoutButton, staffSecondaryButton } from "./staffButtons"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type Language = "pl" | "en"
@@ -52,9 +52,11 @@ export default function ConcertQrManager() {
   const [fullscreen, setFullscreen] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
   // Świeżość danych na bramce: licznik check-inów nie może po cichu starzeć się
-  // podczas koncertu, więc aktywna kampania odświeża się sama co 15 s.
+  // podczas koncertu. Auto-odświeżanie jest wyłączone domyślnie (jak panel
+  // sterowania) — operator włącza je przełącznikiem, gdy chce live check-iny.
   const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null)
   const [, tickClock] = useState(0)
+  const [autoRefresh, setAutoRefresh] = useState(false)
   const passwordRef = useRef<HTMLInputElement | null>(null)
   const fullscreenCloseRef = useRef<HTMLButtonElement | null>(null)
   const dataRequestRef = useRef<AbortController | null>(null)
@@ -137,7 +139,24 @@ export default function ConcertQrManager() {
     return () => clearInterval(timer)
   }, [])
 
-  const autoRefresh = Boolean(activeCampaign?.active)
+  // Auto-odświeżanie jest zapamiętane między wizytami — operator, który włączy
+  // live check-iny na bramce, nie musi przełączać go ponownie po przeładowaniu.
+  useEffect(() => {
+    try {
+      setAutoRefresh(localStorage.getItem("virya-staff-qr-auto-refresh") === "true")
+    } catch {
+      // localStorage może być niedostępne (tryb prywatny); domyślnie wyłączone.
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("virya-staff-qr-auto-refresh", autoRefresh ? "true" : "false")
+    } catch {
+      // Ignorujemy błędy zapisu — stan w pamięci jest i tak aktualny.
+    }
+  }, [autoRefresh])
+
   useEffect(() => {
     if (!autoRefresh) return
     const timer = setInterval(() => {
@@ -421,6 +440,15 @@ export default function ConcertQrManager() {
           </p>
         </div>
         <div class="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-none">
+          <button
+            type="button"
+            onClick={() => setAutoRefresh(value => !value)}
+            aria-pressed={autoRefresh}
+            class={autoRefresh ? staffAccentButton : staffSecondaryButton}
+            title={autoRefresh ? "Auto-odświeżanie co 15 s jest włączone" : "Włącz auto-odświeżanie co 15 s"}
+          >
+            {autoRefresh ? "Live ●" : "Live ○"}
+          </button>
           <button type="button" onClick={() => void refreshData()} disabled={busy || dataLoading} class={secondaryButton}>
             Odśwież
           </button>
