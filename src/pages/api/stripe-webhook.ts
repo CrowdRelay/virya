@@ -179,6 +179,18 @@ export const POST: APIRoute = async ({ request }) => {
         currency: session.currency,
       })
 
+      // The Stripe metadata flag is the durable deduplication marker: it
+      // survives lease expiry (10 min) and Stripe retries for up to 3 days.
+      // Check it before any side-effecting fulfilment step so a late retry
+      // never re-redeems a reward, re-sends email or re-commits inventory.
+      if (session.metadata?.virya_processed === "1") {
+        await completeFulfillmentLease(session.id, leaseId)
+        return new Response(
+          JSON.stringify({ received: true, duplicate: true }),
+          { status: 200 },
+        )
+      }
+
       const rewardCodeHash = session.metadata?.area_reward_code_hash
       const rewardReservationId =
         session.metadata?.area_reward_reservation_id
@@ -191,14 +203,6 @@ export const POST: APIRoute = async ({ request }) => {
         if (!reward) {
           throw new Error("VIRYA Area reward could not be reconciled")
         }
-      }
-
-      if (session.metadata?.virya_processed === "1") {
-        await completeFulfillmentLease(session.id, leaseId)
-        return new Response(
-          JSON.stringify({ received: true, duplicate: true }),
-          { status: 200 },
-        )
       }
 
       if (session.metadata?.virya_email_done === "1" && !emailDone) {

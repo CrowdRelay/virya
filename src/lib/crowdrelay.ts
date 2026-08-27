@@ -145,10 +145,23 @@ export function readFragmentToken(): string | null {
   // everywhere else. Accept both, and strip whichever one carried it so the
   // one-time credential does not linger in the address bar, history or a
   // referrer header.
-  const token =
-    new URLSearchParams(window.location.hash.slice(1)).get("token")
-    ?? new URLSearchParams(window.location.search).get("token")
-  if (token) {
+  const hashParams = new URLSearchParams(window.location.hash.slice(1))
+  const hashToken = hashParams.get("token")
+  const token = hashToken ?? new URLSearchParams(window.location.search).get("token")
+  if (!token) return null
+
+  if (hashToken) {
+    hashParams.delete("token")
+    const remainingHash = hashParams.toString()
+    const search = new URLSearchParams(window.location.search)
+    search.delete("token")
+    const query = search.toString()
+    history.replaceState(
+      null,
+      "",
+      `${location.pathname}${query ? `?${query}` : ""}${remainingHash ? `#${remainingHash}` : ""}`,
+    )
+  } else {
     const search = new URLSearchParams(window.location.search)
     search.delete("token")
     const query = search.toString()

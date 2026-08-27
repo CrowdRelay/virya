@@ -24,7 +24,7 @@ import { normalizeAreaEmail } from "../../../server/areaAuth"
 export const prerender = false
 
 const REQUEST_ID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const EVENT_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]{0,127}$/
 const PROCESSING_LEASE_MS = 2 * 60 * 1_000
 

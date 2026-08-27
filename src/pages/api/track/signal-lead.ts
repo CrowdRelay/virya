@@ -13,7 +13,7 @@ export const prerender = false
 const MAX_BODY_BYTES = 2 * 1024
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export const POST: APIRoute = async ({ request }) => {
   const rateSecret = readServerEnv("CONTACT_RATE_SECRET", import.meta.env.CONTACT_RATE_SECRET)

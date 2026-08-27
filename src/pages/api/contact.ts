@@ -16,7 +16,7 @@ const MAX_EMAIL_LENGTH = 254
 const MAX_MESSAGE_LENGTH = 5000
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const CONTROL_CHAR_PATTERN = /[\u0000-\u001f\u007f]/
-const SUBMISSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const SUBMISSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const json = (payload: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(payload), {

@@ -92,6 +92,7 @@ test("high-risk operator mutations no longer mint a random replay key", async ()
     "src/pages/api/staff/admin/admission/issue.ts",
     "src/pages/api/staff/admin/admission/revoke.ts",
     "src/pages/api/staff/admin/ticketing/[slug].ts",
+    "src/pages/api/staff/admin/ops/retry.ts",
     "src/pages/api/staff/commerce/inventory.ts",
     "src/pages/api/staff/commerce/stocktake.ts",
     "src/pages/api/staff/accounting/finalize.ts",
@@ -103,11 +104,14 @@ test("high-risk operator mutations no longer mint a random replay key", async ()
   }
 })
 
-test("deliberately repeatable operator commands keep explicit fresh attempts", async () => {
+test("ops retry uses stable mutation keys so response-loss retries deduplicate upstream", async () => {
   const retry = await source("src/pages/api/staff/admin/ops/retry.ts")
-  assert.match(retry, /randomUUID\(/)
+  assert.match(retry, /mutationKeyForRequest/)
   assert.match(retry, /operation === "clear_dead_deliveries"/)
   assert.match(retry, /admin\/ops\/deliveries\/dead\/clear/)
+  // A lost HTTP response must not create a second upstream side effect:
+  // the same retry intent derives the same key, so CrowdRelay deduplicates.
+  assert.doesNotMatch(retry, /randomUUID\(/)
 })
 test("every cookie-authenticated staff POST is same-origin guarded", async () => {
   const { readdir } = await import("node:fs/promises")
