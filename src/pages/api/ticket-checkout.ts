@@ -24,7 +24,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const EVENT_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]{0,127}$/
 const TICKET_TYPE_PATTERN = /^[a-z0-9][a-z0-9_-]{0,127}$/
 const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const CONTROL_CHAR_PATTERN = /[\u0000-\u001f\u007f]/
 const COUNTRY_CODE_PATTERN = /^[A-Z]{2}$/
 const STRIPE_MINIMUM_EXPIRY_SECONDS = 30 * 60

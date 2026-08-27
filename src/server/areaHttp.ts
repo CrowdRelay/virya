@@ -12,7 +12,7 @@ export type AreaCookieJar = {
 }
 
 const validWalletId = (value: string | undefined) =>
-  !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
 
 export const getAreaWalletId = (cookies: AreaCookieJar) => {
   const current = cookies.get(AREA_WALLET_COOKIE_NAME)?.value

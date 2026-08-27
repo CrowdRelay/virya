@@ -16,7 +16,7 @@ const MIN_MESSAGE_LENGTH = 8
 const MAX_MESSAGE_LENGTH = 2_000
 const ALLOWED_ORIGINS = new Set(["https://virya.music", "https://www.virya.music"])
 const UNSAFE_CONTROL_CHARS = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/
-const SUBMISSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const SUBMISSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const CATEGORIES = new Map([
   ["idea", "Pomysł"],
   ["bug", "Błąd"],

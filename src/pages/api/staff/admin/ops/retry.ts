@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import type { APIRoute } from "astro"
 import {
   areaJson,
@@ -10,6 +9,7 @@ import {
   StaffQrUpstreamError,
   staffApiRequest,
 } from "../../../../../server/staffQrApi"
+import { mutationKeyForRequest } from "../../../../../server/mutationSafety"
 
 export const prerender = false
 
@@ -55,9 +55,11 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       : target === "outbox"
         ? `admin/ops/outbox/${id}/retry`
         : `admin/ops/deliveries/${id}/retry`
-    const idempotencyKey = clearDeadDeliveries
-      ? `virya-ops-clear-dead-deliveries-${randomUUID()}`
-      : `virya-ops-${target}-${id}-${randomUUID()}`
+    const idempotencyKey = mutationKeyForRequest(
+      request,
+      "virya-ops",
+      { operation, target, id },
+    )
     const result = await staffApiRequest(path, {
       method: "POST",
       timeoutMs: 8_000,
