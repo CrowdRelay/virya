@@ -1,0 +1,32 @@
+name: Scheduled rebuild
+
+on:
+  schedule:
+    # Every 6 hours — picks up new CrowdRelay events without a code push.
+    # The build workflow fetches live events at build time and prerenders
+    # them into static HTML. Without this, new gigs only appear after the
+    # next code-driven deploy.
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  trigger-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            // Dispatch the main build workflow, which builds, tests, and
+            // promotes the artifact to Netlify. The promote job runs
+            // automatically on workflow_dispatch from main.
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'build.yml',
+              ref: 'main',
+            });
