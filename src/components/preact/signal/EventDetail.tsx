@@ -374,9 +374,9 @@ export default function EventDetail({
               )}
 
             <div class="mt-8 flex flex-wrap gap-3">
-              {saleOpen && fanContext && fanContext.paid_ticket_quantity > 0 ? (
+              {fanContext && fanContext.paid_ticket_quantity > 0 ? (
                 <a
-                  href={lang === "pl" ? "/pl/my-signal/" : "/my-signal/"}
+                  href={pagePath(lang, "/my-signal/")}
                   class="virya-button virya-button--primary min-h-12 px-5"
                 >
                   {lang === "pl" ? "Masz bilet — otwórz portfel" : "You have a ticket — view wallet"}
@@ -384,9 +384,9 @@ export default function EventDetail({
                     →
                   </span>
                 </a>
-              ) : saleOpen && fanContext && fanContext.pass_status ? (
+              ) : fanContext && fanContext.pass_status ? (
                 <a
-                  href={lang === "pl" ? "/pl/my-signal/" : "/my-signal/"}
+                  href={pagePath(lang, "/my-signal/")}
                   class="virya-button virya-button--primary min-h-12 px-5"
                 >
                   {lang === "pl" ? "Twój pass jest gotowy" : "Your pass is ready"}
