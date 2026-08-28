@@ -869,3 +869,54 @@
   text-align: left;
   text-align-last: auto;
 }
+
+/* My Signal dashboard — three-tier priority layout. */
+.virya-tier {
+  border-left: 2px solid transparent;
+  padding-left: 1rem;
+}
+.virya-tier--priority {
+  border-left-color: var(--virya-signal, #fbbf24);
+}
+.virya-tier--active {
+  border-left-color: rgba(34, 211, 238, 0.4);
+}
+.virya-tier--history {
+  border-left-color: rgba(63, 63, 70, 0.6);
+}
+.virya-tier__label {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  margin-bottom: 0.75rem;
+}
+.virya-tier--priority .virya-tier__label {
+  color: var(--virya-signal, #fbbf24);
+}
+.virya-tier--active .virya-tier__label {
+  color: var(--color-cyan-300, rgb(34, 211, 238));
+}
+.virya-tier--history .virya-tier__label {
+  color: rgb(113, 113, 122);
+}
+.virya-tier__summary {
+  cursor: pointer;
+  list-style: none;
+}
+.virya-tier__summary::-webkit-details-marker {
+  display: none;
+}
+.virya-tier__summary .virya-tier__label {
+  display: inline;
+}
+.virya-tier__summary::after {
+  content: " →";
+  display: inline-block;
+  transition: transform 0.15s ease;
+  font-size: 11px;
+  color: rgb(113, 113, 122);
+}
+.virya-tier__details[open] .virya-tier__summary::after {
+  transform: rotate(90deg);
+}
