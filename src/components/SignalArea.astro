@@ -1,0 +1,104 @@
+---
+import { SIGNAL_COPY } from "../data/signalCopy"
+import { AREA_COPY } from "../data/areaCopy"
+import { lp, type Lang } from "../i18n/t"
+
+interface Props { lang?: Lang }
+const { lang = "en" } = Astro.props
+const signal = SIGNAL_COPY[lang].teaser
+const area = AREA_COPY[lang].teaser
+const signalCopy = SIGNAL_COPY[lang]
+const benefits = lang === "pl"
+  ? ["Koncerty w Twoim mieście", "Prywatne konto i bilety", "Nagrody i polecenia"]
+  : ["Shows in your city", "Private account and tickets", "Rewards and referrals"]
+---
+
+<section class="signal-area relative overflow-hidden border-t border-zinc-800/60 virya-section" id="signal">
+  <div class="signal-grid pointer-events-none absolute inset-0 opacity-40" aria-hidden="true"></div>
+  <div class="pointer-events-none absolute -right-24 top-8 h-72 w-72 rounded-full bg-amber-400/[.07] blur-[120px]" aria-hidden="true"></div>
+
+  <div class="virya-section__inner relative grid gap-10 lg:grid-cols-2 lg:gap-12 lg:divide-x lg:divide-zinc-800/60">
+    {/* Signal block */}
+    <div class="lg:pr-12">
+      <p class="virya-eyebrow">{signal.eyebrow}</p>
+      <h2 class="virya-heading mt-4">{signal.heading}</h2>
+      <p class="virya-copy mt-6 text-zinc-300">{signal.body}</p>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href={lp(lang, "/signal/")} class="virya-button virya-button--primary">
+          {signal.primary} <span aria-hidden="true">→</span>
+        </a>
+        <a href={lp(lang, "/area/")} class="virya-button virya-button--secondary">
+          {signal.area}
+        </a>
+      </div>
+
+      <ol class="mt-8 border-y border-zinc-800/80" aria-label={lang === "pl" ? "Korzyści Sygnału" : "Signal benefits"}>
+        {benefits.map((benefit, index) => (
+          <li class="grid grid-cols-[2rem_1fr] items-center gap-3 border-b border-zinc-800/70 py-4 last:border-0">
+            <span class="font-mono text-[11px] font-black text-amber-300">0{index + 1}</span>
+            <span class="text-sm font-bold text-zinc-200">{benefit}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    {/* Area block */}
+    <div class="lg:pl-12">
+      <p class="virya-eyebrow mb-3">{area.eyebrow}</p>
+      <h2 class="virya-heading max-w-3xl">{area.heading}</h2>
+      <p class="virya-copy mt-5 max-w-2xl text-zinc-300">{area.body}</p>
+      <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+        <a
+          href={lp(lang, "/area/")}
+          class="virya-button virya-button--primary min-h-[44px] px-6"
+        >
+          {area.cta}
+        </a>
+        <a
+          href={lp(lang, "/signal/")}
+          class="virya-button virya-button--secondary min-h-[44px] px-6"
+        >
+          {signalCopy.teaser.primary}
+        </a>
+      </div>
+
+      <a
+        href={lp(lang, "/area/")}
+        aria-label={area.cta}
+        class="group relative mt-8 block min-h-64 overflow-hidden border border-amber-400/40 bg-zinc-900/80 p-6 transition-colors hover:border-amber-400"
+      >
+        <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-black uppercase tracking-[0.3em] text-amber-400">{lang === "pl" ? "VIRYA // GRA" : "VIRYA // AREA"}</span>
+          <span class="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_18px_rgba(132,180,172,.9)]" aria-hidden="true"></span>
+        </div>
+        <div class="my-8 grid grid-cols-5 gap-2 opacity-50" aria-hidden="true">
+          {Array.from({ length: 15 }).map((_, index) => (
+            <span class={`h-4 border border-zinc-700 ${index === 7 ? "bg-amber-400/70 border-amber-400" : ""}`}></span>
+          ))}
+        </div>
+        <p class="text-xs font-black uppercase tracking-widest text-white">{area.signal}</p>
+        <p class="mt-2 font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-400">54.000 // 19.000 // encrypted</p>
+        <span class="absolute bottom-5 right-5 text-3xl text-amber-400 transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .signal-grid {
+    background-image:
+      linear-gradient(rgb(132 180 172 / .045) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(132 180 172 / .045) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: linear-gradient(to bottom, black, transparent 92%);
+  }
+
+  @supports (content-visibility: auto) {
+    .signal-area {
+      content-visibility: auto;
+      contain-intrinsic-size: 900px;
+    }
+  }
+</style>

@@ -7,8 +7,7 @@ import Landing from "../components/Landing.astro"
 import MainText from "../components/MainText.astro"
 import BandTeaser from "../components/BandTeaser.astro"
 import Showcase from "../components/Showcase.astro"
-import SignalEcosystem from "../components/SignalEcosystem.astro"
-import AreaTeaser from "../components/AreaTeaser.astro"
+import SignalArea from "../components/SignalArea.astro"
 import Portfolio from "../components/Portfolio.astro"
 import Spotify from "../components/Spotify.astro"
 import MerchTeaser from "../components/MerchTeaser.astro"
@@ -64,12 +63,8 @@ const description = "Official website of Virya, a modern metalcore band from Pol
           <Spotify lang={lang} />
         </section>
 
-        <section id="signal" class="scroll-mt-20" style="content-visibility:auto;contain-intrinsic-size:auto 500px">
-          <SignalEcosystem lang={lang} />
-        </section>
-
-        <section id="area" class="scroll-mt-20" style="content-visibility:auto;contain-intrinsic-size:auto 400px">
-          <AreaTeaser lang={lang} />
+        <section id="signal" class="scroll-mt-20">
+          <SignalArea lang={lang} />
         </section>
 
         <div style="content-visibility:auto;contain-intrinsic-size:auto 400px">

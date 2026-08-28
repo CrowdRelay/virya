@@ -7,8 +7,7 @@ import Landing from "../../components/Landing.astro"
 import MainText from "../../components/MainText.astro"
 import BandTeaser from "../../components/BandTeaser.astro"
 import Showcase from "../../components/Showcase.astro"
-import SignalEcosystem from "../../components/SignalEcosystem.astro"
-import AreaTeaser from "../../components/AreaTeaser.astro"
+import SignalArea from "../../components/SignalArea.astro"
 import Portfolio from "../../components/Portfolio.astro"
 import Spotify from "../../components/Spotify.astro"
 import MerchTeaser from "../../components/MerchTeaser.astro"
@@ -55,34 +54,32 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
           <Shows lang={lang} messages={messages.shows} initialEvents={initialLiveEvents} />
         </section>
 
-        <section id="showcase" class="scroll-mt-20">
+        <section id="showcase" class="scroll-mt-20" style="content-visibility:auto;contain-intrinsic-size:auto 600px">
           <Showcase lang={lang} />
         </section>
 
-        <section id="music" class="scroll-mt-20">
+        <section id="music" class="scroll-mt-20" style="content-visibility:auto;contain-intrinsic-size:auto 800px">
           <Portfolio lang={lang} />
           <Spotify lang={lang} />
         </section>
 
         <section id="signal" class="scroll-mt-20">
-          <SignalEcosystem lang={lang} />
+          <SignalArea lang={lang} />
         </section>
 
-        <section id="area" class="scroll-mt-20">
-          <AreaTeaser lang={lang} />
-        </section>
+        <div style="content-visibility:auto;contain-intrinsic-size:auto 400px">
+          <MerchTeaser lang={lang} />
+        </div>
 
-        <MerchTeaser lang={lang} />
-
-        <section id="about" class="scroll-mt-20">
+        <section id="about" class="scroll-mt-20" style="content-visibility:auto;contain-intrinsic-size:auto 600px">
           <BandTeaser lang={lang} />
         </section>
 
-        <section id="endorsements" class="scroll-mt-20">
+        <section id="endorsements" class="scroll-mt-20" style="content-visibility:auto;contain-intrinsic-size:auto 400px">
           <Endorsements lang={lang} />
         </section>
 
-        <section id="contact" class="scroll-mt-20">
+        <section id="contact" class="scroll-mt-20" style="content-visibility:auto;contain-intrinsic-size:auto 500px">
           <Contact client:visible lang={lang} messages={messages.contact} />
         </section>
       </div>
