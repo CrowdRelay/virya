@@ -308,11 +308,10 @@ export default function MySignal({ lang }: Props) {
 
   // Active tier items: referral pulse, admission pass, active draws.
   const hasActiveDraws = drawEntries.length > 0
+  const hasReferralStats =
+    progress.qualified_referrals > 0 || progress.pending_referrals > 0
   const hasActiveTier =
-    progress.qualified_referrals > 0 ||
-    progress.pending_referrals > 0 ||
-    admissionPass !== null ||
-    hasActiveDraws
+    hasReferralStats || admissionPass !== null || hasActiveDraws
 
   return (
     <div class="grid gap-6">
@@ -334,25 +333,10 @@ export default function MySignal({ lang }: Props) {
                 : "LOADING REWARDS & PASSES…"}
             </p>
           </section>
-        ) : !hasActiveTier ? (
-          <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-6">
-            <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
-              {lang === "pl" ? "SYGNAŁ JEST GOTOWY" : "SIGNAL READY"}
-            </p>
-            <h2 class="mt-3 text-2xl font-black uppercase text-white">
-              {lang === "pl"
-                ? "Pierwszy efekt masz od razu"
-                : "Your first result is immediate"}
-            </h2>
-            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
-              {lang === "pl"
-                ? "Sprawdź najbliższy koncert albo zachowaj link polecający na później. Nie musisz teraz wykonywać kolejnych etapów."
-                : "Check the nearest show or save your referral link for later. There is no need to complete every stage now."}
-            </p>
-          </section>
         ) : (
           <div class="grid gap-4">
-            {(progress.qualified_referrals > 0 || progress.pending_referrals > 0) && (
+            {/* Referral stats — only when fan has referrals */}
+            {hasReferralStats && (
               <section class="grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
                 <div class="bg-zinc-950 p-5 sm:p-6">
                   <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
@@ -383,6 +367,7 @@ export default function MySignal({ lang }: Props) {
               </section>
             )}
 
+            {/* Referral link — always visible when URL exists, even with 0 referrals */}
             {referralUrl && (
               <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-5 sm:p-6">
                 <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -390,18 +375,69 @@ export default function MySignal({ lang }: Props) {
                     <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
                       {SIGNAL_COPY[lang].form.referralTitle}
                     </p>
+                    <p class="mt-2 text-xs leading-relaxed text-zinc-400">
+                      {copy.referralPreview}
+                    </p>
                     <code class="mt-3 block break-all text-xs text-zinc-300">
                       {referralUrl}
                     </code>
                   </div>
-                  <button
-                    type="button"
-                    onClick={copyReferral}
-                    class="virya-button virya-button--accent-outline shrink-0"
-                  >
-                    {copied ? copy.linkCopied : copy.copyLink}
-                  </button>
+                  <div class="flex shrink-0 flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={copyReferral}
+                      class="virya-button virya-button--accent-outline"
+                    >
+                      {copied ? copy.linkCopied : copy.copyLink}
+                    </button>
+                    <div class="flex gap-2">
+                      <span class="sr-only">{copy.referralShare}</span>
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(referralUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="virya-button virya-button--secondary min-h-[40px] flex-1 px-3 text-[10px]"
+                      >
+                        WhatsApp
+                      </a>
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="virya-button virya-button--secondary min-h-[40px] flex-1 px-3 text-[10px]"
+                      >
+                        Facebook
+                      </a>
+                      <a
+                        href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(referralUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="virya-button virya-button--secondary min-h-[40px] flex-1 px-3 text-[10px]"
+                      >
+                        X
+                      </a>
+                    </div>
+                  </div>
                 </div>
+              </section>
+            )}
+
+            {/* Empty state — only when no active tier items at all and no referral URL */}
+            {!hasActiveTier && !referralUrl && (
+              <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-6">
+                <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
+                  {lang === "pl" ? "SYGNAŁ JEST GOTOWY" : "SIGNAL READY"}
+                </p>
+                <h2 class="mt-3 text-2xl font-black uppercase text-white">
+                  {lang === "pl"
+                    ? "Pierwszy efekt masz od razu"
+                    : "Your first result is immediate"}
+                </h2>
+                <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+                  {lang === "pl"
+                    ? "Sprawdź najbliższy koncert albo zachowaj link polecający na później. Nie musisz teraz wykonywać kolejnych etapów."
+                    : "Check the nearest show or save your referral link for later. There is no need to complete every stage now."}
+                </p>
               </section>
             )}
 
