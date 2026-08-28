@@ -76,6 +76,15 @@ const copy = {
       "Wybrany bilet Sygnał wymaga zaznaczenia zapisu do Sygnału. Odznacz go albo zaznacz zapis.",
     signalJoinUnavailable:
       "Nie udało się zapisać do Sygnału. Spróbuj ponownie za chwilę.",
+    step1: "Bilety",
+    step2: "Dane",
+    step3: "Podsumowanie",
+    stepNext: "Dalej",
+    stepBack: "Wstecz",
+    step1Error: "Wybierz co najmniej jeden bilet.",
+    step2Error: "Uzupełnij imię, nazwisko i e-mail.",
+    stickyCheckout: "Do kasy",
+    stickyTotal: "Razem",
   },
   en: {
     eyebrow: "VIRYA // TICKETS",
@@ -123,6 +132,15 @@ const copy = {
       "The Signal ticket requires joining Signal. Untick it, or tick the signup box below.",
     signalJoinUnavailable:
       "Signal signup did not go through. Please try again in a moment.",
+    step1: "Tickets",
+    step2: "Details",
+    step3: "Summary",
+    stepNext: "Next",
+    stepBack: "Back",
+    step1Error: "Select at least one ticket.",
+    step2Error: "Fill in your name and email.",
+    stickyCheckout: "Checkout",
+    stickyTotal: "Total",
   },
 } as const
 
@@ -211,6 +229,9 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [signalJoin, setSignalJoin] = useState(false)
+  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [stepError, setStepError] = useState<string | null>(null)
+  const [stickyVisible, setStickyVisible] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -236,6 +257,18 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
       active = false
     }
   }, [slug, initialSale])
+
+  // Show the mobile sticky bar once the ticket section scrolls into view.
+  useEffect(() => {
+    const el = document.getElementById("tickets")
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setStickyVisible(entry.isIntersecting),
+      { rootMargin: "0px 0px -80% 0px" },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   const selection = useMemo(() => {
     if (state.kind !== "ready") return { count: 0, gross: 0, vat: 0, signalCount: 0 }
@@ -278,6 +311,28 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
         [ticketSlug]: Math.min(max, Math.max(0, Math.trunc(finiteValue))),
       }
     })
+  }
+
+  const advanceStep = () => {
+    setStepError(null)
+    if (step === 1) {
+      if (selection.count < 1) {
+        setStepError(text.step1Error)
+        return
+      }
+      setStep(2)
+    } else if (step === 2) {
+      if (!buyerName.trim() || !buyerEmail.trim()) {
+        setStepError(text.step2Error)
+        return
+      }
+      setStep(3)
+    }
+  }
+
+  const backStep = () => {
+    setStepError(null)
+    if (step > 1) setStep((step - 1) as 1 | 2)
   }
 
   const submit = async (event: Event) => {
@@ -422,11 +477,34 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
         </p>
       ) : (
         <form
+          id="tickets-form"
           onSubmit={submit}
           class="grid gap-7 border-x border-b border-zinc-800 bg-zinc-950/80 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_340px]"
         >
+          {/* Step progress indicator */}
+          <div class="col-span-full flex items-center gap-2 text-[9px] font-black uppercase tracking-widest">
+            <span class={step === 1 ? "text-amber-400" : "text-zinc-600"}>
+              1. {text.step1}
+            </span>
+            <span class="text-zinc-700" aria-hidden="true">→</span>
+            <span class={step === 2 ? "text-amber-400" : "text-zinc-600"}>
+              2. {text.step2}
+            </span>
+            <span class="text-zinc-700" aria-hidden="true">→</span>
+            <span class={step === 3 ? "text-amber-400" : "text-zinc-600"}>
+              3. {text.step3}
+            </span>
+          </div>
+
+          {stepError && (
+            <p class="col-span-full border-l-2 border-red-400 bg-red-400/[.035] p-3 text-xs font-semibold text-red-200" role="alert">
+              {stepError}
+            </p>
+          )}
+
           <div class="space-y-7">
-            <div class="grid gap-3">
+            {/* Step 1: Ticket selection */}
+            <div class={`grid gap-3${step !== 1 ? " hidden" : ""}`}>
               {sale.ticket_types
                 .filter(type => type.active)
                 .map(type => {
@@ -527,23 +605,37 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                 })}
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
-              <Field
-                label={text.name}
-                value={buyerName}
-                onInput={setBuyerName}
-                autocomplete="name"
-                maxLength={160}
-              />
-              <Field
-                label={text.email}
-                value={buyerEmail}
-                onInput={setBuyerEmail}
-                autocomplete="email"
-                type="email"
-                maxLength={320}
-              />
+            {/* Step 1 → Step 2 navigation */}
+            <div class="flex justify-end lg:hidden">
+              <button
+                type="button"
+                onClick={advanceStep}
+                disabled={selection.count < 1}
+                class="virya-button virya-button--primary min-h-[48px] px-6 disabled:opacity-40"
+              >
+                {text.stepNext} →
+              </button>
             </div>
+
+            {/* Step 2: Buyer info + invoice + signal join */}
+            <div class={`grid gap-5${step !== 2 ? " hidden" : ""}`}>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label={text.name}
+                  value={buyerName}
+                  onInput={setBuyerName}
+                  autocomplete="name"
+                  maxLength={160}
+                />
+                <Field
+                  label={text.email}
+                  value={buyerEmail}
+                  onInput={setBuyerEmail}
+                  autocomplete="email"
+                  type="email"
+                  maxLength={320}
+                />
+              </div>
 
             <label class="flex min-h-11 items-center gap-3 text-xs font-bold text-zinc-300">
               <input
@@ -644,6 +736,25 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                 />
               </fieldset>
             )}
+
+            {/* Step 2 → Step 3 navigation */}
+            <div class="flex justify-between lg:hidden">
+              <button
+                type="button"
+                onClick={backStep}
+                class="virya-button virya-button--secondary min-h-[48px] px-5"
+              >
+                ← {text.stepBack}
+              </button>
+              <button
+                type="button"
+                onClick={advanceStep}
+                class="virya-button virya-button--primary min-h-[48px] px-6"
+              >
+                {text.stepNext} →
+              </button>
+            </div>
+          </div>
           </div>
 
           <aside class="virya-ticket-summary">
@@ -683,6 +794,49 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
             </button>
           </aside>
         </form>
+      )}
+
+      {/* Mobile sticky summary bar — appears when #tickets is in view.
+          Hidden on desktop (lg+) where the summary sidebar is already
+          visible. Shows the current total and a checkout/next button. */}
+      {stickyVisible && !disabledMessage && (
+        <div
+          class="virya-ticket-sticky-bar fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between gap-3 border-t border-amber-400/30 bg-zinc-950/95 px-4 py-3 backdrop-blur lg:hidden"
+          role="region"
+          aria-label={text.stickyTotal}
+        >
+          <div class="min-w-0">
+            <p class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
+              {text.stickyTotal}
+            </p>
+            <p class="text-lg font-black text-white">
+              {money(selection.gross, sale.currency, lang)}
+            </p>
+          </div>
+          {step < 3 ? (
+            <button
+              type="button"
+              onClick={advanceStep}
+              disabled={selection.count < 1}
+              class="virya-button virya-button--primary min-h-[44px] px-5 disabled:opacity-40"
+            >
+              {text.stickyCheckout} →
+            </button>
+          ) : (
+            <button
+              type="submit"
+              form="tickets-form"
+              disabled={submitting || selection.count < 1}
+              class="virya-button virya-button--primary min-h-[44px] px-5 disabled:opacity-40"
+              onClick={() => {
+                const form = document.getElementById("tickets-form") as HTMLFormElement | null
+                if (form) form.requestSubmit()
+              }}
+            >
+              {submitting ? text.working : text.checkout}
+            </button>
+          )}
+        </div>
       )}
     </section>
   )

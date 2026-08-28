@@ -374,7 +374,27 @@ export default function EventDetail({
               )}
 
             <div class="mt-8 flex flex-wrap gap-3">
-              {saleOpen && (
+              {saleOpen && fanContext && fanContext.paid_ticket_quantity > 0 ? (
+                <a
+                  href={lang === "pl" ? "/pl/my-signal/" : "/my-signal/"}
+                  class="virya-button virya-button--primary min-h-12 px-5"
+                >
+                  {lang === "pl" ? "Masz bilet — otwórz portfel" : "You have a ticket — view wallet"}
+                  <span class="ml-2" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              ) : saleOpen && fanContext && fanContext.pass_status ? (
+                <a
+                  href={lang === "pl" ? "/pl/my-signal/" : "/my-signal/"}
+                  class="virya-button virya-button--primary min-h-12 px-5"
+                >
+                  {lang === "pl" ? "Twój pass jest gotowy" : "Your pass is ready"}
+                  <span class="ml-2" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              ) : saleOpen && (
                 <a
                   href="#tickets"
                   class="virya-button virya-button--primary min-h-12 px-5"

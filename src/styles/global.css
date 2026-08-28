@@ -920,3 +920,8 @@
 .virya-tier__details[open] .virya-tier__summary::after {
   transform: rotate(90deg);
 }
+
+/* Ticket checkout — mobile sticky summary bar. */
+.virya-ticket-sticky-bar {
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+}
