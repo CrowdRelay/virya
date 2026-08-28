@@ -47,6 +47,16 @@ export interface SignalCopy {
     copy: string
     copied: string
     goAccount: string
+    preregisterSubmit: string
+    preregisterSaving: string
+    preregisterTitle: string
+    preregisterBody: string
+    preregisterError: string
+    enrichmentHeading: string
+    enrichmentBody: string
+    enrichmentSubmit: string
+    enrichmentSaving: string
+    skipEnrichment: string
   }
   cities: {
     eyebrow: string
@@ -234,7 +244,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       eyebrow: "Activate",
       heading: "Start your Virya Signal",
       body:
-        "One email and one city. We use it to send relevant Virya updates, not generic noise.",
+        "Enter your email and we'll send you a link to activate Signal. Add your city and consent now or later — your call.",
       email: "Email",
       nickname: "Name or nickname (optional)",
       city: "Your city",
@@ -263,6 +273,18 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       copy: "Share Signal",
       copied: "Copied",
       goAccount: "Open My Signal",
+      preregisterSubmit: "Send me the link",
+      preregisterSaving: "Sending…",
+      preregisterTitle: "Check your inbox",
+      preregisterBody:
+        "We sent you a link to activate your Signal. Open it to get your private fan session — or complete your profile now to skip the email.",
+      preregisterError: "We could not send the activation link. Try again.",
+      enrichmentHeading: "Complete your profile",
+      enrichmentBody:
+        "Pick your city and accept to activate Signal immediately, without waiting for the email.",
+      enrichmentSubmit: "Activate Signal now",
+      enrichmentSaving: "Activating…",
+      skipEnrichment: "Skip — I'll use the email link",
     },
     cities: {
       eyebrow: "City demand",
@@ -478,7 +500,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       eyebrow: "Aktywacja",
       heading: "Dołącz do Sygnału Virya",
       body:
-        "Trzy krótkie kroki: kontakt, miasto i zgoda. Po potwierdzeniu adresu dostaniesz swój Sygnał oraz jasną informację, co możesz zrobić dalej.",
+        "Podaj e-mail, a wyślemy Ci link do aktywacji. Miasto i zgodę możesz dodać od razu albo później — jak Ci wygodniej.",
       email: "E-mail",
       nickname: "Imię lub nick (opcjonalnie)",
       city: "Twoje miasto",
@@ -507,6 +529,18 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       copy: "Udostępnij Sygnał",
       copied: "Skopiowano",
       goAccount: "Otwórz Mój Sygnał",
+      preregisterSubmit: "Wyślij mi link",
+      preregisterSaving: "Wysyłam…",
+      preregisterTitle: "Sprawdź skrzynkę",
+      preregisterBody:
+        "Wysłaliśmy link do aktywacji Sygnału. Otwórz go, aby dostać prywatną sesję fana — albo uzupełnij profil teraz, żeby pominąć maila.",
+      preregisterError: "Nie udało się wysłać linku aktywacyjnego. Spróbuj ponownie.",
+      enrichmentHeading: "Uzupełnij profil",
+      enrichmentBody:
+        "Wybierz miasto i zaakceptuj zgodę, aby aktywować Sygnał od razu, bez czekania na maila.",
+      enrichmentSubmit: "Aktywuj Sygnał teraz",
+      enrichmentSaving: "Aktywuję…",
+      skipEnrichment: "Pomiń — użyję linku z maila",
     },
     cities: {
       eyebrow: "Popyt w miastach",
