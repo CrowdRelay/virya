@@ -1,0 +1,175 @@
+name: Contract propagate
+
+# Triggered by CrowdRelay when its OpenAPI spec changes on main.
+# Updates the @generated-contract openapi-sha256 marker in crowdrelay-client.ts
+# and opens a PR. If the contract test still fails after the marker update
+# (e.g. capability markers need manual updates), the PR is still created so
+# a human can see exactly what needs attention.
+# Also runs as a fallback on schedule in case the dispatch was missed.
+
+on:
+  repository_dispatch:
+    types: [crowdrelay-contract-propagated]
+  workflow_dispatch:
+    inputs:
+      openapi_sha:
+        description: "CrowdRelay OpenAPI SHA256 (optional — defaults to current main)"
+        required: false
+        type: string
+  schedule:
+    - cron: "23 */6 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: contract-propagate
+  cancel-in-progress: true
+
+jobs:
+  update-marker:
+    name: Update OpenAPI SHA marker from CrowdRelay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Canonical ecosystem layout: both repos as siblings under $GITHUB_WORKSPACE.
+      - name: Check out Virya
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: virya
+
+      - name: Check out CrowdRelay (dispatch SHA or current main)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: CrowdRelay/crowdrelay
+          ref: ${{ github.event.client_payload.crowdrelay_sha || 'main' }}
+          path: crowdrelay
+          persist-credentials: false
+
+      - name: Compute expected OpenAPI SHA
+        id: sha
+        working-directory: virya
+        run: |
+          set -euo pipefail
+          if [[ -n "${{ github.event.client_payload.openapi_sha }}" ]]; then
+            EXPECTED="${{ github.event.client_payload.openapi_sha }}"
+          elif [[ -n "${{ inputs.openapi_sha }}" ]]; then
+            EXPECTED="${{ inputs.openapi_sha }}"
+          else
+            EXPECTED="$(sha256sum ../crowdrelay/openapi/openapi.yaml | awk '{print $1}')"
+          fi
+          echo "sha=$EXPECTED" >> "$GITHUB_OUTPUT"
+          echo "Expected OpenAPI SHA: $EXPECTED"
+
+      - name: Check if marker is already up to date
+        id: check
+        working-directory: virya
+        run: |
+          set -euo pipefail
+          CURRENT=$(grep -o 'openapi-sha256: [0-9a-f]\{64\}' src/lib/crowdrelay-client.ts | awk '{print $2}' || true)
+          echo "Current marker SHA: ${CURRENT:-none}"
+          if [[ "$CURRENT" == "${{ steps.sha.outputs.sha }}" ]]; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+            echo "Marker is already up to date — no PR needed"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+            echo "Marker is stale — will update"
+          fi
+
+      - name: Update SHA marker in crowdrelay-client.ts
+        if: steps.check.outputs.up_to_date == 'false'
+        working-directory: virya
+        run: |
+          set -euo pipefail
+          NEW_SHA="${{ steps.sha.outputs.sha }}"
+          # Replace the existing marker line (first line of the file)
+          sed -i "s|@generated-contract openapi-sha256: [0-9a-f]\{64\}|@generated-contract openapi-sha256: ${NEW_SHA}|" src/lib/crowdrelay-client.ts
+          echo "Updated marker to: ${NEW_SHA}"
+          head -1 src/lib/crowdrelay-client.ts
+
+      - name: Run contract test
+        id: contract
+        if: steps.check.outputs.up_to_date == 'false'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python3 crowdrelay/scripts/test-ecosystem-contract-v2.py
+
+      - name: Create or update PR
+        if: steps.check.outputs.up_to_date == 'false'
+        working-directory: virya
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONTRACT_RESULT: ${{ steps.contract.outcome }}
+        run: |
+          set -euo pipefail
+          BRANCH="auto/contract-propagate"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            git checkout "$BRANCH"
+          else
+            git checkout -b "$BRANCH"
+          fi
+          git add src/lib/crowdrelay-client.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [[ "$CONTRACT_RESULT" == "success" ]]; then
+            COMMIT_BODY="Contract test: passes"
+          else
+            COMMIT_BODY="Contract test: FAILS — capability markers may need manual review"
+          fi
+
+          git commit -m "auto: update OpenAPI SHA marker from CrowdRelay
+
+          OpenAPI SHA256: ${{ steps.sha.outputs.sha }}
+          ${COMMIT_BODY}
+          Triggered by: ${{ github.event_name }}" || {
+            echo "No changes to commit"
+            exit 0
+          }
+          git push origin "$BRANCH"
+
+          if [[ "$CONTRACT_RESULT" == "success" ]]; then
+            PR_BODY="## Summary
+
+          - Updated \`@generated-contract openapi-sha256\` marker in \`crowdrelay-client.ts\`
+          - Contract test passes with the updated marker
+
+          **OpenAPI SHA256:** \`${{ steps.sha.outputs.sha }}\`
+          **Trigger:** ${{ github.event_name }}
+
+          Generated with [Devin](https://devin.ai)"
+          else
+            PR_BODY="## Summary
+
+          - Updated \`@generated-contract openapi-sha256\` marker in \`crowdrelay-client.ts\`
+          - ⚠️ Contract test still fails after marker update — capability markers may need manual review
+
+          **OpenAPI SHA256:** \`${{ steps.sha.outputs.sha }}\`
+          **Trigger:** ${{ github.event_name }}
+
+          ### Action needed
+          The SHA marker has been updated but the contract test still fails.
+          This usually means a capability was added, removed, or renamed in
+          CrowdRelay's OpenAPI spec. Check the contract test output for details
+          and update the relevant markers in \`crowdrelay-client.ts\` or
+          \`crowdrelayArea.ts\`.
+
+          Generated with [Devin](https://devin.ai)"
+          fi
+
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)
+          if [[ -n "$EXISTING_PR" ]]; then
+            gh pr edit "$EXISTING_PR" --body "$PR_BODY"
+            echo "Updated existing PR #$EXISTING_PR"
+          else
+            gh pr create \
+              --head "$BRANCH" \
+              --base main \
+              --title "auto: update OpenAPI SHA marker from CrowdRelay" \
+              --body "$PR_BODY" 2>/dev/null || \
+              gh pr create --head "$BRANCH" --base main \
+                --title "auto: update OpenAPI SHA marker from CrowdRelay" \
+                --body "$PR_BODY"
+          fi
