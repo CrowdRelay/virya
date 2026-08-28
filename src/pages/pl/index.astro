@@ -14,6 +14,7 @@ import Spotify from "../../components/Spotify.astro"
 import MerchTeaser from "../../components/MerchTeaser.astro"
 import Endorsements from "../../components/Endorsements.astro"
 import Shows from "../../components/preact/Shows"
+import FanHomeBanner from "../../components/preact/FanHomeBanner"
 import Contact from "../../components/preact/Contact"
 import Footer from "../../components/Footer.astro"
 import ScrollToTop from "../../components/ScrollToTop.astro"
@@ -48,6 +49,8 @@ const description = "Oficjalna strona Virya, nowoczesnego zespołu metalcore z P
       </header>
 
       <div class="flex flex-col bg-zinc-950">
+        <FanHomeBanner client:visible lang={lang} />
+
         <section id="shows" class="scroll-mt-20">
           <Shows lang={lang} messages={messages.shows} initialEvents={initialLiveEvents} />
         </section>
