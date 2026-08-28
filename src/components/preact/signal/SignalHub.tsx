@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "preact/hooks"
+import { useEffect, useMemo, useState } from "preact/hooks"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
 import type { CitySignal, PublicEvent } from "../../../lib/crowdrelay-client"
@@ -24,6 +24,8 @@ interface Props {
 
 type SubmitState = "idle" | "saving" | "pending" | "saved" | "error"
 type HandoffState = "idle" | "linking" | "linked" | "login" | "retry" | "error"
+type FormStage = "email" | "enrichment"
+type PreregisterState = "idle" | "sending" | "sent" | "error"
 
 type CacheEntry<T> = {
   storedAt: number
@@ -47,11 +49,13 @@ export default function SignalHub({ lang }: Props) {
   const [submitMessage, setSubmitMessage] = useState("")
   const [referralUrl, setReferralUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [formStep, setFormStep] = useState<1 | 2 | 3>(1)
+  const [formStage, setFormStage] = useState<FormStage>("email")
+  const [preregisterState, setPreregisterState] = useState<PreregisterState>("idle")
+  const [preregisteredEmail, setPreregisteredEmail] = useState("")
+  const [displayName, setDisplayName] = useState("")
   const [reloadKey, setReloadKey] = useState(0)
   const [handoffState, setHandoffState] = useState<HandoffState>("idle")
   const [handoffRetryKey, setHandoffRetryKey] = useState(0)
-  const formRef = useRef<HTMLFormElement>(null)
   const campaignId = useMemo(() => campaignIdFromLocation(), [])
 
   useEffect(() => {
@@ -154,35 +158,50 @@ export default function SignalHub({ lang }: Props) {
     [events],
   )
 
-  function goToCityStep() {
-    const email = formRef.current?.elements.namedItem(
-      "email",
-    ) as HTMLInputElement | null
-    if (!email?.checkValidity()) {
-      email?.reportValidity()
-      return
-    }
-    setFormStep(2)
-  }
-
-  function goToConsentStep() {
-    if (!selectedCity) {
-      setSubmitState("error")
-      setSubmitMessage(copy.form.validationError)
-      return
-    }
-    setSubmitState("idle")
-    setSubmitMessage("")
-    setFormStep(3)
-  }
-
-  async function submit(event: SubmitEvent) {
+  async function preRegister(event: Event) {
     event.preventDefault()
     const form = event.currentTarget as HTMLFormElement
     const data = new FormData(form)
     const email = String(data.get("email") ?? "").trim()
+    const name = String(data.get("display_name") ?? "").trim()
+
+    if (!email) {
+      setPreregisterState("error")
+      return
+    }
+
+    setPreregisterState("sending")
+    setPreregisteredEmail(email)
+    setDisplayName(name)
+
+    try {
+      const campaignId = campaignIdFromLocation()
+      const referralCode = referralCodeFromLocation()
+      const response = await fetch("/api/signal-preregister", {
+        method: "POST",
+        signal: AbortSignal.timeout(12_000),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          locale: lang,
+          ...(campaignId ? { campaign_id: campaignId } : {}),
+          ...(referralCode ? { referral_code: referralCode } : {}),
+        }),
+      })
+      if (!response.ok) throw new Error("preregister failed")
+      setPreregisterState("sent")
+      setFormStage("enrichment")
+    } catch {
+      setPreregisterState("error")
+    }
+  }
+
+  async function completeSignup(event: SubmitEvent) {
+    event.preventDefault()
+    const form = event.currentTarget as HTMLFormElement
+    const data = new FormData(form)
+    const email = preregisteredEmail || String(data.get("email") ?? "").trim()
     const citySlug = String(data.get("city") ?? "").trim()
-    const displayName = String(data.get("display_name") ?? "").trim()
     const consent = data.get("consent") === "on"
 
     if (!email || !citySlug || !consent) {
@@ -211,12 +230,6 @@ export default function SignalHub({ lang }: Props) {
           policy_version: "virya-signal-v1",
         },
       })
-      void fetch("/api/track/signal-lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, ...(campaignId ? { campaign_id: campaignId } : {}) }),
-        keepalive: true,
-      }).catch(() => {})
 
       rememberSignalCity(citySlug)
       setSelectedCity(citySlug)
@@ -365,35 +378,9 @@ export default function SignalHub({ lang }: Props) {
           </div>
 
           <div class="virya-panel p-5 shadow-2xl sm:p-7 lg:p-8">
-            <form ref={formRef} onSubmit={submit} noValidate>
-              <div
-                class="mb-6"
-                aria-label={
-                  lang === "pl"
-                    ? `Krok ${formStep} z 3`
-                    : `Step ${formStep} of 3`
-                }
-              >
-                <div class="flex items-center justify-between text-[9px] font-black uppercase tracking-[.2em] text-zinc-500">
-                  <span>
-                    {lang === "pl"
-                      ? `KROK ${formStep} Z 3`
-                      : `STEP ${formStep} OF 3`}
-                  </span>
-                  <span class="text-amber-400">
-                    {["Kontakt", "Miasto", "Gotowe"][formStep - 1]}
-                  </span>
-                </div>
-                <div class="mt-3 grid grid-cols-3 gap-2" aria-hidden="true">
-                  {[1, 2, 3].map(step => (
-                    <span
-                      class={`h-1 ${step <= formStep ? "bg-amber-400" : "bg-zinc-800"}`}
-                    ></span>
-                  ))}
-                </div>
-              </div>
-
-              <div hidden={formStep !== 1} class="grid gap-5">
+            {/* Stage 1: Email-first capture */}
+            {formStage === "email" && (
+              <form onSubmit={preRegister} noValidate class="grid gap-5">
                 <div class="rounded border border-amber-400/25 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300">
                   <strong class="block text-sm uppercase text-white">
                     {lang === "pl" ? "Po co to jest?" : "What is this for?"}
@@ -430,179 +417,171 @@ export default function SignalHub({ lang }: Props) {
                     class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm"
                   />
                 </label>
-                <button
-                  type="button"
-                  onClick={goToCityStep}
-                  class="virya-button virya-button--primary min-h-[50px] px-6"
-                >
-                  {lang === "pl" ? "DALEJ: MIASTO" : "NEXT: CITY"} →
-                </button>
-              </div>
-
-              <div hidden={formStep !== 2} class="grid gap-5">
-                <label class="block">
-                  <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
-                    {copy.form.city}
-                  </span>
-                  <select
-                    name="city"
-                    required
-                    value={selectedCity}
-                    onChange={event =>
-                      setSelectedCity(
-                        (event.currentTarget as HTMLSelectElement).value,
-                      )
-                    }
-                    disabled={cities === null || submitState === "saving"}
-                    class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm disabled:opacity-60"
-                  >
-                    <option value="">
-                      {cities === null
-                        ? copy.form.loadingCities
-                        : copy.form.cityPlaceholder}
-                    </option>
-                    {(cities ?? []).map(city => (
-                      <option value={city.slug} key={city.slug}>
-                        {city.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {cityError && (
-                  <div class="border border-amber-400/30 bg-amber-400/[.035] p-4 text-xs text-zinc-300">
-                    <p>{copy.form.loadError}</p>
-                    <button
-                      type="button"
-                      onClick={() => setReloadKey(value => value + 1)}
-                      class="mt-3 min-h-[42px] font-black uppercase tracking-widest text-amber-400"
-                    >
-                      {lang === "pl" ? "SPRÓBUJ PONOWNIE" : "TRY AGAIN"}
-                    </button>
-                  </div>
+                {preregisterState === "error" && (
+                  <p class="border-l-2 border-red-400 bg-red-400/[.035] p-3 text-xs text-red-200" role="alert">
+                    {copy.form.preregisterError}
+                  </p>
                 )}
-                <p class="text-xs leading-relaxed text-zinc-400">
-                  {lang === "pl"
-                    ? "Miasto służy do alertów o koncertach. Nie publikujemy małych liczników fanów."
-                    : "Your city is used for nearby show alerts. We do not publish small fan counters."}
-                </p>
-                <div class="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormStep(1)}
-                    class="virya-button virya-button--secondary min-h-[48px]"
-                  >
-                    ← {lang === "pl" ? "WRÓĆ" : "BACK"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={goToConsentStep}
-                    class="virya-button virya-button--primary min-h-[48px]"
-                  >
-                    {lang === "pl" ? "DALEJ" : "NEXT"} →
-                  </button>
-                </div>
-              </div>
-
-              <div hidden={formStep !== 3} class="grid gap-5">
-                <div class="rounded border border-zinc-800 bg-zinc-900/60 p-4">
-                  <strong class="text-sm uppercase text-white">
-                    {lang === "pl"
-                      ? "Po zapisie od razu"
-                      : "Immediately after joining"}
-                  </strong>
-                  <ul class="mt-3 grid gap-2 text-xs text-zinc-300">
-                    <li>
-                      ✓{" "}
-                      {lang === "pl"
-                        ? "zobaczysz następny koncert"
-                        : "see the next show"}
-                    </li>
-                    <li>
-                      ✓{" "}
-                      {lang === "pl"
-                        ? "dostaniesz prywatny Sygnał"
-                        : "get your private Signal"}
-                    </li>
-                    <li>
-                      ✓{" "}
-                      {lang === "pl"
-                        ? "opcjonalnie zaprosisz znajomego"
-                        : "optionally invite a friend"}
-                    </li>
-                  </ul>
-                </div>
-                <label class="flex cursor-pointer items-start gap-3 border-l-2 border-amber-400/50 bg-amber-400/[.035] p-4">
-                  <input
-                    name="consent"
-                    type="checkbox"
-                    required
-                    class="mt-0.5 h-4 w-4 shrink-0 accent-amber-400"
-                  />
-                  <span class="text-xs leading-relaxed text-zinc-300">
-                    {copy.form.consent}
-                  </span>
-                </label>
+                <button
+                  type="submit"
+                  disabled={preregisterState === "sending"}
+                  class="virya-button virya-button--primary min-h-[50px] px-6 disabled:cursor-wait"
+                >
+                  {preregisterState === "sending"
+                    ? copy.form.preregisterSaving
+                    : copy.form.preregisterSubmit}
+                </button>
                 <p class="text-[9px] leading-relaxed text-zinc-500">
                   {copy.form.privacy}
                 </p>
-                <div class="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormStep(2)}
-                    class="virya-button virya-button--secondary min-h-[48px]"
+              </form>
+            )}
+
+            {/* Stage 2: Enrichment (city + consent) — optional */}
+            {formStage === "enrichment" && (
+              <div class="grid gap-5">
+                {preregisterState === "sent" && (
+                  <div
+                    class="border border-amber-400/40 bg-amber-400/[.04] p-5"
+                    role="status"
+                    aria-live="polite"
                   >
-                    ← {lang === "pl" ? "WRÓĆ" : "BACK"}
-                  </button>
+                    <p class="text-xs font-black uppercase tracking-widest text-white">
+                      {copy.form.preregisterTitle}
+                    </p>
+                    <p class="mt-2 text-xs leading-relaxed text-zinc-300">
+                      {copy.form.preregisterBody}
+                    </p>
+                    <a
+                      href={pagePath(lang, "/my-signal/")}
+                      class="mt-4 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-amber-400 hover:text-amber-300"
+                    >
+                      {copy.form.skipEnrichment} →
+                    </a>
+                  </div>
+                )}
+
+                <div class="border-t border-zinc-800 pt-5">
+                  <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">
+                    {copy.form.enrichmentHeading}
+                  </p>
+                  <p class="mt-2 text-xs leading-relaxed text-zinc-400">
+                    {copy.form.enrichmentBody}
+                  </p>
+                </div>
+
+                <form onSubmit={completeSignup} noValidate class="grid gap-5">
+                  <input type="hidden" name="email" value={preregisteredEmail} />
+                  <input type="hidden" name="display_name" value={displayName} />
+                  <label class="block">
+                    <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
+                      {copy.form.city}
+                    </span>
+                    <select
+                      name="city"
+                      required
+                      value={selectedCity}
+                      onChange={event =>
+                        setSelectedCity(
+                          (event.currentTarget as HTMLSelectElement).value,
+                        )
+                      }
+                      disabled={cities === null || submitState === "saving"}
+                      class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm disabled:opacity-60"
+                    >
+                      <option value="">
+                        {cities === null
+                          ? copy.form.loadingCities
+                          : copy.form.cityPlaceholder}
+                      </option>
+                      {(cities ?? []).map(city => (
+                        <option value={city.slug} key={city.slug}>
+                          {city.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {cityError && (
+                    <div class="border border-amber-400/30 bg-amber-400/[.035] p-4 text-xs text-zinc-300">
+                      <p>{copy.form.loadError}</p>
+                      <button
+                        type="button"
+                        onClick={() => setReloadKey(value => value + 1)}
+                        class="mt-3 min-h-[42px] font-black uppercase tracking-widest text-amber-400"
+                      >
+                        {lang === "pl" ? "SPRÓBUJ PONOWNIE" : "TRY AGAIN"}
+                      </button>
+                    </div>
+                  )}
+                  <p class="text-xs leading-relaxed text-zinc-400">
+                    {lang === "pl"
+                      ? "Miasto służy do alertów o koncertach. Nie publikujemy małych liczników fanów."
+                      : "Your city is used for nearby show alerts. We do not publish small fan counters."}
+                  </p>
+                  <label class="flex cursor-pointer items-start gap-3 border-l-2 border-amber-400/50 bg-amber-400/[.035] p-4">
+                    <input
+                      name="consent"
+                      type="checkbox"
+                      required
+                      class="mt-0.5 h-4 w-4 shrink-0 accent-amber-400"
+                    />
+                    <span class="text-xs leading-relaxed text-zinc-300">
+                      {copy.form.consent}
+                    </span>
+                  </label>
+                  <p class="text-[9px] leading-relaxed text-zinc-500">
+                    {copy.form.privacy}
+                  </p>
                   <button
                     type="submit"
                     disabled={cities === null || submitState === "saving"}
                     class="virya-button virya-button--primary min-h-[48px] px-4 disabled:cursor-wait"
                   >
                     {submitState === "saving"
-                      ? copy.form.saving
-                      : copy.form.submit}
+                      ? copy.form.enrichmentSaving
+                      : copy.form.enrichmentSubmit}
                   </button>
-                </div>
-              </div>
-            </form>
+                </form>
 
-            {submitState !== "idle" && submitState !== "saving" && (
-              <div
-                class={`mt-6 border p-5 ${
-                  submitState === "error"
-                    ? "border-red-400/40 bg-red-400/[.04]"
-                    : "border-amber-400/40 bg-amber-400/[.04]"
-                }`}
-                role="status"
-                aria-live="polite"
-              >
-                <p class="text-xs font-black uppercase tracking-widest text-white">
-                  {submitState === "pending"
-                    ? copy.form.pendingTitle
-                    : submitState === "saved"
-                      ? copy.form.savedTitle
-                      : copy.form.saveError}
-                </p>
-                <p class="mt-2 text-xs leading-relaxed text-zinc-300">
-                  {submitMessage}
-                </p>
-                {(referralUrl || submitState === "saved") && (
-                  <div class="mt-5 flex flex-wrap gap-3">
-                    {referralUrl && (
-                      <button
-                        type="button"
-                        onClick={copyReferral}
-                        class="virya-button virya-button--secondary min-h-[44px] px-4"
-                      >
-                        {copied ? copy.form.copied : copy.form.copy}
-                      </button>
+                {submitState !== "idle" && submitState !== "saving" && (
+                  <div
+                    class={`mt-2 border p-5 ${
+                      submitState === "error"
+                        ? "border-red-400/40 bg-red-400/[.04]"
+                        : "border-amber-400/40 bg-amber-400/[.04]"
+                    }`}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <p class="text-xs font-black uppercase tracking-widest text-white">
+                      {submitState === "pending"
+                        ? copy.form.pendingTitle
+                        : submitState === "saved"
+                          ? copy.form.savedTitle
+                          : copy.form.saveError}
+                    </p>
+                    <p class="mt-2 text-xs leading-relaxed text-zinc-300">
+                      {submitMessage}
+                    </p>
+                    {(referralUrl || submitState === "saved") && (
+                      <div class="mt-5 flex flex-wrap gap-3">
+                        {referralUrl && (
+                          <button
+                            type="button"
+                            onClick={copyReferral}
+                            class="virya-button virya-button--secondary min-h-[44px] px-4"
+                          >
+                            {copied ? copy.form.copied : copy.form.copy}
+                          </button>
+                        )}
+                        <a
+                          href={pagePath(lang, "/my-signal/")}
+                          class="virya-button virya-button--primary min-h-[44px] px-4"
+                        >
+                          {copy.form.goAccount}
+                        </a>
+                      </div>
                     )}
-                    <a
-                      href={pagePath(lang, "/my-signal/")}
-                      class="virya-button virya-button--primary min-h-[44px] px-4"
-                    >
-                      {copy.form.goAccount}
-                    </a>
                   </div>
                 )}
               </div>
