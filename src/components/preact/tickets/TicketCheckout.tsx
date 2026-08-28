@@ -259,16 +259,18 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
   }, [slug, initialSale])
 
   // Show the mobile sticky bar once the ticket section scrolls into view.
+  // Re-attach when state changes (loading → ready) so the element exists.
   useEffect(() => {
+    if (state.kind !== "ready") return
     const el = document.getElementById("tickets")
     if (!el) return
     const observer = new IntersectionObserver(
       ([entry]) => setStickyVisible(entry.isIntersecting),
-      { rootMargin: "0px 0px -80% 0px" },
+      { rootMargin: "0px 0px -50% 0px" },
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [])
+  }, [state.kind])
 
   const selection = useMemo(() => {
     if (state.kind !== "ready") return { count: 0, gross: 0, vat: 0, signalCount: 0 }
@@ -343,6 +345,11 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
       state.sale.sales_state !== "open" ||
       selection.count < 1
     ) {
+      return
+    }
+    if (!buyerName.trim() || !buyerEmail.trim()) {
+      setError(text.step2Error)
+      setStep(2)
       return
     }
     if (selection.signalCount > 0 && !signalJoin) {
@@ -420,6 +427,7 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
         const sale = await crowdrelay.getTicketSale(slug)
         setState({ kind: "ready", sale })
         setQuantities(current => clampQuantities(sale, current))
+        setStep(1)
       } catch {
         // Keep the current offer visible; the explicit error already tells the user what happened.
       }
@@ -503,8 +511,8 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
           )}
 
           <div class="space-y-7">
-            {/* Step 1: Ticket selection */}
-            <div class={`grid gap-3${step !== 1 ? " hidden" : ""}`}>
+            {/* Step 1: Ticket selection — hidden on mobile when not active, always visible on desktop */}
+            <div class={`grid gap-3${step !== 1 ? " hidden lg:grid" : ""}`}>
               {sale.ticket_types
                 .filter(type => type.active)
                 .map(type => {
@@ -617,8 +625,8 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
               </button>
             </div>
 
-            {/* Step 2: Buyer info + invoice + signal join */}
-            <div class={`grid gap-5${step !== 2 ? " hidden" : ""}`}>
+            {/* Step 2: Buyer info + invoice + signal join — hidden on mobile when not active, always visible on desktop */}
+            <div class={`grid gap-5${step !== 2 ? " hidden lg:grid" : ""}`}>
               <div class="grid gap-4 sm:grid-cols-2">
                 <Field
                   label={text.name}
@@ -785,10 +793,18 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                 {error}
               </p>
             )}
+            {/* Mobile: Back button to edit buyer info */}
+            <button
+              type="button"
+              onClick={backStep}
+              class="virya-button virya-button--secondary mt-6 min-h-[44px] w-full px-5 lg:hidden"
+            >
+              ← {text.stepBack}
+            </button>
             <button
               type="submit"
               disabled={submitting || selection.count < 1}
-              class="virya-button virya-button--primary mt-6 min-h-[52px] w-full px-5"
+              class="virya-button virya-button--primary mt-3 min-h-[52px] w-full px-5"
             >
               {submitting ? text.working : text.checkout}
             </button>
@@ -828,10 +844,6 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
               form="tickets-form"
               disabled={submitting || selection.count < 1}
               class="virya-button virya-button--primary min-h-[44px] px-5 disabled:opacity-40"
-              onClick={() => {
-                const form = document.getElementById("tickets-form") as HTMLFormElement | null
-                if (form) form.requestSubmit()
-              }}
             >
               {submitting ? text.working : text.checkout}
             </button>
