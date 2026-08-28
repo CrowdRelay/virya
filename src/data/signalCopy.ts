@@ -125,6 +125,22 @@ export interface SignalCopy {
     noConcerts: string
     openArea: string
     openStore: string
+    tierPriority: string
+    tierActive: string
+    tierHistory: string
+    actionOpenWallet: string
+    actionOpenEvent: string
+    actionGetTicket: string
+    actionContinueSynesthesia: string
+    actionFollowEvent: string
+    actionShareFeedback: string
+    actionExploreSignal: string
+    actionViewWallet: string
+    actionBuyTicket: string
+    actionResumeJourney: string
+    actionMarkInterest: string
+    actionLeaveEcho: string
+    actionOpenSignal: string
   }
   action: {
     confirmTitle: string
@@ -364,6 +380,22 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       noConcerts: "You are not following any shows yet.",
       openArea: "Open AREA wallet",
       openStore: "Open merch",
+      tierPriority: "What matters now",
+      tierActive: "Active",
+      tierHistory: "History & settings",
+      actionOpenWallet: "Your tickets are ready",
+      actionOpenEvent: "You have a ticket for the next show",
+      actionGetTicket: "Tickets available for the next show",
+      actionContinueSynesthesia: "Continue your Synesthesia journey",
+      actionFollowEvent: "Follow the next show",
+      actionShareFeedback: "Share a post-show echo",
+      actionExploreSignal: "Explore your Signal",
+      actionViewWallet: "VIEW WALLET",
+      actionBuyTicket: "GET TICKETS",
+      actionResumeJourney: "RESUME JOURNEY",
+      actionMarkInterest: "MARK INTEREST",
+      actionLeaveEcho: "LEAVE ECHO",
+      actionOpenSignal: "OPEN SIGNAL",
     },
     action: {
       confirmTitle: "Activating your Signal",
@@ -620,6 +652,22 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       noConcerts: "Nie obserwujesz jeszcze żadnego koncertu.",
       openArea: "Otwórz portfel gry",
       openStore: "Otwórz sklep",
+      tierPriority: "Teraz ważne",
+      tierActive: "Aktywne",
+      tierHistory: "Historia i ustawienia",
+      actionOpenWallet: "Twoje bilety są gotowe",
+      actionOpenEvent: "Masz bilet na następny koncert",
+      actionGetTicket: "Bilety dostępne na następny koncert",
+      actionContinueSynesthesia: "Kontynuuj podróż Synesthesia",
+      actionFollowEvent: "Zapisz następny koncert",
+      actionShareFeedback: "Podziel się echem po koncercie",
+      actionExploreSignal: "Odkryj swój Sygnał",
+      actionViewWallet: "OTWÓRZ PORTFEL",
+      actionBuyTicket: "KUP BILET",
+      actionResumeJourney: "KONTYNUUJ PODRÓŻ",
+      actionMarkInterest: "ZAPISZ KONCERT",
+      actionLeaveEcho: "ZOSTAW ECHO",
+      actionOpenSignal: "OTWÓRZ SYGNAŁ",
     },
     action: {
       confirmTitle: "Aktywuję Twój Sygnał",

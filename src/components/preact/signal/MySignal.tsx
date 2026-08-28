@@ -301,476 +301,594 @@ export default function MySignal({ lang }: Props) {
 
   const nextEvent = home.next_event
   const synesthesia = home.synesthesia
+  const action = home.recommended_action
+
+  // Derive the priority-tier content from recommended_action.
+  const priorityCard = renderPriorityCard(action, home, copy, lang)
+
+  // Active tier items: referral pulse, admission pass, active draws.
+  const hasActiveDraws = drawEntries.length > 0
+  const hasActiveTier =
+    progress.qualified_referrals > 0 ||
+    progress.pending_referrals > 0 ||
+    admissionPass !== null ||
+    hasActiveDraws
 
   return (
     <div class="grid gap-6">
-      <section class="virya-panel border-amber-400/20 bg-amber-400/[.025] p-5 sm:p-6">
-        <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
-          {lang === "pl" ? "VIRYA SIGNAL / POWIADOMIENIA" : "VIRYA SIGNAL / NOTIFICATIONS"}
-        </p>
-        <h2 class="mt-2 text-lg font-black uppercase text-white">
-          {lang === "pl" ? "Dostań sygnał na telefon" : "Get the signal on your phone"}
-        </h2>
-        <p class="mt-2 max-w-2xl text-xs leading-relaxed text-zinc-400">
-          {lang === "pl"
-            ? "Koncerty w pobliżu i najważniejsze aktualizacje mogą trafić bezpośrednio na to urządzenie. Zgoda jest opcjonalna i możesz ją wyłączyć w każdej chwili."
-            : "Nearby shows and important updates can reach this device directly. Push is optional and can be disabled at any time."}
-        </p>
-        <PushNotificationControl lang={lang} />
-      </section>
+      {/* ── Priority tier ── */}
+      <div class="virya-tier virya-tier--priority">
+        <p class="virya-tier__label">{copy.tierPriority}</p>
+        {priorityCard}
+      </div>
 
-      <section class="virya-panel overflow-hidden border-cyan-300/20 bg-cyan-300/[.025] p-5 sm:p-7">
-        <div class="flex flex-wrap items-start justify-between gap-5">
-          <div>
-            <p class="text-[9px] font-black uppercase tracking-[.3em] text-cyan-300">
-              {lang === "pl" ? "TWÓJ SYGNAŁ TERAZ" : "YOUR SIGNAL NOW"}
+      {/* ── Active tier ── */}
+      <div class="virya-tier virya-tier--active">
+        <p class="virya-tier__label">{copy.tierActive}</p>
+
+        {detailsLoading ? (
+          <section class="virya-panel p-5" aria-busy="true">
+            <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
+              {lang === "pl"
+                ? "DOCZYTUJĘ NAGRODY I PASSY…"
+                : "LOADING REWARDS & PASSES…"}
+            </p>
+          </section>
+        ) : !hasActiveTier ? (
+          <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-6">
+            <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
+              {lang === "pl" ? "SYGNAŁ JEST GOTOWY" : "SIGNAL READY"}
             </p>
             <h2 class="mt-3 text-2xl font-black uppercase text-white">
-              {home.profile.display_name ||
-                (lang === "pl" ? "Połączenie aktywne" : "Signal connected")}
-            </h2>
-            <p class="mt-2 text-xs text-zinc-400">
-              {home.profile.primary_city
-                ? `${lang === "pl" ? "Miasto" : "City"}: ${home.profile.primary_city}`
-                : lang === "pl"
-                  ? "Kontekst aktualizuje się wraz z Twoimi akcjami."
-                  : "Context updates with your actions."}
-            </p>
-          </div>
-          <div class="grid grid-cols-3 gap-px border border-zinc-800 bg-zinc-800 text-center">
-            <div class="bg-zinc-950 px-4 py-3">
-              <strong class="block text-xl text-white">
-                {home.counts.active_passes}
-              </strong>
-              <span class="text-[8px] uppercase tracking-widest text-zinc-500">
-                PASS
-              </span>
-            </div>
-            <div class="bg-zinc-950 px-4 py-3">
-              <strong class="block text-xl text-white">
-                {home.counts.area_claims}
-              </strong>
-              <span class="text-[8px] uppercase tracking-widest text-zinc-500">
-                AREA
-              </span>
-            </div>
-            <div class="bg-zinc-950 px-4 py-3">
-              <strong class="block text-xl text-white">
-                {home.referral.qualified}
-              </strong>
-              <span class="text-[8px] uppercase tracking-widest text-zinc-500">
-                REF
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="mt-6 grid gap-3 md:grid-cols-2">
-          <div class="border border-zinc-800 bg-black/40 p-4">
-            <p class="text-[8px] font-black uppercase tracking-[.24em] text-cyan-300">
-              SYNESTEZJA
-            </p>
-            <p class="mt-2 text-sm font-bold text-white">
-              {synesthesia.completed
-                ? lang === "pl"
-                  ? "Podróż ukończona i połączona"
-                  : "Journey completed and linked"
-                : `${Math.max(0, synesthesia.rooms_completed)}/11 ${lang === "pl" ? "pokojów" : "rooms"}`}
-            </p>
-            {synesthesia.best_elapsed_ms !== null && (
-              <p class="mt-1 text-[10px] font-bold uppercase tracking-widest text-cyan-200/80">
-                {lang === "pl" ? "Najlepszy czas" : "Best time"}{" "}
-                {formatElapsed(synesthesia.best_elapsed_ms)}
-                {synesthesia.leaderboard_published &&
-                  synesthesia.leaderboard_rank !== null &&
-                  ` · #${synesthesia.leaderboard_rank}`}
-              </p>
-            )}
-            <a
-              href="https://synesthesia.virya.music/?source=signal-web&resume=1"
-              class="mt-3 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-cyan-300"
-            >
-              {synesthesia.completed
-                ? lang === "pl"
-                  ? "WRÓĆ DO ALBUM MODE"
-                  : "RETURN TO ALBUM MODE"
-                : lang === "pl"
-                  ? "KONTYNUUJ PODRÓŻ"
-                  : "CONTINUE JOURNEY"}{" "}
-              →
-            </a>
-          </div>
-          {nextEvent ? (
-            <div
-              class={`border bg-black/40 p-4 ${nextEvent.phase === "live" ? "border-rose-400/50" : nextEvent.phase === "afterglow" ? "border-cyan-300/30" : "border-zinc-800"}`}
-            >
-              <p
-                class={`text-[8px] font-black uppercase tracking-[.24em] ${nextEvent.phase === "live" ? "text-rose-300" : nextEvent.phase === "afterglow" ? "text-cyan-300" : "text-amber-400"}`}
-              >
-                {nextEvent.phase === "live"
-                  ? lang === "pl"
-                    ? "SYGNAŁ TRWA TERAZ"
-                    : "SIGNAL LIVE NOW"
-                  : nextEvent.phase === "afterglow"
-                    ? lang === "pl"
-                      ? "PO SYGNALE"
-                      : "AFTER THE SIGNAL"
-                    : lang === "pl"
-                      ? "NASTĘPNY SYGNAŁ"
-                      : "NEXT SIGNAL"}
-              </p>
-              <p class="mt-2 text-sm font-bold text-white">{nextEvent.title}</p>
-              <p class="mt-1 text-xs text-zinc-400">
-                {[nextEvent.city, nextEvent.venue].filter(Boolean).join(" · ")}
-              </p>
-              {nextEvent.phase === "live" && (
-                <p class="mt-2 text-[10px] leading-relaxed text-rose-100/80">
-                  {lang === "pl"
-                    ? "Bilet, pass i kontekst koncertu są teraz najważniejsze."
-                    : "Your ticket, pass and show context are the priority right now."}
-                </p>
-              )}
-              {nextEvent.phase === "afterglow" && (
-                <p class="mt-2 text-[10px] leading-relaxed text-cyan-100/75">
-                  {lang === "pl"
-                    ? "Koncert właśnie wybrzmiał — to dobry moment na krótkie echo po występie."
-                    : "The show just ended — this is a good moment to leave a short post-show echo."}
-                </p>
-              )}
-              <a
-                href={pagePath(lang, `/live/${nextEvent.slug}/`)}
-                class="mt-3 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-amber-400"
-              >
-                {lang === "pl"
-                  ? "OTWÓRZ KONTEKST KONCERTU"
-                  : "OPEN EVENT CONTEXT"}{" "}
-                →
-              </a>
-            </div>
-          ) : (
-            <div class="border border-zinc-800 bg-black/40 p-4 text-xs text-zinc-400">
               {lang === "pl"
-                ? "Kolejny koncert pojawi się tutaj, gdy tylko zostanie opublikowany."
-                : "Your next show will appear here as soon as it is published."}
-            </div>
-          )}
-        </div>
-      </section>
-      {detailsLoading ? (
-        <section class="virya-panel p-5" aria-busy="true">
-          <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
-            {lang === "pl"
-              ? "DOCZYTUJĘ NAGRODY I PASSY…"
-              : "LOADING REWARDS & PASSES…"}
-          </p>
-        </section>
-      ) : progress.qualified_referrals === 0 &&
-        progress.pending_referrals === 0 ? (
-        <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-6">
-          <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
-            {lang === "pl" ? "SYGNAŁ JEST GOTOWY" : "SIGNAL READY"}
-          </p>
-          <h2 class="mt-3 text-2xl font-black uppercase text-white">
-            {lang === "pl"
-              ? "Pierwszy efekt masz od razu"
-              : "Your first result is immediate"}
-          </h2>
-          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
-            {lang === "pl"
-              ? "Sprawdź najbliższy koncert albo zachowaj link polecający na później. Nie musisz teraz wykonywać kolejnych etapów."
-              : "Check the nearest show or save your referral link for later. There is no need to complete every stage now."}
-          </p>
-        </section>
-      ) : (
-        <section class="grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
-          <div class="bg-zinc-950 p-5 sm:p-6">
-            <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
-              {copy.qualified}
-            </p>
-            <p class="mt-3 text-4xl font-black text-amber-400">
-              {progress.qualified_referrals}
-            </p>
-          </div>
-          <div class="bg-zinc-950 p-5 sm:p-6">
-            <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
-              {copy.pending}
-            </p>
-            <p class="mt-3 text-4xl font-black text-white">
-              {progress.pending_referrals}
-            </p>
-          </div>
-          <div class="bg-zinc-950 p-5 sm:p-6">
-            <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
-              {copy.referrals}
-            </p>
-            <p class="mt-3 text-xs leading-relaxed text-zinc-300">
-              {progress.next_reward_threshold
-                ? copy.nextReward(progress.next_reward_threshold)
-                : copy.allUnlocked}
-            </p>
-          </div>
-        </section>
-      )}
-
-      {referralUrl && (
-        <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-5 sm:p-6">
-          <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div class="min-w-0">
-              <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
-                {SIGNAL_COPY[lang].form.referralTitle}
-              </p>
-              <code class="mt-3 block break-all text-xs text-zinc-300">
-                {referralUrl}
-              </code>
-            </div>
-            <button
-              type="button"
-              onClick={copyReferral}
-              class="virya-button virya-button--accent-outline shrink-0"
-            >
-              {copied ? copy.linkCopied : copy.copyLink}
-            </button>
-          </div>
-        </section>
-      )}
-
-      {admissionPass && <AdmissionPassCard lang={lang} pass={admissionPass} />}
-
-      <section class="virya-panel border-amber-400/30 bg-amber-400/[.025] p-5 sm:p-6">
-        <div>
-          <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
-            {lang === "pl" ? "VIRYA // LOSOWANIA" : "VIRYA // DRAW"}
-          </p>
-          <h2 class="mt-2 text-2xl font-black uppercase text-white">
-            {copy.draws}
-          </h2>
-        </div>
-
-        {drawEntries.length === 0 ? (
-          <p class="mt-5 max-w-2xl text-justify text-xs leading-relaxed text-zinc-400">
-            {copy.noDraws}
-          </p>
-        ) : (
-          <ul class="mt-6 grid gap-3 lg:grid-cols-2">
-            {drawEntries.map(draw => (
-              <li key={draw.draw_id} class="virya-panel p-5">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p class="text-[8px] font-black uppercase tracking-[.24em] text-zinc-500">
-                      {draw.prize_kind === "admission_pass"
-                        ? lang === "pl"
-                          ? "Wejściówki"
-                          : "Guest list"
-                        : lang === "pl"
-                          ? "Album / nagroda fizyczna"
-                          : "Album / physical prize"}
-                    </p>
-                    <h3 class="mt-2 text-base font-black uppercase text-white">
-                      {draw.name}
-                    </h3>
-                  </div>
-                  <strong class="text-3xl font-black text-amber-400">
-                    {draw.total_entries}
-                  </strong>
-                </div>
-                <p class="mt-3 text-xs font-semibold text-zinc-300">
-                  {copy.drawEntries(draw.total_entries)} ·{" "}
-                  {copy.drawReferrals(draw.qualified_referrals)}
-                  {draw.concert_checkins > 0 && (
-                    <> · {copy.drawCheckins(draw.concert_checkins)}</>
-                  )}
-                </p>
-                <dl class="mt-5 grid gap-3 border-t border-zinc-800 pt-4 sm:grid-cols-2">
-                  <div>
-                    <dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
-                      {copy.drawCloses}
-                    </dt>
-                    <dd class="mt-1 text-[10px] text-zinc-300">
-                      {formatDate(draw.closes_at, locale)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
-                      {copy.drawAt}
-                    </dt>
-                    <dd class="mt-1 text-[10px] text-zinc-300">
-                      {formatDate(draw.draw_at, locale)}
-                    </dd>
-                  </div>
-                </dl>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section class="virya-panel p-5 sm:p-6">
-        <div class="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
-              {lang === "pl" ? "VIRYA // NAGRODY" : "VIRYA // REWARDS"}
-            </p>
-            <h2 class="mt-2 text-2xl font-black uppercase text-white">
-              {copy.rewards}
+                ? "Pierwszy efekt masz od razu"
+                : "Your first result is immediate"}
             </h2>
-          </div>
-          <a
-            href={pagePath(lang, "/area/#area-collection")}
-            class="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-amber-400"
-          >
-            {copy.openArea} →
-          </a>
-        </div>
-
-        {coupons.length === 0 && physicalRewards.length === 0 ? (
-          <p class="mt-5 text-xs leading-relaxed text-zinc-400">
-            {copy.noRewards}
-          </p>
+            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+              {lang === "pl"
+                ? "Sprawdź najbliższy koncert albo zachowaj link polecający na później. Nie musisz teraz wykonywać kolejnych etapów."
+                : "Check the nearest show or save your referral link for later. There is no need to complete every stage now."}
+            </p>
+          </section>
         ) : (
-          <ul class="mt-6 grid gap-3 sm:grid-cols-2">
-            {physicalRewards.map(reward => (
-              <li
-                class="border border-amber-400/30 bg-amber-400/[.035] p-4"
-                key={reward.reward_grant_id}
-              >
-                <div class="flex items-start justify-between gap-3">
-                  <div>
-                    <p class="text-[8px] font-black uppercase tracking-widest text-amber-400">
-                      {copy.physicalReward}
-                    </p>
-                    <h3 class="mt-2 text-sm font-black uppercase text-white">
-                      {reward.item_name}
-                    </h3>
-                  </div>
-                  <span class="shrink-0 text-right text-[8px] font-black uppercase tracking-widest text-zinc-400">
-                    {copy.rewardStatus[reward.status]}
-                  </span>
-                </div>
-                <p class="mt-3 font-mono text-[9px] uppercase tracking-widest text-zinc-500">
-                  {reward.sku}
-                </p>
-                {reward.expires_at && (
-                  <p class="mt-3 text-[10px] text-zinc-300">
-                    {copy.rewardExpires}:{" "}
-                    {formatDate(reward.expires_at, locale)}
+          <div class="grid gap-4">
+            {(progress.qualified_referrals > 0 || progress.pending_referrals > 0) && (
+              <section class="grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
+                <div class="bg-zinc-950 p-5 sm:p-6">
+                  <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
+                    {copy.qualified}
                   </p>
-                )}
-              </li>
-            ))}
-            {coupons.map(coupon => (
-              <li
-                class="border border-zinc-800 bg-zinc-900/50 p-4"
-                key={coupon.id}
-              >
-                <div class="flex items-start justify-between gap-3">
-                  <code class="break-all text-sm font-black text-amber-400">
-                    {coupon.code}
-                  </code>
-                  <span class="shrink-0 text-[8px] font-black uppercase tracking-widest text-zinc-500">
-                    {coupon.status}
-                  </span>
+                  <p class="mt-3 text-4xl font-black text-amber-400">
+                    {progress.qualified_referrals}
+                  </p>
                 </div>
-                <p class="mt-3 text-xs text-zinc-300">
-                  {coupon.discount_percent}%
-                </p>
-                <div class="mt-4 flex flex-wrap gap-2">
+                <div class="bg-zinc-950 p-5 sm:p-6">
+                  <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
+                    {copy.pending}
+                  </p>
+                  <p class="mt-3 text-4xl font-black text-white">
+                    {progress.pending_referrals}
+                  </p>
+                </div>
+                <div class="bg-zinc-950 p-5 sm:p-6">
+                  <p class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-500">
+                    {copy.referrals}
+                  </p>
+                  <p class="mt-3 text-xs leading-relaxed text-zinc-300">
+                    {progress.next_reward_threshold
+                      ? copy.nextReward(progress.next_reward_threshold)
+                      : copy.allUnlocked}
+                  </p>
+                </div>
+              </section>
+            )}
+
+            {referralUrl && (
+              <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-5 sm:p-6">
+                <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                  <div class="min-w-0">
+                    <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
+                      {SIGNAL_COPY[lang].form.referralTitle}
+                    </p>
+                    <code class="mt-3 block break-all text-xs text-zinc-300">
+                      {referralUrl}
+                    </code>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => copyCoupon(coupon.code)}
-                    class="virya-button virya-button--secondary min-h-[40px] px-3"
+                    onClick={copyReferral}
+                    class="virya-button virya-button--accent-outline shrink-0"
                   >
-                    {copiedCoupon === coupon.code
-                      ? SIGNAL_COPY[lang].form.copied
-                      : SIGNAL_COPY[lang].form.copy}
+                    {copied ? copy.linkCopied : copy.copyLink}
                   </button>
-                  <a
-                    href={pagePath(lang, "/merch/")}
-                    class="virya-button virya-button--primary min-h-[40px] px-3"
+                </div>
+              </section>
+            )}
+
+            {admissionPass && <AdmissionPassCard lang={lang} pass={admissionPass} />}
+
+            {hasActiveDraws && (
+              <section class="virya-panel border-amber-400/30 bg-amber-400/[.025] p-5 sm:p-6">
+                <div>
+                  <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
+                    {lang === "pl" ? "VIRYA // LOSOWANIA" : "VIRYA // DRAW"}
+                  </p>
+                  <h2 class="mt-2 text-2xl font-black uppercase text-white">
+                    {copy.draws}
+                  </h2>
+                </div>
+                <ul class="mt-6 grid gap-3 lg:grid-cols-2">
+                  {drawEntries.map(draw => (
+                    <li key={draw.draw_id} class="virya-panel p-5">
+                      <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p class="text-[8px] font-black uppercase tracking-[.24em] text-zinc-500">
+                            {draw.prize_kind === "admission_pass"
+                              ? lang === "pl"
+                                ? "Wejściówki"
+                                : "Guest list"
+                              : lang === "pl"
+                                ? "Album / nagroda fizyczna"
+                                : "Album / physical prize"}
+                          </p>
+                          <h3 class="mt-2 text-base font-black uppercase text-white">
+                            {draw.name}
+                          </h3>
+                        </div>
+                        <strong class="text-3xl font-black text-amber-400">
+                          {draw.total_entries}
+                        </strong>
+                      </div>
+                      <p class="mt-3 text-xs font-semibold text-zinc-300">
+                        {copy.drawEntries(draw.total_entries)} ·{" "}
+                        {copy.drawReferrals(draw.qualified_referrals)}
+                        {draw.concert_checkins > 0 && (
+                          <> · {copy.drawCheckins(draw.concert_checkins)}</>
+                        )}
+                      </p>
+                      <dl class="mt-5 grid gap-3 border-t border-zinc-800 pt-4 sm:grid-cols-2">
+                        <div>
+                          <dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
+                            {copy.drawCloses}
+                          </dt>
+                          <dd class="mt-1 text-[10px] text-zinc-300">
+                            {formatDate(draw.closes_at, locale)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
+                            {copy.drawAt}
+                          </dt>
+                          <dd class="mt-1 text-[10px] text-zinc-300">
+                            {formatDate(draw.draw_at, locale)}
+                          </dd>
+                        </div>
+                      </dl>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── History & settings tier ── */}
+      <details class="virya-tier virya-tier--history virya-tier__details">
+        <summary class="virya-tier__summary">
+          <span class="virya-tier__label">
+            {copy.tierHistory}
+          </span>
+        </summary>
+        <div class="grid gap-4 pt-2">
+          {/* Profile summary */}
+          <section class="virya-panel overflow-hidden border-cyan-300/20 bg-cyan-300/[.025] p-5 sm:p-7">
+            <div class="flex flex-wrap items-start justify-between gap-5">
+              <div>
+                <p class="text-[9px] font-black uppercase tracking-[.3em] text-cyan-300">
+                  {lang === "pl" ? "TWÓJ SYGNAŁ TERAZ" : "YOUR SIGNAL NOW"}
+                </p>
+                <h2 class="mt-3 text-2xl font-black uppercase text-white">
+                  {home.profile.display_name ||
+                    (lang === "pl" ? "Połączenie aktywne" : "Signal connected")}
+                </h2>
+                <p class="mt-2 text-xs text-zinc-400">
+                  {home.profile.primary_city
+                    ? `${lang === "pl" ? "Miasto" : "City"}: ${home.profile.primary_city}`
+                    : lang === "pl"
+                      ? "Kontekst aktualizuje się wraz z Twoimi akcjami."
+                      : "Context updates with your actions."}
+                </p>
+              </div>
+              <div class="grid grid-cols-3 gap-px border border-zinc-800 bg-zinc-800 text-center">
+                <div class="bg-zinc-950 px-4 py-3">
+                  <strong class="block text-xl text-white">
+                    {home.counts.active_passes}
+                  </strong>
+                  <span class="text-[8px] uppercase tracking-widest text-zinc-500">
+                    PASS
+                  </span>
+                </div>
+                <div class="bg-zinc-950 px-4 py-3">
+                  <strong class="block text-xl text-white">
+                    {home.counts.area_claims}
+                  </strong>
+                  <span class="text-[8px] uppercase tracking-widest text-zinc-500">
+                    AREA
+                  </span>
+                </div>
+                <div class="bg-zinc-950 px-4 py-3">
+                  <strong class="block text-xl text-white">
+                    {home.referral.qualified}
+                  </strong>
+                  <span class="text-[8px] uppercase tracking-widest text-zinc-500">
+                    REF
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6 grid gap-3 md:grid-cols-2">
+              <div class="border border-zinc-800 bg-black/40 p-4">
+                <p class="text-[8px] font-black uppercase tracking-[.24em] text-cyan-300">
+                  SYNESTEZJA
+                </p>
+                <p class="mt-2 text-sm font-bold text-white">
+                  {synesthesia.completed
+                    ? lang === "pl"
+                      ? "Podróż ukończona i połączona"
+                      : "Journey completed and linked"
+                    : `${Math.max(0, synesthesia.rooms_completed)}/11 ${lang === "pl" ? "pokojów" : "rooms"}`}
+                </p>
+                {synesthesia.best_elapsed_ms !== null && (
+                  <p class="mt-1 text-[10px] font-bold uppercase tracking-widest text-cyan-200/80">
+                    {lang === "pl" ? "Najlepszy czas" : "Best time"}{" "}
+                    {formatElapsed(synesthesia.best_elapsed_ms)}
+                    {synesthesia.leaderboard_published &&
+                      synesthesia.leaderboard_rank !== null &&
+                      ` · #${synesthesia.leaderboard_rank}`}
+                  </p>
+                )}
+                <a
+                  href="https://synesthesia.virya.music/?source=signal-web&resume=1"
+                  class="mt-3 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-cyan-300"
+                >
+                  {synesthesia.completed
+                    ? lang === "pl"
+                      ? "WRÓĆ DO ALBUM MODE"
+                      : "RETURN TO ALBUM MODE"
+                    : lang === "pl"
+                      ? "KONTYNUUJ PODRÓŻ"
+                      : "CONTINUE JOURNEY"}{" "}
+                  →
+                </a>
+              </div>
+              {nextEvent ? (
+                <div
+                  class={`border bg-black/40 p-4 ${nextEvent.phase === "live" ? "border-rose-400/50" : nextEvent.phase === "afterglow" ? "border-cyan-300/30" : "border-zinc-800"}`}
+                >
+                  <p
+                    class={`text-[8px] font-black uppercase tracking-[.24em] ${nextEvent.phase === "live" ? "text-rose-300" : nextEvent.phase === "afterglow" ? "text-cyan-300" : "text-amber-400"}`}
                   >
-                    {copy.useInStore}
+                    {nextEvent.phase === "live"
+                      ? lang === "pl"
+                        ? "SYGNAŁ TRWA TERAZ"
+                        : "SIGNAL LIVE NOW"
+                      : nextEvent.phase === "afterglow"
+                        ? lang === "pl"
+                          ? "PO SYGNALE"
+                          : "AFTER THE SIGNAL"
+                        : lang === "pl"
+                          ? "NASTĘPNY SYGNAŁ"
+                          : "NEXT SIGNAL"}
+                  </p>
+                  <p class="mt-2 text-sm font-bold text-white">{nextEvent.title}</p>
+                  <p class="mt-1 text-xs text-zinc-400">
+                    {[nextEvent.city, nextEvent.venue].filter(Boolean).join(" · ")}
+                  </p>
+                  <a
+                    href={pagePath(lang, `/live/${nextEvent.slug}/`)}
+                    class="mt-3 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-amber-400"
+                  >
+                    {lang === "pl"
+                      ? "OTWÓRZ KONTEKST KONCERTU"
+                      : "OPEN EVENT CONTEXT"}{" "}
+                    →
                   </a>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section class="virya-panel p-5 sm:p-6">
-        <div class="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
-              VIRYA // LIVE
-            </p>
-            <h2 class="mt-2 text-2xl font-black uppercase text-white">
-              {copy.concerts}
-            </h2>
-          </div>
-          <a
-            href={pagePath(lang, "/signal/#signal-shows")}
-            class="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-amber-400"
-          >
-            + {SIGNAL_COPY[lang].events.heading}
-          </a>
-        </div>
-
-        {events.length === 0 ? (
-          <p class="mt-5 text-xs text-zinc-400">{copy.noConcerts}</p>
-        ) : (
-          <ul class="mt-6 grid gap-px border border-zinc-800 bg-zinc-800">
-            {events.map(({ event, interested_at }) => (
-              <li
-                key={event.id}
-                class="flex flex-col gap-4 bg-zinc-950 p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <p class="font-mono text-[8px] uppercase tracking-widest text-amber-400">
-                    {formatDate(event.starts_at, locale, event.timezone)}
-                  </p>
-                  <h3 class="mt-2 text-sm font-black uppercase text-white">
-                    {event.title}
-                  </h3>
-                  <p class="mt-1 text-[9px] uppercase tracking-widest text-zinc-500">
-                    {event.city?.name ?? event.venue ?? "Virya"} ·{" "}
-                    {formatDateOnly(interested_at, locale)}
-                  </p>
+              ) : (
+                <div class="border border-zinc-800 bg-black/40 p-4 text-xs text-zinc-400">
+                  {lang === "pl"
+                    ? "Kolejny koncert pojawi się tutaj, gdy tylko zostanie opublikowany."
+                    : "Your next show will appear here as soon as it is published."}
                 </div>
-                <a
-                  href={pagePath(lang, `/live/${event.slug}/`)}
-                  class="virya-button virya-button--secondary min-h-[42px] px-4"
-                >
-                  {SIGNAL_COPY[lang].events.details}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+              )}
+            </div>
+          </section>
 
-      <div class="grid gap-3 sm:grid-cols-2">
+          {/* Rewards */}
+          <section class="virya-panel p-5 sm:p-6">
+            <div class="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
+                  {lang === "pl" ? "VIRYA // NAGRODY" : "VIRYA // REWARDS"}
+                </p>
+                <h2 class="mt-2 text-2xl font-black uppercase text-white">
+                  {copy.rewards}
+                </h2>
+              </div>
+              <a
+                href={pagePath(lang, "/area/#area-collection")}
+                class="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-amber-400"
+              >
+                {copy.openArea} →
+              </a>
+            </div>
+            {coupons.length === 0 && physicalRewards.length === 0 ? (
+              <p class="mt-5 text-xs leading-relaxed text-zinc-400">
+                {copy.noRewards}
+              </p>
+            ) : (
+              <ul class="mt-6 grid gap-3 sm:grid-cols-2">
+                {physicalRewards.map(reward => (
+                  <li
+                    class="border border-amber-400/30 bg-amber-400/[.035] p-4"
+                    key={reward.reward_grant_id}
+                  >
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-[8px] font-black uppercase tracking-widest text-amber-400">
+                          {copy.physicalReward}
+                        </p>
+                        <h3 class="mt-2 text-sm font-black uppercase text-white">
+                          {reward.item_name}
+                        </h3>
+                      </div>
+                      <span class="shrink-0 text-right text-[8px] font-black uppercase tracking-widest text-zinc-400">
+                        {copy.rewardStatus[reward.status]}
+                      </span>
+                    </div>
+                    <p class="mt-3 font-mono text-[9px] uppercase tracking-widest text-zinc-500">
+                      {reward.sku}
+                    </p>
+                    {reward.expires_at && (
+                      <p class="mt-3 text-[10px] text-zinc-300">
+                        {copy.rewardExpires}:{" "}
+                        {formatDate(reward.expires_at, locale)}
+                      </p>
+                    )}
+                  </li>
+                ))}
+                {coupons.map(coupon => (
+                  <li
+                    class="border border-zinc-800 bg-zinc-900/50 p-4"
+                    key={coupon.id}
+                  >
+                    <div class="flex items-start justify-between gap-3">
+                      <code class="break-all text-sm font-black text-amber-400">
+                        {coupon.code}
+                      </code>
+                      <span class="shrink-0 text-[8px] font-black uppercase tracking-widest text-zinc-500">
+                        {coupon.status}
+                      </span>
+                    </div>
+                    <p class="mt-3 text-xs text-zinc-300">
+                      {coupon.discount_percent}%
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => copyCoupon(coupon.code)}
+                        class="virya-button virya-button--secondary min-h-[40px] px-3"
+                      >
+                        {copiedCoupon === coupon.code
+                          ? SIGNAL_COPY[lang].form.copied
+                          : SIGNAL_COPY[lang].form.copy}
+                      </button>
+                      <a
+                        href={pagePath(lang, "/merch/")}
+                        class="virya-button virya-button--primary min-h-[40px] px-3"
+                      >
+                        {copy.useInStore}
+                      </a>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Followed concerts */}
+          <section class="virya-panel p-5 sm:p-6">
+            <div class="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p class="text-[9px] font-black uppercase tracking-[.28em] text-amber-400">
+                  VIRYA // LIVE
+                </p>
+                <h2 class="mt-2 text-2xl font-black uppercase text-white">
+                  {copy.concerts}
+                </h2>
+              </div>
+              <a
+                href={pagePath(lang, "/signal/#signal-shows")}
+                class="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-amber-400"
+              >
+                + {SIGNAL_COPY[lang].events.heading}
+              </a>
+            </div>
+            {events.length === 0 ? (
+              <p class="mt-5 text-xs text-zinc-400">{copy.noConcerts}</p>
+            ) : (
+              <ul class="mt-6 grid gap-px border border-zinc-800 bg-zinc-800">
+                {events.map(({ event, interested_at }) => (
+                  <li
+                    key={event.id}
+                    class="flex flex-col gap-4 bg-zinc-950 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <p class="font-mono text-[8px] uppercase tracking-widest text-amber-400">
+                        {formatDate(event.starts_at, locale, event.timezone)}
+                      </p>
+                      <h3 class="mt-2 text-sm font-black uppercase text-white">
+                        {event.title}
+                      </h3>
+                      <p class="mt-1 text-[9px] uppercase tracking-widest text-zinc-500">
+                        {event.city?.name ?? event.venue ?? "Virya"} ·{" "}
+                        {formatDateOnly(interested_at, locale)}
+                      </p>
+                    </div>
+                    <a
+                      href={pagePath(lang, `/live/${event.slug}/`)}
+                      class="virya-button virya-button--secondary min-h-[42px] px-4"
+                    >
+                      {SIGNAL_COPY[lang].events.details}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Push notifications */}
+          <section class="virya-panel border-amber-400/20 bg-amber-400/[.025] p-5 sm:p-6">
+            <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
+              {lang === "pl" ? "VIRYA SIGNAL / POWIADOMIENIA" : "VIRYA SIGNAL / NOTIFICATIONS"}
+            </p>
+            <h2 class="mt-2 text-lg font-black uppercase text-white">
+              {lang === "pl" ? "Dostań sygnał na telefon" : "Get the signal on your phone"}
+            </h2>
+            <p class="mt-2 max-w-2xl text-xs leading-relaxed text-zinc-400">
+              {lang === "pl"
+                ? "Koncerty w pobliżu i najważniejsze aktualizacje mogą trafić bezpośrednio na to urządzenie. Zgoda jest opcjonalna i możesz ją wyłączyć w każdej chwili."
+                : "Nearby shows and important updates can reach this device directly. Push is optional and can be disabled at any time."}
+            </p>
+            <PushNotificationControl lang={lang} />
+          </section>
+
+          {/* AREA + merch quick links */}
+          <div class="grid gap-3 sm:grid-cols-2">
+            <a
+              href={pagePath(lang, "/area/")}
+              class="virya-panel group flex min-h-[96px] items-center justify-between p-5 hover:border-amber-400/50"
+            >
+              <span class="text-sm font-black uppercase tracking-widest text-white group-hover:text-amber-400">
+                {copy.openArea}
+              </span>
+              <span class="text-2xl text-amber-400" aria-hidden="true">
+                →
+              </span>
+            </a>
+            <a
+              href={pagePath(lang, "/merch/")}
+              class="group flex min-h-[96px] items-center justify-between bg-amber-400 p-5 hover:bg-amber-300"
+            >
+              <span class="text-sm font-black uppercase tracking-widest text-black">
+                {copy.openStore}
+              </span>
+              <span class="text-2xl text-black" aria-hidden="true">
+                →
+              </span>
+            </a>
+          </div>
+        </div>
+      </details>
+    </div>
+  )
+}
+
+/**
+ * Priority tier — the single most important action, derived from
+ * `home.recommended_action`. Falls back to `explore_signal` for unknown
+ * actions or when there is no next event.
+ */
+function renderPriorityCard(
+  action: string,
+  home: FanHomeSnapshot,
+  copy: typeof SIGNAL_COPY["en"]["account"],
+  lang: Lang,
+): preact.JSX.Element {
+  const nextEvent = home.next_event
+  const synesthesia = home.synesthesia
+
+  // Event-dependent actions fall back to explore_signal when there is no
+  // next event, so the card never promises a ticket/show that doesn't exist.
+  const eventDependent =
+    action === "open_wallet" ||
+    action === "open_live_event" ||
+    action === "get_ticket" ||
+    action === "follow_next_event" ||
+    action === "share_post_show_feedback"
+
+  const effectiveAction = eventDependent && !nextEvent ? "explore_signal" : action
+
+  const actionLabel =
+    effectiveAction === "open_wallet" ? copy.actionOpenWallet
+    : effectiveAction === "open_live_event" ? copy.actionOpenEvent
+    : effectiveAction === "get_ticket" ? copy.actionGetTicket
+    : effectiveAction === "continue_synesthesia" ? copy.actionContinueSynesthesia
+    : effectiveAction === "follow_next_event" ? copy.actionFollowEvent
+    : effectiveAction === "share_post_show_feedback" ? copy.actionShareFeedback
+    : copy.actionExploreSignal
+
+  // Build the CTA button based on the effective action.
+  let ctaHref: string
+  let ctaLabel: string
+  if (effectiveAction === "open_wallet" && nextEvent) {
+    ctaHref = pagePath(lang, `/live/${nextEvent.slug}/#tickets`)
+    ctaLabel = copy.actionViewWallet
+  } else if (effectiveAction === "open_live_event" && nextEvent) {
+    ctaHref = pagePath(lang, `/live/${nextEvent.slug}/`)
+    ctaLabel = copy.actionOpenSignal
+  } else if (effectiveAction === "get_ticket" && nextEvent) {
+    ctaHref = pagePath(lang, `/live/${nextEvent.slug}/#tickets`)
+    ctaLabel = copy.actionBuyTicket
+  } else if (effectiveAction === "continue_synesthesia") {
+    ctaHref = "https://synesthesia.virya.music/?source=signal-web&resume=1"
+    ctaLabel = copy.actionResumeJourney
+  } else if (effectiveAction === "follow_next_event" && nextEvent) {
+    ctaHref = pagePath(lang, `/live/${nextEvent.slug}/`)
+    ctaLabel = copy.actionMarkInterest
+  } else if (effectiveAction === "share_post_show_feedback" && nextEvent) {
+    ctaHref = pagePath(lang, `/live/${nextEvent.slug}/`)
+    ctaLabel = copy.actionLeaveEcho
+  } else {
+    ctaHref = pagePath(lang, "/signal/")
+    ctaLabel = copy.actionOpenSignal
+  }
+
+  return (
+    <section class="virya-panel border-amber-400/30 bg-amber-400/[.04] p-5 sm:p-7">
+      <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
+        {lang === "pl" ? "VIRYA // TERAZ WAŻNE" : "VIRYA // PRIORITY"}
+      </p>
+      <h2 class="mt-3 text-2xl font-black uppercase text-white sm:text-3xl">
+        {actionLabel}
+      </h2>
+      {nextEvent && (
+        <p class="mt-2 text-sm text-zinc-300">
+          {nextEvent.title} · {[nextEvent.city, nextEvent.venue].filter(Boolean).join(" · ")}
+          {nextEvent.phase === "live" && (
+            <span class="ml-2 text-[10px] font-black uppercase tracking-widest text-rose-300">
+              {lang === "pl" ? "TRWA TERAZ" : "LIVE NOW"}
+            </span>
+          )}
+        </p>
+      )}
+      {action === "continue_synesthesia" && (
+        <p class="mt-2 text-sm text-zinc-300">
+          {synesthesia.completed
+            ? lang === "pl" ? "Podróż ukończona." : "Journey completed."
+            : `${Math.max(0, synesthesia.rooms_completed)}/11 ${lang === "pl" ? "pokojów" : "rooms"}`}
+        </p>
+      )}
+      <div class="mt-5">
         <a
-          href={pagePath(lang, "/area/")}
-          class="virya-panel group flex min-h-[96px] items-center justify-between p-5 hover:border-amber-400/50"
+          href={ctaHref}
+          class="virya-button virya-button--primary min-h-[48px] px-6 text-[11px]"
         >
-          <span class="text-sm font-black uppercase tracking-widest text-white group-hover:text-amber-400">
-            {copy.openArea}
-          </span>
-          <span class="text-2xl text-amber-400" aria-hidden="true">
-            →
-          </span>
-        </a>
-        <a
-          href={pagePath(lang, "/merch/")}
-          class="group flex min-h-[96px] items-center justify-between bg-amber-400 p-5 hover:bg-amber-300"
-        >
-          <span class="text-sm font-black uppercase tracking-widest text-black">
-            {copy.openStore}
-          </span>
-          <span class="text-2xl text-black" aria-hidden="true">
-            →
-          </span>
+          {ctaLabel} <span aria-hidden="true">→</span>
         </a>
       </div>
-    </div>
+    </section>
   )
 }
 
