@@ -47,6 +47,14 @@ const { lang = "en" } = Astro.props
           {t(lang, "hero.getInTouch")}
         </a>.
       </p>
+      <p class="mt-3 text-xs text-zinc-400 [text-shadow:0_1px_8px_rgba(0,0,0,.9)]">
+        {lang === "pl"
+          ? "Koncerty i alerty w Twoim mieście — "
+          : "Show alerts in your city — "}
+        <a href={lp(lang, "/signal/")} class="text-amber-300 underline underline-offset-4 transition-colors hover:text-amber-200">
+          {lang === "pl" ? "Dołącz do Sygnału" : "Join Signal"}
+        </a>.
+      </p>
     </div>
   </div>
 </div>

@@ -1,5 +1,5 @@
 ---
-import type { Lang } from "../i18n/t"
+import { lp, type Lang } from "../i18n/t"
 
 interface Props {
   lang?: Lang
@@ -87,12 +87,20 @@ const text = lang === "pl"
       </div>
 
       {compact && (
-        <a
-          href="https://synesthesia.virya.music/?source=virya-home-leaderboard"
-          class="inline-flex min-h-[44px] items-center justify-center border border-cyan-300/25 px-5 py-3 text-[9px] font-black uppercase tracking-[.17em] text-cyan-200 transition-colors hover:border-cyan-200 hover:text-white"
-        >
-          {text.cta} <span class="ml-2" aria-hidden="true">↗</span>
-        </a>
+        <div class="flex flex-wrap gap-3">
+          <a
+            href="https://synesthesia.virya.music/?source=virya-home-leaderboard"
+            class="inline-flex min-h-[44px] items-center justify-center border border-cyan-300/25 px-5 py-3 text-[9px] font-black uppercase tracking-[.17em] text-cyan-200 transition-colors hover:border-cyan-200 hover:text-white"
+          >
+            {text.cta} <span class="ml-2" aria-hidden="true">↗</span>
+          </a>
+          <a
+            href={lp(lang, "/signal/")}
+            class="inline-flex min-h-[44px] items-center justify-center border border-amber-400/30 px-5 py-3 text-[9px] font-black uppercase tracking-[.17em] text-amber-200 transition-colors hover:border-amber-300 hover:text-white"
+          >
+            {lang === "pl" ? "Dołącz do Sygnału" : "Join Signal"} <span class="ml-2" aria-hidden="true">→</span>
+          </a>
+        </div>
       )}
     </div>
   </div>

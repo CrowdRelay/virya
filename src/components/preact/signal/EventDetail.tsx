@@ -610,6 +610,8 @@ function CheckinPanel({
   onRetry: () => void
 }) {
   const copy = SIGNAL_COPY[lang].event
+  const [inlineEmail, setInlineEmail] = useState("")
+  const [inlineState, setInlineState] = useState<"idle" | "sending" | "sent" | "error">("idle")
   const success = state === "success" || state === "duplicate"
   const body =
     state === "working"
@@ -625,6 +627,25 @@ function CheckinPanel({
               : state === "full"
                 ? copy.checkinFull
                 : copy.checkinError
+
+  async function submitInlineSignup(event: Event) {
+    event.preventDefault()
+    const email = inlineEmail.trim()
+    if (!email || inlineState === "sending") return
+    setInlineState("sending")
+    try {
+      const response = await fetch("/api/signal-preregister", {
+        method: "POST",
+        signal: AbortSignal.timeout(12_000),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, locale: lang }),
+      })
+      if (!response.ok) throw new Error("preregister failed")
+      setInlineState("sent")
+    } catch {
+      setInlineState("error")
+    }
+  }
 
   return (
     <section
@@ -647,21 +668,53 @@ function CheckinPanel({
           }`}
           aria-hidden="true"
         />
-        <div>
+        <div class="w-full">
           <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">
             {copy.checkinBonus}
           </p>
           <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-200">
             {body}
           </p>
-          {state === "login" && (
-            <a
-              href={pagePath(lang, "/signal/#join-signal")}
-              class="virya-button virya-button--primary mt-4"
-            >
-              {copy.checkinJoin}
-            </a>
-          )}
+          {state === "login" && inlineState === "sent" ? (
+            <p class="mt-3 border-l-2 border-emerald-400 bg-emerald-400/[.04] p-3 text-xs font-semibold text-emerald-200">
+              {copy.checkinInlineSent}
+            </p>
+          ) : state === "login" ? (
+            <form onSubmit={submitInlineSignup} class="mt-4 grid gap-3 sm:max-w-md">
+              <p class="text-xs leading-relaxed text-zinc-300">
+                {copy.checkinInlineEmail}
+              </p>
+              <div class="flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="email"
+                  required
+                  inputMode="email"
+                  autoComplete="email"
+                  maxLength={254}
+                  placeholder={copy.checkinInlinePlaceholder}
+                  class="virya-input min-h-[44px] flex-1 text-sm"
+                  value={inlineEmail}
+                  onInput={event => setInlineEmail(event.currentTarget.value)}
+                />
+                <button
+                  type="submit"
+                  disabled={inlineState === "sending"}
+                  class="virya-button virya-button--primary min-h-[44px] shrink-0 px-4 disabled:cursor-wait"
+                >
+                  {inlineState === "sending" ? copy.checkinInlineSending : copy.checkinInlineSubmit}
+                </button>
+              </div>
+              {inlineState === "error" && (
+                <p class="text-xs text-rose-300">{copy.checkinInlineError}</p>
+              )}
+              <a
+                href={pagePath(lang, "/signal/#join-signal")}
+                class="text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-amber-400"
+              >
+                {copy.checkinJoin} →
+              </a>
+            </form>
+          ) : null}
           {state === "error" && (
             <button
               type="button"

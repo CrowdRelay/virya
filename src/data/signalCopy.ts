@@ -108,6 +108,8 @@ export interface SignalCopy {
     allUnlocked: string
     copyLink: string
     linkCopied: string
+    referralPreview: string
+    referralShare: string
     draws: string
     noDraws: string
     drawEntries: (count: number) => string
@@ -177,6 +179,12 @@ export interface SignalCopy {
     checkinError: string
     checkinBonus: string
     checkinJoin: string
+    checkinInlineEmail: string
+    checkinInlinePlaceholder: string
+    checkinInlineSubmit: string
+    checkinInlineSending: string
+    checkinInlineSent: string
+    checkinInlineError: string
     share: string
     shared: string
     tickets: string
@@ -358,6 +366,8 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       allUnlocked: "All currently available referral rewards are unlocked.",
       copyLink: "Share Signal",
       linkCopied: "Referral link copied",
+      referralPreview: "Refer a friend → 10% merch discount for you both. More referrals unlock draws and physical rewards.",
+      referralShare: "Share via",
       draws: "Active draws",
       noDraws: "There are no active draws right now. Your referrals remain counted for future actions.",
       drawEntries: count => `${count} ${count === 1 ? "entry" : "entries"}`,
@@ -432,6 +442,12 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       checkinError: "We could not confirm the check-in. Keep this page open and try again.",
       checkinBonus: "Concert check-in",
       checkinJoin: "Activate Signal",
+      checkinInlineEmail: "Enter your email to activate Signal and finish check-in. We'll send you a confirmation link.",
+      checkinInlinePlaceholder: "your@email.com",
+      checkinInlineSubmit: "Activate & check in",
+      checkinInlineSending: "Sending…",
+      checkinInlineSent: "Sent! Check your email to confirm. Your check-in will complete automatically when you return.",
+      checkinInlineError: "Something went wrong. Try again or go to the Signal page to join.",
       share: "Share",
       shared: "Shared",
       tickets: "Tickets",
@@ -630,6 +646,8 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       allUnlocked: "Wszystkie dostępne teraz nagrody poleceń są odblokowane.",
       copyLink: "Udostępnij Sygnał",
       linkCopied: "Link polecający skopiowany",
+      referralPreview: "Poleć znajomemu → 10% zniżki w merchu dla was obu. Kolejne polecenia odblokowują losowania i nagrody fizyczne.",
+      referralShare: "Udostępnij przez",
       draws: "Aktywne losowania",
       noDraws: "Teraz nie trwa żadne losowanie. Twoje potwierdzone polecenia nadal liczą się do kolejnych akcji.",
       drawEntries: count => `${count} ${count === 1 ? "los" : count < 5 ? "losy" : "losów"}`,
@@ -704,6 +722,12 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       checkinError: "Nie udało się potwierdzić obecności. Zostaw tę stronę otwartą i spróbuj ponownie.",
       checkinBonus: "Check-in koncertowy",
       checkinJoin: "Dołącz do Sygnału",
+      checkinInlineEmail: "Wpisz e-mail, aby aktywować Sygnał i dokończyć check-in. Wyślemy Ci link potwierdzający.",
+      checkinInlinePlaceholder: "twoj@email.com",
+      checkinInlineSubmit: "Aktywuj i sprawdź",
+      checkinInlineSending: "Wysyłam…",
+      checkinInlineSent: "Wysłane! Sprawdź maila, aby potwierdzić. Check-in dokończy się automatycznie, gdy wrócisz.",
+      checkinInlineError: "Coś poszło nie tak. Spróbuj ponownie albo wejdź na stronę Sygnału.",
       share: "Udostępnij",
       shared: "Udostępniono",
       tickets: "Bilety",

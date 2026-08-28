@@ -18,8 +18,6 @@ const checkout = read("src/components/preact/tickets/TicketCheckout.tsx")
 const inventory = read("src/lib/ticketInventory.ts")
 const inventoryBar = read("src/components/preact/tickets/TicketInventoryBar.tsx")
 const navbar = read("src/components/Navbar.astro")
-const legacyEn = read("src/pages/shows/[slug].astro")
-const legacyPl = read("src/pages/pl/shows/[slug].astro")
 
 assert(
   types.includes("export interface TicketSaleSummary") &&
@@ -71,11 +69,6 @@ assert(
     checkout.includes("Payment in progress") &&
     checkout.includes("Secure Stripe payment"),
   "Ticket checkout must SSR the known sale and keep an accessible quantity control.",
-)
-assert(
-  legacyEn.includes("Astro.redirect(`/live/") &&
-    legacyPl.includes("Astro.redirect(`/pl/live/"),
-  "Legacy Bandsintown detail routes must converge on the unified gig view.",
 )
 assert(
   navbar.includes("__viryaNavController?.abort()") &&

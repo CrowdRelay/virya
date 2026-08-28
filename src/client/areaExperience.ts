@@ -156,6 +156,12 @@ const initAreaExperience = () => {
     const migrationNotice = root.querySelector<HTMLElement>("[data-migration-notice]")
     const claimButton = root.querySelector<HTMLButtonElement>("[data-claim-button]")
     const claimAuthRequired = root.querySelector<HTMLElement>("[data-claim-auth-required]")
+    const claimAuthText = root.querySelector<HTMLElement>("[data-claim-auth-text]")
+    const claimAuthLink = root.querySelector<HTMLElement>("[data-claim-auth-link]")
+    const claimInlineForm = root.querySelector<HTMLFormElement>("[data-claim-inline-signup]")
+    const claimInlineEmail = root.querySelector<HTMLInputElement>("[data-claim-inline-email]")
+    const claimInlineButton = root.querySelector<HTMLButtonElement>("[data-claim-inline-button]")
+    const claimInlineStatus = root.querySelector<HTMLElement>("[data-claim-inline-status]")
     const claimStatus = root.querySelector<HTMLElement>("[data-claim-status]")
     let selectedId =
       buttons.find(button => button.dataset.live === "true")?.dataset.dropId ||
@@ -199,7 +205,19 @@ const initAreaExperience = () => {
           claimed
       }
       if (claimAuthRequired) {
-        claimAuthRequired.hidden = !profileResolved || isAuthenticated
+        const showAuth = !profileResolved || isAuthenticated
+        claimAuthRequired.hidden = showAuth
+        // When auth is required (not authenticated), show the inline signup form
+        // and hide the plain text + link. When authenticated, hide the form.
+        if (!showAuth) {
+          if (claimAuthText) claimAuthText.hidden = true
+          if (claimAuthLink) claimAuthLink.hidden = true
+          if (claimInlineForm) claimInlineForm.classList.remove("hidden")
+        } else {
+          if (claimAuthText) claimAuthText.hidden = false
+          if (claimAuthLink) claimAuthLink.hidden = false
+          if (claimInlineForm) claimInlineForm.classList.add("hidden")
+        }
       }
       if (!claimStatus) return
       if (!profileResolved) {
@@ -218,6 +236,44 @@ const initAreaExperience = () => {
       ) {
         claimStatus.textContent = ""
       }
+    }
+
+    // Inline Signal signup from the AREA claim panel — when an
+    // unauthenticated player tries to claim, they can enter their email
+    // right here instead of navigating to a separate page.
+    if (claimInlineForm) {
+      claimInlineForm.addEventListener("submit", async (event) => {
+        event.preventDefault()
+        const email = claimInlineEmail?.value.trim()
+        if (!email) return
+        if (claimInlineButton) claimInlineButton.disabled = true
+        if (claimInlineStatus) {
+          claimInlineStatus.classList.remove("hidden")
+          claimInlineStatus.textContent = copy.claimInlineSending
+        }
+        try {
+          const response = await fetch("/api/signal-preregister", {
+            method: "POST",
+            signal: AbortSignal.timeout(12_000),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, locale: lang }),
+          })
+          if (!response.ok) throw new Error("preregister failed")
+          if (claimInlineStatus) {
+            claimInlineStatus.textContent = copy.claimInlineSent
+          }
+          if (claimInlineForm) {
+            // Disable the form after successful submit
+            const input = claimInlineForm.querySelector("input")
+            if (input) input.disabled = true
+          }
+        } catch {
+          if (claimInlineStatus) {
+            claimInlineStatus.textContent = copy.claimInlineError
+          }
+          if (claimInlineButton) claimInlineButton.disabled = false
+        }
+      })
     }
 
     const renderCommunity = (data: any) => {

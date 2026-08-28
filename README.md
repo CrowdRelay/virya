@@ -11,6 +11,9 @@ The site turns Virya's music, shows, merch and fan experiences into the band's p
 - ticket reservations and webhook reconciliation backed by CrowdRelay;
 - VIRYA AREA browser game;
 - Virya Signal fan registration, consent, referrals and event interest;
+- fanbase growth: CrowdRelay's deterministic brain dispatches LLM workers
+  (Reddit scanning, press pitches, social posts, community engagement) and
+  tracks Reddit post metrics via authenticated scraping;
 - Synesthesia entry points and staff-side draw configuration;
 - admission-pass and concert check-in flows;
 - private staff panel for concert operations;
