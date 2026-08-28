@@ -7,7 +7,7 @@
   ignore = "exit 0"
 
 [build.environment]
-  NODE_VERSION = "22"
+  NODE_VERSION = "24"
 
 # Security headers live in public/_headers (single source of truth); on conflict
 # Netlify's _headers wins, so they are not duplicated here.
