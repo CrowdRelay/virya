@@ -282,7 +282,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
       const expectedPriceGrossMinor = Number(item.expectedPriceGrossMinor)
       if (
-        item.expectedPriceGrossMinor !== undefined &&
+        item.expectedPriceGrossMinor != null &&
         (!Number.isInteger(expectedPriceGrossMinor) ||
           expectedPriceGrossMinor < 0 ||
           expectedPriceGrossMinor !== authoritativePriceMinor)

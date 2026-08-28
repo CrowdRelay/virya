@@ -542,6 +542,16 @@ async function joinSignalFan(input: {
   const base = readServerEnv("PUBLIC_CROWDRELAY_API_URL", import.meta.env.PUBLIC_CROWDRELAY_API_URL)
     ?? "https://signal-api.virya.music/v1/"
   const url = new URL(base)
+  const localHttp = import.meta.env.DEV && url.protocol === "http:"
+  if (
+    (url.protocol !== "https:" && !localHttp) ||
+    url.username ||
+    url.password
+  ) {
+    throw new Error("Invalid CrowdRelay base URL")
+  }
+  url.hash = ""
+  url.search = ""
   url.pathname = `${url.pathname.replace(/\/+$/, "")}/fans`
   try {
     const response = await fetch(url, {
