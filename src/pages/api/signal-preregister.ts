@@ -50,7 +50,19 @@ const crowdRelayBaseUrl = () => {
     typeof configured === "string" && configured.trim()
       ? configured.trim()
       : "https://signal-api.virya.music/v1/"
-  return new URL(value)
+  const url = new URL(value)
+  const localHttp = import.meta.env.DEV && url.protocol === "http:"
+  if (
+    (url.protocol !== "https:" && !localHttp) ||
+    url.username ||
+    url.password
+  ) {
+    throw new Error("Invalid CrowdRelay base URL")
+  }
+  url.hash = ""
+  url.search = ""
+  url.pathname = `${url.pathname.replace(/\/+$/, "")}/`
+  return url
 }
 
 export const POST: APIRoute = async ({ request }) => {

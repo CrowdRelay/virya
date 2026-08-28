@@ -50,15 +50,13 @@ const InpostGeowidget = ({ open, onClose, onSelect }) => {
     if (!open) return
     ensureAssets()
 
-    const check = setInterval(() => {
-      if (customElements.get("inpost-geowidget")) {
-        setScriptLoaded(true)
-        clearInterval(check)
-      }
-    }, 100)
-    const fallback = setTimeout(() => { setScriptLoaded(true); clearInterval(check) }, 5000)
+    let cancelled = false
+    const fallback = setTimeout(() => { if (!cancelled) setScriptLoaded(true) }, 5000)
+    customElements.whenDefined("inpost-geowidget").then(() => {
+      if (!cancelled) { setScriptLoaded(true); clearTimeout(fallback) }
+    })
 
-    return () => { clearInterval(check); clearTimeout(fallback) }
+    return () => { cancelled = true; clearTimeout(fallback) }
   }, [open])
 
   // Create the widget element imperatively so we can set the onpoint attribute
