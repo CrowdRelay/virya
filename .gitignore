@@ -98,7 +98,7 @@ docs/*
 !docs/ARCHITECTURE.md
 .env.local
 src/placeholders.json
-src/placeholders.json
+src/imageDimensions.json
 deploy-artifact/
 deploy-artifact-manifest.json
 release-provenance.json

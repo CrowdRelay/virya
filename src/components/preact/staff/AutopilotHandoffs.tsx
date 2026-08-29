@@ -23,6 +23,23 @@ export type PendingAction = {
   // an item as ordinary work promises an outcome the system cannot deliver.
   executor_ready?: boolean
   required_capability?: string | null
+  briefing?: ActionBriefing | null
+}
+
+type BriefingStep = {
+  what_to_do: string
+  why_it_matters: string
+}
+type BriefingField = {
+  label: string
+  value: string
+}
+type ActionBriefing = {
+  summary: string
+  why_it_matters: string
+  steps: BriefingStep[]
+  content: BriefingField[]
+  deadline_note: string
 }
 type TeamAssignee = {
   member_id: string
@@ -335,9 +352,129 @@ function AgentBoard({ feed }: { feed: AutopilotFeed }) {
   )
 }
 
+function ActionDetailModal({
+  item,
+  assignees,
+  busy,
+  onAssign,
+  onApprove,
+  onReject,
+  onClose,
+}: {
+  item: PendingAction
+  assignees: TeamAssignee[]
+  busy: string | null
+  onAssign: (item: PendingAction, memberKey: string) => void
+  onApprove: (item: PendingAction) => void
+  onReject: (item: PendingAction) => void
+  onClose: () => void
+}) {
+  const briefing = item.briefing
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [onClose])
+
+  return (
+    <div class="fixed inset-0 z-[10000] grid place-items-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label={`Szczegóły: ${humanAction(item.action_kind)}`} onClick={onClose}>
+      <div class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-amber-300/25 bg-zinc-950 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">{humanContext(item.context)} · {item.subject_kind}</p>
+            <h3 class="mt-2 text-xl font-black text-white">{humanAction(item.action_kind)}</h3>
+            {briefing && <p class="mt-2 text-lg text-zinc-100">{briefing.summary}</p>}
+          </div>
+          <button type="button" onClick={onClose} aria-label="Zamknij" class="min-h-[44px] min-w-[44px] rounded-xl border border-white/10 text-zinc-400 hover:text-white">✕</button>
+        </div>
+
+        {briefing && (
+          <>
+            <div class="mt-4 rounded-lg border border-amber-300/20 bg-amber-300/[.06] px-4 py-3">
+              <p class="text-xs font-black uppercase tracking-[0.14em] text-amber-200">Dlaczego to ważne</p>
+              <p class="mt-1 text-sm text-amber-100">{briefing.why_it_matters}</p>
+            </div>
+
+            {briefing.steps.length > 0 && (
+              <div class="mt-4">
+                <p class="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">Kroki</p>
+                <ol class="mt-2 grid gap-2">
+                  {briefing.steps.map((step, i) => (
+                    <li key={i} class="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
+                      <p class="text-sm text-zinc-100"><b class="text-amber-200">{i + 1}.</b> {step.what_to_do}</p>
+                      <p class="mt-1 text-xs text-zinc-500">{step.why_it_matters}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            {briefing.content.length > 0 && (
+              <div class="mt-4">
+                <p class="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">Treść</p>
+                <dl class="mt-2 grid gap-1">
+                  {briefing.content.map((field, i) => (
+                    <div key={i} class="rounded-lg border border-white/5 bg-black/20 px-3 py-2">
+                      <dt class="text-[10px] font-black uppercase tracking-[0.12em] text-zinc-500">{field.label}</dt>
+                      <dd class="mt-1 whitespace-pre-wrap break-words text-sm text-zinc-200">{field.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+
+            <p class="mt-4 text-sm text-zinc-400">{briefing.deadline_note}</p>
+          </>
+        )}
+
+        {item.executor_ready === false && (
+          <p class="mt-4 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
+            Akceptacja tylko trafi do kolejki — na razie żaden system nie
+            potrafi tej akcji wykonać automatycznie. Ktoś musi ją zrobić ręcznie.
+          </p>
+        )}
+
+        <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+          {assignees.length > 0 && (
+            <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">
+              PRZYPISZ
+              <select
+                aria-label={`Przypisz ${humanAction(item.action_kind)}`}
+                disabled={busy === item.id}
+                value={item.assignee?.member_key ?? ""}
+                onChange={event => void onAssign(item, event.currentTarget.value)}
+                class="bg-transparent text-xs font-bold normal-case tracking-normal text-zinc-100 outline-none"
+              >
+                {!item.assignee && (
+                  <>
+                    <option value="">wybierz…</option>
+                    <option value="auto">AUTO (równomiernie, wg umiejętności)</option>
+                  </>
+                )}
+                {assignees.map(person => (
+                  <option key={person.member_id} value={person.member_key}>{teamMemberLabel(person.display_name)}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          <button
+            type="button"
+            disabled={busy === item.id}
+            onClick={() => void onApprove(item)}
+            title={item.executor_ready === false ? "Zostanie zakolejkowane, ale nikt tego nie wykona" : undefined}
+            class={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-black disabled:opacity-50 ${item.executor_ready === false ? "border border-amber-300/40 bg-amber-300/20 text-amber-100" : "bg-emerald-300 text-zinc-950"}`}
+          >{busy === item.id ? "ZAPISUJĘ…" : item.executor_ready === false ? "AKCEPTUJ (TYLKO KOLEJKA)" : "AKCEPTUJ I PUŚĆ DALEJ"}</button>
+          <button type="button" disabled={busy === item.id} onClick={() => void onReject(item)} class="min-h-[44px] rounded-xl border border-rose-400/30 px-4 py-2 text-xs font-black text-rose-200 disabled:opacity-50">ODRZUĆ</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
   const { overview, loading, error, reload } = feed
   const { busy, error: mutationError, send } = useQueueMutation(reload)
+  const [selected, setSelected] = useState<PendingAction | null>(null)
 
   if (!overview && !loading && !error) return null
 
@@ -361,6 +498,7 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
 
   async function mutate(item: PendingAction, action: "approve" | "cancel") {
     await send(item, { action_id: item.id, operation: action }, "Nie udało się zapisać decyzji")
+    setSelected(null)
   }
 
   return (
@@ -389,11 +527,19 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
       )}
       <div class="mt-4 grid gap-3">
         {items.map(item => (
-          <article key={item.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
+          <article
+            key={item.id}
+            class="cursor-pointer rounded-lg border border-white/10 bg-black/30 p-4 transition hover:border-amber-300/30"
+            onClick={() => setSelected(item)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(item) } }}
+          >
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
                 <strong class="block text-white">{humanAction(item.action_kind)}</strong>
                 <p class="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">{humanContext(item.context)} · {item.subject_kind}</p>
+                {item.briefing && <p class="mt-2 text-sm text-zinc-300">{item.briefing.summary}</p>}
                 <p class="mt-2 text-sm text-zinc-300">
                   Owner: <b class="text-amber-200">{item.assignee ? teamMemberLabel(item.assignee.display_name) : "przypisuję…"}</b>
                   {" · "}deadline: {date(item.assignment_due_at ?? item.approval_expires_at)}
@@ -404,8 +550,9 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
                     potrafi tej akcji wykonać automatycznie. Ktoś musi ją zrobić ręcznie.
                   </p>
                 )}
+                <p class="mt-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-600">Kliknij po szczegóły →</p>
               </div>
-              <div class="flex flex-wrap items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
                 {assignees.length > 0 && (
                   <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">
                     PRZYPISZ
@@ -442,6 +589,18 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
         ))}
         {!loading && !error && items.length === 0 && <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Nic nie wymaga teraz ręcznej decyzji.</p>}
       </div>
+
+      {selected && (
+        <ActionDetailModal
+          item={selected}
+          assignees={assignees}
+          busy={busy}
+          onAssign={assign}
+          onApprove={item => void mutate(item, "approve")}
+          onReject={item => void mutate(item, "cancel")}
+          onClose={() => setSelected(null)}
+        />
+      )}
 
       <AgentBoard feed={feed} />
 
