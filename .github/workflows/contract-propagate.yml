@@ -137,9 +137,7 @@ jobs:
           - Contract test passes with the updated marker
 
           **OpenAPI SHA256:** \`${{ steps.sha.outputs.sha }}\`
-          **Trigger:** ${{ github.event_name }}
-
-          Generated with [Devin](https://devin.ai)"
+          **Trigger:** ${{ github.event_name }}"
           else
             PR_BODY="## Summary
 
@@ -154,9 +152,7 @@ jobs:
           This usually means a capability was added, removed, or renamed in
           CrowdRelay's OpenAPI spec. Check the contract test output for details
           and update the relevant markers in \`crowdrelay-client.ts\` or
-          \`crowdrelayArea.ts\`.
-
-          Generated with [Devin](https://devin.ai)"
+          \`crowdrelayArea.ts\`."
           fi
 
           EXISTING_PR=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)

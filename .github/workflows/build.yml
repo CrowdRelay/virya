@@ -176,9 +176,6 @@ jobs:
     # Routine main pushes promote automatically: green CI now means the exact,
     # provenance-verified artifact is live on production. workflow_dispatch
     # remains available for deliberate re-promotion of an older artifact.
-    # Routine main pushes promote automatically: green CI means the exact,
-    # provenance-verified artifact is live on production. workflow_dispatch
-    # remains for deliberate re-promotion of an older artifact.
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
