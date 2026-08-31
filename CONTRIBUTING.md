@@ -7,8 +7,8 @@ Before opening a pull request run:
 ```sh
 npm ci
 npm test
+npm run security:audit
 npm run build
-npm run budget:build
 ```
 
 New failure-prone integrations need a bounded timeout, an abort path, a degraded-state UI and a contract test. Private capability pages must remain `no-store`, absent from search indexing and outside service-worker HTML caching.
