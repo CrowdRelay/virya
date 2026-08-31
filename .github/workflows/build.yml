@@ -47,6 +47,7 @@ jobs:
         run: npm run build
         env:
           CI: "true"
+          VIRYA_SOURCE_SHA: ${{ github.sha }}
       - name: Purge stale artifacts before upload
         # Actions storage quota is account-wide and recalculated every 6-12h.
         # Old virya-netlify-* artifacts from previous main pushes linger until
@@ -129,12 +130,9 @@ jobs:
             scripts/write_release_provenance.py
           retention-days: 7
 
-  deploy:
-    name: Promote exact build artifact to Netlify
+  candidate:
+    name: Deploy candidate to Netlify alias
     needs: build
-    # Routine main pushes promote automatically: green CI now means the exact,
-    # provenance-verified artifact is live on production. workflow_dispatch
-    # remains available for deliberate re-promotion of an older artifact.
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -205,6 +203,103 @@ jobs:
           print("VIRYA_NETLIFY_ZERO_BUILD=PASS source_builds=stopped deploy=artifact-promotion")
           PY
 
+      - name: Setup Node.js for Netlify CLI
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Deploy candidate to Netlify alias
+        id: candidate
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deploy_output="$(npx --yes netlify-cli@26.2.0 deploy \
+            --alias=candidate \
+            --no-build \
+            --dir=promoted/deploy-artifact/site \
+            --functions=promoted/deploy-artifact/functions \
+            --site="${NETLIFY_SITE_ID}" \
+            --auth="${NETLIFY_AUTH_TOKEN}" \
+            --message="GitHub Actions candidate ${GITHUB_SHA}")"
+          echo "${deploy_output}"
+          candidate_url="$(echo "${deploy_output}" | grep -oE 'https://[^ ]+--[^ ]+\.netlify\.app' | head -1)"
+          [[ -n "${candidate_url}" ]] || { echo "Failed to extract candidate URL from deploy output" >&2; exit 1; }
+          echo "url=${candidate_url}" >> "${GITHUB_OUTPUT}"
+          echo "VIRYA_CANDIDATE_DEPLOY=PASS url=${candidate_url}"
+
+      - name: Soak test candidate for 60 seconds
+        env:
+          CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${CANDIDATE_URL}" ]]
+          deadline=$((SECONDS + 60))
+          attempt=0
+          while [[ ${SECONDS} -lt ${deadline} ]]; do
+            attempt=$((attempt + 1))
+            code="$(curl --proto '=https' --tlsv1.2 --silent --show-error \
+              --max-time 10 --write-out '%{http_code}' \
+              "${CANDIDATE_URL}/" -o "${RUNNER_TEMP}/candidate-home.html" || true)"
+            if [[ "${code}" == "200" ]] && grep -qi '<html' "${RUNNER_TEMP}/candidate-home.html"; then
+              echo "VIRYA_CANDIATE_SOAK=PASS attempt=${attempt} code=${code}"
+              exit 0
+            fi
+            echo "Soak attempt ${attempt}: code=${code}, retrying in 5s..."
+            sleep 5
+          done
+          echo "VIRYA_CANDIDATE_SOAK=FAIL attempts=${attempt} last_code=${code}" >&2
+          exit 1
+
+  promote:
+    name: Promote exact build artifact to production
+    needs: candidate
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Download exact build artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: virya-netlify-${{ github.sha }}
+          path: promoted
+
+      - name: Extract deploy artifact archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s promoted/deploy-artifact.tar.zst
+          mkdir -p promoted/deploy-artifact
+          tar --zstd -xf promoted/deploy-artifact.tar.zst -C promoted/deploy-artifact
+          test -s promoted/deploy-artifact/site/index.html
+
+      - name: Verify immutable artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s promoted/deploy-artifact/site/index.html
+          test -n "$(find promoted/deploy-artifact/functions -type f -print -quit)"
+          python3 promoted/scripts/artifact_manifest.py verify \
+            promoted/deploy-artifact \
+            promoted/deploy-artifact-manifest.json \
+            --source-sha "${GITHUB_SHA}"
+          python3 - promoted/release-provenance.json "${GITHUB_SHA}" <<'PY'
+          import json, re, sys
+          data = json.load(open(sys.argv[1]))
+          if data.get("sourceSha") != sys.argv[2]: raise SystemExit("release provenance source mismatch")
+          for key in ("dependencyLockSha256", "artifactManifestSha256"):
+              if not re.fullmatch(r"[0-9a-f]{64}", str(data.get(key, ""))):
+                  raise SystemExit(f"invalid {key}")
+          print("VIRYA_DEPLOY_PROVENANCE=PASS source=" + data["sourceSha"] + " rebuild=false")
+          PY
+
       - name: Refuse stale production promotion
         id: freshness
         env:
@@ -230,7 +325,24 @@ jobs:
         with:
           node-version: 24
 
-      - name: Deploy exact prebuilt artifact
+      - name: Capture previous production deploy ID
+        id: previous
+        if: steps.freshness.outputs.current == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deploys_json="$(curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+            "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/deploys?per_page=1")"
+          previous_id="$(echo "${deploys_json}" | jq -r '.[0].id // empty')"
+          [[ -n "${previous_id}" ]] || { echo "Failed to capture previous production deploy ID" >&2; exit 1; }
+          echo "deploy_id=${previous_id}" >> "${GITHUB_OUTPUT}"
+          echo "VIRYA_PREVIOUS_DEPLOY=${previous_id}"
+
+      - name: Deploy exact prebuilt artifact to production
         if: steps.freshness.outputs.current == 'true'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -246,6 +358,7 @@ jobs:
             --site="${NETLIFY_SITE_ID}" \
             --auth="${NETLIFY_AUTH_TOKEN}" \
             --message="GitHub Actions artifact ${GITHUB_SHA}"
+          echo "VIRYA_PREVIOUS_DEPLOY_ID=${{ steps.previous.outputs.deploy_id }}" >> "${GITHUB_ENV}"
 
       - name: Verify production Android App Links
         if: steps.freshness.outputs.current == 'true'

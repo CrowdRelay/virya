@@ -1,6 +1,7 @@
 import { defineMiddleware } from "astro:middleware"
 
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9._:-]{8,128}$/
+const SOURCE_SHA = process.env.VIRYA_SOURCE_SHA?.trim() || "dev"
 
 const SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
@@ -93,6 +94,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   headers.set("X-Request-ID", id)
+  headers.set("X-Virya-Source-Sha", SOURCE_SHA)
   headers.set("Server-Timing", `app;dur=${Math.max(0, performance.now() - startedAt).toFixed(1)}`)
 
   // Netlify's static _headers file does not apply to Functions. Preserve

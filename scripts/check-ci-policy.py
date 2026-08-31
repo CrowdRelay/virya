@@ -60,8 +60,11 @@ else:
             failures.append(f".github/workflows/build.yml: dependency-security contract missing: {contract}")
     if build_text.count("npm run security:audit") != 1:
         failures.append(".github/workflows/build.yml: dependency audit must have exactly one per-change owner")
-    if build_text.count("npm ci --prefer-offline --no-audit --fund=false") != 1:
+    if build_text.count("npm ci --prefer-offline --no-audit --no-fund") != 1:
         failures.append(".github/workflows/build.yml: per-change workflow must install dependencies exactly once")
+    for contract in ("--alias=candidate", "needs: candidate", "environment: production"):
+        if contract not in build_text:
+            failures.append(f".github/workflows/build.yml: candidate promotion contract missing: {contract}")
 
 security_workflow = workflow_dir / "security.yml"
 if not security_workflow.exists():
@@ -83,9 +86,21 @@ else:
     if "github.ref" not in security_text and "concurrency:" in security_text:
         failures.append(".github/workflows/security.yml: concurrency must not collapse unrelated refs")
 
+rollback_workflow = workflow_dir / "rollback.yml"
+if not rollback_workflow.exists():
+    failures.append(".github/workflows/rollback.yml: rollback workflow is required")
+else:
+    rollback_text = rollback_workflow.read_text()
+    if "workflow_dispatch" not in rollback_text:
+        failures.append(".github/workflows/rollback.yml: rollback must be workflow_dispatch triggered")
+    if "restoreSiteDeploy" not in rollback_text:
+        failures.append(".github/workflows/rollback.yml: rollback must call restoreSiteDeploy API")
+    if "environment: production" not in rollback_text:
+        failures.append(".github/workflows/rollback.yml: rollback must gate on production environment")
+
 
 if failures:
     for failure in failures:
         print(f"CI_POLICY=FAIL {failure}", file=sys.stderr)
     raise SystemExit(1)
-print("CI_POLICY=PASS actions=sha-pinned netlify=source-build-disabled")
+print("CI_POLICY=PASS actions=sha-pinned netlify=source-build-disabled candidate-promotion=enabled")
