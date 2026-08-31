@@ -59,7 +59,7 @@ const schema = {
   operatingSystem: "Any",
   isAccessibleForFree: true,
   inLanguage: lang,
-  creator: { "@type": "MusicGroup", name: "Virya", url: "https://www.virya.music/" },
+  creator: { "@type": "MusicGroup", name: "Virya", url: "https://virya.music/" },
 }
 ---
 
@@ -68,7 +68,7 @@ const schema = {
   description={copy.meta.description}
   canonical={canonicalUrl}
   lang={lang}
-  ogImage="https://www.virya.music/poster.webp"
+  ogImage="https://virya.music/poster.webp"
 >
   <Fragment slot="head">
     {hreflangLinks.map(link => <link rel={link.rel} hreflang={link.hreflang} href={link.href} />)}

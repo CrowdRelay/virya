@@ -41,7 +41,7 @@ const coverSrcset = (responsiveSrcsets as Record<string, string>)[coverPath]
 const coverSizes = "(max-width: 1023px) calc(100vw - 3rem), 220px"
 ---
 
-<Layout title={title} description={description} canonical={canonicalUrl} lang={lang} ogImage={`https://www.virya.music/covers/${item.cover}`}>
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang} ogImage={`https://virya.music/covers/${item.cover}`}>
   <Fragment slot="head">
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
     <link rel="preload" as="image" href={coverPath} imagesrcset={coverSrcset} imagesizes={coverSizes} fetchpriority="high" />

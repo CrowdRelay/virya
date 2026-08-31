@@ -32,7 +32,7 @@ const displayText = lang === "pl" && item.text_pl ? item.text_pl : item.text
 const hasLyrics = (lyricsData as Array<{slug: string}>).some(l => l.slug === slug)
 ---
 
-<Layout title={title} description={description} canonical={canonicalUrl} lang={lang} ogImage={`https://www.virya.music/covers/${item.src}`}>
+<Layout title={title} description={description} canonical={canonicalUrl} lang={lang} ogImage={`https://virya.music/covers/${item.src}`}>
   <Fragment slot="head">
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
     <script type="application/ld+json" set:html={serializeJsonLd({
@@ -40,7 +40,7 @@ const hasLyrics = (lyricsData as Array<{slug: string}>).some(l => l.slug === slu
       "@type": item.type === "single" ? "MusicRecording" : "MusicAlbum",
       "name": item.title,
       "byArtist": { "@type": "MusicGroup", "name": "Virya" },
-      "image": `https://www.virya.music/covers/${item.src}`,
+      "image": `https://virya.music/covers/${item.src}`,
       ...(item.link ? { "url": item.link } : {}),
     })} />
   </Fragment>
