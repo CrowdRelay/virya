@@ -23,7 +23,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install locked dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false
+        run: npm ci --prefer-offline --no-audit --no-fund
       - name: Generate deterministic lock SBOM
         run: python3 scripts/generate_lock_sbom.py package-lock.json artifacts/virya-sbom.cdx.json
       - name: Upload dependency SBOM

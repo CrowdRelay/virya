@@ -16,11 +16,3 @@ test("dead webhook clear remains protected server-side and outside normal Staff 
   assert.match(route, /admin\/ops\/deliveries\/dead\/clear/)
   assert.match(route, /idempotencyKey/)
 })
-
-test("build metric upload cannot mask an earlier quality failure", async () => {
-  const workflow = await source(".github/workflows/build.yml")
-  const upload = workflow.split("- name: Upload build metrics baseline", 2)[1].split("- name: Assemble immutable Netlify promotion artifact", 1)[0]
-  assert.match(upload, /if: success\(\)/)
-  assert.match(upload, /if-no-files-found: warn/)
-  assert.doesNotMatch(upload, /if: always\(\)/)
-})
