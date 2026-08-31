@@ -40,7 +40,7 @@ const serializeJsonLd = (value: unknown) =>
 const fallbackTitle = `${copy.events.heading} | Virya`
 const title = event ? `${event.title} | Virya live` : fallbackTitle
 const description = event?.description ?? copy.events.body
-const canonical = `https://www.virya.music${lang === "pl" ? "/pl" : ""}/live/${encodeURIComponent(slug)}/`
+const canonical = `https://virya.music${lang === "pl" ? "/pl" : ""}/live/${encodeURIComponent(slug)}/`
 const activePrices = ticketSale?.ticket_types
   .filter(ticket => ticket.active && ticket.available > 0)
   .map(ticket => ticket.price_gross_minor / 100) ?? []

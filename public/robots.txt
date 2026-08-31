@@ -1,3 +1,4 @@
-Sitemap: https://www.virya.music/sitemap-index.xml
+Sitemap: https://virya.music/sitemap-index.xml
 User-agent: *
+Allow: /
 Disallow: 

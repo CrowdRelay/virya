@@ -575,7 +575,7 @@ export const translations = {
       story1:
         "Virya narodziła się w 2023 roku z buntu wobec utartych ścieżek. Założona przez gitarzystę Wojciecha Batora i perkusistę Jakuba Dąbrowskiego, postawiła sobie za cel burzenie gatunkowych granic — łącząc furię nowoczesnego metalcore'u z nieoczekiwanymi wpływami sięgającymi daleko poza metal. Techniczna precyzja, surowe emocje i nieustępliwa energia definiują to brzmienie. Można pomyśleć o Architects, Tesseract czy Twelve Foot Ninja, ale Virya wytycza własną drogę.",
       story2:
-        "Skład przybrał ostateczny kształt wraz z dołączeniem Marka Bieniasa na wokalu — żywiołu, którego sceniczna charyzma i potężny głos przeniosły zespół na nowy poziom. W 2024 roku basista Lubomyr Kosakovsky dopełnił skład, dodając brzmieniu jeszcze więcej masy i głębi.",
+        "Obecny rozdział VIRYI tworzą wokalista Marcin Janusiński, gitarzysta Wojciech Bator, perkusista Jakub Dąbrowski i basista Lubomyr Kosakovsky. Ten skład rozwija koncertowe brzmienie zespołu: precyzyjne, ciężkie i zbudowane tak, by na scenie niosło prawdziwą fizyczną energię.",
       story3:
         "Nazwa Virya to coś więcej niż nazwa — to deklaracja. Zakorzeniona w idei pozytywnej energii i niezłomnej woli, jest manifestem zespołu: każdy koncert musi być katharsis, wyzwoleniem czystej siły dzielonej między zespołem a publicznością. Ich muzyka niesie ciężar życiowych zmagań i buntowniczą wiarę, że zawsze można się ponad nie wznieść. No pain, no gain.",
       roles: {
