@@ -9,6 +9,7 @@ import {
   productLowStock,
   sizeLowStock,
   isBundle,
+  getProduct,
   SIZE_CHART,
   inventoryAvailability,
 } from "../../../data/products"
@@ -226,12 +227,22 @@ const ProductCard = ({ product, images, index = 0, inventory }) => {
         <p class={`mt-2 text-sm leading-6 text-zinc-400 ${bundle || product.spotifyId ? "mb-3" : "mb-4 flex-1"}`}>{blurb}</p>
 
         {bundle && Array.isArray(includes) && (
-          <ul class="mb-4 flex-1 space-y-1">
-            {includes.map((inc) => (
-              <li key={inc} class="flex items-center gap-2 text-[11px] text-zinc-300">
-                <span class="text-amber-400" aria-hidden="true">+</span>{inc}
-              </li>
-            ))}
+          <ul class="mb-4 flex-1 space-y-2">
+            {includes.map((inc, i) => {
+              const componentId = product.inventoryComponents?.[i]
+              const component = componentId ? getProduct(componentId) : null
+              const componentImg = component ? images[component.front] : null
+              return (
+                <li key={inc} class="flex items-center gap-2 text-[11px] text-zinc-300">
+                  {componentImg ? (
+                    <img src={componentImg} alt="" loading="lazy" decoding="async" width="28" height="28" class="w-7 h-7 object-cover flex-shrink-0 bg-zinc-900" />
+                  ) : (
+                    <span class="text-amber-400 flex-shrink-0" aria-hidden="true">+</span>
+                  )}
+                  <span>{inc}</span>
+                </li>
+              )
+            })}
           </ul>
         )}
 
