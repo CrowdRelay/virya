@@ -29,6 +29,10 @@ const imageUrl = (path: unknown) => {
     .split("/")
     .map(segment => encodeURIComponent(segment))
     .join("/")
+  // Absolute paths (starting with /) are site-root URLs, not /images/ paths.
+  // The merch image proxy on the website does the same: keys starting with "/"
+  // are used as-is, everything else gets /images/ prepended.
+  if (encoded.startsWith("/")) return `${STORE_ORIGIN}${encoded}`
   return `${STORE_ORIGIN}/images/${encoded}`
 }
 
