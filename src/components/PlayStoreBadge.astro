@@ -20,11 +20,29 @@ const height = size === "sm" ? 40 : 48
   aria-label={alt}
   style={`--badge-h:${height}px`}
 >
-  <svg viewBox="0 0 512 512" width={height * 0.85} height={height * 0.85} aria-hidden="true">
-    <path d="M266 249L90 18L90 256Z" fill="#EA4335"/>
-    <path d="M266 249L90 256L90 494Z" fill="#4285F4"/>
-    <path d="M266 249L424 256L90 18Z" fill="#FBBC04"/>
-    <path d="M266 249L90 494L424 256Z" fill="#34A853"/>
+  <svg viewBox="0 0 24 24" width={height * 0.85} height={height * 0.85} aria-hidden="true">
+    <defs>
+      <linearGradient id="gpBlue" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#00C2FF"/>
+        <stop offset="100%" stop-color="#0086E0"/>
+      </linearGradient>
+      <linearGradient id="gpGreen" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0%" stop-color="#00E37A"/>
+        <stop offset="100%" stop-color="#00C455"/>
+      </linearGradient>
+      <linearGradient id="gpAmber" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#FFD500"/>
+        <stop offset="100%" stop-color="#FFA800"/>
+      </linearGradient>
+      <linearGradient id="gpRed" x1="1" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#FF4B5C"/>
+        <stop offset="100%" stop-color="#E8232F"/>
+      </linearGradient>
+    </defs>
+    <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5Z" fill="url(#gpBlue)"/>
+    <path d="M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12Z" fill="url(#gpGreen)"/>
+    <path d="M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81Z" fill="url(#gpAmber)"/>
+    <path d="M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" fill="url(#gpRed)"/>
   </svg>
   <span class="play-store-text">
     <small>{lang === "pl" ? "Pobierz w" : "Get it on"}</small>
