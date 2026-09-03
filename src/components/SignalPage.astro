@@ -5,6 +5,7 @@ import Footer from "./Footer.astro"
 import ScrollToTop from "./ScrollToTop.astro"
 import SignalHub from "./preact/signal/SignalHub"
 import SynesthesiaLeaderboard from "./SynesthesiaLeaderboard.astro"
+import PlayStoreBadge from "./PlayStoreBadge.astro"
 import { SIGNAL_COPY } from "../data/signalCopy"
 import { getSeoTags } from "../utils/seo"
 import { lp, type Lang } from "../i18n/t"
@@ -104,6 +105,7 @@ const schema = {
               <a href={lp(lang, "/my-signal/")} class="virya-button virya-button--secondary">
                 {lang === "pl" ? "Mam już konto" : "I already joined"}
               </a>
+              <PlayStoreBadge lang={lang} />
             </div>
           </div>
 
