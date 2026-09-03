@@ -1,5 +1,6 @@
 ---
 import { lp, type Lang } from "../i18n/t"
+import PlayStoreBadge from "./PlayStoreBadge.astro"
 
 interface Props {
   lang?: Lang
@@ -100,6 +101,7 @@ const text = lang === "pl"
           >
             {lang === "pl" ? "Dołącz do Sygnału" : "Join Signal"} <span class="ml-2" aria-hidden="true">→</span>
           </a>
+          <PlayStoreBadge lang={lang} size="sm" appId="music.virya.synesthesia" />
         </div>
       )}
     </div>
