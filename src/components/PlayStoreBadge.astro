@@ -20,12 +20,11 @@ const height = size === "sm" ? 40 : 48
   aria-label={alt}
   style={`--badge-h:${height}px`}
 >
-  <svg viewBox="0 0 512 512" width={height * 0.85} height={height * 0.85} aria-hidden="true" fill="none">
-    <path d="M328.1 256L90.3 18.2C83.2 21.1 78 28.1 78 36.3v439.4c0 8.2 5.2 15.2 12.3 18.1L328.1 256Z" fill="#EA4335"/>
-    <path d="M342.3 172.4L265.8 248.9L342.3 325.4L424 256Z" fill="#FBBC04"/>
-    <path d="M328.1 256L90.3 493.8c2.9 1.2 6.1 1.9 9.5 1.9 4.3 0 8.4-1.2 12-3.3l312.1-180L424 256Z" fill="#34A853"/>
-    <path d="M90.3 18.2c-2.9 1.2-5.5 3.1-7.6 5.5L265.8 248.9L90.3 18.2Z" fill="#C1DAE8" opacity="0"/>
-    <path d="M265.8 248.9L82.7 23.7C80.1 26.7 78 30.8 78 36.3v439.4c0 5.5 2.1 9.6 4.7 12.6L265.8 248.9Z" fill="#4285F4"/>
+  <svg viewBox="0 0 512 512" width={height * 0.85} height={height * 0.85} aria-hidden="true">
+    <path d="M266 249L90 18L90 256Z" fill="#EA4335"/>
+    <path d="M266 249L90 256L90 494Z" fill="#4285F4"/>
+    <path d="M266 249L424 256L90 18Z" fill="#FBBC04"/>
+    <path d="M266 249L90 494L424 256Z" fill="#34A853"/>
   </svg>
   <span class="play-store-text">
     <small>{lang === "pl" ? "Pobierz w" : "Get it on"}</small>
