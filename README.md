@@ -2,22 +2,25 @@
 
 **Public website and operational frontend for VIRYA.**
 
-The site turns Virya's music, shows, merch and fan experiences into the band's public web surface. It owns presentation, server-side integration routes and the AREA game ledger; durable fan, consent, ticket, admission, draw and inventory state stays in [CrowdRelay](https://github.com/wojciechbator/crowdrelay).
+The site turns Virya's music, shows, merch and fan experiences into the band's public web surface. It owns presentation, server-side integration routes and the AREA game ledger; durable fan, consent, ticket, admission, draw and inventory state stays in [CrowdRelay](https://github.com/CrowdRelay/crowdrelay).
 
 ## Features
 
 - multilingual music, lyrics, video, gallery, press and live-event pages;
+- electronic press kit (EPK) page;
 - Stripe merch checkout with InPost delivery;
 - ticket reservations and webhook reconciliation backed by CrowdRelay;
 - VIRYA AREA browser game;
 - Virya Signal fan registration, consent, referrals and event interest;
 - fanbase growth: CrowdRelay's deterministic brain dispatches LLM workers
-  (Reddit scanning, press pitches, social posts, community engagement) and
-  tracks Reddit post metrics via authenticated scraping;
+  (Reddit scanning, press pitches, social posts, community engagement,
+  Discord/Telegram posting, audience research) and tracks Reddit post
+  metrics via authenticated scraping;
 - Synesthesia entry points and staff-side draw configuration;
 - admission-pass and concert check-in flows;
-- private staff panel for concert operations;
-- server-rendered routes for trusted integrations.
+- private staff panel for concert operations — accounting, beacons,
+  commerce, QR scanning, and device pairing;
+- server-rendered routes for trusted integrations (80 API routes at budget cap).
 
 The site is static-first: interactive code is limited to the surfaces that need it, while secrets and privileged integrations remain server-side.
 
