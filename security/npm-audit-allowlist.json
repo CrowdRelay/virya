@@ -37,6 +37,30 @@
         "20 minute CI timeout",
         "Netlify source builds disabled"
       ]
+    },
+    {
+      "package": "toml",
+      "version": "3.0.0",
+      "advisory": "GHSA-82X6-Q7MM-W9CF",
+      "reason": "Upstream has no patched release for the 3.x line. The package is transitive through Netlify zip-it-and-ship-it and only parses build-time TOML config, not user input.",
+      "compensatingControls": [
+        "locked dependency graph",
+        "no direct source import",
+        "20 minute CI timeout",
+        "immutable Netlify artifact promotion"
+      ]
+    },
+    {
+      "package": "toml",
+      "version": "3.0.0",
+      "advisory": "GHSA-V5MP-JGW5-2X6J",
+      "reason": "Upstream has no patched release for the 3.x line. The package is transitive through Netlify zip-it-and-ship-it and only parses build-time TOML config, not user input.",
+      "compensatingControls": [
+        "locked dependency graph",
+        "no direct source import",
+        "20 minute CI timeout",
+        "immutable Netlify artifact promotion"
+      ]
     }
   ]
 }
