@@ -155,9 +155,7 @@ const layout = ({
   buttonUrl?: string | null
   footer?: string | null
 }) => {
-  const cta = button && buttonUrl
-    ? `<p style="margin:30px 0"><a href="${escapeHtml(buttonUrl)}" style="display:inline-block;background:#84b4ac;color:#09090b;padding:16px 22px;text-decoration:none;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em">${escapeHtml(button)}</a></p>`
-    : ""
+  const cta = button && buttonUrl ? ctaButton(button, buttonUrl) : ""
   const footerBlock = footer
     ? `<p style="margin-top:34px;color:#71717a;font-size:12px;line-height:1.7">${footer}</p>`
     : ""
@@ -167,6 +165,11 @@ const layout = ({
 const paragraph = (value: string) => `<p>${escapeHtml(value)}</p>`
 const linkLine = (label: string, url: string) =>
   `<p>${escapeHtml(label)}:<br><a style="color:#fbbf24" href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>`
+
+/// The CTA button, isolated so a template can place it inside the body
+/// (above a QR fallback, for instance) rather than only at the bottom.
+const ctaButton = (label: string, url: string) =>
+  `<p style="margin:30px 0"><a href="${escapeHtml(url)}" style="display:inline-block;background:#84b4ac;color:#09090b;padding:16px 22px;text-decoration:none;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em">${escapeHtml(label)}</a></p>`
 
 type TicketPromoEvent = {
   title: string
@@ -228,6 +231,11 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
     // One label for both purposes. The button is the whole call to action, so
     // it says what it does rather than which of the two mails it arrived in.
     const button = isPolish ? "Nadaj Sygnał" : "Send a Signal"
+    // The button is the primary path — it opens the app on this phone. The QR
+    // below it is the cross-device fallback: scan from another phone that has
+    // the app installed. Placing the button first means the most common action
+    // is never below the fold on a phone screen.
+    const ctaHtml = ctaButton(button, url)
     // The confirmation URL used to be printed under the button as a
     // copy-this-address fallback, which is the address bar of a one-time
     // credential shown in full to anyone looking over a shoulder. The button
@@ -241,13 +249,12 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
       const qrLabel = isPolish
         ? "Zeskanuj w aplikacji Virya Signal"
         : "Scan in the Virya Signal app"
-      // What the button under it does, said before it is pressed. The QR is
-      // the other device's path; the button is this one's, and a fan deciding
-      // between them should not have to guess which is which.
-      const buttonExplainer = isPolish
-        ? "Przycisk poniżej otwiera Virya Signal na tym telefonie i wpuszcza Cię do środka. Przy pierwszym wejściu ustawisz PIN — szyfruje profil na urządzeniu i zostaje na nim. Bez aplikacji przycisk otworzy stronę Virya."
-        : "The button below opens Virya Signal on this phone and takes you straight in. On the first entry you set a PIN — it encrypts the profile on the device and never leaves it. Without the app installed, the button opens the Virya site instead."
-      qrBlock = `<div style="margin:28px 0;padding:20px;background:#fff;text-align:center"><p style="margin:0 0 14px;color:#09090b;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">${escapeHtml(qrLabel)}</p><img src="cid:virya-signal-confirmation-qr" width="240" height="240" alt="${escapeHtml(qrLabel)}" style="display:block;margin:auto;width:240px;height:240px" /></div>${paragraph(buttonExplainer)}`
+      // The QR is the other device's path. The button above is this one's,
+      // and a fan deciding between them should not have to guess which is which.
+      const qrExplainer = isPolish
+        ? "Kod QR poniżej działa z drugiego telefonu — zeskanuj go w aplikacji Virya Signal, by wejść na tym urządzeniu."
+        : "The QR below works from another device — scan it in the Virya Signal app to enter there."
+      qrBlock = `<div style="margin:28px 0;padding:20px;background:#fff;text-align:center"><p style="margin:0 0 14px;color:#09090b;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">${escapeHtml(qrLabel)}</p><img src="cid:virya-signal-confirmation-qr" width="240" height="240" alt="${escapeHtml(qrLabel)}" style="display:block;margin:auto;width:240px;height:240px" /></div>${paragraph(qrExplainer)}`
       attachments = [{
         filename: "virya-signal-access.gif",
         content: qrGif,
@@ -261,9 +268,9 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
       html: layout({
         eyebrow: isPolish ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL",
         title,
-        body: paragraph(hello) + paragraph(copy) + qrBlock,
-        button,
-        buttonUrl: url,
+        body: paragraph(hello) + paragraph(copy) + ctaHtml + qrBlock,
+        button: null,
+        buttonUrl: null,
       }),
       attachments,
     }

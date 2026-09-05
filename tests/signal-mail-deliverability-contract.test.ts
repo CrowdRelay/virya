@@ -75,10 +75,14 @@ test("session recovery receives dedicated transactional copy", () => {
 
 test("both access mails hand the fan to the app with one labelled button", () => {
   assert.match(endpoint, /"Nadaj Sygnał" : "Send a Signal"/)
-  // The button's effect is stated before it is pressed, and it sits after the
-  // QR: the QR is the other device's path, the button is this one's.
-  assert.match(endpoint, /buttonExplainer/)
-  assert.match(endpoint, /otwiera Virya Signal na tym telefonie/)
+  // The button is the primary CTA and sits above the QR. The QR is the
+  // cross-device fallback, and its explainer says so.
+  assert.match(endpoint, /qrExplainer/)
+  assert.match(endpoint, /Kod QR poniżej działa z drugiego telefonu/)
+  // The button is placed in the body before the QR block, not rendered by
+  // layout() as a trailing CTA.
+  assert.match(endpoint, /ctaButton\(button, url\)/)
+  assert.match(endpoint, /button: null,/)
   // The one-time confirmation URL is not printed under the button any more:
   // the button and the QR both carry it, and the plain-text part keeps it for
   // clients that refuse HTML.
