@@ -71,7 +71,14 @@ test("CrowdRelay mail time budgets fit the durable webhook retry window", () => 
 test("session recovery receives dedicated transactional copy", () => {
   assert.match(endpoint, /variables\.purpose\s*===\s*"session_recovery"/)
   assert.match(endpoint, /Odzyskaj dostęp — Virya Signal/)
-  assert.match(endpoint, /Otwórz mój Sygnał/)
+})
+
+test("both access mails hand the fan to the app with one labelled button", () => {
+  assert.match(endpoint, /"Nadaj Sygnał" : "Send a Signal"/)
+  // The one-time confirmation URL is not printed under the button any more:
+  // the button and the QR both carry it, and the plain-text part keeps it for
+  // clients that refuse HTML.
+  assert.doesNotMatch(endpoint, /footerLabel/)
 })
 
 test("Signal signup reports queued, cooldown and unknown delivery states honestly", () => {
@@ -87,6 +94,10 @@ test("Signal signup reports queued, cooldown and unknown delivery states honestl
 
 
 test("confirmation mail embeds a CID QR attachment for the mobile flow", () => {
+  // The QR is unconditional. It used to depend on a `confirmation_qr_payload`
+  // variable that no producer sends, so the block never rendered and the app's
+  // own "scan the code from the email" instruction pointed at nothing.
+  assert.match(endpoint, /confirmation_qr_payload, 4_096\) \?\? url/)
   assert.match(endpoint, /qrGifBuffer\(qrPayload\)/)
   assert.match(endpoint, /cid:\s*"virya-signal-confirmation-qr"/)
   assert.match(endpoint, /src="cid:virya-signal-confirmation-qr"/)

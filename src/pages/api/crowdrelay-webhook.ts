@@ -4,6 +4,7 @@ import { getStore } from "@netlify/blobs"
 import type { APIRoute } from "astro"
 import { VIRYA_SITE_ORIGIN } from "../../config"
 import { getSiteMailer } from "../../server/siteMailer"
+import { qrGifBuffer } from "../../server/ticketQr"
 import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
 
 const MAX_BODY_BYTES = 16 * 1024
@@ -84,6 +85,36 @@ const localePath = (locale: unknown, path: string) =>
     ? `/pl${path}`
     : path
 
+/// The one shape both access emails use to hand a fan back to the app.
+///
+/// The button is the whole call to action: on Android the App Link opens Virya
+/// Signal directly, and the site's confirm page offers the app again when the
+/// link lands in a browser instead. The QR beside it is the desktop path — a
+/// fan reading mail on a laptop scans it with the app's own scanner, which
+/// accepts this exact URL. Both carry the same one-time token, so neither is a
+/// second credential.
+///
+/// The QR travels as an inline `cid:` attachment rather than a hosted image:
+/// a remote `<img>` would send the token through the mail client's image proxy
+/// and into somebody else's request logs.
+const accessQrCid = "virya-signal-access@virya.music"
+
+const accessBlock = (url: string, isPolish: boolean) => `
+  <p style="margin:32px 0 20px"><a href="${url}" style="display:inline-block;background:#84b4ac;color:#09090b;padding:16px 22px;text-decoration:none;font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.12em">${isPolish ? "Nadaj Sygnał" : "Send a Signal"}</a></p>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr><td style="padding:16px;background:#fff;text-align:center">
+    <img src="cid:${accessQrCid}" width="180" height="180" alt="${isPolish ? "Kod QR do Virya Signal" : "Virya Signal QR code"}" style="display:block;width:180px;height:180px;image-rendering:pixelated" />
+  </td></tr></table>
+  <p style="color:#71717a;font-size:12px;line-height:1.6;margin-top:12px">${isPolish ? "Czytasz to na komputerze? Zeskanuj kod aparatem w Virya Signal." : "Reading this on a computer? Scan the code with the scanner in Virya Signal."}</p>`
+
+const accessQrAttachment = (url: string) => [
+  {
+    filename: "virya-signal.gif",
+    content: qrGifBuffer(url),
+    contentType: "image/gif",
+    cid: accessQrCid,
+  },
+]
+
 const sendConfirmation = async (data: Record<string, unknown>, eventId: string) => {
   const email = typeof data.email === "string" ? data.email.trim() : ""
   const token =
@@ -107,7 +138,8 @@ const sendConfirmation = async (data: Record<string, unknown>, eventId: string) 
     text: isPolish
       ? `${name ? `Cześć ${name}!\n\n` : "Cześć!\n\n"}Potwierdź adres, aby aktywować Sygnał Virya:\n${confirmationUrl}\n\nSygnał łączy koncerty, Grę Virya, nagrody i merch. Jeśli to nie Ty, zignoruj wiadomość.`
       : `${name ? `Hi ${name}!\n\n` : "Hi!\n\n"}Confirm your address to activate Virya Signal:\n${confirmationUrl}\n\nSignal connects Virya shows, AREA, rewards and merch. If this was not you, ignore this email.`,
-    html: `<!doctype html><html><body style="margin:0;background:#09090b;color:#e4e4e7;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto;padding:40px 24px"><p style="color:#84b4ac;font-size:12px;font-weight:800;letter-spacing:.18em">${isPolish ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL"}</p><h1 style="font-size:30px;line-height:1.05;color:#fff">${isPolish ? "Potwierdź swój sygnał" : "Confirm your signal"}</h1><p style="line-height:1.7">${isPolish ? "Jedno kliknięcie aktywuje prywatną przestrzeń fana: koncerty, Grę Virya, nagrody i merch w jednym miejscu." : "One click activates your private fan space: shows, AREA, rewards and merch in one ecosystem."}</p><p style="margin:32px 0"><a href="${confirmationUrl}" style="display:inline-block;background:#84b4ac;color:#09090b;padding:16px 22px;text-decoration:none;font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.12em">${isPolish ? "Aktywuj Sygnał" : "Activate Signal"}</a></p><p style="color:#71717a;font-size:12px;line-height:1.6">${isPolish ? "Jeśli przycisk nie działa, skopiuj adres:" : "If the button does not work, copy this address:"}<br>${confirmationUrl}</p></div></body></html>`,
+    attachments: accessQrAttachment(confirmationUrl),
+    html: `<!doctype html><html><body style="margin:0;background:#09090b;color:#e4e4e7;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto;padding:40px 24px"><p style="color:#84b4ac;font-size:12px;font-weight:800;letter-spacing:.18em">${isPolish ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL"}</p><h1 style="font-size:30px;line-height:1.05;color:#fff">${isPolish ? "Potwierdź swój sygnał" : "Confirm your signal"}</h1><p style="line-height:1.7">${isPolish ? "Jedno kliknięcie aktywuje prywatną przestrzeń fana: koncerty, Grę Virya, nagrody i merch w jednym miejscu." : "One click activates your private fan space: shows, AREA, rewards and merch in one ecosystem."}</p>${accessBlock(confirmationUrl, isPolish)}</div></body></html>`,
   })
 }
 
@@ -134,7 +166,8 @@ const sendSessionRecovery = async (data: Record<string, unknown>, eventId: strin
     text: isPolish
       ? `${name ? `Cześć ${name}!\n\n` : "Cześć!\n\n"}Otrzymujesz tę wiadomość, ponieważ poproszono o bezpieczny link dostępu do Twojego aktywnego profilu Virya Signal. Kliknij link poniżej, aby odzyskać dostęp:\n${recoveryUrl}\n\nTwój profil, bilety i nagrody czekają w aplikacji. Jeśli to nie Ty, zignoruj wiadomość.`
       : `${name ? `Hi ${name}!\n\n` : "Hi!\n\n"}You received this message because a secure access link was requested for your active Virya Signal profile. Click the link below to restore access:\n${recoveryUrl}\n\nYour profile, tickets and rewards are waiting in the app. If this was not you, ignore this email.`,
-    html: `<!doctype html><html><body style="margin:0;background:#09090b;color:#e4e4e7;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto;padding:40px 24px"><p style="color:#84b4ac;font-size:12px;font-weight:800;letter-spacing:.18em">${isPolish ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL"}</p><h1 style="font-size:30px;line-height:1.05;color:#fff">${isPolish ? "Odzyskaj dostęp do Sygnału" : "Restore access to Signal"}</h1><p style="line-height:1.7">${isPolish ? "Otrzymujesz tę wiadomość, ponieważ poproszono o bezpieczny link dostępu do aktywnego profilu Virya Signal. Jeśli to nie Ty, zignoruj wiadomość." : "You received this message because a secure access link was requested for an active Virya Signal profile. If this was not you, ignore this email."}</p><p style="margin:32px 0"><a href="${recoveryUrl}" style="display:inline-block;background:#84b4ac;color:#09090b;padding:16px 22px;text-decoration:none;font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.12em">${isPolish ? "Otwórz mój Sygnał" : "Open my Signal"}</a></p><p style="color:#71717a;font-size:12px;line-height:1.6">${isPolish ? "Jeśli przycisk nie działa, skopiuj adres:" : "If the button does not work, copy this address:"}<br>${recoveryUrl}</p></div></body></html>`,
+    attachments: accessQrAttachment(recoveryUrl),
+    html: `<!doctype html><html><body style="margin:0;background:#09090b;color:#e4e4e7;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto;padding:40px 24px"><p style="color:#84b4ac;font-size:12px;font-weight:800;letter-spacing:.18em">${isPolish ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL"}</p><h1 style="font-size:30px;line-height:1.05;color:#fff">${isPolish ? "Odzyskaj dostęp do Sygnału" : "Restore access to Signal"}</h1><p style="line-height:1.7">${isPolish ? "Otrzymujesz tę wiadomość, ponieważ poproszono o bezpieczny link dostępu do aktywnego profilu Virya Signal. Jeśli to nie Ty, zignoruj wiadomość." : "You received this message because a secure access link was requested for an active Virya Signal profile. If this was not you, ignore this email."}</p>${accessBlock(recoveryUrl, isPolish)}</div></body></html>`,
   })
 }
 

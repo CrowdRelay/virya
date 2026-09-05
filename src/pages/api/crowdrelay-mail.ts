@@ -225,16 +225,18 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
       : isPolish
         ? "Otrzymujesz tę wiadomość, ponieważ rozpoczęto zapis do Virya Signal. Kliknij przycisk poniżej, aby potwierdzić adres. Jeśli to nie Ty, zignoruj wiadomość."
         : "You received this message because a Virya Signal signup was started. Use the button below to confirm the address. If this was not you, ignore this email."
-    const button = sessionRecovery
-      ? isPolish ? "Otwórz mój Sygnał" : "Open my Signal"
-      : isPolish ? "Potwierdź adres" : "Confirm address"
-    const footerLabel = sessionRecovery
-      ? isPolish ? "Bezpieczny adres dostępu" : "Secure access address"
-      : isPolish ? "Adres potwierdzenia" : "Confirmation address"
-    const qrPayload = valueString(variables.confirmation_qr_payload, 4_096)
+    // One label for both purposes. The button is the whole call to action, so
+    // it says what it does rather than which of the two mails it arrived in.
+    const button = isPolish ? "Nadaj Sygnał" : "Send a Signal"
+    // The confirmation URL used to be printed under the button as a
+    // copy-this-address fallback, which is the address bar of a one-time
+    // credential shown in full to anyone looking over a shoulder. The button
+    // and the QR both carry it; the plain-text part still has it for clients
+    // that refuse HTML.
+    const qrPayload = valueString(variables.confirmation_qr_payload, 4_096) ?? url
     let qrBlock = ""
     let attachments: RenderedMail["attachments"]
-    if (qrPayload) {
+    {
       const qrGif = qrGifBuffer(qrPayload)
       const qrLabel = isPolish
         ? "Zeskanuj w aplikacji Virya Signal"
@@ -256,7 +258,6 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
         body: paragraph(hello) + paragraph(copy) + qrBlock,
         button,
         buttonUrl: url,
-        footer: `${footerLabel}:<br>${escapeHtml(url)}`,
       }),
       attachments,
     }
