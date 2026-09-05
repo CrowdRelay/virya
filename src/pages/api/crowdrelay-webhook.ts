@@ -111,6 +111,33 @@ const sendConfirmation = async (data: Record<string, unknown>, eventId: string) 
   })
 }
 
+const sendSessionRecovery = async (data: Record<string, unknown>, eventId: string) => {
+  const email = typeof data.email === "string" ? data.email.trim() : ""
+  const token =
+    typeof data.session_recovery_token === "string" ? data.session_recovery_token : ""
+  if (!email || !TOKEN.test(token)) throw new Error("invalid_session_recovery_payload")
+
+  const isPolish =
+    typeof data.locale === "string" && data.locale.toLowerCase().startsWith("pl")
+  const name = typeof data.display_name === "string" ? data.display_name.trim() : ""
+  const path = localePath(data.locale, "/signal/confirm")
+  const recoveryUrl = `${publicBaseUrl()}${path}#token=${encodeURIComponent(token)}`
+  const mailer = getSiteMailer()
+  if (!mailer) throw new Error("mailer_not_configured")
+
+  await mailer.send({
+    fromName: isPolish ? "Sygnał Virya" : "Virya Signal",
+    to: email,
+    replyTo: mailer.to,
+    idempotencyKey: `fan-session-recovery/${eventId}`,
+    subject: isPolish ? "Odzyskaj dostęp — Virya Signal" : "Restore access — Virya Signal",
+    text: isPolish
+      ? `${name ? `Cześć ${name}!\n\n` : "Cześć!\n\n"}Otrzymujesz tę wiadomość, ponieważ poproszono o bezpieczny link dostępu do Twojego aktywnego profilu Virya Signal. Kliknij link poniżej, aby odzyskać dostęp:\n${recoveryUrl}\n\nTwój profil, bilety i nagrody czekają w aplikacji. Jeśli to nie Ty, zignoruj wiadomość.`
+      : `${name ? `Hi ${name}!\n\n` : "Hi!\n\n"}You received this message because a secure access link was requested for your active Virya Signal profile. Click the link below to restore access:\n${recoveryUrl}\n\nYour profile, tickets and rewards are waiting in the app. If this was not you, ignore this email.`,
+    html: `<!doctype html><html><body style="margin:0;background:#09090b;color:#e4e4e7;font-family:Arial,sans-serif"><div style="max-width:600px;margin:auto;padding:40px 24px"><p style="color:#84b4ac;font-size:12px;font-weight:800;letter-spacing:.18em">${isPolish ? "VIRYA // SYGNAŁ" : "VIRYA // SIGNAL"}</p><h1 style="font-size:30px;line-height:1.05;color:#fff">${isPolish ? "Odzyskaj dostęp do Sygnału" : "Restore access to Signal"}</h1><p style="line-height:1.7">${isPolish ? "Otrzymujesz tę wiadomość, ponieważ poproszono o bezpieczny link dostępu do aktywnego profilu Virya Signal. Jeśli to nie Ty, zignoruj wiadomość." : "You received this message because a secure access link was requested for an active Virya Signal profile. If this was not you, ignore this email."}</p><p style="margin:32px 0"><a href="${recoveryUrl}" style="display:inline-block;background:#84b4ac;color:#09090b;padding:16px 22px;text-decoration:none;font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.12em">${isPolish ? "Otwórz mój Sygnał" : "Open my Signal"}</a></p><p style="color:#71717a;font-size:12px;line-height:1.6">${isPolish ? "Jeśli przycisk nie działa, skopiuj adres:" : "If the button does not work, copy this address:"}<br>${recoveryUrl}</p></div></body></html>`,
+  })
+}
+
 const sendWelcome = async (data: Record<string, unknown>, eventId: string) => {
   const email = typeof data.email === "string" ? data.email.trim() : ""
   const referralCode =
@@ -147,6 +174,9 @@ const handleEnvelope = async (envelope: Envelope) => {
   switch (envelope.type) {
     case "fan.confirmation_requested":
       await sendConfirmation(envelope.data, envelope.id)
+      return
+    case "fan.session_requested":
+      await sendSessionRecovery(envelope.data, envelope.id)
       return
     case "fan.confirmed":
       await sendWelcome(envelope.data, envelope.id)
