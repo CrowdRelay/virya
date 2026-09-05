@@ -75,6 +75,10 @@ test("session recovery receives dedicated transactional copy", () => {
 
 test("both access mails hand the fan to the app with one labelled button", () => {
   assert.match(endpoint, /"Nadaj Sygnał" : "Send a Signal"/)
+  // The button's effect is stated before it is pressed, and it sits after the
+  // QR: the QR is the other device's path, the button is this one's.
+  assert.match(endpoint, /buttonExplainer/)
+  assert.match(endpoint, /otwiera Virya Signal na tym telefonie/)
   // The one-time confirmation URL is not printed under the button any more:
   // the button and the QR both carry it, and the plain-text part keeps it for
   // clients that refuse HTML.

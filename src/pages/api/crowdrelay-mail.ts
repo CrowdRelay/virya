@@ -241,7 +241,13 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
       const qrLabel = isPolish
         ? "Zeskanuj w aplikacji Virya Signal"
         : "Scan in the Virya Signal app"
-      qrBlock = `<div style="margin:28px 0;padding:20px;background:#fff;text-align:center"><p style="margin:0 0 14px;color:#09090b;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">${escapeHtml(qrLabel)}</p><img src="cid:virya-signal-confirmation-qr" width="240" height="240" alt="${escapeHtml(qrLabel)}" style="display:block;margin:auto;width:240px;height:240px" /></div>`
+      // What the button under it does, said before it is pressed. The QR is
+      // the other device's path; the button is this one's, and a fan deciding
+      // between them should not have to guess which is which.
+      const buttonExplainer = isPolish
+        ? "Przycisk poniżej otwiera Virya Signal na tym telefonie i wpuszcza Cię do środka. Przy pierwszym wejściu ustawisz PIN — szyfruje profil na urządzeniu i zostaje na nim. Bez aplikacji przycisk otworzy stronę Virya."
+        : "The button below opens Virya Signal on this phone and takes you straight in. On the first entry you set a PIN — it encrypts the profile on the device and never leaves it. Without the app installed, the button opens the Virya site instead."
+      qrBlock = `<div style="margin:28px 0;padding:20px;background:#fff;text-align:center"><p style="margin:0 0 14px;color:#09090b;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">${escapeHtml(qrLabel)}</p><img src="cid:virya-signal-confirmation-qr" width="240" height="240" alt="${escapeHtml(qrLabel)}" style="display:block;margin:auto;width:240px;height:240px" /></div>${paragraph(buttonExplainer)}`
       attachments = [{
         filename: "virya-signal-access.gif",
         content: qrGif,

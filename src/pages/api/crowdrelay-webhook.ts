@@ -100,11 +100,12 @@ const localePath = (locale: unknown, path: string) =>
 const accessQrCid = "virya-signal-access@virya.music"
 
 const accessBlock = (url: string, isPolish: boolean) => `
-  <p style="margin:32px 0 20px"><a href="${url}" style="display:inline-block;background:#84b4ac;color:#09090b;padding:16px 22px;text-decoration:none;font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.12em">${isPolish ? "Nadaj Sygnał" : "Send a Signal"}</a></p>
-  <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr><td style="padding:16px;background:#fff;text-align:center">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:28px 0 0"><tr><td style="padding:16px;background:#fff;text-align:center">
     <img src="cid:${accessQrCid}" width="180" height="180" alt="${isPolish ? "Kod QR do Virya Signal" : "Virya Signal QR code"}" style="display:block;width:180px;height:180px;image-rendering:pixelated" />
   </td></tr></table>
-  <p style="color:#71717a;font-size:12px;line-height:1.6;margin-top:12px">${isPolish ? "Czytasz to na komputerze? Zeskanuj kod aparatem w Virya Signal." : "Reading this on a computer? Scan the code with the scanner in Virya Signal."}</p>`
+  <p style="color:#71717a;font-size:12px;line-height:1.6;margin-top:12px">${isPolish ? "Czytasz to na komputerze? Zeskanuj kod aparatem w Virya Signal." : "Reading this on a computer? Scan the code with the scanner in Virya Signal."}</p>
+  <p style="line-height:1.7;margin:26px 0 0">${isPolish ? "Przycisk poniżej otwiera Virya Signal na tym telefonie i wpuszcza Cię do środka. Przy pierwszym wejściu ustawisz PIN — szyfruje profil na urządzeniu i zostaje na nim. Bez aplikacji przycisk otworzy stronę Virya." : "The button below opens Virya Signal on this phone and takes you straight in. On the first entry you set a PIN — it encrypts the profile on the device and never leaves it. Without the app installed, the button opens the Virya site instead."}</p>
+  <p style="margin:20px 0 0"><a href="${url}" style="display:inline-block;background:#84b4ac;color:#09090b;padding:16px 22px;text-decoration:none;font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.12em">${isPolish ? "Nadaj Sygnał" : "Send a Signal"}</a></p>`
 
 const accessQrAttachment = (url: string) => [
   {
