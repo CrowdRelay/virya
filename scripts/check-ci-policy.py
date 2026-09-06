@@ -49,7 +49,8 @@ if netlify.exists():
 # Per-change dependency security belongs to the build job so production
 # deployment cannot pass while advisory scanning is red. Keeping it in that
 # job also prevents a second, isolated npm ci. security.yml remains an
-# independent scheduled/manual freshness scan.
+# independent manual freshness scan (schedule removed for private-repo
+# Actions minute limits).
 build_workflow = workflow_dir / "build.yml"
 if not build_workflow.exists():
     failures.append(".github/workflows/build.yml: canonical build workflow is required")
@@ -71,7 +72,7 @@ if not security_workflow.exists():
     failures.append(".github/workflows/security.yml: standalone dependency-security workflow is required")
 else:
     security_text = security_workflow.read_text()
-    for trigger in ("schedule", "workflow_dispatch"):
+    for trigger in ("workflow_dispatch",):
         if not re.search(rf"(?m)^  {re.escape(trigger)}:\s*$", security_text):
             failures.append(f".github/workflows/security.yml: missing {trigger} trigger")
     for duplicate_trigger in ("push", "pull_request"):
