@@ -3,8 +3,8 @@ import { getAreaActor } from "../../../server/areaActor"
 import {
   CrowdRelayAreaError,
   createAreaBackendVoucher,
+  getAreaBackendWallet,
 } from "../../../server/crowdrelayArea"
-import { ensureLegacyAreaImported } from "../../../server/areaMigration"
 import {
   areaJson,
   isSameOriginRequest,
@@ -41,11 +41,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         401,
       )
     }
-    await ensureLegacyAreaImported(
-      actor.backendPlayerId,
-      actor.actorId,
-      actor.browserWalletId,
-    )
+    await getAreaBackendWallet(actor.backendPlayerId)
     const reward = await createAreaBackendVoucher(
       actor.backendPlayerId,
       requestId,

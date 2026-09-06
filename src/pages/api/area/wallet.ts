@@ -2,10 +2,10 @@ import type { APIRoute } from "astro"
 import { getAreaReadActor } from "../../../server/areaActor"
 import {
   CrowdRelayAreaError,
+  getAreaBackendWallet,
   getPublicAreaSnapshot,
   proxyMobileArea,
 } from "../../../server/crowdrelayArea"
-import { ensureLegacyAreaImported } from "../../../server/areaMigration"
 import { areaJson } from "../../../server/areaHttp"
 
 export const prerender = false
@@ -51,11 +51,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       )
     }
 
-    const backend = await ensureLegacyAreaImported(
-      actor.backendPlayerId,
-      actor.actorId,
-      actor.browserWalletId,
-    )
+    const backend = await getAreaBackendWallet(actor.backendPlayerId)
     return areaJson({
       ...backend,
       profile: { emailMasked: actor.emailMasked ?? "" },

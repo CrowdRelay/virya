@@ -5,9 +5,9 @@ import {
   CrowdRelayAreaError,
   failAreaBackendTicketReward,
   finalizeAreaBackendTicketReward,
+  getAreaBackendWallet,
   reserveAreaBackendTicketReward,
 } from "../../../server/crowdrelayArea"
-import { ensureLegacyAreaImported } from "../../../server/areaMigration"
 import {
   AreaTicketIssueError,
   areaTicketRewardConfigs,
@@ -74,11 +74,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     if (!actor.authenticated || !actor.backendPlayerId) {
       return areaJson({ authenticated: false, rewards: publicRewards(), claims: [] })
     }
-    const wallet = await ensureLegacyAreaImported(
-      actor.backendPlayerId,
-      actor.actorId,
-      actor.browserWalletId,
-    )
+    const wallet = await getAreaBackendWallet(actor.backendPlayerId)
     const claims = wallet.ticketRewards
       .filter(reward => reward.status === "issued")
       .map(reward => ({
@@ -127,11 +123,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         401,
       )
     }
-    await ensureLegacyAreaImported(
-      actor.backendPlayerId,
-      actor.actorId,
-      actor.browserWalletId,
-    )
+    await getAreaBackendWallet(actor.backendPlayerId)
 
     const reservationId = randomBytes(16).toString("hex")
     const reservation = reservationResponse(

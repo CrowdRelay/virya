@@ -3,9 +3,9 @@ import { getStore } from "@netlify/blobs"
 /**
  * Read-only compatibility view of the pre-CrowdRelay AREA wallet.
  *
- * New AREA state is never written here. The only supported use is the
- * one-way migration in areaMigration.ts; after the backend records a migration
- * marker this store is no longer consulted for that player.
+ * New AREA state is never written here. The one-time legacy migration that
+ * consumed this store is complete; this module is retained only as a
+ * read-only historical view.
  */
 
 export type AreaClaim = {

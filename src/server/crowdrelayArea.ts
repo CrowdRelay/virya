@@ -63,7 +63,6 @@ export type BackendAreaTicketReward = {
 export type BackendAreaWallet = {
   authenticated: boolean
   migrationRequired: boolean
-  legacyMigrationApplied: boolean
   tokenBalance: number
   rewardCredits: number
   reward: { creditsPerCode: number; benefit: string }
@@ -79,12 +78,6 @@ export type BackendAreaWallet = {
 export type BackendAreaPublicSnapshot = {
   items: BackendAreaDrop[]
   community: BackendAreaCommunity
-}
-
-export type LegacyAreaClaimImport = {
-  dropId: string
-  claimedAt: string
-  editionNumber?: number | null
 }
 
 type BackendErrorBody = { error?: unknown; code?: unknown }
@@ -321,7 +314,6 @@ const parseBackendWallet = (body: unknown): BackendAreaWallet => {
   const wallet = body as Partial<BackendAreaWallet>
   if (
     typeof wallet.authenticated !== "boolean" ||
-    typeof wallet.legacyMigrationApplied !== "boolean" ||
     !Array.isArray(wallet.claims) ||
     !wallet.claims.every(isBackendClaim) ||
     !Array.isArray(wallet.drops) ||
@@ -427,37 +419,6 @@ export const getAreaBackendWallet = async (
     INTERNAL_REQUEST_TIMEOUT_MS,
   )
   return parseBackendWallet(body)
-}
-
-export const importLegacyAreaClaims = async (
-  playerId: string,
-  claims: LegacyAreaClaimImport[],
-): Promise<BackendAreaWallet> => {
-  requirePlayerId(playerId)
-  if (claims.length === 0) return getAreaBackendWallet(playerId)
-  const { body } = await call(
-    `internal/area/players/${encodeURIComponent(playerId)}/claims/import`,
-    {
-      method: "POST",
-      headers: internalMutationHeaders(),
-      body: JSON.stringify({ claims }),
-    },
-    INTERNAL_REQUEST_TIMEOUT_MS,
-  )
-  return parseBackendWallet(body)
-}
-
-export const importLegacyAreaWallet = async (
-  playerId: string,
-  payload: Record<string, unknown>,
-): Promise<BackendAreaWallet> => {
-  requirePlayerId(playerId)
-  return parseBackendWallet(
-    await callAreaInternal(
-      `internal/area/players/${encodeURIComponent(playerId)}/wallet/import`,
-      { body: payload },
-    ),
-  )
 }
 
 export const createAreaBackendVoucher = async (

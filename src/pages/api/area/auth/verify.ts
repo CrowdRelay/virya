@@ -1,7 +1,6 @@
 import type { APIRoute } from "astro"
 import {
   acquireAreaMagicUse,
-  areaAccountWalletId,
   completeAreaMagicUse,
   releaseAreaMagicUse,
   setAreaSession,
@@ -13,7 +12,7 @@ import {
   isSameOriginRequest,
   readSmallJsonObject,
 } from "../../../../server/areaHttp"
-import { ensureLegacyAreaImported } from "../../../../server/areaMigration"
+import { getAreaBackendWallet } from "../../../../server/crowdrelayArea"
 
 export const prerender = false
 
@@ -72,11 +71,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     const account = await upsertAreaAccount(payload.accountId, payload.email)
     if (account.backendPlayerId) {
-      await ensureLegacyAreaImported(
-        account.backendPlayerId,
-        areaAccountWalletId(payload.accountId),
-        payload.walletId,
-      )
+      await getAreaBackendWallet(account.backendPlayerId)
     }
     await completeAreaMagicUse(payload.nonce, leaseId)
     setAreaSession(cookies, payload.accountId)
