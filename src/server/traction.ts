@@ -121,14 +121,33 @@ const loadBandsintown = async (): Promise<Pick<Traction, "trackers" | "upcomingE
   }
 }
 
-const loadSignalCities = async (): Promise<
-  Pick<Traction, "signalFans" | "activeCities" | "topCities">
-> => {
-  const payload = await fetchJson(new URL("public/cities", crowdrelayBase()))
-  const items =
-    payload && typeof payload === "object" && Array.isArray((payload as { items?: unknown }).items)
-      ? ((payload as { items: unknown[] }).items)
-      : []
+/**
+ * Turns CrowdRelay's `public/cities` body into fan counts, or throws.
+ *
+ * A response we cannot read is not a response saying zero. This used to fall
+ * back to an empty city list, so every unrecognised shape — a proxy's error
+ * page served as 200 JSON, a renamed field, a future response envelope —
+ * rendered as a confident "0 fans, 0 cities" with `degraded` still false.
+ * Throwing sends it down the same path as a dead upstream, where the numbers
+ * stay null and the page says so.
+ *
+ * An `items: []` that really is empty still reports zero, because that is what
+ * CrowdRelay said.
+ *
+ * Exported so the decision can be tested against real payloads; the transport
+ * around it needs Astro's `import.meta.env`.
+ */
+export const parseSignalCities = (
+  payload: unknown,
+): Pick<Traction, "signalFans" | "activeCities" | "topCities"> => {
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !Array.isArray((payload as { items?: unknown }).items)
+  ) {
+    throw new Error("CrowdRelay cities response has no items array")
+  }
+  const items = (payload as { items: unknown[] }).items
 
   const cities: TractionCity[] = []
   for (const item of items) {
@@ -156,6 +175,10 @@ const loadSignalCities = async (): Promise<
       .slice(0, MAX_TOP_CITIES),
   }
 }
+
+const loadSignalCities = async (): Promise<
+  Pick<Traction, "signalFans" | "activeCities" | "topCities">
+> => parseSignalCities(await fetchJson(new URL("public/cities", crowdrelayBase())))
 
 let cached: { value: Traction; expiresAt: number; staleUntil: number } | null = null
 let inFlight: Promise<Traction> | null = null
