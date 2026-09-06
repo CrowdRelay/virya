@@ -1,12 +1,6 @@
 name: Scheduled rebuild
 
 on:
-  schedule:
-    # Every 6 hours — picks up new CrowdRelay events without a code push.
-    # The build workflow fetches live events at build time and prerenders
-    # them into static HTML. Without this, new gigs only appear after the
-    # next code-driven deploy.
-    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 permissions:
