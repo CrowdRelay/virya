@@ -159,12 +159,12 @@ const layout = ({
   const footerBlock = footer
     ? `<p style="margin-top:34px;color:#71717a;font-size:12px;line-height:1.7">${footer}</p>`
     : ""
-  return `<!doctype html><html><body style="margin:0;background:#09090b;color:#e4e4e7;font-family:Arial,sans-serif"><div style="max-width:620px;margin:auto;padding:40px 22px"><p style="color:#fbbf24;font-size:12px;font-weight:800;letter-spacing:.18em">${escapeHtml(eyebrow)}</p><h1 style="margin:14px 0;color:#fff;font-size:30px;line-height:1.05">${escapeHtml(title)}</h1><div style="line-height:1.75">${body}</div>${cta}${footerBlock}</div></body></html>`
+  return `<!doctype html><html><body style="margin:0;background:#09090b;color:#e4e4e7;font-family:Arial,sans-serif"><div style="max-width:620px;margin:auto;padding:40px 22px"><p style="color:#84b4ac;font-size:12px;font-weight:800;letter-spacing:.18em">${escapeHtml(eyebrow)}</p><h1 style="margin:14px 0;color:#fff;font-size:30px;line-height:1.05">${escapeHtml(title)}</h1><div style="line-height:1.75">${body}</div>${cta}${footerBlock}</div></body></html>`
 }
 
 const paragraph = (value: string) => `<p>${escapeHtml(value)}</p>`
 const linkLine = (label: string, url: string) =>
-  `<p>${escapeHtml(label)}:<br><a style="color:#fbbf24" href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>`
+  `<p>${escapeHtml(label)}:<br><a style="color:#84b4ac" href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>`
 
 /// The CTA button, isolated so a template can place it inside the body
 /// (above a QR fallback, for instance) rather than only at the bottom.
@@ -327,7 +327,7 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
         body: paragraph(hello) + paragraph(details),
         button: isPolish ? "Zobacz koncert" : "View show",
         buttonUrl: eventUrl,
-        footer: `${isPolish ? "Bilety" : "Tickets"}: <a style="color:#fbbf24" href="${escapeHtml(ticketUrl)}">${escapeHtml(ticketUrl)}</a>`,
+        footer: `${isPolish ? "Bilety" : "Tickets"}: <a style="color:#84b4ac" href="${escapeHtml(ticketUrl)}">${escapeHtml(ticketUrl)}</a>`,
       }),
     }
   }
@@ -418,7 +418,7 @@ const render = async (template: string, variables: Variables): Promise<RenderedM
       .map(event => `• ${event.title} — ${event.startsAt}${event.location ? ` · ${event.location}` : ""}\n  ${event.ticketUrl}`)
       .join("\n")
     const htmlEvents = events
-      .map(event => `<li style="margin:0 0 16px"><strong style="color:#fff">${escapeHtml(event.title)}</strong><br><span style="color:#a1a1aa">${escapeHtml(event.startsAt)}${event.location ? ` · ${escapeHtml(event.location)}` : ""}</span><br><a style="color:#fbbf24" href="${escapeHtml(event.ticketUrl)}">${isPolish ? "Bilety i szczegóły" : "Tickets and details"}</a></li>`)
+      .map(event => `<li style="margin:0 0 16px"><strong style="color:#fff">${escapeHtml(event.title)}</strong><br><span style="color:#a1a1aa">${escapeHtml(event.startsAt)}${event.location ? ` · ${escapeHtml(event.location)}` : ""}</span><br><a style="color:#84b4ac" href="${escapeHtml(event.ticketUrl)}">${isPolish ? "Bilety i szczegóły" : "Tickets and details"}</a></li>`)
       .join("")
     const intro = isPolish
       ? `Masz kod promocyjny na bilet na nasz najbliższy koncert: ${nearest.title}. Kod działa także dla pozostałych koncertów z listy poniżej, o ile dana pula sprzedaży go obsługuje.`
