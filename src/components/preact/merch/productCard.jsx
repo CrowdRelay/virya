@@ -33,6 +33,7 @@ const ProductCard = ({ product, images, index = 0, inventory }) => {
   const swiping = useRef(false)
   const dragXRef = useRef(0)
   const cardRef = useRef(null)
+  const pendingSizeRef = useRef(new Set())
 
   const frontSrc = images[product.front]
   const backSrc = product.back ? images[product.back] : null
@@ -153,7 +154,8 @@ const ProductCard = ({ product, images, index = 0, inventory }) => {
   }, [announce])
 
   const requestSize = async (s) => {
-    if (requested.includes(s)) return
+    if (requested.includes(s) || pendingSizeRef.current.has(s)) return
+    pendingSizeRef.current.add(s)
     setRequested((prev) => [...prev, s])
     setNotice(t("product.restock", s))
     try {
@@ -161,9 +163,11 @@ const ProductCard = ({ product, images, index = 0, inventory }) => {
         method: "POST",
         signal: AbortSignal.timeout(6_000),
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: product.id, size: s }),
+        body: JSON.stringify({ id: product.id, size: s, submission_id: crypto.randomUUID() }),
       })
-    } catch {}
+    } catch {} finally {
+      pendingSizeRef.current.delete(s)
+    }
   }
 
   const imgClass = (hidden) =>

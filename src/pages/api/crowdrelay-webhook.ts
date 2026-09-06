@@ -253,26 +253,66 @@ export const POST: APIRoute = async ({ request }) => {
 
   const store = getStore({ name: STORE_NAME, consistency: "strong" })
   const key = `events/${envelope.id}`
-  const existing = await store.get(key, { type: "json", consistency: "strong" })
-  if (existing) return json({ ok: true, duplicate: true })
+  const CLAIM_LEASE_MS = 5 * 60 * 1000
+
+  // Check for an existing record. A `done` record means this event was already
+  // fully processed. A `processing` record with an unexpired lease means another
+  // delivery is in flight. A stale `processing` record (lease expired) is
+  // reclaimed below.
+  const current = await store.getWithMetadata(key, {
+    type: "json",
+    consistency: "strong",
+  })
+  const existing = current?.data as
+    | { status?: string; claimedAt?: string }
+    | undefined
+  if (existing?.status === "done") return json({ ok: true, duplicate: true })
+  if (
+    existing?.status === "processing" &&
+    existing.claimedAt &&
+    Date.now() - Date.parse(existing.claimedAt) < CLAIM_LEASE_MS
+  ) {
+    return json({ ok: true, duplicate: true })
+  }
+
+  // Claim the event before sending any email. Two simultaneous deliveries of
+  // one event both pass the check above; only the first CAS write wins and
+  // proceeds to mail. The loser returns as a duplicate without having touched
+  // the provider. A stale `processing` record (lease expired) is overwritten
+  // via onlyIfMatch so a crashed prior delivery does not block retries.
+  const claimed = await store.setJSON(
+    key,
+    {
+      type: envelope.type,
+      status: "processing",
+      claimedAt: new Date().toISOString(),
+    },
+    current ? { onlyIfMatch: current.etag } : { onlyIfNew: true },
+  )
+  if (claimed && !claimed.modified) return json({ ok: true, duplicate: true })
 
   try {
     await handleEnvelope(envelope)
-    // onlyIfNew closes the concurrent-delivery window the get/set pair leaves
-    // open: two simultaneous deliveries of one event both pass the `existing`
-    // check, but only the first write wins and only it has already mailed.
-    const written = await store.setJSON(
+    await store.setJSON(
       key,
       {
         type: envelope.type,
+        status: "done",
         processedAt: new Date().toISOString(),
       },
-      { onlyIfNew: true },
     )
-    if (written && !written.modified) return json({ ok: true, duplicate: true })
     return json({ ok: true })
   } catch (error) {
     console.error("[crowdrelay-webhook]", envelope.id, envelope.type, error)
+    // Release the claim so CrowdRelay can retry the signed event. A crash
+    // after the claim but before this delete leaves a stale `processing`
+    // record; the lease check above lets a later retry reclaim it.
+    try {
+      await store.delete(key)
+    } catch {
+      // The 503 response still triggers a CrowdRelay retry; the stale
+      // claim is recoverable after the lease expires.
+    }
     return json({ error: "delivery_failed" }, 503)
   }
 }

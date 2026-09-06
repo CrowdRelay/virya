@@ -9,7 +9,7 @@ import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody
 import {
   acquireTicketMailLease,
   completeTicketMailLease,
-  releaseTicketMailLease,
+  markTicketMailAmbiguous,
   type TicketMailLease,
 } from "../../server/ticketMailLedger"
 
@@ -212,6 +212,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: "delivery_busy" }), { status: 503, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Retry-After": "60", "X-Content-Type-Options": "nosniff" } })
   }
   if (lease.status === "done") return json({ ok: true, duplicate: true })
+  if (lease.status === "ambiguous") return json({ error: "delivery_outcome_unknown" }, 409)
   if (lease.status !== "acquired") return new Response(JSON.stringify({ error: "delivery_busy" }), { status: 503, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Retry-After": "60", "X-Content-Type-Options": "nosniff" } })
 
   try {
@@ -220,11 +221,11 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ ok: true })
   } catch (error) {
     try {
-      await releaseTicketMailLease(payload.eventId, lease.leaseId)
-    } catch (releaseError) {
-      console.error("[ticket-mail-release]", payload.eventId, payload.orderId, releaseError)
+      await markTicketMailAmbiguous(payload.eventId, lease.leaseId)
+    } catch (transitionError) {
+      console.error("[ticket-mail-ambiguous]", payload.eventId, payload.orderId, transitionError)
     }
     console.error("[ticket-mail]", payload.eventId, payload.orderId, error)
-    return json({ error: "delivery_failed" }, 503)
+    return json({ error: "delivery_outcome_unknown" }, 503)
   }
 }

@@ -95,7 +95,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   headers.set("X-Request-ID", id)
   headers.set("X-Virya-Source-Sha", SOURCE_SHA)
-  headers.set("Server-Timing", `app;dur=${Math.max(0, performance.now() - startedAt).toFixed(1)}`)
+  // Append the middleware's own wall time without discarding a route-level
+  // Server-Timing breakdown (e.g. upstream/bff split on the staff overview).
+  const appTiming = `app;dur=${Math.max(0, performance.now() - startedAt).toFixed(1)}`
+  const existingTiming = headers.get("Server-Timing")
+  headers.set("Server-Timing", existingTiming ? `${existingTiming}, ${appTiming}` : appTiming)
 
   // Netlify's static _headers file does not apply to Functions. Preserve
   // explicit public caching and avoid disabling CDN caching on public SSR pages.

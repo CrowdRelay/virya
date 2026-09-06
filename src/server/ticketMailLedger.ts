@@ -7,7 +7,7 @@ const MAX_CAS_ATTEMPTS = 6
 
 type DeliveryRecord = {
   version: 1
-  status: "processing" | "done"
+  status: "processing" | "done" | "ambiguous"
   leaseId: string
   expiresAt: number
   updatedAt: string
@@ -17,7 +17,7 @@ type DeliveryRecord = {
 
 export type TicketMailLease =
   | { status: "acquired"; leaseId: string }
-  | { status: "busy" | "done" }
+  | { status: "busy" | "done" | "ambiguous" }
 
 const store = () => getStore({ name: STORE_NAME, consistency: "strong" })
 const recordKey = (eventId: string) => `events/${eventId}`
@@ -27,7 +27,7 @@ const normalize = (value: unknown): DeliveryRecord | null => {
   const record = value as Partial<DeliveryRecord>
   if (
     record.version !== 1 ||
-    (record.status !== "processing" && record.status !== "done") ||
+    (record.status !== "processing" && record.status !== "done" && record.status !== "ambiguous") ||
     typeof record.leaseId !== "string" ||
     typeof record.eventType !== "string" ||
     typeof record.orderId !== "string" ||
@@ -61,6 +61,7 @@ export const acquireTicketMailLease = async (
     })
     const record = normalize(current?.data)
     if (record?.status === "done") return { status: "done" }
+    if (record?.status === "ambiguous") return { status: "ambiguous" }
     if (record?.status === "processing" && record.expiresAt > Date.now()) {
       return { status: "busy" }
     }
@@ -88,7 +89,7 @@ export const acquireTicketMailLease = async (
 const transition = async (
   eventId: string,
   leaseId: string,
-  status: "processing" | "done",
+  status: "processing" | "done" | "ambiguous",
 ) => {
   const key = recordKey(eventId)
   for (let attempt = 0; attempt < MAX_CAS_ATTEMPTS; attempt += 1) {
@@ -97,7 +98,7 @@ const transition = async (
       consistency: "strong",
     })
     const record = normalize(current?.data)
-    if (record?.status === "done") return
+    if (record?.status === "done" || record?.status === "ambiguous") return
     if (!current || !record || record.leaseId !== leaseId) {
       throw new Error("Ticket mail lease ownership was lost")
     }
@@ -116,5 +117,10 @@ const transition = async (
 export const completeTicketMailLease = (eventId: string, leaseId: string) =>
   transition(eventId, leaseId, "done")
 
-export const releaseTicketMailLease = (eventId: string, leaseId: string) =>
-  transition(eventId, leaseId, "processing")
+/**
+ * Provider execution started but its final acceptance could not be proven.
+ * This is terminal by design: automatic retries could duplicate an email when
+ * SMTP/HTTP accepted the message but the response was lost.
+ */
+export const markTicketMailAmbiguous = (eventId: string, leaseId: string) =>
+  transition(eventId, leaseId, "ambiguous")

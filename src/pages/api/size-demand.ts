@@ -1,6 +1,12 @@
 import type { APIRoute } from "astro"
+import { randomUUID } from "node:crypto"
 import { getProduct, sizeInStock } from "../../data/products"
 import { getSiteMailer } from "../../server/siteMailer"
+import {
+  acquireCrowdRelayMailLease,
+  completeCrowdRelayMailLease,
+  markCrowdRelayMailAmbiguous,
+} from "../../server/crowdrelayMailLedger"
 import { consumePublicFormRateLimit, publicRequestNetwork } from "../../server/publicFormRate"
 import { readServerEnv } from "../../server/runtimeEnv"
 import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody"
@@ -8,6 +14,8 @@ import { BodyTooLargeError, readLimitedText } from "../../server/readLimitedBody
 const MAX_BODY_BYTES = 2048
 const MAX_ID_LENGTH = 64
 const MAX_SIZE_LENGTH = 16
+const SUBMISSION_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const json = (payload: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(payload), {
@@ -69,7 +77,15 @@ export const POST: APIRoute = async ({ request }) => {
 
     const id = typeof body.id === "string" ? body.id.trim() : ""
     const size = typeof body.size === "string" ? body.size.trim() : ""
-    if (!id || id.length > MAX_ID_LENGTH || !size || size.length > MAX_SIZE_LENGTH) {
+    const submittedId = typeof body.submission_id === "string" ? body.submission_id.trim() : ""
+    const submissionId = submittedId || randomUUID()
+    if (
+      !id ||
+      id.length > MAX_ID_LENGTH ||
+      !size ||
+      size.length > MAX_SIZE_LENGTH ||
+      !SUBMISSION_ID_PATTERN.test(submissionId)
+    ) {
       return json({ error: "Invalid request" }, 400)
     }
 
@@ -102,16 +118,36 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const mailer = getSiteMailer()
-    if (mailer) {
-      await mailer.send({
+    if (!mailer) return json({ error: "Restock requests unavailable" }, 503)
+
+    const idempotencyKey = `size-demand:${submissionId}`
+    let lease
+    try {
+      lease = await acquireCrowdRelayMailLease(idempotencyKey, "size_demand", mailer.to)
+    } catch {
+      console.error("[size-demand] lease failed")
+      return json({ error: "Restock requests unavailable" }, 503)
+    }
+    if (lease.status === "done") return json({ ok: true, duplicate: true })
+    if (lease.status === "ambiguous") return json({ error: "Delivery outcome unknown" }, 503)
+    if (lease.status === "busy") return json({ ok: true, accepted: true }, 202)
+    if (lease.status !== "acquired") return json({ error: "Restock requests unavailable" }, 503)
+
+    try {
+      const result = await mailer.send({
         fromName: "Virya Store",
         to: mailer.to,
         subject: `📦 Restock request — ${product.name} / ${size}`,
         text: `Restock demand registered:\n\nProduct: ${product.name} (${id})\nSize: ${size}\n\n— virya.music/merch`,
+        idempotencyKey,
       })
+      await completeCrowdRelayMailLease(idempotencyKey, lease.leaseId, result.messageId)
+      return json({ ok: true })
+    } catch (error) {
+      await markCrowdRelayMailAmbiguous(idempotencyKey, lease.leaseId).catch(() => undefined)
+      console.error("[size-demand] delivery outcome unknown", error)
+      return json({ error: "Restock requests unavailable" }, 503)
     }
-
-    return json({ ok: true })
   } catch (err) {
     console.error("[size-demand]", err)
     return json({ error: "Server error" }, 500)
