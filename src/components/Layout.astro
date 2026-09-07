@@ -28,6 +28,8 @@ const {
 } = Astro.props
 
 const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.indexOf('/pl/')===0)return;var pref=localStorage.getItem('virya-lang');if(pref!=='pl'&&pref!=='en'){pref=(navigator.language||'').toLowerCase().indexOf('pl')===0?'pl':'en';}if(pref==='pl'){location.replace('/pl'+p+location.search+location.hash);}}catch(e){}})();`
+
+const CROWDRELAY_API_URL = (import.meta.env.PUBLIC_CROWDRELAY_API_URL as string | undefined) ?? "https://signal-api.virya.music/v1/"
 ---
 
 <!doctype html>
@@ -133,6 +135,48 @@ const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.i
           else setTimeout(register, 1000);
         }, { once: true });
       }
+    </script>
+    <!-- Tenant parked banner: fetches public/config from CrowdRelay in an
+         idle callback and shows a banner if the tenant is parked. Fails
+         silently so public pages survive a CrowdRelay outage. Cached in
+         sessionStorage for 5 minutes. -->
+    <script is:inline set:html={`window.__VIRYA_CROWDRELAY_API_URL__=${JSON.stringify(CROWDRELAY_API_URL)};`} />
+    <script is:inline>
+      (function() {
+        var API_URL = (window.__VIRYA_CROWDRELAY_API_URL__ || 'https://signal-api.virya.music/v1/');
+        var CACHE_KEY = 'virya-parked-cache';
+        var CACHE_TTL_MS = 5 * 60 * 1000;
+        function showBanner() {
+          if (document.getElementById('virya-parked-banner')) return;
+          var b = document.createElement('div');
+          b.id = 'virya-parked-banner';
+          b.setAttribute('role', 'status');
+          b.style.cssText = 'position:sticky;top:0;z-index:9000;padding:10px 16px;background:#2b1919;border-bottom:2px solid #f5b942;color:#f5b942;font-size:14px;line-height:1.5;text-align:center;';
+          b.textContent = 'Operations are paused. Contact support to resume.';
+          document.body.insertBefore(b, document.body.firstChild);
+        }
+        function check() {
+          try {
+            var c = sessionStorage.getItem(CACHE_KEY);
+            if (c) {
+              var p = JSON.parse(c);
+              if (Date.now() - p.ts < CACHE_TTL_MS) { if (p.parked) showBanner(); return; }
+            }
+          } catch (e) {}
+          var ctrl = new AbortController();
+          var t = setTimeout(function() { ctrl.abort(); }, 2500);
+          fetch(API_URL + 'public/config', { signal: ctrl.signal, headers: { Accept: 'application/json' } })
+            .then(function(r) { clearTimeout(t); return r.ok ? r.json() : null; })
+            .then(function(d) {
+              var parked = !!(d && d.parked);
+              try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ parked: parked, ts: Date.now() })); } catch (e) {}
+              if (parked) showBanner();
+            })
+            .catch(function() { clearTimeout(t); });
+        }
+        var ric = 'requestIdleCallback' in window ? requestIdleCallback : function(fn) { return setTimeout(fn, 1500); };
+        ric(check, { timeout: 3000 });
+      })();
     </script>
   </head>
   <body>
