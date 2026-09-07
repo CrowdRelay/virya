@@ -165,7 +165,7 @@ const CROWDRELAY_API_URL = (import.meta.env.PUBLIC_CROWDRELAY_API_URL as string 
           } catch (e) {}
           var ctrl = new AbortController();
           var t = setTimeout(function() { ctrl.abort(); }, 2500);
-          fetch(API_URL + 'public/config', { signal: ctrl.signal, headers: { Accept: 'application/json' } })
+          fetch(API_URL + 'public/tenant/config', { signal: ctrl.signal, headers: { Accept: 'application/json' } })
             .then(function(r) { clearTimeout(t); return r.ok ? r.json() : null; })
             .then(function(d) {
               var parked = !!(d && d.parked);
