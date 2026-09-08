@@ -142,6 +142,47 @@
   }
 }
 
+/* === Circuit-energize hero text reveal ===
+   The text is always present (no layout shift). A clip-path wipe reveals it
+   left-to-right in 200ms, like a circuit energizing. A subtle opacity lift
+   accompanies the wipe — the text "powers up" as it's uncovered. This is
+   mechanical and deliberate, the opposite of a typewriter/streaming effect,
+   which carries AI-chatbot baggage. Scoped to the hero header so other uses
+   of .virya-display elsewhere on the site are unaffected. */
+@keyframes hero-energize {
+  from {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0.4;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+.header .virya-eyebrow,
+.header .virya-display,
+.header h1 > span,
+.header h1 + p {
+  animation: hero-energize 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.header .virya-eyebrow {
+  animation-delay: 0ms;
+}
+
+.header .virya-display {
+  animation-delay: 60ms;
+}
+
+.header h1 > span:last-of-type {
+  animation-delay: 120ms;
+}
+
+.header h1 + p {
+  animation-delay: 180ms;
+}
+
 /* Justified copy creates distracting rivers of whitespace on narrow screens. */
 @media (max-width: 639px) {
   .text-justify,
