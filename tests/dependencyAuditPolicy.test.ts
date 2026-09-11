@@ -50,16 +50,22 @@ test("controlled dependency audit fails closed on a new high advisory", () => {
   assert.match(result.stderr, /DEPENDENCY_AUDIT=FAIL/)
 })
 
-test("locked Netlify image chain cannot reintroduce a pre-0.35 sharp", () => {
+test("locked Netlify image chain cannot reintroduce a vulnerable sharp", () => {
   const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8"))
   const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"))
-  assert.equal(packageJson.overrides?.ipx?.sharp, "0.35.3")
+  // The override used to be nested under `ipx` and pinned to an exact 0.35.3.
+  // GHSA-RGJ7-G3M4-5G8C then landed on everything below 0.35.4, and the nested
+  // form left the copy under ipx behind while the top-level one moved — so the
+  // pin that existed to keep sharp safe was holding it at the vulnerable
+  // version. One global override, and a floor rather than an exact pin.
+  assert.equal(packageJson.overrides?.sharp, "^0.35.4")
   const sharpCopies = Object.entries(lock.packages ?? {})
     .filter(([path]) => path === "node_modules/sharp" || path.endsWith("/node_modules/sharp"))
     .map(([path, meta]: [string, any]) => [path, meta.version] as const)
   assert.ok(sharpCopies.length > 0)
   for (const [path, version] of sharpCopies) {
-    const [major, minor] = String(version).split(".").map(Number)
-    assert.ok(major > 0 || minor >= 35, `${path} is still vulnerable at ${version}`)
+    const [major, minor, patch] = String(version).split(".").map(Number)
+    const safe = major > 0 || minor > 35 || (minor === 35 && patch >= 4)
+    assert.ok(safe, `${path} is still vulnerable at ${version}`)
   }
 })

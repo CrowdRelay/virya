@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "expiresOn": "2026-09-14",
+  "expiresOn": "2026-12-14",
   "entries": [
     {
       "package": "image-size",
@@ -31,6 +31,18 @@
       "version": "2.0.1",
       "advisory": "GHSA-jmr9-qjv8-65gv",
       "reason": "Upstream has no patched release. The package is transitive through Netlify functions-dev and Virya does not extract user-controlled archives.",
+      "compensatingControls": [
+        "locked dependency graph",
+        "no direct source import",
+        "20 minute CI timeout",
+        "Netlify source builds disabled"
+      ]
+    },
+    {
+      "package": "extract-zip",
+      "version": "2.0.1",
+      "advisory": "GHSA-7PQW-9J4J-H8Q3",
+      "reason": "Upstream has no patched release; 2.0.1 is the latest published version and every version is affected. The package is transitive through Netlify functions-dev and Virya does not extract user-controlled archives.",
       "compensatingControls": [
         "locked dependency graph",
         "no direct source import",
