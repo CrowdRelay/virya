@@ -33,7 +33,10 @@ const { smooth = true } = Astro.props
 
     const update = () => {
       ticking = false
-      btn.classList.toggle("hidden", window.scrollY < window.innerHeight * 1.25)
+      // Read geometry first, then write only on an actual state change — an
+      // unconditional toggle on every rAF tick forces style/layout recalc.
+      const hidden = window.scrollY < window.innerHeight * 1.25
+      if (btn.classList.contains("hidden") !== hidden) btn.classList.toggle("hidden", hidden)
     }
     const onScroll = () => {
       if (ticking) return

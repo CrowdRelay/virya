@@ -124,32 +124,32 @@
 [[headers]]
   for = "/covers/*"
   [headers.values]
-    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=604800"
 
 [[headers]]
   for = "/images/*"
   [headers.values]
-    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=604800"
 
 [[headers]]
   for = "/resp/*"
   [headers.values]
-    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=604800"
 
 [[headers]]
   for = "/*.webp"
   [headers.values]
-    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=604800"
 
 [[headers]]
   for = "/*.mp4"
   [headers.values]
-    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=604800"
 
 [[headers]]
   for = "/*.webm"
   [headers.values]
-    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=604800"
 
 [[headers]]
   for = "/api/*"

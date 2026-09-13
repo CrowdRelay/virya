@@ -390,15 +390,17 @@
     position: absolute;
     inset-block: 0;
     left: 0;
-    width: 0.25rem;
+    width: 0.5rem;
     background: rgb(63 63 70);
+    transform: scaleX(0.5);
+    transform-origin: left center;
     transition:
-      width 240ms ease,
+      transform 240ms ease,
       background-color 240ms ease;
   }
 
   .virya-live-card:hover .virya-live-card__rail {
-    width: 0.5rem;
+    transform: scaleX(1);
     background: rgb(132 180 172);
   }
 
@@ -605,7 +607,6 @@
     display: block;
     min-width: 1px;
     flex: none;
-    transition: width 300ms ease;
   }
 
   .virya-ticket-inventory__sold {
