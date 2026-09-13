@@ -10,8 +10,12 @@ const signalPage = readFileSync(
   new URL("../src/components/SignalPage.astro", import.meta.url),
   "utf8",
 )
-const ecosystem = readFileSync(
-  new URL("../src/components/SignalEcosystem.astro", import.meta.url),
+const homepage = readFileSync(
+  new URL("../src/pages/index.astro", import.meta.url),
+  "utf8",
+)
+const signalArea = readFileSync(
+  new URL("../src/components/SignalArea.astro", import.meta.url),
   "utf8",
 )
 const ecosystemRail = readFileSync(
@@ -35,7 +39,7 @@ test("Synesthesia leaderboard stays inside Signal and off general acquisition su
     "utf8",
   )
   assert.match(signalPage, /<SynesthesiaLeaderboard\b/)
-  for (const source of [ecosystem, ecosystemRail]) {
+  for (const source of [homepage, signalArea, ecosystemRail]) {
     assert.doesNotMatch(source, /Synesthesia|synesthesia/)
   }
   assert.match(mySignal, /synesthesia\.virya\.music/)

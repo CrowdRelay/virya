@@ -24,7 +24,7 @@ const { lang = "en" } = Astro.props as { lang?: "en" | "pl" }
       <h1 class="text-3xl lg:text-4xl font-black uppercase tracking-tight text-white mb-6">{t(lang, "success.title")}</h1>
       <p class="text-zinc-300 text-sm leading-relaxed max-w-md mb-4">{t(lang, "success.body")}</p>
       <p class="text-zinc-400 text-xs mb-10">{t(lang, "success.stickers")}</p>
-      <a href={lp(lang, "/merch")} class="text-xs font-bold uppercase tracking-widest px-6 py-3 bg-amber-400 text-black hover:bg-amber-300 transition-colors">
+      <a href={lp(lang, "/merch/")} class="text-xs font-bold uppercase tracking-widest px-6 py-3 bg-amber-400 text-black hover:bg-amber-300 transition-colors">
         {t(lang, "success.back")}
       </a>
     </main>

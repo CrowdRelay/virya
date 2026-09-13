@@ -29,6 +29,13 @@ const more = [
 ]
 
 const moreActive = more.some(item => item.key === activePage)
+
+// Alternate-locale URLs for the EN/PL switch. Rendered as real hrefs so the
+// switch still navigates when scripts are unavailable; the click handler only
+// persists the preference (and keeps query/hash when JS runs).
+const basePath = Astro.url.pathname.replace(/^(\/pl)+(?=\/|$)/, "") || "/"
+const langHref = (target: Lang) =>
+  target === "pl" ? (basePath === "/" ? "/pl/" : `/pl${basePath}`) : basePath
 ---
 
 <nav
@@ -119,25 +126,29 @@ const moreActive = more.some(item => item.key === activePage)
 
     <div class="ml-auto flex shrink-0 items-center gap-1">
       <div class="flex items-center text-[10px] font-extrabold uppercase tracking-[.14em]" aria-label={t(lang, "nav.language")}>
-        <button
+        <a
           data-lang-switch="en"
+          href={langHref("en")}
+          hreflang="en"
           class:list={[
             "inline-flex min-h-12 min-w-12 items-center justify-center transition-colors",
             lang === "en" ? "text-amber-300" : "text-zinc-400 hover:text-zinc-100",
           ]}
           aria-label="EN — Switch to English"
           aria-current={lang === "en" ? "true" : undefined}
-        >EN</button>
+        >EN</a>
         <span class="text-zinc-700" aria-hidden="true">/</span>
-        <button
+        <a
           data-lang-switch="pl"
+          href={langHref("pl")}
+          hreflang="pl"
           class:list={[
             "inline-flex min-h-12 min-w-12 items-center justify-center transition-colors",
             lang === "pl" ? "text-amber-300" : "text-zinc-400 hover:text-zinc-100",
           ]}
           aria-label="PL — Przełącz na polski"
           aria-current={lang === "pl" ? "true" : undefined}
-        >PL</button>
+        >PL</a>
       </div>
 
       {displayLinks && (
@@ -397,6 +408,16 @@ const moreActive = more.some(item => item.key === activePage)
       link.addEventListener("click", closeMenu, { signal })
     })
 
+    // Disclosure pattern: Escape closes the mobile menu and returns focus to
+    // the trigger, matching the "More" dropdown's behaviour below.
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return
+      const menu = document.getElementById("mobile-menu")
+      if (!menu || menu.hidden) return
+      closeMenu()
+      btn?.focus()
+    }, { signal })
+
     const moreMenu = nav.querySelector<HTMLDetailsElement>("details")
     document.addEventListener("click", event => {
       const target = event.target
@@ -428,7 +449,8 @@ const moreActive = more.some(item => item.key === activePage)
     }, { signal })
 
     nav.querySelectorAll<HTMLElement>("[data-lang-switch]").forEach(element => {
-      element.addEventListener("click", () => {
+      element.addEventListener("click", event => {
+        event.preventDefault()
         const target = element.dataset.langSwitch ?? "en"
         try { localStorage.setItem("virya-lang", target) } catch {}
         const path = location.pathname

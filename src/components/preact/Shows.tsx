@@ -4,7 +4,7 @@ import type { PublicEvent } from "../../lib/crowdrelay-client"
 import { campaignIdFromLocation } from "../../lib/crowdrelay"
 import { loadLiveEvents, upcomingLiveEvents } from "../../lib/liveEvents"
 import { IslandI18nProvider, useIslandI18n } from "../../i18n/IslandI18nContext"
-import LiveEventCard, { LiveEventNotice, LiveEventSkeleton } from "./LiveEventCard"
+import LiveEventCard, { LiveEventNotice } from "./LiveEventCard"
 
 type Props = {
   lang: Lang
@@ -55,19 +55,14 @@ const ShowsInner = ({ lang, initialEvents = [] }: { lang: Lang; initialEvents?: 
         </div>
 
         <div class="mt-10 grid gap-4 lg:grid-cols-2">
-          {events === null ? (
-            <>
-              <LiveEventSkeleton />
-              <LiveEventSkeleton />
-            </>
-          ) : upcoming.length === 0 ? (
+          {upcoming.length === 0 ? (
             <LiveEventNotice
               message={unavailable ? unavailableMessage : t("shows.none")}
-              actionHref="#join"
+              actionHref="#signal"
               actionLabel={t("shows.joinCta")}
               onAction={event => {
                 event.preventDefault()
-                document.getElementById("join")?.scrollIntoView({ behavior: "smooth" })
+                document.getElementById("signal")?.scrollIntoView({ behavior: "smooth" })
               }}
             />
           ) : (

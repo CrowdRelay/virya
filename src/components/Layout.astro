@@ -9,6 +9,8 @@ interface Props {
   canonical?: string
   ogImage?: string
   ogImageAlt?: string
+  ogImageWidth?: number
+  ogImageHeight?: number
   ogType?: string
   lang?: Lang
   head?: string
@@ -21,11 +23,31 @@ const {
   canonical,
   ogImage = "https://virya.music/poster.webp",
   ogImageAlt = title,
+  ogImageWidth,
+  ogImageHeight,
   ogType = "website",
   lang = "en",
   head,
   enableClientRouter = true,
 } = Astro.props
+
+// Emit og:image dimensions only when they are known: the default poster is
+// 1280x720, everything else must pass them explicitly. Wrong dims are worse
+// than missing ones.
+const resolvedOgImageWidth =
+  ogImageWidth ?? (ogImage === "https://virya.music/poster.webp" ? 1280 : undefined)
+const resolvedOgImageHeight =
+  ogImageHeight ?? (ogImage === "https://virya.music/poster.webp" ? 720 : undefined)
+
+const OG_IMAGE_TYPES: Record<string, string> = {
+  ".webp": "image/webp",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+}
+const ogImageType = Object.entries(OG_IMAGE_TYPES).find(([ext]) =>
+  ogImage.toLowerCase().split("?")[0].endsWith(ext),
+)?.[1]
 
 const LANG_REDIRECT = `(function(){try{var p=location.pathname;if(p==='/pl'||p.indexOf('/pl/')===0)return;var pref=localStorage.getItem('virya-lang');if(pref!=='pl'&&pref!=='en'){pref=(navigator.language||'').toLowerCase().indexOf('pl')===0?'pl':'en';}if(pref==='pl'){location.replace('/pl'+p+location.search+location.hash);}}catch(e){}})();`
 
@@ -44,10 +66,14 @@ const CROWDRELAY_API_URL = (import.meta.env.PUBLIC_CROWDRELAY_API_URL as string 
     {canonical && <link rel="canonical" href={canonical} />}
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Virya" />
+    <meta property="og:locale" content={lang === "pl" ? "pl_PL" : "en_US"} />
     <meta property="og:title" content={title} />
     {description && <meta property="og:description" content={description} />}
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:alt" content={ogImageAlt} />
+    {resolvedOgImageWidth && <meta property="og:image:width" content={String(resolvedOgImageWidth)} />}
+    {resolvedOgImageHeight && <meta property="og:image:height" content={String(resolvedOgImageHeight)} />}
+    {ogImageType && <meta property="og:image:type" content={ogImageType} />}
     {canonical && <meta property="og:url" content={canonical} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@viryaofficial" />
@@ -56,9 +82,12 @@ const CROWDRELAY_API_URL = (import.meta.env.PUBLIC_CROWDRELAY_API_URL as string 
     {description && <meta name="twitter:description" content={description} />}
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
+    <!-- Warm DNS+TLS for the CrowdRelay public API. Fan islands (banner, shows
+         refresh, parked check) all call this origin right after hydration. -->
+    <link rel="preconnect" href={new URL(CROWDRELAY_API_URL).origin} crossorigin />
     <link rel="icon" href="/favicon-32x32.png" type="image/png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/virya.webp" />
+    <link rel="apple-touch-icon" href="/virya-512.png" />
     <title>{title}</title>
     <slot name="head" />
     <!-- Parse HTML first; the full diagnostic guard and RUM are not on the

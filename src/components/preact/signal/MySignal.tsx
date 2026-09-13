@@ -152,7 +152,7 @@ export default function MySignal({ lang }: Props) {
 
   const referralUrl = useMemo(() => {
     if (state.kind !== "ready" || !state.progress.referral_code) return null
-    return `https://www.virya.music/r/${encodeURIComponent(
+    return `https://virya.music/r/${encodeURIComponent(
       state.progress.referral_code,
     )}`
   }, [state])

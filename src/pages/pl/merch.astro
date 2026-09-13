@@ -20,7 +20,15 @@ const productImageSizes = "(max-width: 1023px) calc((100vw - 4.5rem) / 2), 380px
 const firstProductSrcset = (responsiveSrcsets as Record<string, string>)[firstProductImage]
 ---
 
-<Layout title={title} description={description} canonical={canonicalUrl} lang={lang}>
+<Layout
+  title={title}
+  description={description}
+  canonical={canonicalUrl}
+  lang={lang}
+  ogImage="https://virya.music/merch-og.webp"
+  ogImageWidth={1200}
+  ogImageHeight={1200}
+>
   <Fragment slot="head">
     {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
     <link rel="dns-prefetch" href="https://geowidget.inpost.pl" />

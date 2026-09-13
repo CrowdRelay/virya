@@ -17,7 +17,7 @@ const SITEMAP_EXCLUDED_PATHS = new Set([
 ])
 
 export default defineConfig({
-  site: "https://www.virya.music",
+  site: "https://virya.music",
   output: "server",
   adapter: netlify(),
   // Public pages are static-first. Astro's global prefetch runtime was adding
