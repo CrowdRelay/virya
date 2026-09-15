@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: [self-hosted, arm64, frontend]
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -134,7 +134,7 @@ jobs:
     name: Deploy candidate to Netlify alias
     needs: build
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, arm64, frontend]
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -258,7 +258,7 @@ jobs:
     name: Promote exact build artifact to production
     needs: candidate
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, arm64, frontend]
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: production
     permissions:
