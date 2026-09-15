@@ -4,14 +4,38 @@ import { date } from "./AutopilotHandoffs"
 
 const REQUEST_TIMEOUT_MS = 10_000
 
+type Milestone =
+  | "seed_calendar"
+  | "editorial_pitch"
+  | "announcement"
+  | "start_press"
+  | "fan_warmup"
+  | "countdown"
+  | "release_day"
+  | "sustain"
+  | "wrap"
+
+type StepState = "done" | "parked" | "due" | "upcoming" | "disabled" | "blocked"
+
+type TimelineStep = {
+  milestone: Milestone
+  offset_days: number
+  due_at: string
+  completed_at: string | null
+  state: StepState
+}
+
 type ReleasePlan = {
   release_id: string
   title: string
   release_at: string
   active: boolean
+  tier: "single" | "track" | "filler"
   assets_ready: boolean
   communication_enabled: boolean
   press_enabled: boolean
+  lifecycle: "inactive" | "preparing" | "release_week" | "sustaining" | "complete"
+  timeline: TimelineStep[]
 }
 
 type OutreachWave = {
@@ -31,11 +55,57 @@ type Payload = {
   degraded?: boolean
 }
 
-const FLAG_LABELS: Array<[keyof ReleasePlan, string]> = [
+const FLAG_LABELS: Array<["assets_ready" | "communication_enabled" | "press_enabled", string]> = [
   ["communication_enabled", "komunikacja"],
   ["press_enabled", "press"],
   ["assets_ready", "assets"],
 ]
+
+const TIER_LABELS: Record<ReleasePlan["tier"], string> = {
+  single: "SINGIEL",
+  track: "UTWÓR",
+  filler: "WYPEŁNIACZ",
+}
+
+const LIFECYCLE_LABELS: Record<ReleasePlan["lifecycle"], string> = {
+  inactive: "WYŁĄCZONY",
+  preparing: "PRZYGOTOWANIA",
+  release_week: "TYDZIEŃ PREMIERY",
+  sustaining: "PODTRZYMANIE",
+  complete: "ZAKOŃCZONE",
+}
+
+const MILESTONE_LABELS: Record<Milestone, string> = {
+  seed_calendar: "kalendarz",
+  editorial_pitch: "pitch redakcyjny",
+  announcement: "zapowiedź",
+  start_press: "press",
+  fan_warmup: "rozgrzanie fanów",
+  countdown: "odliczanie",
+  release_day: "dzień premiery",
+  sustain: "podtrzymanie",
+  wrap: "podsumowanie",
+}
+
+const STEP_STATE_LABELS: Record<StepState, string> = {
+  done: "GOTOWE",
+  parked: "U CZŁOWIEKA",
+  due: "TERMIN",
+  upcoming: "NADCHODZI",
+  disabled: "WYŁĄCZONE",
+  blocked: "ZABLOKOWANE",
+}
+
+const STEP_TONES: Record<StepState, string> = {
+  done: "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
+  parked: "border-amber-300/30 bg-amber-300/10 text-amber-200",
+  due: "border-amber-300/40 bg-amber-300/15 text-amber-100",
+  upcoming: "border-white/10 bg-white/5 text-zinc-400",
+  disabled: "border-white/10 bg-white/5 text-zinc-500",
+  blocked: "border-rose-400/25 bg-rose-400/10 text-rose-200",
+}
+
+const offsetLabel = (offset: number) => `R${offset > 0 ? "+" : ""}${offset}`
 
 const STATE_LABELS: Record<OutreachWave["state"], string> = {
   drafting: "SKŁADA SIĘ",
@@ -90,6 +160,7 @@ export default function StaffReleasePlansPanel() {
           title: String(data.get("title") ?? ""),
           release_at: data.get("release_at") || undefined,
           listen_url: String(data.get("listen_url") ?? "").trim() || null,
+          tier: String(data.get("tier") ?? "track"),
           active: true,
           assets_ready: data.get("assets_ready") === "on",
           communication_enabled: data.get("communication_enabled") === "on",
@@ -174,6 +245,14 @@ export default function StaffReleasePlansPanel() {
           Link do odsłuchu (opcjonalnie)
           <input name="listen_url" type="url" class="min-h-11 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-zinc-100" placeholder="https://open.spotify.com/…" />
         </label>
+        <label class="grid gap-1 text-sm font-semibold text-zinc-200 sm:col-span-2">
+          Rodzaj wydania
+          <select name="tier" class="min-h-11 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-zinc-100" defaultValue="track">
+            <option value="single">Singiel — pełna oś: pitch, odliczanie, pre-save, fale</option>
+            <option value="track">Utwór — zapowiedź, katalog, jedna fala, bez wydatków</option>
+            <option value="filler">Wypełniacz — publikacja w cichy tydzień, bez osi, bez wydatków</option>
+          </select>
+        </label>
         <fieldset class="flex flex-wrap items-center gap-4 sm:col-span-2">
           <legend class="text-sm font-semibold text-zinc-200">Przełączniki</legend>
           <label class="flex min-h-11 items-center gap-2 text-sm text-zinc-300"><input type="checkbox" name="communication_enabled" checked /> komunikacja do fanów</label>
@@ -199,12 +278,39 @@ export default function StaffReleasePlansPanel() {
               <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${plan.active ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200" : "border-white/10 bg-white/5 text-zinc-500"}`}>
                 {plan.active ? "AKTYWNY" : "WYŁĄCZONY"}
               </span>
+              <span class="rounded-full border border-violet-300/20 bg-violet-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-violet-200">
+                {TIER_LABELS[plan.tier] ?? plan.tier}
+              </span>
+              <span class="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-amber-200">
+                {LIFECYCLE_LABELS[plan.lifecycle] ?? plan.lifecycle}
+              </span>
               {FLAG_LABELS.map(([flag, label]) => (
                 <span key={flag} class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${plan[flag] ? "border-sky-300/20 bg-sky-300/10 text-sky-200" : "border-white/10 bg-white/5 text-zinc-500"}`}>
                   {label}
                 </span>
               ))}
             </div>
+            {Array.isArray(plan.timeline) && plan.timeline.length > 0 && (
+              <details class="mt-3 rounded-lg border border-white/5 bg-black/20">
+                <summary class="cursor-pointer select-none px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-zinc-400">
+                  Oś czasu premiery — {plan.timeline.filter(step => step.state === "done").length}/{plan.timeline.length} gotowe
+                </summary>
+                <ol class="grid gap-1 px-3 pb-3">
+                  {plan.timeline.map(step => (
+                    <li key={step.milestone} class="flex flex-wrap items-center gap-2 rounded-md px-2 py-1.5">
+                      <span class="w-14 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-500">{offsetLabel(step.offset_days)}</span>
+                      <span class="min-w-32 flex-1 text-sm text-zinc-200">{MILESTONE_LABELS[step.milestone] ?? step.milestone}</span>
+                      <span class="text-[10px] uppercase tracking-[0.12em] text-zinc-500">
+                        {step.state === "done" && step.completed_at ? `gotowe ${date(step.completed_at)}` : `termin ${date(step.due_at)}`}
+                      </span>
+                      <span class={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] ${STEP_TONES[step.state]}`}>
+                        {STEP_STATE_LABELS[step.state]}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </details>
+            )}
           </article>
         ))}
         {!loading && plans.length === 0 && !error && (

@@ -51,6 +51,10 @@ const boundedDateTime = (value: unknown): string | null => {
 const boundedFlag = (value: unknown, fallback: boolean): boolean =>
   typeof value === "boolean" ? value : fallback
 
+const RELEASE_TIERS = new Set(["single", "track", "filler"])
+const boundedTier = (value: unknown): string | undefined =>
+  typeof value === "string" && RELEASE_TIERS.has(value) ? value : undefined
+
 const boundedVersion = (value: unknown): number =>
   typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER
     ? value
@@ -111,6 +115,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     return areaJson({ error: "Invalid listen url" }, 422)
   }
   const releaseId = actionUuid(body.release_id)
+  const tier = boundedTier(body.tier)
   const payload = {
     source_key: sourceKey,
     title,
@@ -121,6 +126,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     communication_enabled: boundedFlag(body.communication_enabled, true),
     press_enabled: boundedFlag(body.press_enabled, false),
     expected_version: boundedVersion(body.expected_version),
+    ...(tier ? { tier } : {}),
     ...(releaseId ? { release_id: releaseId } : {}),
   }
   try {
