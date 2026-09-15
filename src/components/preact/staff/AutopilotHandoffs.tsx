@@ -107,20 +107,87 @@ const date = (value: string | null | undefined) => {
 }
 export { date, humanAction, humanContext }
 
+// Every action kind the autopilot emits, in the words a band member uses.
+//
+// Six of the thirty-five were named here; the rest fell through to a fallback
+// that replaced underscores — which does nothing to a dotted topic, so
+// `show.task.escalate` was printed verbatim as the card title and read aloud by
+// screen readers through the aria-labels below.
+//
+// The label says what the person does, not what the system calls it. The why
+// and the when come from the briefing, which the backend already sends.
 const ACTION_LABELS: Record<string, string> = {
-  "show.growth.request": "Wzmocnij frekwencję / merch",
+  // Koncerty i zadania wokół nich
+  "show.growth.request": "Wzmocnij frekwencję na koncercie",
+  "show.task.complete": "Zamknij zadanie koncertowe",
+  "show.task.escalate": "Zadanie koncertowe utknęło — potrzebna decyzja",
+  "opportunity.live.apply": "Wyślij zgłoszenie koncertowe",
+  "opportunity.terms.accept": "Przyjmij warunki koncertu",
+  "opportunity.terms.counter": "Odpowiedz kontrofertą na warunki",
+  "booking.outreach.request": "Odezwij się do organizatora",
+
+  // Beacony i sieć lokalna
   "beacon.discovery.request": "Znajdź lokalne Beacony",
   "beacon.outreach.request": "Uruchom lokalny Beacon",
-  "booking.outreach.request": "Kontakt bookingowy",
-  "opportunity.live.apply": "Wyślij zgłoszenie koncertowe",
-  "funding.application.submit": "Wyślij wniosek",
+
+  // Fani i kontakt
+  "fan.lifecycle.message.request": "Wyślij wiadomość do fana",
+  "audience.campaign.request": "Wyślij kampanię do publiczności",
+  "signal.push.request": "Wyślij powiadomienie w aplikacji",
+  "referral.code.issue": "Wydaj kod polecający",
+  "community.engage.request": "Odezwij się w społeczności",
+  "outreach.request": "Wyślij kontakt",
+  "outreach.target.request": "Zatwierdź adresata kontaktu",
+  "outreach.discovery.request": "Poszukaj nowych adresatów",
+
+  // Treść
+  "content.artifact.request": "Przygotuj materiał do publikacji",
+  "agent.content.request": "Sprawdź szkic przygotowany przez asystenta",
+  "agent.run.request": "Uruchom zadanie asystenta",
+
+  // Wydawnictwa
+  "release.milestone.execute": "Wykonaj krok wydawniczy",
+  "playlist.placement.verify": "Sprawdź, czy utwór trafił na playlistę",
+
+  // Merch i bilety
+  "merch.bundle.request": "Przygotuj zestaw merchu",
+  "merch.price.change": "Zmień cenę merchu",
+  "merch.reorder.request": "Zamów brakujący merch",
+  "ticket.price.change": "Zmień cenę biletu",
+  "ticket.capacity.change": "Zmień liczbę biletów",
+
+  // Finansowanie
+  "funding.application.submit": "Wyślij wniosek o dofinansowanie",
+  "funding.package.prepare": "Przygotuj dokumenty do wniosku",
+
+  // Zespół
+  "team.assignment.email": "Powiadom osobę o zadaniu",
+
+  // Sterowanie samym systemem — rzadkie, ale nie mogą wyciekać surowe
+  "growth.debt.raise": "Zaległość we wzroście — zobacz, co przestało się dziać",
+  "growth.opportunity.raise": "Nowa okazja do wzrostu",
+  "experiment.allocation.change": "Zmień podział ruchu w eksperymencie",
+  "experiment.complete": "Zamknij eksperyment",
+  "play.step.run": "Wykonaj krok zaplanowanego działania",
 }
 
+// The area the task belongs to. These were half English in an otherwise Polish
+// panel, which reads as a different product mid-sentence.
 const CONTEXT_LABELS: Record<string, string> = {
-  show_growth: "Attendance Growth",
-  beacon: "Beacons",
+  show_growth: "Frekwencja na koncertach",
+  beacon: "Beacony",
   booking_opportunity: "Booking",
-  live_opportunity: "Koncerty / festiwale",
+  live_opportunity: "Koncerty i festiwale",
+  fan_lifecycle: "Kontakt z fanami",
+  content: "Treść",
+  merch: "Merch",
+  ticketing: "Bilety",
+  funding: "Dofinansowania",
+  outreach: "Kontakt zewnętrzny",
+  community: "Społeczności",
+  release: "Wydawnictwa",
+  team: "Zespół",
+  experiment: "Eksperymenty",
 }
 
 const TEAM_MEMBER_LABELS: Record<string, string> = {
@@ -133,13 +200,20 @@ const TEAM_MEMBER_LABELS: Record<string, string> = {
 
 const teamMemberLabel = (value: string) => TEAM_MEMBER_LABELS[value] ?? value
 
-const humanAction = (value: string) =>
-  ACTION_LABELS[value] ?? value
-    .replace(/^apply_/, "zgłoszenie: ")
-    .replace(/^request_/, "kontakt: ")
-    .replaceAll("_", " ")
+// An unnamed action kind must never reach a band member as `show.task.escalate`.
+// The old fallback only replaced underscores, so a dotted topic passed through
+// untouched. This one keeps the area — the first segment is meaningful even
+// when the rest is not — and says plainly that the detail is below, which is
+// true: the briefing is rendered whether or not the label is known.
+const humanAction = (value: string) => {
+  const known = ACTION_LABELS[value]
+  if (known) return known
+  const area = CONTEXT_LABELS[value.split(".")[0] ?? ""]
+  return area ? `Zadanie: ${area.toLowerCase()}` : "Zadanie do wykonania"
+}
 
-const humanContext = (value: string) => CONTEXT_LABELS[value] ?? value.replaceAll("_", " ")
+const humanContext = (value: string) =>
+  CONTEXT_LABELS[value] ?? CONTEXT_LABELS[value.split(".")[0] ?? ""] ?? "Inne"
 
 const safeExternalUrl = (value: string) => {
   try {
