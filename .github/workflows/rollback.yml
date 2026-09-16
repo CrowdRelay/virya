@@ -14,7 +14,7 @@ permissions:
 jobs:
   rollback:
     name: Restore previous Netlify production deploy
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, arm64, frontend]
     timeout-minutes: 5
     environment: production
     steps:
