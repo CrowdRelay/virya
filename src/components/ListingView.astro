@@ -1,0 +1,120 @@
+---
+import Layout from "./Layout.astro"
+import { t, type Lang } from "../i18n/t"
+import { readBandListing, type BandListingState } from "../server/bandListing.ts"
+
+interface Props {
+  lang: Lang
+}
+
+const { lang } = Astro.props
+
+// The token in `?t=` is the whole credential — the link is the admission.
+// Everything else (wrong, rotated, unlisted) is the same 404 upstream and
+// the same answer here: a reader must not be able to tell "never existed"
+// from "taken down", because that difference is the band's business.
+const token = Astro.url.searchParams.get("t")?.trim() ?? ""
+const result: BandListingState = token
+  ? await readBandListing(token)
+  : { kind: "not_found" }
+
+if (result.kind === "not_found") Astro.response.status = 404
+if (result.kind === "unavailable") Astro.response.status = 503
+
+const listing = result.kind === "ready" ? result.listing : null
+const title = listing
+  ? `${listing.act_name} — ${t(lang, "listing.eyebrow")}`
+  : result.kind === "unavailable"
+    ? t(lang, "listing.unreachable")
+    : t(lang, "listing.gone")
+
+const formatNumber = (value: number) => new Intl.NumberFormat(lang).format(value)
+const TIER_LABEL: Record<string, { en: string; pl: string }> = {
+  downstream: { en: "Banked", pl: "Zrealizowane" },
+  intermediate: { en: "Intent", pl: "Zainteresowanie" },
+  vanity: { en: "Reach", pl: "Zasięg" },
+}
+const tierLabel = (tier: string) => TIER_LABEL[tier]?.[lang] ?? tier
+---
+
+<Layout title={title} lang={lang} enableClientRouter={false}>
+  {/* Admitted readers, not the open web — the link decides who reads, and
+      the token carries no value to a crawler anyway. */}
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+  <main id="main-content" class="min-h-screen bg-zinc-950 px-4 py-16 text-zinc-100 sm:px-8">
+    <div class="mx-auto max-w-2xl">
+      {listing ? (
+        <>
+          <p class="virya-eyebrow text-zinc-500">{t(lang, "listing.eyebrow")}</p>
+          <h1 class="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">{listing.act_name}</h1>
+
+          {listing.genre_tags.length > 0 && (
+            <div class="mt-4 flex flex-wrap gap-2">
+              {listing.genre_tags.map(tag => (
+                <span class="rounded-full border border-zinc-700 px-3 py-1 text-xs uppercase tracking-wider text-zinc-300">{tag}</span>
+              ))}
+            </div>
+          )}
+
+          {listing.claims.length > 0 && (
+            <section class="mt-10" aria-label={t(lang, "listing.numbers")}>
+              <h2 class="virya-eyebrow text-zinc-500">{t(lang, "listing.numbers")}</h2>
+              <dl class="mt-4 divide-y divide-zinc-800 border-y border-zinc-800">
+                {listing.claims.map(claim => (
+                  <div class="grid grid-cols-[1fr_auto] items-baseline gap-4 py-4">
+                    <div>
+                      <dt class="text-sm text-zinc-400">{claim.label}</dt>
+                      <dd class="mt-1 text-xs text-zinc-600">{t(lang, "listing.basisNote")}: {claim.basis}</dd>
+                    </div>
+                    <dd class="text-right">
+                      <span class="text-2xl font-bold tabular-nums">{formatNumber(claim.value)}</span>
+                      <span class="ml-2 text-[10px] uppercase tracking-wider text-zinc-500">{tierLabel(claim.tier)}</span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+
+          <div class="mt-10 grid gap-8 sm:grid-cols-3">
+            {listing.cities.length > 0 && (
+              <section>
+                <h2 class="virya-eyebrow text-zinc-500">{t(lang, "listing.cities")}</h2>
+                <ul class="mt-3 space-y-1 text-sm text-zinc-300">
+                  {listing.cities.map(city => <li>{city}</li>)}
+                </ul>
+              </section>
+            )}
+            {listing.published_dates.length > 0 && (
+              <section>
+                <h2 class="virya-eyebrow text-zinc-500">{t(lang, "listing.dates")}</h2>
+                <ul class="mt-3 space-y-1 text-sm text-zinc-300">
+                  {listing.published_dates.map(date => <li>{date}</li>)}
+                </ul>
+              </section>
+            )}
+            {listing.seeking.length > 0 && (
+              <section>
+                <h2 class="virya-eyebrow text-zinc-500">{t(lang, "listing.seeking")}</h2>
+                <ul class="mt-3 space-y-1 text-sm text-zinc-300">
+                  {listing.seeking.map(item => <li>{item}</li>)}
+                </ul>
+              </section>
+            )}
+          </div>
+        </>
+      ) : (
+        <div class="py-24 text-center">
+          <h1 class="text-2xl font-bold">{title}</h1>
+          <p class="mt-4 text-sm leading-relaxed text-zinc-400">
+            {result.kind === "unavailable" ? t(lang, "listing.unreachableHint") : t(lang, "listing.goneHint")}
+          </p>
+        </div>
+      )}
+
+      <p class="mt-16 border-t border-zinc-800 pt-6 text-xs text-zinc-600">
+        {t(lang, "listing.poweredBy")}
+      </p>
+    </div>
+  </main>
+</Layout>

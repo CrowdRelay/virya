@@ -99,6 +99,22 @@ export const translations = {
       sub: "Virya in 2026",
       play: "Play the Virya 2026 showcase video",
     },
+    listing: {
+      eyebrow: "Band listing",
+      genre: "Genre",
+      cities: "Where they draw",
+      dates: "Dates they can show",
+      seeking: "Looking for",
+      numbers: "The numbers",
+      basisNote: "Source",
+      gone: "This listing isn't available",
+      goneHint:
+        "The link may have been rotated or the band took the listing down — ask whoever sent it for a fresh one.",
+      unreachable: "Couldn't load this listing",
+      unreachableHint:
+        "The service that hosts listings is unreachable right now — try again in a moment.",
+      poweredBy: "Shared via CrowdRelay",
+    },
     music: {
       heading: "Music",
       sub: "Recent releases",
@@ -618,6 +634,22 @@ export const translations = {
       heading: "Na żywo",
       sub: "Virya w 2026",
       play: "Odtwórz wideo Virya 2026",
+    },
+    listing: {
+      eyebrow: "Wizytówka zespołu",
+      genre: "Gatunek",
+      cities: "Gdzie grają",
+      dates: "Daty, które mogą pokazać",
+      seeking: "Szukają",
+      numbers: "Liczby",
+      basisNote: "Źródło",
+      gone: "Ta wizytówka jest niedostępna",
+      goneHint:
+        "Link mógł zostać odświeżony albo zespół zdjął wizytówkę — poproś nadawcę o nowy.",
+      unreachable: "Nie udało się wczytać wizytówki",
+      unreachableHint:
+        "Usługa, która przechowuje wizytówki, jest chwilowo nieosiągalna — spróbuj za chwilę.",
+      poweredBy: "Udostępnione przez CrowdRelay",
     },
     music: {
       heading: "Muzyka",
