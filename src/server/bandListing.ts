@@ -88,7 +88,10 @@ export function parseListing(value: unknown): BandListing | null {
   if (!Array.isArray(raw.claims) || raw.claims.length > 24) return null
   const claims: ListingClaim[] = []
   for (const item of raw.claims) {
-    if (!item || typeof item !== "object" || Array.isArray(item)) return null
+    // A claim that does not parse is dropped, not fatal: upstream redaction
+    // already filters unsupported claims, so what reaches here is meant to
+    // render, and one bad row must not take the whole listing down with it.
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue
     const claim = item as Record<string, unknown>
     const label = boundedString(claim.label, 120)
     const basis = boundedString(claim.basis, 200)
@@ -100,7 +103,7 @@ export function parseListing(value: unknown): BandListing | null {
         ? n
         : null
     const tier = typeof claim.tier === "string" ? claim.tier : null
-    if (!label || !basis || value === null || !tier || !TIERS.has(tier)) return null
+    if (!label || !basis || value === null || !tier || !TIERS.has(tier)) continue
     claims.push({
       label,
       value,
@@ -126,10 +129,12 @@ export function parseListing(value: unknown): BandListing | null {
  */
 export async function readBandListing(token: string): Promise<BandListingState> {
   if (!UUID.test(token)) return { kind: "not_found" }
-  const url = new URL(`public/listings/${token}`, listingApiBase())
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
   try {
+    // A malformed PUBLIC_CROWDRELAY_API_URL is a configuration failure, so it
+    // lands here and reports `unavailable` like any other upstream failure.
+    const url = new URL(`public/listings/${token}`, listingApiBase())
     const response = await fetch(url, {
       signal: controller.signal,
       headers: { Accept: "application/json" },

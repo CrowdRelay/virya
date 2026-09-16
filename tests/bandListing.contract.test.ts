@@ -33,16 +33,20 @@ test("a well-formed published listing parses", () => {
 
 test("claims with no number never reach the page", () => {
   // Upstream redaction already drops them; if one slips through anyway the
-  // parser refuses the whole listing rather than render a half-claim.
+  // parser drops the claim — a bad row is not a reason to refuse the page.
   const broken = listing()
   broken.claims[0].value = null as unknown as number
-  assert.equal(parseListing(broken), null)
+  const parsed = parseListing(broken)
+  assert.ok(parsed)
+  assert.equal(parsed.claims.length, 0)
 })
 
-test("a claim without a basis is refused", () => {
+test("a claim without a basis is dropped, not rendered", () => {
   const broken = listing()
   broken.claims[0].basis = ""
-  assert.equal(parseListing(broken), null)
+  const parsed = parseListing(broken)
+  assert.ok(parsed)
+  assert.equal(parsed.claims.length, 0)
 })
 
 test("malformed payloads are refused, not rendered", () => {
@@ -54,11 +58,15 @@ test("malformed payloads are refused, not rendered", () => {
   assert.equal(parseListing(oversized), null)
   const floatValue = listing()
   floatValue.claims[0].value = 4.2
-  assert.equal(parseListing(floatValue), null)
+  const parsedFloat = parseListing(floatValue)
+  assert.ok(parsedFloat)
+  assert.equal(parsedFloat.claims.length, 0)
 })
 
-test("unknown claim tiers are refused", () => {
+test("unknown claim tiers are dropped, not rendered", () => {
   const broken = listing()
   broken.claims[0].tier = "platinum" as unknown as string
-  assert.equal(parseListing(broken), null)
+  const parsed = parseListing(broken)
+  assert.ok(parsed)
+  assert.equal(parsed.claims.length, 0)
 })
