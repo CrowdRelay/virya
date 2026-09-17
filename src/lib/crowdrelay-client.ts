@@ -1,4 +1,4 @@
-// @generated-contract openapi-sha256: fc12ea7f5b6fff110aeb325ac84f1e02b6ab38638add5dd1ad3ea0106e85ff86
+// @generated-contract openapi-sha256: 82449104144cb507d0d09dc6f6c747c785d81c15f2e5e2b640bd44f2c69af961
 
 // ---- Label portfolio & fanbase surfaces (contract 0110-0113) ----
 

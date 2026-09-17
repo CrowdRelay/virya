@@ -67,14 +67,19 @@ const actionUuid = (value: unknown): string | null => {
 
 export const GET: APIRoute = async ({ cookies }) => {
   if (!hasStaffQrSession(cookies)) return areaJson({ error: "Unauthorized" }, 401)
-  const [plansResult, wavesResult] = await Promise.allSettled([
+  const [plansResult, wavesResult, outcomesResult] = await Promise.allSettled([
     staffApiRequest<unknown[]>("admin/autopilot/releases", { timeoutMs: 8_000 }),
     staffApiRequest<unknown[]>("admin/autopilot/outreach-waves", { timeoutMs: 8_000 }),
+    staffApiRequest<unknown[]>("admin/autopilot/release-outcomes", { timeoutMs: 8_000 }),
   ])
   return areaJson({
     plans: plansResult.status === "fulfilled" && Array.isArray(plansResult.value) ? plansResult.value : [],
     waves: wavesResult.status === "fulfilled" && Array.isArray(wavesResult.value) ? wavesResult.value : [],
-    degraded: plansResult.status === "rejected" || wavesResult.status === "rejected",
+    outcomes: outcomesResult.status === "fulfilled" && Array.isArray(outcomesResult.value) ? outcomesResult.value : [],
+    degraded:
+      plansResult.status === "rejected" ||
+      wavesResult.status === "rejected" ||
+      outcomesResult.status === "rejected",
   })
 }
 

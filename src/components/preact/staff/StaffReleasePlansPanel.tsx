@@ -14,6 +14,7 @@ type Milestone =
   | "release_day"
   | "sustain"
   | "wrap"
+  | "catalogue_rotation"
 
 type StepState = "done" | "parked" | "due" | "upcoming" | "disabled" | "blocked"
 
@@ -49,9 +50,30 @@ type OutreachWave = {
   eligible_targets: number
 }
 
+type ReleaseOutcome = {
+  release_id: string
+  title: string
+  tier: ReleasePlan["tier"]
+  release_at: string
+  report_kind: "release_r3" | "release_r14"
+  generated_at: string
+  window_days: number
+  verdict: "above_trend" | "within_noise" | "insufficient_evidence"
+  payload?: {
+    observed?: {
+      fans_acquired_via_release_campaign?: number
+      release_link_clicks?: number
+      release_link_clickers?: number
+    }
+    inferred?: { window_acquisitions?: number }
+    evidence_gaps?: string[]
+  }
+}
+
 type Payload = {
   plans: ReleasePlan[]
   waves: OutreachWave[]
+  outcomes?: ReleaseOutcome[]
   degraded?: boolean
 }
 
@@ -85,6 +107,7 @@ const MILESTONE_LABELS: Record<Milestone, string> = {
   release_day: "dzień premiery",
   sustain: "podtrzymanie",
   wrap: "podsumowanie",
+  catalogue_rotation: "rotacja katalogu",
 }
 
 const STEP_STATE_LABELS: Record<StepState, string> = {
@@ -114,9 +137,21 @@ const STATE_LABELS: Record<OutreachWave["state"], string> = {
   expired: "PRZEPADŁA",
 }
 
+const VERDICT_LABELS: Record<ReleaseOutcome["verdict"], string> = {
+  above_trend: "powyżej trendu",
+  within_noise: "w ramach szumu",
+  insufficient_evidence: "za mało dowodów",
+}
+
+const REPORT_KIND_LABELS: Record<ReleaseOutcome["report_kind"], string> = {
+  release_r3: "R+3",
+  release_r14: "R+14",
+}
+
 export default function StaffReleasePlansPanel() {
   const [plans, setPlans] = useState<ReleasePlan[]>([])
   const [waves, setWaves] = useState<OutreachWave[]>([])
+  const [outcomes, setOutcomes] = useState<ReleaseOutcome[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<string | null>(null)
@@ -132,6 +167,7 @@ export default function StaffReleasePlansPanel() {
       })
       setPlans(payload.plans ?? [])
       setWaves(payload.waves ?? [])
+      setOutcomes(payload.outcomes ?? [])
       setError(payload.degraded ? "Część danych chwilowo niedostępna — reszta działa." : "")
     } catch (value) {
       if (!(value instanceof DOMException && value.name === "AbortError"))
@@ -253,6 +289,40 @@ export default function StaffReleasePlansPanel() {
             <option value="filler">Wypełniacz — publikacja w cichy tydzień, bez osi, bez wydatków</option>
           </select>
         </label>
+        {outcomes.length > 0 && (
+          <div class="rounded-lg border border-white/10 bg-black/20 p-3 sm:col-span-2">
+            <p class="text-xs font-black uppercase tracking-[0.16em] text-zinc-500">
+              Wyniki poprzednich wydań — rekord, nie statystyka
+            </p>
+            <ul class="mt-2 grid gap-1.5">
+              {Array.from(
+                outcomes.reduce<Map<string, { title: string; tier: ReleasePlan["tier"]; reports: ReleaseOutcome[] }>>(
+                  (map, outcome) => {
+                    const entry = map.get(outcome.release_id) ?? { title: outcome.title, tier: outcome.tier, reports: [] }
+                    entry.reports.push(outcome)
+                    return map.set(outcome.release_id, entry)
+                  },
+                  new Map(),
+                ),
+              ).map(([releaseId, entry]) => (
+                <li key={releaseId} class="flex flex-wrap items-baseline gap-x-2 text-sm text-zinc-300">
+                  <span class="font-semibold text-zinc-100">{entry.title}</span>
+                  <span class="text-xs uppercase tracking-wide text-zinc-500">{TIER_LABELS[entry.tier] ?? entry.tier}</span>
+                  {entry.reports.map(report => (
+                    <span key={report.report_kind} class="text-xs text-zinc-400">
+                      {REPORT_KIND_LABELS[report.report_kind] ?? report.report_kind}: {VERDICT_LABELS[report.verdict] ?? report.verdict}
+                      {typeof report.payload?.observed?.fans_acquired_via_release_campaign === "number" &&
+                        ` · ${report.payload.observed.fans_acquired_via_release_campaign} nowych przez link`}
+                    </span>
+                  ))}
+                </li>
+              ))}
+            </ul>
+            <p class="mt-2 text-xs text-zinc-500">
+              Próbka jest za mała, by porównywać rodzaje — to zapis wyników, nie rekomendacja.
+            </p>
+          </div>
+        )}
         <fieldset class="flex flex-wrap items-center gap-4 sm:col-span-2">
           <legend class="text-sm font-semibold text-zinc-200">Przełączniki</legend>
           <label class="flex min-h-11 items-center gap-2 text-sm text-zinc-300"><input type="checkbox" name="communication_enabled" checked /> komunikacja do fanów</label>
