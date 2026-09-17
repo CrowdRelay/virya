@@ -37,7 +37,7 @@ export default function BackendLoader({
       aria-busy="true"
       class={
         overlay
-          ? "absolute inset-0 z-20 overflow-hidden rounded-xl border border-white/10 bg-[#070908] p-6"
+          ? "absolute inset-0 z-20 overflow-hidden rounded-xl border border-white/10 bg-[var(--virya-bg)] p-6"
           : "rounded-xl border border-white/10 bg-black/30 p-5"
       }
     >

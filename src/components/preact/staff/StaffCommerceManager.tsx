@@ -628,7 +628,7 @@ export default function StaffCommerceManager() {
               ))}
             </div>
             <div class="mt-5 grid gap-3 sm:grid-cols-2">
-              <button disabled={busy || !stocktakeComplete} class="rounded-xl bg-white px-5 py-3 font-black text-zinc-950 disabled:opacity-40">
+              <button type="submit" disabled={busy || !stocktakeComplete} class="rounded-xl bg-white px-5 py-3 font-black text-zinc-950 disabled:opacity-40">
                 {busy ? "ZAPISUJĘ…" : "ZAPISZ DOKŁADNY STAN"}
               </button>
               <button
@@ -721,7 +721,7 @@ export default function StaffCommerceManager() {
             <Field label="Powód">
               <input value={stockReason} onInput={event => setStockReason(event.currentTarget.value)} maxLength={500} placeholder="np. dostawa 50 płyt" class="input" />
             </Field>
-            <button disabled={busy || !stockSku || stockDelta === 0} class={staffAccentButton}>
+            <button type="submit" disabled={busy || !stockSku || stockDelta === 0} class={staffAccentButton}>
               ZAPISZ RUCH
             </button>
           </div>
@@ -788,7 +788,7 @@ export default function StaffCommerceManager() {
             <div class="sm:col-span-2 rounded-xl border border-white/10 bg-black/30 p-3 text-xs leading-5 text-zinc-400">
               System natychmiast rezerwuje {Math.max(0, campaign.winnerCount * campaign.unitsPerWinner)} szt. Nagrody nie będą w tym czasie dostępne do sprzedaży.
             </div>
-            <button disabled={busy || !campaign.name || !campaign.slug || !campaign.prizeSku} class={`${staffAccentButton} sm:col-span-2`}>
+            <button type="submit" disabled={busy || !campaign.name || !campaign.slug || !campaign.prizeSku} class={`${staffAccentButton} sm:col-span-2`}>
               UTWÓRZ I ZAREZERWUJ NAGRODY
             </button>
           </div>

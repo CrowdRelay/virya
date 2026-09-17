@@ -202,7 +202,7 @@ export function AdmissionTab({ events }: { events: EventItem[] }) {
               }
               type="number"
             />
-            <button
+            <button type="submit"
               disabled={busy || !issue.eventSlug || !issue.fanEmail}
               class={staffAccentButton}
             >

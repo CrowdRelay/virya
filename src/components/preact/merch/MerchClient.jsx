@@ -13,7 +13,7 @@ const CartFab = () => {
   const { t, lang } = useI18n()
   if (count === 0) return null
   return (
-    <button
+    <button type="button"
       onClick={() => setOpen(true)}
       aria-label={`${t("cart.open")} (${count})`}
       class="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 flex min-h-12 items-center justify-between gap-4 bg-amber-400 px-5 text-black shadow-[0_18px_60px_rgba(0,0,0,.45)] transition-colors hover:bg-amber-300 sm:inset-x-auto sm:bottom-6 sm:right-6 sm:justify-start"

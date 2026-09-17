@@ -299,7 +299,7 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
               {cities.map(city => <option key={city.slug} value={city.slug}>{city.name}</option>)}
             </select>
           </label>
-          <button disabled={busy || !testName.trim() || !testEmail.trim()}
+          <button type="submit" disabled={busy || !testName.trim() || !testEmail.trim()}
             class={`${staffAccentButton} sm:col-span-2`}>
             {busy ? "TWORZĘ…" : "UTWÓRZ I WYBIJ ZAPROSZENIE"}
           </button>

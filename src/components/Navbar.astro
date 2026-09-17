@@ -41,7 +41,7 @@ const langHref = (target: Lang) =>
 <nav
   id="main-nav"
   aria-label={lang === "pl" ? "Główna nawigacja" : "Main navigation"}
-  class="fixed inset-x-0 top-0 z-40 border-b border-[#27322f]/80 bg-[#070908]/95 px-4 py-2 transition-[background-color,border-color,transform] duration-200 sm:px-6 lg:px-8"
+  class="fixed inset-x-0 top-0 z-40 border-b border-[var(--virya-border)]/80 bg-[var(--virya-bg)]/95 px-4 py-2 transition-[background-color,border-color,transform] duration-200 sm:px-6 lg:px-8"
 >
   <div class="virya-container--wide flex min-h-[64px] items-center gap-5">
     <a
@@ -101,7 +101,7 @@ const langHref = (target: Lang) =>
               {lang === "pl" ? "Więcej" : "More"}
               <span aria-hidden="true" class="text-[10px] transition-transform group-open/more:rotate-180">▾</span>
             </summary>
-            <div class="absolute right-0 top-[calc(100%+.5rem)] min-w-52 border border-zinc-800/90 bg-[#0b100f]/98 p-2 shadow-2xl shadow-black/50">
+            <div class="absolute right-0 top-[calc(100%+.5rem)] min-w-52 border border-zinc-800/90 bg-[var(--virya-bg-raised)]/98 p-2 shadow-2xl shadow-black/50">
               {more.map(item => (
                 <a
                   href={item.href}
@@ -137,7 +137,7 @@ const langHref = (target: Lang) =>
           aria-label="EN — Switch to English"
           aria-current={lang === "en" ? "true" : undefined}
         >EN</a>
-        <span class="text-zinc-700" aria-hidden="true">/</span>
+        <span class="text-zinc-400" aria-hidden="true">/</span>
         <a
           data-lang-switch="pl"
           href={langHref("pl")}
@@ -152,7 +152,7 @@ const langHref = (target: Lang) =>
       </div>
 
       {displayLinks && (
-        <button
+        <button type="button"
           id="mobile-menu-btn"
           class="inline-flex min-h-12 min-w-12 items-center justify-center text-zinc-200 transition-colors hover:text-amber-300 lg:hidden"
           aria-label={t(lang, "nav.openMenu")}

@@ -80,6 +80,7 @@ dist/
 public/resp/
 src/srcsets.json
 .test-dist/
+.lighthouseci/
 
 # Editor/recovery files
 *.bak

@@ -279,12 +279,12 @@ const ProductCard = ({ product, images, index = 0, inventory }) => {
                 )
                 const inStock = sizeInventory?.available ?? sizeInStock(product, s)
                 if (!inStock) return (
-                  <button key={s} onClick={() => requestSize(s)} title={t("product.restockTitle", s)} aria-label={t("product.restockAria", s)}
+                  <button type="button" key={s} onClick={() => requestSize(s)} title={t("product.restockTitle", s)} aria-label={t("product.restockAria", s)}
                     class="relative min-h-[44px] min-w-[44px] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-zinc-800 text-zinc-400 line-through cursor-pointer hover:border-amber-400/40 hover:text-amber-400/80 transition-colors">{s}</button>
                 )
                 const low = sizeInventory?.lowStock ?? sizeLowStock(product, s)
                 return (
-                  <button key={s} onClick={() => { setSize(size === s ? null : s); setError(false) }} title={low ? t("product.fewLeft", s) : undefined}
+                  <button type="button" key={s} onClick={() => { setSize(size === s ? null : s); setError(false) }} title={low ? t("product.fewLeft", s) : undefined}
                     class={`relative min-h-[44px] min-w-[44px] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-colors cursor-pointer ${size === s ? "border-amber-400 bg-amber-400 text-black" : "border-zinc-700 text-zinc-300 hover:border-amber-400/60"}`}>
                     {s}
                     {low && <span aria-hidden="true" class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />}
@@ -331,7 +331,7 @@ const ProductCard = ({ product, images, index = 0, inventory }) => {
               {price}<span class="text-xs font-semibold text-zinc-400 ml-1">PLN</span>
             </span>
           </span>
-          <button onClick={handleAdd} disabled={!available}
+          <button type="button" onClick={handleAdd} disabled={!available}
             class="virya-button virya-button--secondary w-full whitespace-nowrap sm:w-auto disabled:cursor-not-allowed disabled:opacity-40">
             {available ? t("product.addToCart") : t("product.soldOut")}
           </button>

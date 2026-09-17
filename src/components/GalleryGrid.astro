@@ -38,7 +38,7 @@ const localAlt = (photo: (typeof photos)[number], index: number) =>
         const blur = (ph as Record<string, string>)[photo.src] || ""
         const alt = localAlt(photo, i)
         return (
-          <button
+          <button type="button"
             class={`photo-btn w-full group cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${i >= 12 ? "hidden gallery-extra" : "block"}`}
             data-index={i}
             data-src={photo.src}
@@ -81,13 +81,13 @@ const localAlt = (photo: (typeof photos)[number], index: number) =>
     tabindex="-1"
   >
     <div id="modal-blur" class="absolute inset-0 opacity-0 transition-opacity duration-300 bg-cover bg-center bg-no-repeat pointer-events-none" style="filter:blur(20px);transform:scale(1.05)"></div>
-    <button id="modal-close" data-dialog-initial-focus class="absolute top-4 right-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-amber-400 transition-colors z-10 text-3xl leading-none" aria-label={t(lang, "gallery.close")}>&times;</button>
+    <button type="button" id="modal-close" data-dialog-initial-focus class="absolute top-4 right-4 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-amber-400 transition-colors z-10 text-3xl leading-none" aria-label={t(lang, "gallery.close")}>&times;</button>
 
-    <button id="modal-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.prev")}>
+    <button type="button" id="modal-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.prev")}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
 
-    <button id="modal-next" class="absolute right-14 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.next")}>
+    <button type="button" id="modal-next" class="absolute right-14 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-amber-400 transition-colors z-10 p-2" aria-label={t(lang, "gallery.next")}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
     </button>
 

@@ -301,7 +301,7 @@ export default function StaffPairingManager() {
                 <option value={10}>10 minut</option>
               </select>
             </label>
-            <button
+            <button type="submit"
               disabled={busy || displayName.trim().length < 2}
               class={staffAccentButton}
             >
@@ -319,7 +319,7 @@ export default function StaffPairingManager() {
           {!qr || !envelope ? (
             <div class="grid min-h-[420px] place-items-center rounded-lg border border-dashed border-white/10 bg-black/20 p-8 text-center">
               <div>
-                <div class="text-5xl text-zinc-700" aria-hidden="true">▦</div>
+                <div class="text-5xl text-zinc-500" aria-hidden="true">▦</div>
                 <h2 class="mt-4 text-xl font-black text-white">Kod nie został wygenerowany</h2>
                 <p class="mt-2 max-w-sm text-sm leading-6 text-zinc-500">
                   Nadaj czytelną nazwę urządzeniu i wygeneruj krótkotrwały QR.

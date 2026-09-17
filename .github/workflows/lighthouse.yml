@@ -1,0 +1,66 @@
+name: Lighthouse
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lighthouse:
+    name: Lighthouse guard
+    # Self-hosted ARM64: hosted x64 minutes are billed on private repos.
+    # The org runner is free, unlimited, and already runs every build.
+    runs-on: [self-hosted, arm64, frontend]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .cache/virya-images
+            public/resp
+          key: images-${{ runner.os }}-${{ hashFiles('scripts/gen-placeholders.mjs', 'public/**/*') }}
+          restore-keys: |
+            images-${{ runner.os }}-
+
+      - name: Install locked dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Build production output
+        run: npm run build
+        env:
+          CI: "true"
+          VIRYA_SOURCE_SHA: ${{ github.sha }}
+
+      - name: Install Chromium for Lighthouse
+        # The ARM runner has no system Chrome; Playwright ships linux/arm64
+        # chromium builds, and chrome-launcher honors CHROME_PATH.
+        run: |
+          set -euo pipefail
+          npm --prefix "${RUNNER_TEMP}/pw" install --no-audit --no-fund playwright@1.49.1
+          "${RUNNER_TEMP}/pw/node_modules/.bin/playwright" install --with-deps chromium
+          chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/chrome' | head -1)"
+          test -x "${chrome_path}"
+          echo "CHROME_PATH=${chrome_path}" >> "${GITHUB_ENV}"
+
+      - name: Run Lighthouse CI
+        # npx, not a devDependency: @lhci/cli drags deprecated transitives
+        # (tmp, uuid) that fail scripts/audit-dependencies.mjs. CI-only tool.
+        run: npx --yes @lhci/cli@0.15.1 autorun
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lighthouse-report
+          path: .lighthouseci
+          retention-days: 14

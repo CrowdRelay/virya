@@ -55,7 +55,7 @@ const MinusIcon = ({ class: cls }) => (
 )
 
 const QtyButton = ({ children, onClick, label }) => (
-  <button onClick={onClick} aria-label={label}
+  <button type="button" onClick={onClick} aria-label={label}
     class="group w-11 h-11 flex items-center justify-center border border-zinc-700 hover:border-amber-400 transition-colors cursor-pointer">
     <span class="flex items-center justify-center text-zinc-300 group-hover:text-amber-400">
       {children}
@@ -346,7 +346,7 @@ const CartDrawer = () => {
       >
         <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
           <h2 class="text-sm font-black uppercase tracking-widest text-zinc-100">{t("cart.title")}</h2>
-          <button data-cart-close onClick={() => setOpen(false)} aria-label={t("cart.close")} class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
+          <button type="button" data-cart-close onClick={() => setOpen(false)} aria-label={t("cart.close")} class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-amber-400 transition-colors text-2xl leading-none cursor-pointer">&times;</button>
         </div>
 
         <div class="flex-1 overflow-y-auto px-5 py-4">
@@ -374,7 +374,7 @@ const CartDrawer = () => {
                         <span class="text-sm font-bold text-zinc-100">{l.lineTotal} PLN</span>
                       </div>
                     </div>
-                    <button onClick={() => remove(l.id, l.size)} aria-label={t("cart.remove")} class="self-start inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-red-400 transition-colors text-xs cursor-pointer">{t("cart.remove")}</button>
+                    <button type="button" onClick={() => remove(l.id, l.size)} aria-label={t("cart.remove")} class="self-start inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-zinc-400 hover:text-red-400 transition-colors text-xs cursor-pointer">{t("cart.remove")}</button>
                   </li>
                 )
               })}
@@ -428,10 +428,10 @@ const CartDrawer = () => {
                       <p class="text-xs font-bold text-amber-400">{point.code}</p>
                       {point.address && <p class="text-[11px] text-zinc-400 truncate">{point.address}</p>}
                     </div>
-                    <button onClick={() => setPickerOpen(true)} class="inline-flex min-h-[44px] items-center text-[10px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 whitespace-nowrap cursor-pointer">{t("cart.change")}</button>
+                    <button type="button" onClick={() => setPickerOpen(true)} class="inline-flex min-h-[44px] items-center text-[10px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 whitespace-nowrap cursor-pointer">{t("cart.change")}</button>
                   </div>
                 ) : (
-                  <button onClick={() => setPickerOpen(true)} class="w-full min-h-[44px] text-xs font-bold uppercase tracking-widest py-2.5 border border-zinc-700 text-zinc-200 hover:border-amber-400 hover:text-amber-400 transition-colors cursor-pointer">{t("cart.choosePaczkomat")}</button>
+                  <button type="button" onClick={() => setPickerOpen(true)} class="w-full min-h-[44px] text-xs font-bold uppercase tracking-widest py-2.5 border border-zinc-700 text-zinc-200 hover:border-amber-400 hover:text-amber-400 transition-colors cursor-pointer">{t("cart.choosePaczkomat")}</button>
                 )}
               </div>
             )}
@@ -506,7 +506,7 @@ const CartDrawer = () => {
 
             {error && <p class="text-[11px] uppercase tracking-widest text-red-400">{error}</p>}
 
-            <button onClick={checkout} disabled={loading} class="w-full bg-amber-400 text-black hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer uppercase tracking-widest font-bold text-sm py-3 transition-all duration-200">
+            <button type="button" onClick={checkout} disabled={loading} class="w-full bg-amber-400 text-black hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer uppercase tracking-widest font-bold text-sm py-3 transition-all duration-200">
               {loading ? t("cart.redirecting") : rewardApplied && rewardedTotal === 0 ? t("cart.claimFreeOrder") : t("cart.pay")}
             </button>
             <p class="text-[10px] text-zinc-400 text-center uppercase tracking-widest">{t("cart.payMethods")}</p>

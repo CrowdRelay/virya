@@ -65,7 +65,7 @@ export function StaffLoginCard({
             class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition-colors focus:border-amber-300"
           />
         </label>
-        <button disabled={busy || !password} class="min-h-[48px] w-full rounded-xl bg-emerald-300 px-5 text-sm font-black uppercase tracking-wider text-zinc-950 transition-colors hover:bg-emerald-200 disabled:opacity-50">
+        <button type="submit" disabled={busy || !password} class="min-h-[48px] w-full rounded-xl bg-emerald-300 px-5 text-sm font-black uppercase tracking-wider text-zinc-950 transition-colors hover:bg-emerald-200 disabled:opacity-50">
           {busy ? busyLabel : submitLabel}
         </button>
       </form>

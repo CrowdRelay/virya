@@ -447,7 +447,7 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
               ))}
             </div>
 
-            <button
+            <button type="submit"
               disabled={busy}
               class={`${staffAccentButton} mt-5 w-full`}
             >

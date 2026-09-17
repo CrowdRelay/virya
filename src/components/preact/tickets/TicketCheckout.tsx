@@ -494,11 +494,11 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
             <span class={step === 1 ? "text-amber-400" : "text-zinc-600"}>
               1. {text.step1}
             </span>
-            <span class="text-zinc-700" aria-hidden="true">→</span>
+            <span class="text-zinc-400" aria-hidden="true">→</span>
             <span class={step === 2 ? "text-amber-400" : "text-zinc-600"}>
               2. {text.step2}
             </span>
-            <span class="text-zinc-700" aria-hidden="true">→</span>
+            <span class="text-zinc-400" aria-hidden="true">→</span>
             <span class={step === 3 ? "text-amber-400" : "text-zinc-600"}>
               3. {text.step3}
             </span>

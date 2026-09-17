@@ -233,14 +233,14 @@ export default function AdminConsole() {
             </p>
           </div>
           <div class="flex gap-2">
-            <button
+            <button type="button"
               disabled={busy || overviewLoading}
               onClick={() => void loadOverview()}
               class={staffSecondaryButton}
             >
               {overviewLoading ? "Odświeżam…" : "Odśwież"}
             </button>
-            <button
+            <button type="button"
               disabled={busy}
               onClick={() => void logout()}
               class={staffLogoutButton}
@@ -256,7 +256,7 @@ export default function AdminConsole() {
         class="flex gap-1 overflow-x-auto border-y border-white/10 bg-black/20 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map(item => (
-          <button
+          <button type="button"
             key={item.key}
             onClick={() => openTab(item.key)}
             onPointerEnter={() => {

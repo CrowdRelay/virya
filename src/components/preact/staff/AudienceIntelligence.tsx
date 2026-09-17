@@ -152,7 +152,7 @@ export default function AudienceIntelligence() {
             Wszystko o fanie w jednym miejscu: pozyskanie, zainteresowanie koncertami, bilety, wejścia, polecenia, nagrody i Synesthesia.
           </p>
         </div>
-        <button disabled={busy} onClick={() => void refresh()} class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50">
+        <button type="button" disabled={busy} onClick={() => void refresh()} class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50">
           {busy ? "Pracuję…" : "Odśwież"}
         </button>
       </div>
@@ -191,7 +191,7 @@ export default function AudienceIntelligence() {
           ["campaigns", "Kampanie", "co wysyłamy"],
           ["analytics", "Analityka", "co działa"],
         ] as const).map(([key, label, hint]) => (
-          <button key={key} onClick={() => setPane(key)} class={`rounded-xl px-3 py-3 text-left ${pane === key ? "bg-cyan-300 text-zinc-950" : "text-zinc-300 hover:bg-white/10"}`}>
+          <button type="button" key={key} onClick={() => setPane(key)} class={`rounded-xl px-3 py-3 text-left ${pane === key ? "bg-cyan-300 text-zinc-950" : "text-zinc-300 hover:bg-white/10"}`}>
             <strong class="block text-sm">{label}</strong>
             <span class={`mt-1 block text-[11px] ${pane === key ? "text-zinc-700" : "text-zinc-500"}`}>{hint}</span>
           </button>
@@ -246,11 +246,11 @@ function FansPane(props: {
         <form class="grid gap-3 sm:grid-cols-[1fr_.7fr_auto]" onSubmit={event => { event.preventDefault(); void props.runSearch() }}>
           <input value={props.search} onInput={event => props.setSearch(event.currentTarget.value)} placeholder="Szukaj e-mail / nazwa" class={inputClass} />
           <input value={props.city} onInput={event => props.setCity(event.currentTarget.value)} placeholder="miasto, np. wroclaw" class={inputClass} />
-          <button disabled={props.busy} class={primaryButton}>Filtruj</button>
+          <button type="submit" disabled={props.busy} class={primaryButton}>Filtruj</button>
         </form>
         <div class="mt-4 divide-y divide-white/5">
           {props.fans.map(fan => (
-            <button key={fan.id} onClick={() => void props.openFan(fan)} class="grid w-full grid-cols-[1fr_auto] gap-3 px-2 py-4 text-left hover:bg-white/[.035]">
+            <button type="button" key={fan.id} onClick={() => void props.openFan(fan)} class="grid w-full grid-cols-[1fr_auto] gap-3 px-2 py-4 text-left hover:bg-white/[.035]">
               <span class="min-w-0">
                 <strong class="block truncate text-sm text-white">{fan.display_name || fan.email}</strong>
                 <span class="mt-1 block truncate text-xs text-zinc-500">{fan.email}</span>
@@ -299,7 +299,7 @@ function FanDetailPane({ detail, close, reload }: { detail: AudienceFanDetail | 
           <h3 class="mt-1 truncate text-xl font-black text-white">{detail.fan.display_name || detail.fan.email}</h3>
           <p class="mt-1 truncate text-xs text-zinc-500">{detail.fan.email}</p>
         </div>
-        <button onClick={close} class="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-zinc-300">Zamknij</button>
+        <button type="button" onClick={close} class="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-zinc-300">Zamknij</button>
       </div>
       <div class="mt-4 flex flex-wrap gap-2">
         {detail.tags.map(value => (
@@ -310,7 +310,7 @@ function FanDetailPane({ detail, close, reload }: { detail: AudienceFanDetail | 
       </div>
       <form class="mt-3 flex gap-2" onSubmit={event => { event.preventDefault(); void mutateTag(tag.trim().toLowerCase()) }}>
         <input value={tag} onInput={event => setTag(event.currentTarget.value)} placeholder="tag, np. ambassador" class={`${inputClass} min-w-0 flex-1`} />
-        <button disabled={busy || !tag.trim()} class={secondaryButton}>Dodaj</button>
+        <button type="submit" disabled={busy || !tag.trim()} class={secondaryButton}>Dodaj</button>
       </form>
       {message && <p class="mt-2 text-xs text-rose-300">{message}</p>}
       <Timeline title="Pozyskanie" rows={detail.acquisitions.map(item => ({ title: item.source, meta: item.campaign_name || "bez kampanii", date: item.occurred_at }))} />
@@ -362,7 +362,7 @@ function SegmentsPane({ dashboard, reload }: { dashboard: AudienceDashboard | nu
           <input value={minReferrals} onInput={event => setMinReferrals(event.currentTarget.value)} inputMode="numeric" placeholder="min. liczba poleceń" class={inputClass} />
           <label class={labelClass}>Synesthesia<select value={synesthesia} onChange={event => setSynesthesia(event.currentTarget.value as typeof synesthesia)} class={inputClass}><option value="any">dowolnie</option><option value="yes">ukończona</option><option value="no">nieukończona</option></select></label>
           <label class={labelClass}>Zgoda na wiadomości<select value={consent} onChange={event => setConsent(event.currentTarget.value as typeof consent)} class={inputClass}><option value="yes">tak</option><option value="any">dowolnie</option><option value="no">nie</option></select></label>
-          <button disabled={busy || !slug || !name} class={primaryButton}>{busy ? "Zapisuję…" : "Utwórz segment"}</button>
+          <button type="submit" disabled={busy || !slug || !name} class={primaryButton}>{busy ? "Zapisuję…" : "Utwórz segment"}</button>
           {message && <p class="text-xs text-rose-300">{message}</p>}
         </form>
       </Panel>
@@ -373,7 +373,7 @@ function SegmentsPane({ dashboard, reload }: { dashboard: AudienceDashboard | nu
             <div key={segment.id} class="rounded-lg border border-white/8 bg-black/25 p-4">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div><strong class="text-sm text-white">{segment.name}</strong><p class="mt-1 text-xs text-zinc-500">{segment.slug}</p></div>
-                <button onClick={async () => { setBusy(true); try { setPreview(await request<SegmentPreview>(`/api/staff/admin/audience/segments/${encodeURIComponent(segment.slug)}/preview?limit=20`)) } finally { setBusy(false) } }} class={secondaryButton}>Podgląd</button>
+                <button type="button" onClick={async () => { setBusy(true); try { setPreview(await request<SegmentPreview>(`/api/staff/admin/audience/segments/${encodeURIComponent(segment.slug)}/preview?limit=20`)) } finally { setBusy(false) } }} class={secondaryButton}>Podgląd</button>
               </div>
               <p class="mt-3 break-words text-[11px] leading-5 text-zinc-500">{JSON.stringify(segment.filter)}</p>
             </div>
@@ -447,7 +447,7 @@ function CampaignsPane({ campaigns, dashboard, reload }: { campaigns: Communicat
           <select value={channel} onChange={event => setChannel(event.currentTarget.value as CommunicationCampaign["channel"])} class={inputClass}><option value="email">email</option><option value="push">push</option><option value="in_app">in-app</option></select>
           <input required value={template} onInput={event => setTemplate(event.currentTarget.value)} placeholder="szablon wiadomości" class={inputClass} />
           <input value={subject} onInput={event => setSubject(event.currentTarget.value)} placeholder="temat (email)" class={inputClass} />
-          <button disabled={busy || !name || !slug || !segment || !template} class={primaryButton}>{busy ? "Zapisuję…" : "Utwórz draft"}</button>
+          <button type="submit" disabled={busy || !name || !slug || !segment || !template} class={primaryButton}>{busy ? "Zapisuję…" : "Utwórz draft"}</button>
           {message && <p class="text-xs text-rose-300">{message}</p>}
         </form>
       </Panel>
@@ -461,13 +461,13 @@ function CampaignsPane({ campaigns, dashboard, reload }: { campaigns: Communicat
               {campaign.status === "draft" && (scheduleTarget === campaign.id ? (
                 <div class="mt-3 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
                   <input type="datetime-local" value={scheduleAt} min={localInput(new Date().toISOString())} onInput={event => setScheduleAt(event.currentTarget.value)} class={inputClass} />
-                  <button disabled={busy || !scheduleAt} onClick={() => void schedule(campaign)} class={primaryButton}>Potwierdź</button>
-                  <button disabled={busy} onClick={() => { setScheduleTarget(null); setScheduleAt("") }} class={secondaryButton}>Wróć</button>
+                  <button type="button" disabled={busy || !scheduleAt} onClick={() => void schedule(campaign)} class={primaryButton}>Potwierdź</button>
+                  <button type="button" disabled={busy} onClick={() => { setScheduleTarget(null); setScheduleAt("") }} class={secondaryButton}>Wróć</button>
                 </div>
               ) : (
-                <div class="mt-3 flex gap-2"><button disabled={busy || !dashboard?.features.communication_campaigns_enabled} onClick={() => beginSchedule(campaign)} class={primaryButton}>Zaplanuj</button><button disabled={busy} onClick={() => void cancel(campaign)} class={secondaryButton}>Anuluj</button></div>
+                <div class="mt-3 flex gap-2"><button type="button" disabled={busy || !dashboard?.features.communication_campaigns_enabled} onClick={() => beginSchedule(campaign)} class={primaryButton}>Zaplanuj</button><button type="button" disabled={busy} onClick={() => void cancel(campaign)} class={secondaryButton}>Anuluj</button></div>
               ))}
-              {campaign.status === "scheduled" && <div class="mt-3"><button disabled={busy} onClick={() => void cancel(campaign)} class={secondaryButton}>Anuluj przed wysyłką</button></div>}
+              {campaign.status === "scheduled" && <div class="mt-3"><button type="button" disabled={busy} onClick={() => void cancel(campaign)} class={secondaryButton}>Anuluj przed wysyłką</button></div>}
             </div>
           ))}
           {!campaigns.length && <p class="text-sm text-zinc-500">Brak kampanii.</p>}

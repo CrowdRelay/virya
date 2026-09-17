@@ -228,7 +228,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
       </dl>
     </section>
 
-    <nav aria-label={lang === "pl" ? "Tryby Gry Virya" : "VIRYA Area modes"} class="area-mode-nav sticky z-20 border-y border-zinc-800/80 bg-[#070908]/95 px-4 backdrop-blur-md sm:px-6 lg:px-12">
+    <nav aria-label={lang === "pl" ? "Tryby Gry Virya" : "VIRYA Area modes"} class="area-mode-nav sticky z-20 border-y border-zinc-800/80 bg-[var(--virya-bg)]/95 px-4 backdrop-blur-md sm:px-6 lg:px-12">
       <div class="mx-auto flex max-w-7xl overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {[
           ["#area-map", modeCopy.hunt],
@@ -260,7 +260,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                     <stop offset="1" stop-color="#18181b"></stop>
                   </linearGradient>
                   <pattern id={`area-lines-${lang}`} width="28" height="28" patternUnits="userSpaceOnUse">
-                    <path d="M28 0H0V28" fill="none" stroke="#84b4ac" stroke-opacity=".07" stroke-width="1"></path>
+                    <path d="M28 0H0V28" fill="none" stroke="var(--virya-signal)" stroke-opacity=".07" stroke-width="1"></path>
                   </pattern>
                 </defs>
                 <path d="M112 112L180 77L254 82L315 57L388 72L460 62L516 116L492 171L526 224L503 279L516 339L463 375L421 442L350 462L292 438L240 469L187 432L126 414L101 357L72 302L94 244L68 184L108 153Z" fill={`url(#area-fill-${lang})`} stroke="#52525b" stroke-width="2"></path>
@@ -590,7 +590,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
                   <span data-card-state class="max-w-full text-right text-[11px] font-black uppercase leading-relaxed tracking-[.16em] text-zinc-400 sm:tracking-[.2em]">{copy.collection.locked}</span>
                 </div>
                 <div data-card-locked class="my-auto py-4 text-center">
-                  <span class="font-mono text-2xl text-zinc-700" aria-hidden="true">◇</span>
+                  <span class="font-mono text-2xl text-zinc-500" aria-hidden="true">◇</span>
                   <p class="mt-3 font-mono text-[11px] uppercase tracking-[.16em] text-zinc-500">encrypted // {drop.id}</p>
                 </div>
                 <div data-card-unlocked hidden class="my-6">
@@ -758,13 +758,13 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
   .area-marker.is-selected .area-marker-core,
   .area-marker:hover .area-marker-core,
   .area-marker:focus-visible .area-marker-core {
-    background: #84b4ac;
-    color: #070908;
+    background: var(--virya-signal);
+    color: var(--virya-bg);
   }
 
   .area-marker.is-claimed .area-marker-core {
-    border-color: #f4f4f5;
-    color: #f4f4f5;
+    border-color: var(--color-zinc-100);
+    color: var(--color-zinc-100);
   }
 
   .area-marker.is-inactive {
@@ -773,7 +773,7 @@ const safeClientCopy = JSON.stringify(clientCopy).replace(/</g, "\\u003c")
 
   .area-marker.is-inactive .area-marker-core {
     border-color: rgba(113, 113, 122, .8);
-    color: #a1a1aa;
+    color: var(--color-zinc-400);
   }
 
   .area-marker-number {
