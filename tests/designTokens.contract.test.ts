@@ -95,7 +95,9 @@ test("design-token ratchet — markup stays inside the counted scales", () => {
       hex += source.match(/(?<!&)#[0-9a-fA-F]{3,8}\b/g)?.length ?? 0
     }
 
-    for (const match of source.matchAll(/<button\b[^>]*>/gs)) {
+    // `=>` must be consumed as a unit — a bare `>` inside an arrow-function
+    // attribute would truncate the tag and hide a trailing `type=`.
+    for (const match of source.matchAll(/<button\b(?:=>|[^>])*>/gs)) {
       if (!match[0].includes("type=")) buttonsMissingType += 1
     }
   }
