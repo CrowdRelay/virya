@@ -16,7 +16,7 @@ type Milestone =
   | "wrap"
   | "catalogue_rotation"
 
-type StepState = "done" | "parked" | "due" | "upcoming" | "disabled" | "blocked"
+type StepState = "done" | "parked" | "due" | "upcoming" | "held" | "disabled" | "blocked"
 
 type TimelineStep = {
   milestone: Milestone
@@ -115,6 +115,7 @@ const STEP_STATE_LABELS: Record<StepState, string> = {
   parked: "U CZŁOWIEKA",
   due: "TERMIN",
   upcoming: "NADCHODZI",
+  held: "WSTRZYMANE",
   disabled: "WYŁĄCZONE",
   blocked: "ZABLOKOWANE",
 }
@@ -124,6 +125,7 @@ const STEP_TONES: Record<StepState, string> = {
   parked: "border-amber-300/30 bg-amber-300/10 text-amber-200",
   due: "border-amber-300/40 bg-amber-300/15 text-amber-100",
   upcoming: "border-white/10 bg-white/5 text-zinc-400",
+  held: "border-sky-300/30 bg-sky-300/10 text-sky-200",
   disabled: "border-white/10 bg-white/5 text-zinc-500",
   blocked: "border-rose-400/25 bg-rose-400/10 text-rose-200",
 }
