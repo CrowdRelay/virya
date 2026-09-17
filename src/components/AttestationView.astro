@@ -1,0 +1,143 @@
+---
+import Layout from "./Layout.astro"
+import { t, type Lang } from "../i18n/t"
+import { readAttestation, type AttestationState, type AttestationScope } from "../server/attestation.ts"
+
+interface Props {
+  lang: Lang
+}
+
+const { lang } = Astro.props
+
+// The token in `?t=` is the whole credential — the link is the admission.
+// A wrong, rotated or never-issued token is one answer, because a reader
+// must not be able to tell those apart.
+const token = Astro.url.searchParams.get("t")?.trim() ?? ""
+const result: AttestationState = token
+  ? await readAttestation(token)
+  : { kind: "not_found" }
+
+if (result.kind === "not_found") Astro.response.status = 404
+if (result.kind === "unavailable") Astro.response.status = 503
+
+const card = result.kind === "ready" ? result.card : null
+const title = card
+  ? `${card.act_name} — ${t(lang, "proof.eyebrow")}`
+  : result.kind === "unavailable"
+    ? t(lang, "proof.unreachable")
+    : t(lang, "proof.gone")
+
+// The verdict mirrors the server's ordering: forgery is worse news than
+// withdrawal, withdrawal worse than expiry — the worst true thing is said
+// first, even when several are true at once.
+const verdictKey = !card
+  ? null
+  : !card.issued_by_us
+    ? "proof.foreign"
+    : !card.unedited
+      ? "proof.edited"
+      : card.revoked
+        ? "proof.withdrawn"
+        : !card.current
+          ? "proof.expired"
+          : "proof.verified"
+const honest = verdictKey === "proof.verified" || verdictKey === "proof.expired"
+
+const formatNumber = (value: number) => new Intl.NumberFormat(lang).format(value)
+const formatDate = (iso: string) =>
+  new Intl.DateTimeFormat(lang, { dateStyle: "long" }).format(new Date(iso))
+
+const metricLabel = (metric: string) =>
+  t(lang, `proof.metrics.${metric}`) === `proof.metrics.${metric}`
+    ? metric
+    : t(lang, `proof.metrics.${metric}`)
+
+const scopeLabel = (scope: AttestationScope) =>
+  scope.kind === "everywhere"
+    ? t(lang, "proof.everywhere")
+    : scope.kind === "city"
+      ? `${t(lang, "proof.inCity")} ${scope.value}`
+      : `${t(lang, "proof.atEvent")} ${scope.value}`
+
+const valueLabel = (figure: { reads_as: string; value: { kind: string; value: number } | null }) =>
+  figure.value === null
+    ? figure.reads_as
+    : figure.value.kind === "fewer_than"
+      ? `${t(lang, "proof.fewerThan")} ${formatNumber(figure.value.value)}`
+      : formatNumber(figure.value.value)
+
+const windowLabel = (days: number) =>
+  days === 0
+    ? t(lang, "proof.lifetime")
+    : `${days} ${t(lang, "proof.days")}`
+---
+
+<Layout title={title} lang={lang} enableClientRouter={false}>
+  {/* Admitted readers, not the open web — the link decides who reads, and
+      the token carries no value to a crawler anyway. */}
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+  <main id="main-content" class="min-h-screen bg-zinc-950 px-4 py-16 text-zinc-100 sm:px-8">
+    <div class="mx-auto max-w-2xl">
+      {card ? (
+        <>
+          <p class="virya-eyebrow text-zinc-500">{t(lang, "proof.eyebrow")}</p>
+          <h1 class="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">{card.act_name}</h1>
+
+          <p class={`mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs uppercase tracking-wider ${honest ? "border-emerald-700 text-emerald-300" : "border-amber-700 text-amber-300"}`}>
+            {t(lang, verdictKey ?? "proof.gone")}
+          </p>
+
+          <section class="mt-10" aria-label={t(lang, "proof.numbers")}>
+            <h2 class="virya-eyebrow text-zinc-500">{t(lang, "proof.numbers")}</h2>
+            <dl class="mt-4 divide-y divide-zinc-800 border-y border-zinc-800">
+              {card.figures.map(figure => (
+                <div class="grid grid-cols-[1fr_auto] items-baseline gap-4 py-4">
+                  <div>
+                    <dt class="text-sm text-zinc-400">
+                      {metricLabel(figure.metric)}
+                      <span class="text-zinc-600"> · {scopeLabel(figure.scope)} · {windowLabel(figure.window_days)}</span>
+                    </dt>
+                    {figure.method && (
+                      <dd class="mt-1 text-xs leading-relaxed text-zinc-600">{figure.method}</dd>
+                    )}
+                  </div>
+                  <dd class="text-right">
+                    <span class="text-2xl font-bold tabular-nums">{valueLabel(figure)}</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
+          <div class="mt-8 grid gap-6 sm:grid-cols-2 text-sm">
+            <div>
+              <h2 class="virya-eyebrow text-zinc-500">{t(lang, "proof.issued")}</h2>
+              <p class="mt-2 text-zinc-300">{formatDate(card.issued_at)}</p>
+            </div>
+            <div>
+              <h2 class="virya-eyebrow text-zinc-500">{t(lang, "proof.validUntil")}</h2>
+              <p class="mt-2 text-zinc-300">{formatDate(card.valid_until)}</p>
+            </div>
+          </div>
+
+          <section class="mt-8" aria-label={t(lang, "proof.verifyDigest")}>
+            <h2 class="virya-eyebrow text-zinc-500">{t(lang, "proof.verifyDigest")}</h2>
+            <p class="mt-2 break-all font-mono text-xs text-zinc-500">{card.digest}</p>
+            <p class="mt-2 text-xs leading-relaxed text-zinc-600">{t(lang, "proof.verifyNote")}</p>
+          </section>
+        </>
+      ) : (
+        <div class="py-24 text-center">
+          <h1 class="text-2xl font-bold">{title}</h1>
+          <p class="mt-4 text-sm leading-relaxed text-zinc-400">
+            {result.kind === "unavailable" ? t(lang, "proof.unreachableHint") : t(lang, "proof.goneHint")}
+          </p>
+        </div>
+      )}
+
+      <p class="mt-16 border-t border-zinc-800 pt-6 text-xs text-zinc-600">
+        {t(lang, "proof.poweredBy")}
+      </p>
+    </div>
+  </main>
+</Layout>

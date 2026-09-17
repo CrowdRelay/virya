@@ -133,3 +133,12 @@ test("every cookie-authenticated staff POST is same-origin guarded", async () =>
     }
   }
 })
+
+test("approve-with-revision refusals are not reported as stale-queue conflicts", async () => {
+  const handler = await source("src/pages/api/staff/admin/autopilot.ts")
+  // A 409 carrying the domain's refusal sentence is a revision problem, not
+  // "someone already decided" — the two must surface as different messages.
+  assert.match(handler, /draft revision refused/)
+  assert.match(handler, /REVISION_FAILURES/)
+  assert.match(handler, /error\.detail/)
+})
