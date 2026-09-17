@@ -3,9 +3,10 @@
  *
  * Serves dist/ (the prerendered public pages) with the same headers as
  * production so Best Practices audits (CSP, COOP, X-Frame-Options) measure
- * the real policy instead of a friendlier test double. The only audits that
- * can't pass are is-on-https and redirects-http (HTTP, not HTTPS) — those are
- * skipped in lighthouserc.json.
+ * the real policy instead of a friendlier test double. Skipped audits in
+ * lighthouserc.json: is-on-https and redirects-http (this is HTTP, not
+ * HTTPS), and errors-in-console — the public tenant-config fetch is
+ * CORS-rejected from localhost, an artifact of the audit origin, not the page.
  *
  * Fidelity notes (learned the hard way on crowdrelay-landing — an unfaithful
  * server turned a perfect production score into local noise):
@@ -86,7 +87,21 @@ const cacheFor = (path) => {
 const HEADERS = await loadHeaders()
 
 createServer(async (req, res) => {
-  let path = decodeURIComponent(new URL(req.url, `http://localhost:${PORT}`).pathname)
+  let path
+  try {
+    path = decodeURIComponent(new URL(req.url, `http://localhost:${PORT}`).pathname)
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'text/plain', ...HEADERS })
+    res.end('Bad request')
+    return
+  }
+  // CI-only server, but keep the traversal guard anyway — malformed or
+  // dot-segment paths get a 404, never a read outside dist/.
+  if (path.split('/').includes('..')) {
+    res.writeHead(404, { 'Content-Type': 'text/plain', ...HEADERS })
+    res.end('Not found')
+    return
+  }
   if (path === '/') path = '/index.html'
   if (!path.endsWith('.html') && !MIME[path.slice(path.lastIndexOf('.'))]) {
     path = join(path, 'index.html')

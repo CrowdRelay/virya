@@ -98,7 +98,8 @@ test("design-token ratchet — markup stays inside the counted scales", () => {
     // `=>` must be consumed as a unit — a bare `>` inside an arrow-function
     // attribute would truncate the tag and hide a trailing `type=`.
     for (const match of source.matchAll(/<button\b(?:=>|[^>])*>/gs)) {
-      if (!match[0].includes("type=")) buttonsMissingType += 1
+      // (?<![\w-]) — `data-type=` must not satisfy the check.
+      if (!/(?<![\w-])type\s*=/.test(match[0])) buttonsMissingType += 1
     }
   }
 
