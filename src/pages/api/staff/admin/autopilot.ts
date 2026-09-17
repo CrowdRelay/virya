@@ -37,8 +37,31 @@ const decisionFailure = (error: unknown) => {
   return DECISION_FAILURES[status] ?? "Autopilot chwilowo niedostępny."
 }
 
+// A 409 on approve can be two different facts: someone else decided first, or
+// the revision itself was refused. The refusal detail is a fixed sentence from
+// the domain, so matching its shape tells the operator which fact they got —
+// without echoing backend text verbatim.
+const REVISION_FAILURES: [RegExp, string][] = [
+  [/cannot be revised/i, "Możesz poprawić tylko tekst — nie odbiorców, kosztów ani linków."],
+  [/may not empty/i, "Poprawka nie może zostawić pustego pola — odrzuć szkic zamiast tego."],
+  [/longer than the allowed/i, "Poprawka jest za długa względem oryginału."],
+  [/makes no change/i, "Poprawka jest identyczna ze szkicem."],
+]
+
+const revisionFailure = (detail: string | null): string | null => {
+  if (!detail?.includes("draft revision refused")) return null
+  return (
+    REVISION_FAILURES.find(([pattern]) => pattern.test(detail))?.[1] ??
+    "Poprawka została odrzucona — sprawdź pole i spróbuj ponownie."
+  )
+}
+
 const actionFailure = (error: unknown) => {
   const status = statusFor(error)
+  if (status === 409 && error instanceof StaffQrUpstreamError) {
+    const revision = revisionFailure(error.detail)
+    if (revision) return revision
+  }
   return ACTION_FAILURES[status] ?? "Autopilot chwilowo niedostępny."
 }
 
@@ -164,11 +187,26 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   }
 
   const path = `admin/autopilot/actions/${encodeURIComponent(id)}/${operation}`
-  let upstreamBody: Record<string, string> | undefined
+  let upstreamBody: Record<string, unknown> | undefined
   if (operation === "assign") {
     const key = memberKey(body.member_key)
     if (!key) return areaJson({ error: "Invalid member" }, 422)
     upstreamBody = { member_key: key }
+  }
+  if (operation === "approve" && body.revision !== undefined) {
+    // Poprawka przy akceptacji: mapa pole → nowy tekst. CrowdRelay sam
+    // odrzuca pola spoza listy i puste wartości; tu tylko pilnujemy kształtu.
+    const raw = body.revision
+    if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+      return areaJson({ error: "Invalid revision" }, 422)
+    }
+    const revision: Record<string, string> = {}
+    for (const [field, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (typeof field !== "string" || field.length > 64) return areaJson({ error: "Invalid revision" }, 422)
+      if (typeof value !== "string" || value.length > 4_000) return areaJson({ error: "Invalid revision" }, 422)
+      revision[field] = value
+    }
+    if (Object.keys(revision).length > 0) upstreamBody = { revision }
   }
 
   try {

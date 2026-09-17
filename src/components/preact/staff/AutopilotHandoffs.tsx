@@ -24,6 +24,9 @@ export type PendingAction = {
   executor_ready?: boolean
   required_capability?: string | null
   briefing?: ActionBriefing | null
+  // Pola, które można poprawić przy akceptacji — lista przychodzi z
+  // CrowdRelay (jedna definicja na frontend i bramkę), nie z tego pliku.
+  revisable?: Record<string, string>
 }
 
 type BriefingStep = {
@@ -439,11 +442,21 @@ function ActionDetailModal({
   assignees: TeamAssignee[]
   busy: string | null
   onAssign: (item: PendingAction, memberKey: string) => void
-  onApprove: (item: PendingAction) => void
+  onApprove: (item: PendingAction, revision?: Record<string, string>) => void
   onReject: (item: PendingAction) => void
   onClose: () => void
 }) {
   const briefing = item.briefing
+  // Editable draft fields, prefilled with the machine's words. Only fields
+  // the operator actually changed go up — an identical value is not a
+  // revision and the gate refuses it.
+  const revisableEntries = Object.entries(item.revisable ?? {})
+  const [edits, setEdits] = useState<Record<string, string>>(() => Object.fromEntries(revisableEntries))
+  const changedRevision = Object.fromEntries(
+    Object.entries(edits).filter(([field, value]) =>
+      value.trim() !== (item.revisable?.[field] ?? "").trim() && value.trim() !== ""),
+  )
+  const hasEdits = Object.keys(changedRevision).length > 0
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
     window.addEventListener("keydown", handler)
@@ -501,6 +514,29 @@ function ActionDetailModal({
           </>
         )}
 
+        {revisableEntries.length > 0 && (
+          <div class="mt-4 rounded-lg border border-emerald-300/20 bg-emerald-300/[.05] px-4 py-3">
+            <p class="text-xs font-black uppercase tracking-[0.14em] text-emerald-200">Popraw przed akceptacją</p>
+            <p class="mt-1 text-xs text-zinc-400">
+              Możesz poprawić tekst — odbiorca, koszt i adresat zostają jak są. Poprawka liczy się jako nauka stylu.
+            </p>
+            <div class="mt-3 grid gap-3">
+              {revisableEntries.map(([field, original]) => (
+                <label key={field} class="grid gap-1">
+                  <span class="text-xs font-black uppercase tracking-[0.12em] text-zinc-500">{field}</span>
+                  <textarea
+                    rows={Math.min(8, Math.max(2, Math.ceil(original.length / 90)))}
+                    disabled={busy === item.id}
+                    value={edits[field] ?? original}
+                    onInput={event => setEdits(current => ({ ...current, [field]: event.currentTarget.value }))}
+                    class="min-h-[44px] w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-emerald-300/50"
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         {item.executor_ready === false && (
           <p class="mt-4 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
             Akceptacja tylko trafi do kolejki — na razie żaden system nie
@@ -531,13 +567,17 @@ function ActionDetailModal({
               </select>
             </label>
           )}
+          {/* While edits are typed, "approve" means "approve my words" — a
+              plain approve that silently dropped them would read as a lost
+              edit. To approve the machine's draft as written, revert the
+              field first. */}
           <button
             type="button"
             disabled={busy === item.id}
-            onClick={() => void onApprove(item)}
+            onClick={() => void onApprove(item, hasEdits ? changedRevision : undefined)}
             title={item.executor_ready === false ? "Zostanie zakolejkowane, ale nikt tego nie wykona" : undefined}
             class={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-black disabled:opacity-50 ${item.executor_ready === false ? "border border-amber-300/40 bg-amber-300/20 text-amber-100" : "bg-emerald-300 text-zinc-950"}`}
-          >{busy === item.id ? "ZAPISUJĘ…" : item.executor_ready === false ? "AKCEPTUJ (TYLKO KOLEJKA)" : "AKCEPTUJ I PUŚĆ DALEJ"}</button>
+          >{busy === item.id ? "ZAPISUJĘ…" : item.executor_ready === false ? "AKCEPTUJ (TYLKO KOLEJKA)" : hasEdits ? "AKCEPTUJ POPRAWKĘ I PUŚĆ DALEJ" : "AKCEPTUJ I PUŚĆ DALEJ"}</button>
           <button type="button" disabled={busy === item.id} onClick={() => void onReject(item)} class="min-h-[44px] rounded-xl border border-rose-400/30 px-4 py-2 text-xs font-black text-rose-200 disabled:opacity-50">ODRZUĆ</button>
         </div>
       </div>
@@ -570,8 +610,10 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
     )
   }
 
-  async function mutate(item: PendingAction, action: "approve" | "cancel") {
-    await send(item, { action_id: item.id, operation: action }, "Nie udało się zapisać decyzji")
+  async function mutate(item: PendingAction, action: "approve" | "cancel", revision?: Record<string, string>) {
+    const body: Record<string, unknown> = { action_id: item.id, operation: action }
+    if (revision && Object.keys(revision).length > 0) body.revision = revision
+    await send(item, body, "Nie udało się zapisać decyzji")
     setSelected(null)
   }
 
