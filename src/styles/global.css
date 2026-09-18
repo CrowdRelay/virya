@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@source "../components/**/*.{astro,jsx,tsx}";
+@source "../components/**/*.{astro,jsx,tsx,ts}";
 @source "../pages/**/*.{astro,jsx,tsx}";
 
 @theme {
@@ -27,24 +27,41 @@
   /* Two near-identical blacks (#09090b vs #070908) banded where footer
      met body; route the neutral through the brand background instead. */
   --color-zinc-950: #070908;
+  /* Semantic virya palette as named utilities (bg-virya-surface,
+     text-virya-muted, border-virya-edge…). The hexes are the single source;
+     :root below aliases the legacy --virya-* names onto these so the
+     .virya-* component classes and the utility layer cannot drift. */
+  --color-virya-bg: #070908;
+  --color-virya-raised: #0b100f;
+  --color-virya-surface: #101715;
+  --color-virya-high: #16201d;
+  --color-virya-text: #eef4f1;
+  --color-virya-muted: #98a5a0;
+  --color-virya-edge: #27322f;
+  --color-virya-signal: #84b4ac;
+  --color-virya-hot: #93c6c0;
+  --color-virya-deep: #26655d;
+  --color-virya-warning: #f3c51a;
+  --color-virya-danger: #e73535;
+  --color-virya-success: #70db91;
 }
 
 :root {
   color-scheme: dark;
   overflow-x: hidden;
-  --virya-bg: #070908;
-  --virya-bg-raised: #0b100f;
-  --virya-surface: #101715;
-  --virya-surface-high: #16201d;
-  --virya-text: #eef4f1;
-  --virya-text-muted: #98a5a0;
-  --virya-border: #27322f;
-  --virya-signal: #84b4ac;
-  --virya-signal-hot: #93c6c0;
-  --virya-signal-deep: #26655d;
-  --virya-warning: #f3c51a;
-  --virya-danger: #e73535;
-  --virya-success: #70db91;
+  --virya-bg: var(--color-virya-bg);
+  --virya-bg-raised: var(--color-virya-raised);
+  --virya-surface: var(--color-virya-surface);
+  --virya-surface-high: var(--color-virya-high);
+  --virya-text: var(--color-virya-text);
+  --virya-text-muted: var(--color-virya-muted);
+  --virya-border: var(--color-virya-edge);
+  --virya-signal: var(--color-virya-signal);
+  --virya-signal-hot: var(--color-virya-hot);
+  --virya-signal-deep: var(--color-virya-deep);
+  --virya-warning: var(--color-virya-warning);
+  --virya-danger: var(--color-virya-danger);
+  --virya-success: var(--color-virya-success);
   --virya-sensory-cyan: #6da298;
   --virya-touch-min: 44px;
   --virya-container: 80rem;

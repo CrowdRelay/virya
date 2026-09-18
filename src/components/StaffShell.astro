@@ -47,32 +47,35 @@ const currentTab = requested && consoleTabs.includes(requested) ? requested : "o
 const isCurrent = (item: { key: string; tab: string | null }) =>
   active === item.key && (item.tab === null || item.tab === currentTab)
 
-const ACTIVE_LINK = "border-amber-400 bg-amber-400/[.08] text-white"
-const IDLE_LINK = "border-transparent text-zinc-400 hover:border-zinc-700 hover:bg-white/[.03] hover:text-white"
+// Sidebar language follows the control-plane console: the active section is a
+// filled pill, not a border bar, and every surface name resolves to a
+// --color-virya-* token instead of a bare zinc pick.
+const ACTIVE_LINK = "bg-virya-high text-virya-text"
+const IDLE_LINK = "text-virya-muted hover:bg-white/[.04] hover:text-virya-text"
 ---
 
 <div class="min-h-screen bg-[var(--virya-bg)] text-zinc-100 lg:grid lg:grid-cols-[224px_minmax(0,1fr)]">
-  <aside class="hidden border-r border-zinc-800/80 bg-black/30 lg:sticky lg:top-0 lg:block lg:h-screen">
-    <div class="flex h-full flex-col px-4 py-6">
-      <a href="/staff/" class="flex min-h-12 items-center gap-3 px-2">
+  <aside class="hidden border-r border-virya-edge bg-virya-bg lg:sticky lg:top-0 lg:block lg:h-screen">
+    <div class="flex h-full flex-col px-3 py-6">
+      <a href="/staff/" class="flex min-h-12 items-center gap-3 rounded-md px-2 transition-colors hover:bg-white/[.04]">
         <img src="/virya.webp" alt="" width="36" height="36" class="h-9 w-9 rounded-full" />
         <div>
-          <p class="text-[11px] font-black uppercase tracking-[.18em] text-amber-400">VIRYA</p>
-          <p class="text-xs font-semibold text-zinc-500">Staff</p>
+          <p class="text-[11px] font-black uppercase tracking-[.18em] text-virya-hot">VIRYA</p>
+          <p class="text-xs font-semibold text-virya-muted">Staff</p>
         </div>
       </a>
       <nav aria-label="Nawigacja panelu Virya" class="mt-7 grid gap-6" data-staff-nav>
         {groups.map(group => (
           <div>
-            <p class="px-3 text-[10px] font-black uppercase tracking-[.16em] text-zinc-600">{group.label}</p>
-            <div class="mt-2 grid gap-1">
+            <p class="px-3 text-[10px] font-black uppercase tracking-[.16em] text-virya-muted">{group.label}</p>
+            <div class="mt-2 grid gap-0.5">
               {group.items.map(item => (
                 <a
                   href={item.href}
                   data-staff-tab={item.key === "home" ? item.tab : undefined}
                   aria-current={isCurrent(item) ? "page" : undefined}
                   class:list={[
-                    "flex min-h-11 items-center border-l-2 px-3 text-sm font-semibold transition-colors",
+                    "flex min-h-11 items-center rounded-md px-3 text-sm font-semibold transition-colors",
                     isCurrent(item) ? ACTIVE_LINK : IDLE_LINK,
                   ]}
                 >
@@ -83,7 +86,7 @@ const IDLE_LINK = "border-transparent text-zinc-400 hover:border-zinc-700 hover:
           </div>
         ))}
       </nav>
-      <a href="/pl/" class="mt-auto flex min-h-11 items-center px-3 text-xs font-bold uppercase tracking-[.12em] text-zinc-500 hover:text-amber-400">← Strona VIRYA</a>
+      <a href="/pl/" class="mt-auto flex min-h-11 items-center rounded-md px-3 text-xs font-bold uppercase tracking-[.12em] text-virya-muted transition-colors hover:bg-white/[.04] hover:text-virya-hot">← Strona VIRYA</a>
     </div>
   </aside>
 
@@ -93,21 +96,21 @@ const IDLE_LINK = "border-transparent text-zinc-400 hover:border-zinc-700 hover:
     </div>
   </div>
 
-  <nav aria-label="Główna nawigacja Staff" class="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-zinc-800 bg-[var(--virya-bg)]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
-    <a href="/staff/" aria-current={isCurrent({ key: "home", tab: "overview" }) ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em]", isCurrent({ key: "home", tab: "overview" }) ? "text-amber-400" : "text-zinc-500"]}><span aria-hidden="true">●</span>Dzisiaj</a>
-    <a href="/staff/qr/" aria-current={active === "qr" ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em]", active === "qr" ? "text-amber-400" : "text-zinc-500"]}><span aria-hidden="true">⌁</span>QR</a>
-    <a href="/staff/?tab=audience" aria-current={isCurrent({ key: "home", tab: "audience" }) ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em]", isCurrent({ key: "home", tab: "audience" }) ? "text-amber-400" : "text-zinc-500"]}><span aria-hidden="true">◎</span>Fani</a>
-    <a href="/staff/commerce/" aria-current={active === "commerce" ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em]", active === "commerce" ? "text-amber-400" : "text-zinc-500"]}><span aria-hidden="true">◇</span>Merch</a>
+  <nav aria-label="Główna nawigacja Staff" class="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-virya-edge bg-[var(--virya-bg)]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
+    <a href="/staff/" aria-current={isCurrent({ key: "home", tab: "overview" }) ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em] transition-colors", isCurrent({ key: "home", tab: "overview" }) ? "text-virya-hot" : "text-virya-muted"]}><span aria-hidden="true">●</span>Dzisiaj</a>
+    <a href="/staff/qr/" aria-current={active === "qr" ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em] transition-colors", active === "qr" ? "text-virya-hot" : "text-virya-muted"]}><span aria-hidden="true">⌁</span>QR</a>
+    <a href="/staff/?tab=audience" aria-current={isCurrent({ key: "home", tab: "audience" }) ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em] transition-colors", isCurrent({ key: "home", tab: "audience" }) ? "text-virya-hot" : "text-virya-muted"]}><span aria-hidden="true">◎</span>Fani</a>
+    <a href="/staff/commerce/" aria-current={active === "commerce" ? "page" : undefined} class:list={["flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em] transition-colors", active === "commerce" ? "text-virya-hot" : "text-virya-muted"]}><span aria-hidden="true">◇</span>Merch</a>
     <details class="group relative">
-      <summary class="flex min-h-16 cursor-pointer list-none flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em] text-zinc-500 marker:content-none"><span aria-hidden="true">•••</span>Więcej</summary>
-      <div class="absolute bottom-[calc(100%+.5rem)] right-2 w-48 border border-zinc-800 bg-zinc-950 p-2 shadow-2xl">
-        <a href="/staff/?tab=ticketing" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Bilety</a>
-        <a href="/staff/?tab=admission" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Goście</a>
-        <a href="/staff/?tab=signal" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Sygnał</a>
-        <a href="/staff/?tab=beacons" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Latarnicy</a>
-        <a href="/staff/?tab=releases" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Wydania</a>
-        <a href="/staff/accounting/" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Rozliczenia</a>
-        <a href="/staff/pair/" class="flex min-h-11 items-center px-3 text-sm font-semibold text-zinc-300">Urządzenia</a>
+      <summary class="flex min-h-16 cursor-pointer list-none flex-col items-center justify-center gap-1 px-1 text-[10px] font-black uppercase tracking-[.08em] text-virya-muted transition-colors marker:content-none"><span aria-hidden="true">•••</span>Więcej</summary>
+      <div class="absolute bottom-[calc(100%+.5rem)] right-2 w-48 rounded-lg border border-virya-edge bg-virya-surface p-1.5 shadow-2xl">
+        <a href="/staff/?tab=ticketing" class="flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-virya-text transition-colors hover:bg-white/[.04]">Bilety</a>
+        <a href="/staff/?tab=admission" class="flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-virya-text transition-colors hover:bg-white/[.04]">Goście</a>
+        <a href="/staff/?tab=signal" class="flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-virya-text transition-colors hover:bg-white/[.04]">Sygnał</a>
+        <a href="/staff/?tab=beacons" class="flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-virya-text transition-colors hover:bg-white/[.04]">Latarnicy</a>
+        <a href="/staff/?tab=releases" class="flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-virya-text transition-colors hover:bg-white/[.04]">Wydania</a>
+        <a href="/staff/accounting/" class="flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-virya-text transition-colors hover:bg-white/[.04]">Rozliczenia</a>
+        <a href="/staff/pair/" class="flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-virya-text transition-colors hover:bg-white/[.04]">Urządzenia</a>
       </div>
     </details>
   </nav>

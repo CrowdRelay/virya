@@ -2,6 +2,25 @@ import { useEffect, useState } from "preact/hooks"
 import { staffApi } from "./staffApi"
 import { Notice } from "./AdminConsoleUi"
 import BookingPolicyPanel, { type BookingPolicySummary } from "./BookingPolicyPanel"
+import {
+  staffAccentButton,
+  staffAccentChip,
+  staffBadge,
+  staffBadgeSuccess,
+  staffBadgeWarn,
+  staffConfirmButton,
+  staffConfirmChip,
+  staffEyebrow,
+  staffEyebrowAccent,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanel,
+  staffPanelInset,
+  staffRow,
+  staffSecondaryButton,
+  staffSubtitle,
+  staffTitle,
+} from "./staffUi"
 
 const REQUEST_TIMEOUT_MS = 10_000
 
@@ -228,12 +247,8 @@ const safeExternalUrl = (value: string) => {
 }
 
 function ReadinessChip({ ok, pending = false, label }: { ok: boolean; pending?: boolean; label: string }) {
-  const tone = pending
-    ? "border-white/10 bg-white/5 text-zinc-500"
-    : ok
-      ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"
-      : "border-amber-300/25 bg-amber-300/10 text-amber-100"
-  return <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${tone}`}>{pending ? "SPRAWDZAM…" : label}</span>
+  const tone = pending ? staffBadge : ok ? staffBadgeSuccess : staffBadgeWarn
+  return <span class={tone}>{pending ? "SPRAWDZAM…" : label}</span>
 }
 
 export function useAutopilotFeed(): AutopilotFeed {
@@ -348,48 +363,48 @@ function AgentBoard({ feed }: { feed: AutopilotFeed }) {
   }
 
   return (
-    <details class="mt-6 border-t border-white/10 pt-5 group">
+    <details class="mt-6 border-t border-virya-edge pt-5 group">
       <summary class="flex min-h-11 cursor-pointer list-none flex-wrap items-center justify-between gap-3 marker:content-none [&::-webkit-details-marker]:hidden">
         <span class="flex items-center gap-3">
-          <span class="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Kolejka agenta</span>
-          <span class="text-sm text-zinc-500">znalezione możliwości — zdecyduj, gdy masz czas</span>
+          <span class={staffEyebrowAccent}>Kolejka agenta</span>
+          <span class="text-sm text-virya-muted">znalezione możliwości — zdecyduj, gdy masz czas</span>
         </span>
         <span class="flex items-center gap-2">
           {queue.length > 0 && (
-            <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${awaiting > 0 ? "border-amber-300/25 bg-amber-300/10 text-amber-100" : "border-white/10 bg-white/5 text-zinc-400"}`}>
+            <span class={awaiting > 0 ? staffBadgeWarn : staffBadge}>
               {queue.length}{awaiting > 0 ? ` · ${awaiting} czeka` : ""}
             </span>
           )}
-          <span aria-hidden="true" class="text-zinc-500 transition group-open:rotate-180">▾</span>
+          <span aria-hidden="true" class="text-virya-muted transition group-open:rotate-180">▾</span>
         </span>
       </summary>
       <div class="mt-4 grid gap-3">
         {error && <Notice tone="error">{error}</Notice>}
         {queue.map(item => (
-          <article key={item.decision_id} class="rounded-lg border border-white/10 bg-black/30 p-4">
+          <article key={item.decision_id} class={staffRow}>
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
-                <strong class="block text-white">#{item.position} {humanAction(item.recommended_action)}</strong>
-                <p class="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">{humanContext(item.context)} · {item.decision_kind.replaceAll("_", " ")}</p>
-                <p class="mt-2 text-sm text-zinc-300">{item.reason}</p>
-                <p class="mt-1 text-xs text-zinc-500">termin: {date(item.due_at)}</p>
+                <strong class="block text-virya-text">#{item.position} {humanAction(item.recommended_action)}</strong>
+                <p class="mt-1 text-xs uppercase tracking-[0.14em] text-virya-muted">{humanContext(item.context)} · {item.decision_kind.replaceAll("_", " ")}</p>
+                <p class="mt-2 text-sm text-virya-text">{item.reason}</p>
+                <p class="mt-1 text-xs text-virya-muted">termin: {date(item.due_at)}</p>
                 {item.consequence && (
-                  <p class="mt-2 rounded-lg border border-amber-300/20 bg-amber-300/[.06] px-3 py-2 text-xs text-amber-100">
+                  <p class={`mt-2 text-xs ${staffNoticeBase} ${staffNoticeTones.warn}`}>
                     Jeśli zignorujesz: {item.consequence}
                   </p>
                 )}
                 <div class="mt-2 flex flex-wrap gap-2" aria-label={`Fakty o ${humanAction(item.recommended_action)}`}>
-                  <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${item.authority === "awaiting_approval" ? "border-amber-300/25 bg-amber-300/10 text-amber-100" : item.authority === "observed" ? "border-white/10 bg-white/5 text-zinc-500" : "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"}`}>
+                  <span class={item.authority === "awaiting_approval" ? staffBadgeWarn : item.authority === "observed" ? staffBadge : staffBadgeSuccess}>
                     {authorityLabel(item)}
                   </span>
-                  <span class="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">PEWNOŚĆ {Math.round(item.confidence / 100)}%</span>
+                  <span class={staffBadge}>PEWNOŚĆ {Math.round(item.confidence / 100)}%</span>
                   {item.value_tier && (
-                    <span class="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">
+                    <span class={staffBadge}>
                       WARTOŚĆ {item.value_tier === "downstream" ? "BIZNES" : item.value_tier.toUpperCase()}
                     </span>
                   )}
                   {item.deviation_basis_points !== null && item.deviation_basis_points !== undefined && (
-                    <span class="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">
+                    <span class={staffBadge}>
                       RUCH {(item.deviation_basis_points / 100).toFixed(1)}%
                     </span>
                   )}
@@ -403,26 +418,26 @@ function AgentBoard({ feed }: { feed: AutopilotFeed }) {
                     title={confirming === `do:${item.decision_id}` ? "Kliknij ponownie, aby puścić zaparkowaną akcję" : undefined}
                     onClick={() => void decide(item, "do")}
                     class={confirming === `do:${item.decision_id}`
-                      ? "min-h-[44px] rounded-xl border border-amber-300/40 bg-amber-300/20 px-4 py-2 text-xs font-black text-amber-100 disabled:opacity-50"
-                      : "min-h-[44px] rounded-xl bg-emerald-300 px-4 py-2 text-xs font-black text-zinc-950 disabled:opacity-50"}
+                      ? staffConfirmChip
+                      : staffAccentChip}
                   >{busy === `do:${item.decision_id}` ? "PUSZCZAM…" : confirming === `do:${item.decision_id}` ? "POTWIERDŹ" : "ZRÓB TO"}</button>
                 ) : (
-                  <span class="max-w-[180px] text-right text-xs leading-snug text-zinc-500">{item.authority === "auto_executing" ? "już zatwierdzone — wykonuje się" : "brak kroku do wykonania — załatw po swojemu"}</span>
+                  <span class="max-w-[180px] text-right text-xs leading-snug text-virya-muted">{item.authority === "auto_executing" ? "już zatwierdzone — wykonuje się" : "brak kroku do wykonania — załatw po swojemu"}</span>
                 )}
                 <button
                   type="button"
                   disabled={busy !== null}
                   onClick={() => void decide(item, "done")}
                   class={confirming === `done:${item.decision_id}`
-                    ? "min-h-[44px] rounded-xl bg-amber-300 px-4 py-2 text-xs font-black text-zinc-950 disabled:opacity-50"
-                    : "min-h-[44px] rounded-xl border border-white/15 px-4 py-2 text-xs font-black text-zinc-200 disabled:opacity-50"}
+                    ? staffConfirmButton
+                    : staffSecondaryButton}
                 >{busy === `done:${item.decision_id}` ? "ZAPISUJĘ…" : confirming === `done:${item.decision_id}` ? "POTWIERDŹ" : "JUŻ ZROBIONE"}</button>
               </div>
             </div>
           </article>
         ))}
         {!loading && !error && queue.length === 0 && (
-          <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Agent niczego teraz nie odkłada — pojawi się tu, gdy tylko jakiś detektor coś znajdzie.</p>
+          <p class="rounded-lg bg-black/20 p-4 text-sm text-virya-muted">Agent niczego teraz nie odkłada — pojawi się tu, gdy tylko jakiś detektor coś znajdzie.</p>
         )}
       </div>
     </details>
@@ -465,31 +480,31 @@ function ActionDetailModal({
 
   return (
     <div class="fixed inset-0 z-[10000] grid place-items-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label={`Szczegóły: ${humanAction(item.action_kind)}`} onClick={onClose}>
-      <div class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-amber-300/25 bg-zinc-950 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-virya-edge bg-virya-bg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0">
-            <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">{humanContext(item.context)} · {item.subject_kind}</p>
-            <h3 class="mt-2 text-xl font-black text-white">{humanAction(item.action_kind)}</h3>
-            {briefing && <p class="mt-2 text-lg text-zinc-100">{briefing.summary}</p>}
+            <p class={staffEyebrowAccent}>{humanContext(item.context)} · {item.subject_kind}</p>
+            <h3 class={`mt-2 ${staffTitle}`}>{humanAction(item.action_kind)}</h3>
+            {briefing && <p class="mt-2 text-lg text-virya-text">{briefing.summary}</p>}
           </div>
-          <button type="button" onClick={onClose} aria-label="Zamknij" class="min-h-[44px] min-w-[44px] rounded-xl border border-white/10 text-zinc-400 hover:text-white">✕</button>
+          <button type="button" onClick={onClose} aria-label="Zamknij" class="min-h-[44px] min-w-[44px] rounded-md border border-virya-edge text-virya-muted transition-colors hover:border-zinc-600 hover:text-virya-text">✕</button>
         </div>
 
         {briefing && (
           <>
-            <div class="mt-4 rounded-lg border border-amber-300/20 bg-amber-300/[.06] px-4 py-3">
-              <p class="text-xs font-black uppercase tracking-[0.14em] text-amber-200">Dlaczego to ważne</p>
-              <p class="mt-1 text-sm text-amber-100">{briefing.why_it_matters}</p>
+            <div class={`mt-4 ${staffNoticeBase} ${staffNoticeTones.warn}`}>
+              <p class="text-xs font-black uppercase tracking-[0.14em] text-yellow-100">Dlaczego to ważne</p>
+              <p class="mt-1 text-sm">{briefing.why_it_matters}</p>
             </div>
 
             {briefing.steps.length > 0 && (
               <div class="mt-4">
-                <p class="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">Kroki</p>
+                <p class={staffEyebrow}>Kroki</p>
                 <ol class="mt-2 grid gap-2">
                   {briefing.steps.map((step, i) => (
-                    <li key={i} class="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
-                      <p class="text-sm text-zinc-100"><b class="text-amber-200">{i + 1}.</b> {step.what_to_do}</p>
-                      <p class="mt-1 text-xs text-zinc-500">{step.why_it_matters}</p>
+                    <li key={i} class={`${staffPanelInset} px-3 py-2`}>
+                      <p class="text-sm text-virya-text"><b class="text-virya-hot">{i + 1}.</b> {step.what_to_do}</p>
+                      <p class="mt-1 text-xs text-virya-muted">{step.why_it_matters}</p>
                     </li>
                   ))}
                 </ol>
@@ -498,38 +513,38 @@ function ActionDetailModal({
 
             {briefing.content.length > 0 && (
               <div class="mt-4">
-                <p class="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">Treść</p>
+                <p class={staffEyebrow}>Treść</p>
                 <dl class="mt-2 grid gap-1">
                   {briefing.content.map((field, i) => (
-                    <div key={i} class="rounded-lg border border-white/5 bg-black/20 px-3 py-2">
-                      <dt class="text-[10px] font-black uppercase tracking-[0.12em] text-zinc-500">{field.label}</dt>
-                      <dd class="mt-1 whitespace-pre-wrap break-words text-sm text-zinc-200">{field.value}</dd>
+                    <div key={i} class={`${staffPanelInset} px-3 py-2`}>
+                      <dt class={staffEyebrow}>{field.label}</dt>
+                      <dd class="mt-1 whitespace-pre-wrap break-words text-sm text-virya-text">{field.value}</dd>
                     </div>
                   ))}
                 </dl>
               </div>
             )}
 
-            <p class="mt-4 text-sm text-zinc-400">{briefing.deadline_note}</p>
+            <p class="mt-4 text-sm text-virya-muted">{briefing.deadline_note}</p>
           </>
         )}
 
         {revisableEntries.length > 0 && (
-          <div class="mt-4 rounded-lg border border-emerald-300/20 bg-emerald-300/[.05] px-4 py-3">
+          <div class={`mt-4 ${staffNoticeBase} ${staffNoticeTones.success}`}>
             <p class="text-xs font-black uppercase tracking-[0.14em] text-emerald-200">Popraw przed akceptacją</p>
-            <p class="mt-1 text-xs text-zinc-400">
+            <p class="mt-1 text-xs text-virya-muted">
               Możesz poprawić tekst — odbiorca, koszt i adresat zostają jak są. Poprawka liczy się jako nauka stylu.
             </p>
             <div class="mt-3 grid gap-3">
               {revisableEntries.map(([field, original]) => (
                 <label key={field} class="grid gap-1">
-                  <span class="text-xs font-black uppercase tracking-[0.12em] text-zinc-500">{field}</span>
+                  <span class={staffEyebrow}>{field}</span>
                   <textarea
                     rows={Math.min(8, Math.max(2, Math.ceil(original.length / 90)))}
                     disabled={busy === item.id}
                     value={edits[field] ?? original}
                     onInput={event => setEdits(current => ({ ...current, [field]: event.currentTarget.value }))}
-                    class="min-h-[44px] w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-emerald-300/50"
+                    class="input text-sm"
                   />
                 </label>
               ))}
@@ -538,22 +553,22 @@ function ActionDetailModal({
         )}
 
         {item.executor_ready === false && (
-          <p class="mt-4 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
+          <p class={`mt-4 text-xs ${staffNoticeBase} ${staffNoticeTones.warn}`}>
             Akceptacja tylko trafi do kolejki — na razie żaden system nie
             potrafi tej akcji wykonać automatycznie. Ktoś musi ją zrobić ręcznie.
           </p>
         )}
 
-        <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+        <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-virya-edge pt-4">
           {assignees.length > 0 && (
-            <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">
+            <label class="flex items-center gap-2 rounded-md border border-virya-edge bg-virya-bg/60 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-virya-muted">
               PRZYPISZ
               <select
                 aria-label={`Przypisz ${humanAction(item.action_kind)}`}
                 disabled={busy === item.id}
                 value={item.assignee?.member_key ?? ""}
                 onChange={event => void onAssign(item, event.currentTarget.value)}
-                class="bg-transparent text-xs font-bold normal-case tracking-normal text-zinc-100 outline-none"
+                class="bg-transparent text-xs font-bold normal-case tracking-normal text-virya-text outline-none"
               >
                 {!item.assignee && (
                   <>
@@ -576,9 +591,9 @@ function ActionDetailModal({
             disabled={busy === item.id}
             onClick={() => void onApprove(item, hasEdits ? changedRevision : undefined)}
             title={item.executor_ready === false ? "Zostanie zakolejkowane, ale nikt tego nie wykona" : undefined}
-            class={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-black disabled:opacity-50 ${item.executor_ready === false ? "border border-amber-300/40 bg-amber-300/20 text-amber-100" : "bg-emerald-300 text-zinc-950"}`}
+            class={item.executor_ready === false ? staffConfirmButton : staffAccentButton}
           >{busy === item.id ? "ZAPISUJĘ…" : item.executor_ready === false ? "AKCEPTUJ (TYLKO KOLEJKA)" : hasEdits ? "AKCEPTUJ POPRAWKĘ I PUŚĆ DALEJ" : "AKCEPTUJ I PUŚĆ DALEJ"}</button>
-          <button type="button" disabled={busy === item.id} onClick={() => void onReject(item)} class="min-h-[44px] rounded-xl border border-rose-400/30 px-4 py-2 text-xs font-black text-rose-200 disabled:opacity-50">ODRZUĆ</button>
+          <button type="button" disabled={busy === item.id} onClick={() => void onReject(item)} class="virya-button min-h-[44px] min-w-0 border border-virya-danger/30 px-4 text-xs text-rose-200 transition-colors hover:border-virya-danger/50 disabled:opacity-50">ODRZUĆ</button>
         </div>
       </div>
     </div>
@@ -618,20 +633,20 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
   }
 
   return (
-    <section id="needs-you" class="scroll-mt-24 rounded-xl border border-amber-300/20 bg-zinc-900/70 p-5">
+    <section id="needs-you" class={`scroll-mt-24 ${staffPanel}`}>
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">Chief of Staff · Needs you</p>
-          <h2 class="mt-2 text-xl font-black text-white">Rzeczy wymagające człowieka</h2>
-          <p class="mt-1 max-w-3xl text-sm text-zinc-400">
+          <p class={staffEyebrowAccent}>Chief of Staff · Needs you</p>
+          <h2 class={`mt-2 ${staffTitle}`}>Rzeczy wymagające człowieka</h2>
+          <p class={`mt-1 max-w-3xl ${staffSubtitle}`}>
             Kolejka decyzji zespołu: przypisz ownera, zaakceptuj lub odrzuć.
           </p>
         </div>
-        <button type="button" disabled={loading} onClick={reload} class="min-h-[44px] rounded-xl border border-white/10 px-3 py-2 text-xs font-black text-zinc-200 disabled:opacity-50">
+        <button type="button" disabled={loading} onClick={reload} class={staffSecondaryButton}>
           {loading ? "ODŚWIEŻAM…" : "ODŚWIEŻ"}
         </button>
       </div>
-      {visibleError && <p role="alert" class="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{visibleError}</p>}
+      {visibleError && <p role="alert" class={`mt-4 ${staffNoticeBase} ${staffNoticeTones.error}`}>{visibleError}</p>}
       {!visibleError && (
         <div class="mt-4 flex flex-wrap gap-2" aria-label="Stan automatów">
           <ReadinessChip
@@ -645,7 +660,7 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
         {items.map(item => (
           <article
             key={item.id}
-            class="cursor-pointer rounded-lg border border-white/10 bg-black/30 p-4 transition hover:border-amber-300/30"
+            class={`cursor-pointer ${staffRow} hover:border-virya-signal/40`}
             onClick={() => setSelected(item)}
             role="button"
             tabIndex={0}
@@ -653,31 +668,31 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
           >
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
-                <strong class="block text-white">{humanAction(item.action_kind)}</strong>
-                <p class="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">{humanContext(item.context)} · {item.subject_kind}</p>
-                {item.briefing && <p class="mt-2 text-sm text-zinc-300">{item.briefing.summary}</p>}
-                <p class="mt-2 text-sm text-zinc-300">
-                  Owner: <b class="text-amber-200">{item.assignee ? teamMemberLabel(item.assignee.display_name) : "przypisuję…"}</b>
+                <strong class="block text-virya-text">{humanAction(item.action_kind)}</strong>
+                <p class="mt-1 text-xs uppercase tracking-[0.14em] text-virya-muted">{humanContext(item.context)} · {item.subject_kind}</p>
+                {item.briefing && <p class="mt-2 text-sm text-virya-text">{item.briefing.summary}</p>}
+                <p class="mt-2 text-sm text-virya-text">
+                  Owner: <b class="text-virya-hot">{item.assignee ? teamMemberLabel(item.assignee.display_name) : "przypisuję…"}</b>
                   {" · "}deadline: {date(item.assignment_due_at ?? item.approval_expires_at)}
                 </p>
                 {item.executor_ready === false && (
-                  <p class="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
+                  <p class={`mt-2 text-xs ${staffNoticeBase} ${staffNoticeTones.warn}`}>
                     Akceptacja tylko trafi do kolejki — na razie żaden system nie
                     potrafi tej akcji wykonać automatycznie. Ktoś musi ją zrobić ręcznie.
                   </p>
                 )}
-                <p class="mt-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-600">Kliknij po szczegóły →</p>
+                <p class={`mt-2 ${staffEyebrow}`}>Kliknij po szczegóły →</p>
               </div>
               <div class="flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
                 {assignees.length > 0 && (
-                  <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">
+                  <label class="flex items-center gap-2 rounded-md border border-virya-edge bg-virya-bg/60 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-virya-muted">
                     PRZYPISZ
                     <select
                       aria-label={`Przypisz ${humanAction(item.action_kind)}`}
                       disabled={busy === item.id}
                       value={item.assignee?.member_key ?? ""}
                       onChange={event => void assign(item, event.currentTarget.value)}
-                      class="bg-transparent text-xs font-bold normal-case tracking-normal text-zinc-100 outline-none"
+                      class="bg-transparent text-xs font-bold normal-case tracking-normal text-virya-text outline-none"
                     >
                       {!item.assignee && (
                         <>
@@ -696,14 +711,14 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
                   disabled={busy === item.id}
                   onClick={() => void mutate(item, "approve")}
                   title={item.executor_ready === false ? "Zostanie zakolejkowane, ale nikt tego nie wykona" : undefined}
-                  class={`rounded-xl px-4 py-2 text-xs font-black disabled:opacity-50 ${item.executor_ready === false ? "border border-amber-300/40 bg-amber-300/20 text-amber-100" : "bg-emerald-300 text-zinc-950"}`}
+                  class={item.executor_ready === false ? staffConfirmButton : staffAccentChip}
                 >{item.executor_ready === false ? "AKCEPTUJ (TYLKO KOLEJKA)" : "AKCEPTUJ I PUŚĆ DALEJ"}</button>
-                <button type="button" disabled={busy === item.id} onClick={() => void mutate(item, "cancel")} class="rounded-xl border border-rose-400/30 px-4 py-2 text-xs font-black text-rose-200 disabled:opacity-50">ODRZUĆ</button>
+                <button type="button" disabled={busy === item.id} onClick={() => void mutate(item, "cancel")} class="virya-button min-h-[44px] min-w-0 border border-virya-danger/30 px-4 text-xs text-rose-200 transition-colors hover:border-virya-danger/50 disabled:opacity-50">ODRZUĆ</button>
               </div>
             </div>
           </article>
         ))}
-        {!loading && !error && items.length === 0 && <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Nic nie wymaga teraz ręcznej decyzji.</p>}
+        {!loading && !error && items.length === 0 && <p class="rounded-lg bg-black/20 p-4 text-sm text-virya-muted">Nic nie wymaga teraz ręcznej decyzji.</p>}
       </div>
 
       {selected && (
@@ -720,14 +735,14 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
 
       <AgentBoard feed={feed} />
 
-      <details class="mt-6 border-t border-white/10 pt-5 group" open={false}>
+      <details class="mt-6 border-t border-virya-edge pt-5 group" open={false}>
         <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 marker:content-none [&::-webkit-details-marker]:hidden">
           <span>
-            <span class="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Guardrails automatów</span>
-            <span class="ml-3 text-sm text-zinc-500">Polityka bookingowa · ile gramy i gdzie cisnąć</span>
+            <span class={staffEyebrowAccent}>Guardrails automatów</span>
+            <span class="ml-3 text-sm text-virya-muted">Polityka bookingowa · ile gramy i gdzie cisnąć</span>
           </span>
           {bookingPolicy && (
-            <span class="rounded-full border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">v{bookingPolicy.version} · {bookingPolicy.source}</span>
+            <span class={staffBadge}>v{bookingPolicy.version} · {bookingPolicy.source}</span>
           )}
         </summary>
         <div class="mt-4">
@@ -736,25 +751,25 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
       </details>
 
       {manualActions.length > 0 && (
-        <details class="mt-5 border-t border-white/10 pt-5" open={manualActions.length <= 3}>
+        <details class="mt-5 border-t border-virya-edge pt-5" open={manualActions.length <= 3}>
           <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 marker:content-none [&::-webkit-details-marker]:hidden">
             <span>
-              <span class="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Dokończ ręcznie</span>
-              <span class="ml-3 text-sm text-zinc-500">{manualActions.length} {manualActions.length === 1 ? "rzecz" : "rzeczy"}, których automat nie zrobi bezpiecznie</span>
+              <span class={staffEyebrowAccent}>Dokończ ręcznie</span>
+              <span class="ml-3 text-sm text-virya-muted">{manualActions.length} {manualActions.length === 1 ? "rzecz" : "rzeczy"}, których automat nie zrobi bezpiecznie</span>
             </span>
           </summary>
           <div class="mt-3 grid gap-3">
             {manualActions.flatMap(action => (action.manual_steps ?? []).map((step, index) => {
               const href = safeExternalUrl(step.url)
               return (
-                <article key={`${action.id}:${index}`} class="rounded-lg border border-sky-300/15 bg-sky-300/5 p-4">
+                <article key={`${action.id}:${index}`} class={staffRow}>
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="min-w-0">
-                      <strong class="text-zinc-100">{step.destination}</strong>
-                      <p class="mt-1 text-sm text-zinc-200">{step.what_to_do}</p>
-                      <p class="mt-1 text-xs text-zinc-500">{step.why_it_matters}</p>
+                      <strong class="text-virya-text">{step.destination}</strong>
+                      <p class="mt-1 text-sm text-virya-text">{step.what_to_do}</p>
+                      <p class="mt-1 text-xs text-virya-muted">{step.why_it_matters}</p>
                     </div>
-                    {href && <a href={href} target="_blank" rel="noreferrer" class="rounded-xl border border-sky-300/25 px-3 py-2 text-xs font-black text-sky-200">OTWÓRZ ↗</a>}
+                    {href && <a href={href} target="_blank" rel="noreferrer" class={`${staffSecondaryButton} min-h-[44px]`}>OTWÓRZ ↗</a>}
                   </div>
                 </article>
               )

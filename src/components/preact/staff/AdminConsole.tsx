@@ -16,12 +16,23 @@ import {
   SignalTab,
 } from "./AdminConsoleTabs"
 import {
+  Notice,
   StaffLoginCard,
   StaffStatusCard,
   type NoticeState,
 } from "./AdminConsoleUi"
 import LazyPanel, { type Panel, warmPanel } from "./LazyPanel"
-import { staffLogoutButton, staffSecondaryButton } from "./staffButtons"
+import {
+  staffEyebrowAccent,
+  staffLogoutButton,
+  staffSecondaryButton,
+  staffSubtitle,
+  staffTab,
+  staffTabActive,
+  staffTabBar,
+  staffTabHint,
+  staffTabLabel,
+} from "./staffUi"
 
 // The three heaviest sections are fetched the first time they are opened.
 // Keeping them out of the console's first script is what makes "Dzisiaj"
@@ -219,16 +230,16 @@ export default function AdminConsole() {
 
   return (
     <section class="grid gap-5">
-      <header class="border-b border-zinc-800 pb-6">
+      <header class="border-b border-virya-edge pb-6">
         <div class="flex flex-wrap items-start justify-between gap-5">
           <div>
-            <p class="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">
+            <p class={staffEyebrowAccent}>
               VIRYA // STAFF
             </p>
-            <h1 class="mt-2 text-3xl font-black text-white sm:text-4xl">
+            <h1 class="mt-2 text-3xl font-black text-virya-text sm:text-4xl">
               Dzisiaj w VIRYA
             </h1>
-            <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">
+            <p class={`mt-3 max-w-3xl ${staffSubtitle}`}>
               Najbliższe koncerty, aktywne akcje i rzeczy, które wymagają decyzji zespołu.
             </p>
           </div>
@@ -251,10 +262,7 @@ export default function AdminConsole() {
         </div>
       </header>
 
-      <nav
-        aria-label="Sekcje panelu"
-        class="flex gap-1 overflow-x-auto border-y border-white/10 bg-black/20 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
+      <nav aria-label="Sekcje panelu" class={staffTabBar}>
         {tabs.map(item => (
           <button type="button"
             key={item.key}
@@ -266,26 +274,17 @@ export default function AdminConsole() {
               if (isLazy(item.key)) void warmPanel(item.key, LAZY[item.key].load)
             }}
             aria-current={tab === item.key ? "page" : undefined}
-            class={`min-h-12 shrink-0 border-b-2 px-4 py-2 text-left transition ${tab === item.key ? "border-amber-400 bg-amber-400/[.08] text-white" : "border-transparent text-zinc-400 hover:border-zinc-700 hover:text-white"}`}
+            class={tab === item.key ? staffTabActive : staffTab}
           >
-            <strong class="block text-sm">{item.label}</strong>
-            <span
-              class="mt-0.5 block text-[11px] text-zinc-500"
-            >
+            <strong class={staffTabLabel}>{item.label}</strong>
+            <span class={staffTabHint}>
               {item.hint}
             </span>
           </button>
         ))}
       </nav>
 
-      {message && (
-        <div
-          role="status"
-          class="rounded-lg border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
-        >
-          {message}
-        </div>
-      )}
+      {message && <Notice tone={message.tone}>{message.text}</Notice>}
 
       {tab === "overview" && (
         <OverviewTab overview={overview} loading={overviewLoading} feed={autopilotFeed} />

@@ -1,3 +1,5 @@
+import { staffPanel, staffSkeleton, staffSkeletonBlock } from "./staffUi"
+
 type BackendLoaderProps = {
   label?: string
   overlay?: boolean
@@ -15,10 +17,10 @@ function SkeletonRows({ rows }: { rows: number }) {
       {Array.from({ length: rows }, (_, index) => (
         <div key={index} class="grid gap-2">
           <div
-            class="h-3 animate-pulse rounded bg-white/10"
+            class={`h-3 ${staffSkeleton}`}
             style={{ width: `${[38, 52, 45, 60, 33][index % 5]}%` }}
           />
-          <div class="h-9 animate-pulse rounded-lg bg-white/[0.06]" />
+          <div class={`h-9 ${staffSkeletonBlock}`} />
         </div>
       ))}
     </div>
@@ -37,8 +39,8 @@ export default function BackendLoader({
       aria-busy="true"
       class={
         overlay
-          ? "absolute inset-0 z-20 overflow-hidden rounded-xl border border-white/10 bg-[var(--virya-bg)] p-6"
-          : "rounded-xl border border-white/10 bg-black/30 p-5"
+          ? "absolute inset-0 z-20 overflow-hidden rounded-lg border border-virya-edge bg-[var(--virya-bg)] p-6"
+          : staffPanel
       }
     >
       <span class="sr-only">{label}</span>

@@ -1,6 +1,7 @@
 import type { ComponentType } from "preact"
 import { useEffect, useState } from "preact/hooks"
 import BackendLoader from "./BackendLoader"
+import { staffNoticeBase, staffNoticeTones } from "./staffUi"
 
 type PanelProps = Record<string, unknown>
 export type Panel = ComponentType<PanelProps>
@@ -61,7 +62,7 @@ export default function LazyPanel({
 
   if (failed) {
     return (
-      <p role="alert" class="rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+      <p role="alert" class={`${staffNoticeBase} ${staffNoticeTones.error}`}>
         Nie udało się wczytać tej sekcji. Odśwież stronę.
       </p>
     )

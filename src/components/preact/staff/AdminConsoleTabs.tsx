@@ -9,7 +9,22 @@ import {
   api,
   formatDate,
 } from "./adminConsoleShared"
-import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
+import {
+  staffAccentButton,
+  staffEyebrowAccent,
+  staffField,
+  staffMetricLabel,
+  staffMetricTile,
+  staffMetricValue,
+  staffMetricValueLg,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanel,
+  staffPanelInset,
+  staffSecondaryButton,
+  staffSubtitle,
+  staffTitle,
+} from "./staffUi"
 
 export function OverviewTab({
   overview,
@@ -34,50 +49,50 @@ export function OverviewTab({
     <div class="relative grid gap-5" aria-busy={loading}>
       {loading && <BackendLoader overlay label="Pobieram aktualne dane…" />}
       {overview?.degraded.active && (
-        <div role="status" class="border border-amber-300/25 bg-amber-300/[.06] px-4 py-3 text-sm text-zinc-200">
+        <div role="status" class={`${staffNoticeBase} ${staffNoticeTones.warn}`}>
           Część danych jest chwilowo niedostępna. Możesz nadal korzystać z pozostałych funkcji Staff.
         </div>
       )}
 
       {next ? (
-        <section class="border border-amber-400/25 bg-[radial-gradient(circle_at_90%_0%,rgba(132,180,172,.12),transparent_35%),rgba(16,23,21,.65)] p-5 sm:p-7">
+        <section class="rounded-lg border border-virya-signal/25 bg-[radial-gradient(circle_at_90%_0%,rgba(132,180,172,.12),transparent_35%),rgba(16,23,21,.65)] p-5 sm:p-7">
           <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
             <div>
-              <p class="text-[11px] font-black uppercase tracking-[.15em] text-amber-400">Najbliższy koncert</p>
-              <h2 class="mt-2 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">{next.title}</h2>
-              <p class="mt-3 text-sm text-zinc-400">{formatDate(next.starts_at)}{next.venue ? ` · ${next.venue}` : ""}</p>
+              <p class={staffEyebrowAccent}>Najbliższy koncert</p>
+              <h2 class="mt-2 text-3xl font-black uppercase tracking-tight text-virya-text sm:text-4xl">{next.title}</h2>
+              <p class={`mt-3 ${staffSubtitle}`}>{formatDate(next.starts_at)}{next.venue ? ` · ${next.venue}` : ""}</p>
             </div>
             <div class="flex flex-wrap gap-3">
-              <span class="flex min-h-12 items-center border border-zinc-700 px-4 text-sm font-black text-white">{daysToNext === 0 ? "DZISIAJ" : `${daysToNext} dni`}</span>
+              <span class="flex min-h-12 items-center rounded-md border border-virya-edge px-4 text-sm font-black text-virya-text">{daysToNext === 0 ? "DZISIAJ" : `${daysToNext} dni`}</span>
               <a href="/staff/qr/" class={staffAccentButton}>Otwórz Live →</a>
             </div>
           </div>
         </section>
       ) : (
-        <section class="border border-zinc-800 bg-zinc-900/40 p-5"><strong class="text-white">Brak nadchodzącego koncertu.</strong></section>
+        <section class={staffPanel}><strong class="text-virya-text">Brak nadchodzącego koncertu.</strong></section>
       )}
 
-      <dl class="grid gap-px overflow-hidden border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
-        <div class="bg-zinc-950 p-5"><dt class="text-[11px] font-bold uppercase tracking-[.12em] text-zinc-500">Koncerty</dt><dd class="mt-2 text-3xl font-black text-white">{upcoming.length}</dd></div>
-        <div class="bg-zinc-950 p-5"><dt class="text-[11px] font-bold uppercase tracking-[.12em] text-zinc-500">Aktywne QR</dt><dd class="mt-2 text-3xl font-black text-white">{activeCampaigns.length}</dd></div>
-        <div class="bg-zinc-950 p-5"><dt class="text-[11px] font-bold uppercase tracking-[.12em] text-zinc-500">Fani</dt><dd class="mt-2 text-3xl font-black text-white">{totalFans}</dd></div>
+      <dl class="grid gap-3 sm:grid-cols-3">
+        <div class={staffMetricTile}><dt class={staffMetricLabel}>Koncerty</dt><dd class={staffMetricValueLg}>{upcoming.length}</dd></div>
+        <div class={staffMetricTile}><dt class={staffMetricLabel}>Aktywne QR</dt><dd class={staffMetricValueLg}>{activeCampaigns.length}</dd></div>
+        <div class={staffMetricTile}><dt class={staffMetricLabel}>Fani</dt><dd class={staffMetricValueLg}>{totalFans}</dd></div>
       </dl>
 
       <AutopilotHandoffs feed={feed} />
 
-      <section class="border border-zinc-800 bg-zinc-900/35">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4">
-          <div><h2 class="text-lg font-black text-white">Nadchodzące</h2><p class="mt-1 text-sm text-zinc-500">Najważniejsze rzeczy przed kolejnymi koncertami.</p></div>
+      <section class={`${staffPanel} p-0`}>
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-virya-edge px-5 py-4">
+          <div><h2 class="text-lg font-black text-virya-text">Nadchodzące</h2><p class="mt-1 text-sm text-virya-muted">Najważniejsze rzeczy przed kolejnymi koncertami.</p></div>
           <div class="flex gap-2">
-            <a href="/staff/?tab=admission" class="min-h-11 border border-zinc-700 px-4 py-3 text-[11px] font-black uppercase tracking-[.1em] text-zinc-200">Dodaj gościa</a>
-            <a href="/staff/?tab=ticketing" class="min-h-11 border border-zinc-700 px-4 py-3 text-[11px] font-black uppercase tracking-[.1em] text-zinc-200">Bilety</a>
+            <a href="/staff/?tab=admission" class={staffSecondaryButton}>Dodaj gościa</a>
+            <a href="/staff/?tab=ticketing" class={staffSecondaryButton}>Bilety</a>
           </div>
         </div>
-        <div class="divide-y divide-zinc-800/80">
+        <div class="divide-y divide-virya-edge/60">
           {upcoming.slice(0, 5).map(event => (
             <article key={event.id} class="flex flex-wrap items-center justify-between gap-4 px-5 py-4">
-              <div><strong class="text-white">{event.title}</strong><p class="mt-1 text-sm text-zinc-500">{formatDate(event.starts_at)}{event.venue ? ` · ${event.venue}` : ""}</p></div>
-              <a href={`/pl/live/${encodeURIComponent(event.slug)}/`} class="flex min-h-11 items-center text-[11px] font-black uppercase tracking-[.1em] text-amber-400">Strona koncertu →</a>
+              <div><strong class="text-virya-text">{event.title}</strong><p class="mt-1 text-sm text-virya-muted">{formatDate(event.starts_at)}{event.venue ? ` · ${event.venue}` : ""}</p></div>
+              <a href={`/pl/live/${encodeURIComponent(event.slug)}/`} class="flex min-h-11 items-center text-[11px] font-black uppercase tracking-[.1em] text-virya-hot">Strona koncertu →</a>
             </article>
           ))}
         </div>
@@ -159,21 +174,21 @@ export function AdmissionTab({ events }: { events: EventItem[] }) {
       <div class="grid gap-5 lg:grid-cols-2">
         <form
           onSubmit={issuePass}
-          class="rounded-xl border border-white/10 bg-zinc-900/70 p-5"
+          class={staffPanel}
         >
-          <h2 class="text-xl font-black text-white">Wydaj wejściówkę</h2>
-          <p class="mt-2 text-sm leading-6 text-zinc-400">
+          <h2 class={staffTitle}>Wydaj wejściówkę</h2>
+          <p class={`mt-2 ${staffSubtitle}`}>
             Fan musi mieć aktywny, potwierdzony Sygnał. Wybierz koncert i pulę biletów ustawioną dla tego wydarzenia (zwykle „paid-tickets”).
           </p>
           <div class="mt-5 grid gap-4">
-            <label class="text-sm font-semibold text-zinc-200">
+            <label class={staffField}>
               Koncert
               <select
                 value={issue.eventSlug}
                 onChange={event =>
                   setIssue({ ...issue, eventSlug: event.currentTarget.value })
                 }
-                class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white"
+                class="input mt-2"
               >
                 <option value="">Wybierz wydarzenie</option>
                 {events.map(event => (
@@ -210,9 +225,9 @@ export function AdmissionTab({ events }: { events: EventItem[] }) {
             </button>
           </div>
         </form>
-        <div class="rounded-xl border border-white/10 bg-zinc-900/70 p-5">
-          <h2 class="text-xl font-black text-white">Unieważnij wejściówkę</h2>
-          <p class="mt-2 text-sm leading-6 text-zinc-400">
+        <div class={staffPanel}>
+          <h2 class={staffTitle}>Unieważnij wejściówkę</h2>
+          <p class={`mt-2 ${staffSubtitle}`}>
             Operacja jest natychmiastowa — kod QR przestanie działać na bramce. Wpisz kod z rezerwacji fana i potwierdź dwuklikiem.
           </p>
           <div class="mt-5 grid gap-4">
@@ -283,14 +298,14 @@ export function SignalTab() {
   return (
     <div class="relative grid gap-5" aria-busy={loading}>
       {loading && <BackendLoader overlay label="Pobieram statystyki Sygnału…" />}
-      <section class="border-b border-zinc-800 pb-5">
+      <section class="border-b border-virya-edge pb-5">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">
+            <p class={staffEyebrowAccent}>
               Virya Signal
             </p>
-            <h2 class="mt-2 text-2xl font-black text-white">Baza fanów bez PII</h2>
-            <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            <h2 class="mt-2 text-2xl font-black text-virya-text">Baza fanów bez PII</h2>
+            <p class={`mt-2 max-w-3xl ${staffSubtitle}`}>
               Zagregowane dane: potwierdzenia, zgody, polecenia, zainteresowania
               koncertami i najmocniejsze miasta. Panel nie pobiera e-maili ani identyfikatorów fanów.
             </p>
@@ -307,10 +322,7 @@ export function SignalTab() {
       </section>
 
       {overview?.unavailable_sources.length ? (
-        <div
-          role="status"
-          class="rounded-lg border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
-        >
+        <div role="status" class={`${staffNoticeBase} ${staffNoticeTones.warn}`}>
           Snapshot działa częściowo. Niedostępne źródła: {overview.unavailable_sources.join(", ")}.
         </div>
       ) : null}
@@ -323,8 +335,8 @@ export function SignalTab() {
       </div>
 
       <div class="grid gap-5 xl:grid-cols-[1.1fr_.9fr]">
-        <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
-          <h3 class="text-xl font-black text-white">Stan bazy</h3>
+        <section class={`${staffPanel} sm:p-6`}>
+          <h3 class={staffTitle}>Stan bazy</h3>
           <dl class="mt-5 grid gap-3 sm:grid-cols-2">
             <SignalStat label="Wszyscy" value={summary?.total_fans} />
             <SignalStat label="Oczekujący" value={summary?.pending_fans} />
@@ -335,8 +347,8 @@ export function SignalTab() {
           </dl>
         </section>
 
-        <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
-          <h3 class="text-xl font-black text-white">Aktywność</h3>
+        <section class={`${staffPanel} sm:p-6`}>
+          <h3 class={staffTitle}>Aktywność</h3>
           <dl class="mt-5 grid gap-3">
             <SignalStat label="Nowi / 7 dni" value={activity?.new_fans_7d} />
             <SignalPair
@@ -354,41 +366,38 @@ export function SignalTab() {
         </section>
       </div>
 
-      <section class="overflow-hidden rounded-xl border border-white/10 bg-zinc-900/70">
-        <div class="border-b border-white/10 p-5 sm:p-6">
-          <h3 class="text-xl font-black text-white">Najsilniejsze miasta</h3>
-          <p class="mt-1 text-sm text-zinc-500">
+      <section class={`overflow-hidden ${staffPanel} p-0`}>
+        <div class="border-b border-virya-edge p-5 sm:p-6">
+          <h3 class={staffTitle}>Najsilniejsze miasta</h3>
+          <p class="mt-1 text-sm text-virya-muted">
             Maksymalnie 10 zagregowanych lokalizacji aktywnych fanów.
           </p>
         </div>
-        <div class="divide-y divide-white/5">
+        <div class="divide-y divide-virya-edge/60">
           {(overview?.top_cities ?? []).map((city, index) => (
             <article key={city.slug} class="flex items-center justify-between gap-4 p-5">
               <div class="min-w-0">
-                <span class="text-xs font-black text-zinc-600">#{index + 1}</span>
-                <strong class="ml-3 text-white">{city.name}</strong>
-                <span class="ml-2 text-xs text-zinc-500">{city.country_code}</span>
+                <span class="text-xs font-black text-virya-muted">#{index + 1}</span>
+                <strong class="ml-3 text-virya-text">{city.name}</strong>
+                <span class="ml-2 text-xs text-virya-muted">{city.country_code}</span>
               </div>
-              <strong class="tabular-nums text-amber-300">{city.active_fans}</strong>
+              <strong class="tabular-nums text-virya-hot">{city.active_fans}</strong>
             </article>
           ))}
           {overview && overview.top_cities.length === 0 ? (
-            <p class="p-5 text-sm text-zinc-500">Brak danych miejskich w tym snapshotcie.</p>
+            <p class="p-5 text-sm text-virya-muted">Brak danych miejskich w tym snapshotcie.</p>
           ) : null}
           {!overview && !message ? (
-            <p class="p-5 text-sm text-zinc-500">Ładuję statystyki Sygnału…</p>
+            <p class="p-5 text-sm text-virya-muted">Ładuję statystyki Sygnału…</p>
           ) : null}
         </div>
       </section>
 
       {overview ? (
-        <p class="text-xs text-zinc-600">Snapshot: {formatDate(overview.generated_at)} · dane wyłącznie zagregowane</p>
+        <p class="text-xs text-virya-muted">Snapshot: {formatDate(overview.generated_at)} · dane wyłącznie zagregowane</p>
       ) : null}
       {message ? (
-        <p
-          role="status"
-          class="rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
-        >
+        <p role="status" class={`${staffNoticeBase} ${staffNoticeTones.error}`}>
           {message}
         </p>
       ) : null}
@@ -398,9 +407,9 @@ export function SignalTab() {
 
 function SignalStat({ label, value }: { label: string; value?: number }) {
   return (
-    <div class="rounded-lg border border-white/10 bg-black/30 p-4">
-      <dt class="text-xs font-bold uppercase tracking-wider text-zinc-500">{label}</dt>
-      <dd class="mt-2 text-2xl font-black tabular-nums text-white">{value ?? "…"}</dd>
+    <div class={staffPanelInset}>
+      <dt class={staffMetricLabel}>{label}</dt>
+      <dd class="mt-2 text-2xl font-black tabular-nums text-virya-text">{value ?? "…"}</dd>
     </div>
   )
 }
@@ -415,9 +424,9 @@ function SignalPair({
   total?: number
 }) {
   return (
-    <div class="rounded-lg border border-white/10 bg-black/30 p-4">
-      <dt class="text-xs font-bold uppercase tracking-wider text-zinc-500">{label}</dt>
-      <dd class="mt-2 text-xl font-black tabular-nums text-white">
+    <div class={staffPanelInset}>
+      <dt class={staffMetricLabel}>{label}</dt>
+      <dd class={staffMetricValue}>
         {recent ?? "…"} / {total ?? "…"}
       </dd>
     </div>
