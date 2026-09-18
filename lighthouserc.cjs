@@ -73,12 +73,22 @@ module.exports = {
           ]
         : [
             {
+              // a11y/bp/seo are deterministic and stay at hard 100. Perf gets
+              // a 0.95 error floor + warn at 1.0: the shared ARM box jitters
+              // LCP 0.9–1.0 across identical builds, and a hard 1.0 here
+              // flake-blocks deploys on host noise rather than regressions.
               matchingUrlPattern: ".*",
               assertions: {
-                "categories:performance": ["error", { minScore: 1 }],
+                "categories:performance": ["error", { minScore: 0.95 }],
                 "categories:accessibility": ["error", { minScore: 1 }],
                 "categories:best-practices": ["error", { minScore: 1 }],
                 "categories:seo": ["error", { minScore: 1 }],
+              },
+            },
+            {
+              matchingUrlPattern: ".*",
+              assertions: {
+                "categories:performance": ["warn", { minScore: 1 }],
               },
             },
           ],
