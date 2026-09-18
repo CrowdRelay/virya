@@ -73,13 +73,14 @@ module.exports = {
           ]
         : [
             {
-              // a11y/bp/seo are deterministic and stay at hard 100. Perf gets
-              // a 0.95 error floor + warn at 1.0: the shared ARM box jitters
-              // LCP 0.9–1.0 across identical builds, and a hard 1.0 here
-              // flake-blocks deploys on host noise rather than regressions.
+              // a11y/bp/seo are deterministic and stay at hard 100. Perf on
+              // this lane measures host load more than the page — identical
+              // builds score 0.9–1.0 depending on what prod is doing — so the
+              // floor is 0.9 (catastrophic regressions only; bundle budgets in
+              // npm test are the real size gate) and 1.0 stays as a warn.
               matchingUrlPattern: ".*",
               assertions: {
-                "categories:performance": ["error", { minScore: 0.95 }],
+                "categories:performance": ["error", { minScore: 0.9 }],
                 "categories:accessibility": ["error", { minScore: 1 }],
                 "categories:best-practices": ["error", { minScore: 1 }],
                 "categories:seo": ["error", { minScore: 1 }],
