@@ -46,10 +46,12 @@ module.exports = {
       numberOfRuns: FULL ? 1 : 3,
       settings: {
         skipAudits: ["is-on-https", "redirects-http", "errors-in-console"],
-        // --lang=en-US keeps navigator.language English so the localStorage
-        // lang-redirect in Layout never bounces an EN-route audit to /pl/*.
-        // CI runners are already en-locale; this pins local runs to parity.
-        chromeFlags: ["--no-sandbox", "--lang=en-US"],
+        // chromeFlags is a STRING (an array is silently ignored — LHCI #190).
+        // --no-sandbox is required since the runner's Ubuntu 24.04 AppArmor
+        // policy blocks Chrome's userns sandbox; --lang=en-US keeps
+        // navigator.language English so the localStorage lang-redirect in
+        // Layout never bounces an EN-route audit to /pl/*.
+        chromeFlags: "--no-sandbox --disable-dev-shm-usage --disable-gpu --lang=en-US",
       },
     },
     assert: {
