@@ -108,6 +108,32 @@ const CROWDRELAY_API_URL = (import.meta.env.PUBLIC_CROWDRELAY_API_URL as string 
           s.async = true;
           document.head.appendChild(s);
         }, { timeout: 3000 });
+        // Metricool analytics: idle-loaded so it never competes with the
+        // critical rendering path. be.js tracks a pageview via an Image pixel
+        // (no fetch), so img-src — not connect-src — must allow the host.
+        // astro:page-load re-fires on ClientRouter navigations; lastUrl dedupes
+        // the initial view regardless of event ordering. All state lives on
+        // window because this inline script re-executes on every navigation.
+        var METRICOOL_HASH = 'df939c23f07ed9d3255626c9f9716d5d';
+        if (!window.__viryaMetricoolInstalled) {
+          window.__viryaMetricoolInstalled = true;
+          window.__viryaMetricoolLastUrl = '';
+          window.__viryaMetricoolTrack = function() {
+            if (!window.beTracker || location.href === window.__viryaMetricoolLastUrl) return;
+            window.__viryaMetricoolLastUrl = location.href;
+            window.beTracker.t({ hash: METRICOOL_HASH });
+          };
+          document.addEventListener('astro:page-load', window.__viryaMetricoolTrack);
+        }
+        ric(function() {
+          if (window.__viryaMetricoolRequested) return;
+          window.__viryaMetricoolRequested = true;
+          var s = document.createElement('script');
+          s.src = 'https://tracker.metricool.com/resources/be.js';
+          s.async = true;
+          s.onload = window.__viryaMetricoolTrack;
+          document.head.appendChild(s);
+        }, { timeout: 4000 });
       })();
     </script>
     {enableClientRouter && <ClientRouter />}
