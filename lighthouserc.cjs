@@ -8,24 +8,9 @@ const ROUTES = globSync("**/index.html", { cwd: join(__dirname, "dist") })
   .map(file => `/${file.slice(0, -"index.html".length)}`)
   .sort()
 
-// Push-gate subset: one representative page per template family, bilingual.
-// The full matrix runs nightly via LHCI_FULL=1 (see lighthouse-full.yml).
-// No /live/ here — live/[slug] is SSR-only, so there is no live index in dist.
-const SUBSET = [
-  "/",
-  "/pl/",
-  "/about/",
-  "/pl/about/",
-  "/epk/",
-  "/news/",
-  "/merch/",
-  "/gallery/",
-  "/videos/",
-  "/lyrics/",
-  "/signal/",
-  "/legal/privacy/",
-  "/win/",
-]
+// Push gate: homepage only, 4×100 hard. Fast on the shared ARM lane —
+// the full route sweep runs nightly via LHCI_FULL=1 (lighthouse-full.yml).
+const SUBSET = ["/"]
 
 const FULL = process.env.LHCI_FULL === "1"
 const urls = (FULL ? ROUTES : SUBSET.filter(route => ROUTES.includes(route)))
@@ -56,39 +41,47 @@ module.exports = {
     },
     assert: {
       // assertMatrix replaces `assertions` entirely — LHCI refuses to mix them.
-      // Entries MERGE for matching URLs (they don't override), so the SEO gate
-      // uses a negative lookahead to skip the intentionally-noindexed routes
-      // where is-crawlable fails by design.
-      //
-      // Perf: error floor 0.95 guards regressions; warn at 1.0 keeps sub-100
-      // runs visible in the log. A hard perf=1.0 gate would flake on the
-      // shared 2-core ARM box — LCP jitter across identical builds is
-      // 1.7–2.7s locally, larger under lane contention.
-      assertMatrix: [
-        {
-          matchingUrlPattern: ".*",
-          assertions: {
-            "categories:performance": ["error", { minScore: 0.95 }],
-            "categories:accessibility": ["error", { minScore: 1 }],
-            "categories:best-practices": ["error", { minScore: 1 }],
-          },
-        },
-        {
-          matchingUrlPattern: ".*",
-          assertions: {
-            "categories:performance": ["warn", { minScore: 1 }],
-          },
-        },
-        {
-          // 14 intentionally-noindexed routes: /win, /latarnik, /my-signal,
-          // /merch/{cancel,success}, /signal/{confirm,unsubscribe} (+/pl/*).
-          matchingUrlPattern:
-            "^(?!.*\\/(win|latarnik|my-signal|merch/cancel|merch/success|signal/confirm|signal/unsubscribe)/?$).*$",
-          assertions: {
-            "categories:seo": ["error", { minScore: 1 }],
-          },
-        },
-      ],
+      // Push gate: the homepage is held to a hard 4×100. Nightly full sweep
+      // keeps a 0.95 perf error floor (LCP jitter on the shared 2-core ARM
+      // box is 1.7–2.7s across identical builds) with 1.0 as warn, and the
+      // SEO gate skips the intentionally-noindexed routes via lookahead.
+      assertMatrix: FULL
+        ? [
+            {
+              matchingUrlPattern: ".*",
+              assertions: {
+                "categories:performance": ["error", { minScore: 0.95 }],
+                "categories:accessibility": ["error", { minScore: 1 }],
+                "categories:best-practices": ["error", { minScore: 1 }],
+              },
+            },
+            {
+              matchingUrlPattern: ".*",
+              assertions: {
+                "categories:performance": ["warn", { minScore: 1 }],
+              },
+            },
+            {
+              // 14 intentionally-noindexed routes: /win, /latarnik, /my-signal,
+              // /merch/{cancel,success}, /signal/{confirm,unsubscribe} (+/pl/*).
+              matchingUrlPattern:
+                "^(?!.*\\/(win|latarnik|my-signal|merch/cancel|merch/success|signal/confirm|signal/unsubscribe)/?$).*$",
+              assertions: {
+                "categories:seo": ["error", { minScore: 1 }],
+              },
+            },
+          ]
+        : [
+            {
+              matchingUrlPattern: ".*",
+              assertions: {
+                "categories:performance": ["error", { minScore: 1 }],
+                "categories:accessibility": ["error", { minScore: 1 }],
+                "categories:best-practices": ["error", { minScore: 1 }],
+                "categories:seo": ["error", { minScore: 1 }],
+              },
+            },
+          ],
     },
     upload: {
       target: "temporary-public-storage",
