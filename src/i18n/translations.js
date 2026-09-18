@@ -55,7 +55,7 @@ export const translations = {
       story1:
         "Virya was born in 2023 from a refusal to follow established paths. Founded by guitarist Wojciech Bator and drummer Jakub Dąbrowski, the band set out to dismantle genre boundaries — fusing the ferocity of modern metalcore with unexpected influences that reach far beyond metal. Technical precision, raw emotion, and relentless energy define the sound. Architects, Tesseract, and Twelve Foot Ninja may come to mind, but Virya carves its own path.",
       story2:
-        "The current chapter of Virya is carried by vocalist Marcin Janusiński, guitarist Wojciech Bator, drummer Jakub Dąbrowski and bassist Lubomyr Kosakovsky. The lineup keeps the band focused on a live-first sound: precise, heavy and built to hit with real physical energy on stage.",
+        "The current chapter of Virya is carried by vocalist Marcin \"Yanusin\" Janusiński, guitarist Wojciech Bator, drummer Jakub Dąbrowski and bassist Lubomyr Kosakovsky. The lineup keeps the band focused on a live-first sound: precise, heavy and built to hit with real physical energy on stage.",
       story3:
         "The name Virya is more than a name — it is a declaration. Rooted in the concept of positive energy and unbreakable will, it is the band's manifesto: that every concert must be a catharsis, a release of raw power shared between the band and the audience. Their music carries the weight of life's hardships and the defiant belief that rising above them is always possible. No pain, no gain.",
       roles: {
@@ -628,7 +628,7 @@ export const translations = {
       story1:
         "Virya narodziła się w 2023 roku z buntu wobec utartych ścieżek. Założona przez gitarzystę Wojciecha Batora i perkusistę Jakuba Dąbrowskiego, postawiła sobie za cel burzenie gatunkowych granic — łącząc furię nowoczesnego metalcore'u z nieoczekiwanymi wpływami sięgającymi daleko poza metal. Techniczna precyzja, surowe emocje i nieustępliwa energia definiują to brzmienie. Można pomyśleć o Architects, Tesseract czy Twelve Foot Ninja, ale Virya wytycza własną drogę.",
       story2:
-        "Obecny rozdział VIRYI tworzą wokalista Marcin Janusiński, gitarzysta Wojciech Bator, perkusista Jakub Dąbrowski i basista Lubomyr Kosakovsky. Ten skład rozwija koncertowe brzmienie zespołu: precyzyjne, ciężkie i zbudowane tak, by na scenie niosło prawdziwą fizyczną energię.",
+        "Obecny rozdział VIRYI tworzą wokalista Marcin „Yanusin” Janusiński, gitarzysta Wojciech Bator, perkusista Jakub Dąbrowski i basista Lubomyr Kosakovsky. Ten skład rozwija koncertowe brzmienie zespołu: precyzyjne, ciężkie i zbudowane tak, by na scenie niosło prawdziwą fizyczną energię.",
       story3:
         "Nazwa Virya to coś więcej niż nazwa — to deklaracja. Zakorzeniona w idei pozytywnej energii i niezłomnej woli, jest manifestem zespołu: każdy koncert musi być katharsis, wyzwoleniem czystej siły dzielonej między zespołem a publicznością. Ich muzyka niesie ciężar życiowych zmagań i buntowniczą wiarę, że zawsze można się ponad nie wznieść. No pain, no gain.",
       roles: {

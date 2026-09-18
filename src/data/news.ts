@@ -62,16 +62,16 @@ const curatedNewsPosts: NewsPost[] = [
       en: "Autumn with VIRYA — upcoming shows",
     },
     excerpt: {
-      pl: "Przed VIRYĄ kolejne koncerty w Polsce i Czechach. We wrześniu gramy w Namysłowie i na WrOFF we Wrocławiu, a w październiku w Gorzowie Wielkopolskim i Hradcu Králové.",
-      en: "VIRYA has more shows ahead in Poland and Czechia, with September dates in Namysłów and at WrOFF in Wrocław, followed by Gorzów Wielkopolski and Hradec Králové in October.",
+      pl: "Przed VIRYĄ kolejne koncerty w Polsce. We wrześniu gramy w Namysłowie i na WrOFF we Wrocławiu, a w październiku w Gorzowie Wielkopolskim.",
+      en: "VIRYA has more shows ahead in Poland, with September dates in Namysłów and at WrOFF in Wrocław, followed by Gorzów Wielkopolski in October.",
     },
     body: {
       pl: [
-        "Najbliższe daty to: 05.09 — Namysłów, 11.09 — Wrocław / WrOFF, 17.10 — Gorzów Wielkopolski oraz 30.10 — Hradec Králové.",
+        "Najbliższe daty to: 05.09 — Namysłów, 11.09 — Wrocław / WrOFF, 17.10 — Gorzów Wielkopolski.",
         "Szczegóły wydarzeń publikujemy na bieżąco. Jeśli działasz w mediach, radiu, foto albo przy organizacji koncertów, Latarnik daje Ci także materiały i kontekst do konkretnych wydarzeń w jednym miejscu.",
       ],
       en: [
-        "The upcoming dates are: 05 Sep — Namysłów, 11 Sep — Wrocław / WrOFF, 17 Oct — Gorzów Wielkopolski and 30 Oct — Hradec Králové.",
+        "The upcoming dates are: 05 Sep — Namysłów, 11 Sep — Wrocław / WrOFF and 17 Oct — Gorzów Wielkopolski.",
         "We publish event details as they are confirmed. If you work in media, radio, photography or live events, Beacon also keeps show-specific materials and context in one place.",
       ],
     },

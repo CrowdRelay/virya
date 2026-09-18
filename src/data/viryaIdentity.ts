@@ -13,7 +13,7 @@ export const VIRYA_IDENTITY = {
     name: "Wrocław, Poland",
   },
   member: [
-    { "@type": "Person", name: "Marcin Janusiński", roleName: "Vocals" },
+    { "@type": "Person", name: 'Marcin "Yanusin" Janusiński', roleName: "Vocals" },
     { "@type": "Person", name: "Wojciech Bator", roleName: "Guitar" },
     { "@type": "Person", name: "Jakub Dąbrowski", roleName: "Drums" },
     { "@type": "Person", name: "Lubomyr Kosakovsky", roleName: "Bass" },

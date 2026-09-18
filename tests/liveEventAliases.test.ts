@@ -13,10 +13,6 @@ test("legacy Bandsintown live URLs resolve to canonical CrowdRelay slugs", () =>
     "sanity-check-namyslow-2026",
   )
   assert.equal(canonicalLiveEventSlug("gig-108543480"), "zakrec-smiglem-2026")
-  assert.equal(
-    canonicalLiveEventSlug("gig-108530293"),
-    "seidr-hradec-kralove-2026",
-  )
 })
 
 test("canonical and unknown live slugs remain unchanged", () => {
