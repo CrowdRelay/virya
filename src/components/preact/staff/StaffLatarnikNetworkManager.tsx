@@ -2,6 +2,19 @@ import type { ComponentChildren } from "preact"
 import { useMemo, useState } from "preact/hooks"
 import { staffApi } from "./staffApi"
 import { qrDataUrl } from "../../../lib/qr"
+import {
+  staffAccentButton,
+  staffEmpty,
+  staffEyebrow,
+  staffEyebrowAccent,
+  staffField,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanelInset,
+  staffSecondaryButton,
+  staffSubtitle,
+  staffTitle,
+} from "./staffUi"
 
 type DiscoveryRun = {
   id: string
@@ -105,10 +118,10 @@ const displayDate = (value?: string | null) => {
     : "—"
 }
 const statusClass = (status: string) => {
-  if (["ready", "completed"].includes(status)) return "text-emerald-300 border-emerald-400/25 bg-emerald-400/10"
-  if (["failed", "ambiguous"].includes(status)) return "text-red-300 border-red-400/25 bg-red-400/10"
-  if (["running", "requested", "claimed", "queued"].includes(status)) return "text-amber-200 border-amber-400/25 bg-amber-400/10"
-  return "text-zinc-300 border-white/10 bg-white/[0.04]"
+  if (["ready", "completed"].includes(status)) return "text-virya-success border-virya-success/30 bg-virya-success/10"
+  if (["failed", "ambiguous"].includes(status)) return "text-rose-200 border-virya-danger/30 bg-virya-danger/10"
+  if (["running", "requested", "claimed", "queued"].includes(status)) return "text-virya-hot border-virya-signal/30 bg-virya-signal/10"
+  return "text-virya-muted border-virya-edge bg-white/[0.04]"
 }
 const kindLabel = (kind: string) => ({
   radio: "radio",
@@ -271,13 +284,13 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
   }
 
   return (
-    <section class="rounded-xl border border-cyan-300/20 bg-gradient-to-br from-cyan-300/[0.05] to-zinc-950 p-5 sm:p-7">
+    <section class="rounded-lg border border-virya-signal/20 bg-gradient-to-br from-virya-signal/[0.05] to-virya-bg p-5 sm:p-7">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p class="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">Latarnik / network</p>
-          <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">Research → review → zaproszenie</h2>
-          <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">
-            Research może znaleźć publiczne kontakty i przygotować XLSX. <strong class="text-zinc-200">Publiczny e-mail nie jest zgodą na marketing.</strong> Zaproszenie staje się możliwe dopiero po ręcznym potwierdzeniu źródła i dowodu zgody.
+          <p class={staffEyebrowAccent}>Latarnik / network</p>
+          <h2 class="mt-2 text-2xl font-black text-virya-text sm:text-3xl">Research → review → zaproszenie</h2>
+          <p class={`mt-3 max-w-3xl ${staffSubtitle}`}>
+            Research może znaleźć publiczne kontakty i przygotować XLSX. <strong class="text-virya-text">Publiczny e-mail nie jest zgodą na marketing.</strong> Zaproszenie staje się możliwe dopiero po ręcznym potwierdzeniu źródła i dowodu zgody.
           </p>
         </div>
         <div class="grid grid-cols-3 gap-2 text-center text-xs">
@@ -288,63 +301,63 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
       </div>
 
       <div class="mt-6 grid gap-3 sm:grid-cols-[180px_auto] sm:items-end">
-        <label class="grid gap-2 text-sm font-semibold text-zinc-200">
+        <label class={`grid gap-2 ${staffField}`}>
           Cel researchu PL
           <input type="number" min="1" max="500" step="1" value={targetCount} onInput={event => setTargetCount(Number(event.currentTarget.value))} class="input" />
         </label>
-        <button type="button" disabled={disabled || busy} onClick={discover} class="min-h-11 rounded-xl bg-cyan-300 px-5 py-3 text-xs font-black text-zinc-950 disabled:opacity-40">
+        <button type="button" disabled={disabled || busy} onClick={discover} class={staffAccentButton}>
           SZUKAJ LATARNIKÓW PL
         </button>
       </div>
 
       {latestRun ? (
-        <div class="mt-4 rounded-lg border border-white/10 bg-black/30 p-4 text-sm">
+        <div class={`mt-4 ${staffPanelInset} text-sm`}>
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <strong class="text-zinc-100">Ostatni research: {latestRun.countryCode} · cel {latestRun.targetCount}</strong>
+            <strong class="text-virya-text">Ostatni research: {latestRun.countryCode} · cel {latestRun.targetCount}</strong>
             <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${statusClass(latestRun.status)}`}>{latestRun.status}</span>
           </div>
-          <p class="mt-2 text-xs text-zinc-500">znaleziono {latestRun.discoveredCount} · start {displayDate(latestRun.requestedAt)} · koniec {displayDate(latestRun.completedAt)}</p>
-          {latestRun.reportFilename ? <p class="mt-1 text-xs text-cyan-200">XLSX: {latestRun.reportFilename}</p> : null}
-          {latestRun.failureKind ? <p class="mt-1 text-xs text-red-300">Błąd: {latestRun.failureKind}</p> : null}
+          <p class="mt-2 text-xs text-virya-muted">znaleziono {latestRun.discoveredCount} · start {displayDate(latestRun.requestedAt)} · koniec {displayDate(latestRun.completedAt)}</p>
+          {latestRun.reportFilename ? <p class="mt-1 text-xs text-virya-hot">XLSX: {latestRun.reportFilename}</p> : null}
+          {latestRun.failureKind ? <p class="mt-1 text-xs text-rose-200">Błąd: {latestRun.failureKind}</p> : null}
         </div>
       ) : null}
-      {message ? <p class="mt-4 rounded-xl border border-cyan-300/20 bg-black/30 px-4 py-3 text-sm text-cyan-100" role="status">{message}</p> : null}
+      {message ? <p class={`mt-4 ${staffNoticeBase} ${staffNoticeTones.info}`} role="status">{message}</p> : null}
 
       <div class="mt-8">
         <div class="flex items-end justify-between gap-3">
           <div>
-            <p class="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">Review</p>
-            <h3 class="mt-1 text-xl font-black text-white">Kandydaci znalezieni publicznie</h3>
+            <p class={staffEyebrow}>Review</p>
+            <h3 class={`mt-1 ${staffTitle}`}>Kandydaci znalezieni publicznie</h3>
           </div>
-          <span class="text-xs text-zinc-500">{data.pendingCandidates?.length ?? 0}</span>
+          <span class="text-xs text-virya-muted">{data.pendingCandidates?.length ?? 0}</span>
         </div>
         <div class="mt-4 grid gap-3">
           {(data.pendingCandidates ?? []).length === 0 ? <Empty>Brak kandydatów oczekujących na review.</Empty> : data.pendingCandidates.map(candidate => {
             const review = reviewFor(candidate.id)
             const canApprove = review.sourceVerified && review.consentConfirmed && isHttpsUrl(review.evidenceUrl)
             return (
-              <article key={candidate.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
+              <article key={candidate.id} class={staffPanelInset}>
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <strong class="text-sm text-white">{candidate.displayName}</strong>
-                    <span class="ml-2 text-[10px] font-black uppercase tracking-wider text-zinc-500">{kindLabel(candidate.beaconKind)}</span>
-                    <p class="mt-1 text-xs text-zinc-400">{candidate.contactEmail || candidate.destinationUrl || "brak bezpośredniego kontaktu"}</p>
-                    {candidate.sourceUrl ? <a href={candidate.sourceUrl} target="_blank" rel="noreferrer" class="mt-1 inline-block break-all text-xs text-cyan-300 underline decoration-cyan-300/30">źródło publiczne ↗</a> : null}
+                    <strong class="text-sm text-virya-text">{candidate.displayName}</strong>
+                    <span class="ml-2 text-[10px] font-black uppercase tracking-wider text-virya-muted">{kindLabel(candidate.beaconKind)}</span>
+                    <p class="mt-1 text-xs text-virya-muted">{candidate.contactEmail || candidate.destinationUrl || "brak bezpośredniego kontaktu"}</p>
+                    {candidate.sourceUrl ? <a href={candidate.sourceUrl} target="_blank" rel="noreferrer" class="mt-1 inline-block break-all text-xs text-virya-hot underline decoration-virya-hot/30">źródło publiczne ↗</a> : null}
                   </div>
                 </div>
                 <div class="mt-4 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
-                  <label class="grid gap-2 text-xs font-bold text-zinc-300">
+                  <label class="grid gap-2 text-xs font-bold text-virya-text">
                     HTTPS URL dowodu zgody marketingowej
                     <input value={review.evidenceUrl} onInput={event => patchReview(candidate.id, { evidenceUrl: event.currentTarget.value })} placeholder="https://…" class="input" />
                   </label>
-                  <button type="button" disabled={disabled || busy || !canApprove} onClick={() => void approve(candidate)} class="min-h-11 rounded-xl bg-white px-4 py-3 text-xs font-black text-zinc-950 disabled:opacity-35">ZATWIERDŹ DO ZAPROSZENIA</button>
+                  <button type="button" disabled={disabled || busy || !canApprove} onClick={() => void approve(candidate)} class={staffAccentButton}>ZATWIERDŹ DO ZAPROSZENIA</button>
                 </div>
                 <div class="mt-3 grid gap-2 sm:grid-cols-2">
-                  <label class="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 px-3 py-2 text-xs text-zinc-300">
+                  <label class="flex min-h-11 items-center gap-3 rounded-xl border border-virya-edge px-3 py-2 text-xs text-virya-text">
                     <input type="checkbox" checked={review.sourceVerified} onChange={event => patchReview(candidate.id, { sourceVerified: event.currentTarget.checked })} />
                     Źródło i tożsamość są zweryfikowane
                   </label>
-                  <label class="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 px-3 py-2 text-xs text-zinc-300">
+                  <label class="flex min-h-11 items-center gap-3 rounded-xl border border-virya-edge px-3 py-2 text-xs text-virya-text">
                     <input type="checkbox" checked={review.consentConfirmed} onChange={event => patchReview(candidate.id, { consentConfirmed: event.currentTarget.checked })} />
                     Mam dowód zgody na marketing e-mail
                   </label>
@@ -358,43 +371,43 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
       <div class="mt-8">
         <div class="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p class="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">Zaproszenia</p>
-            <h3 class="mt-1 text-xl font-black text-white">Zatwierdzeni kandydaci</h3>
+            <p class={staffEyebrow}>Zaproszenia</p>
+            <h3 class={`mt-1 ${staffTitle}`}>Zatwierdzeni kandydaci</h3>
           </div>
-          <button type="button" disabled={disabled || busy || (data.approvedCandidates ?? []).length === 0} onClick={toggleAll} class="rounded-lg border border-white/15 px-3 py-2 text-[10px] font-black text-zinc-300 disabled:opacity-40">ZAZNACZ / WYCZYŚĆ</button>
+          <button type="button" disabled={disabled || busy || (data.approvedCandidates ?? []).length === 0} onClick={toggleAll} class={staffSecondaryButton}>ZAZNACZ / WYCZYŚĆ</button>
         </div>
-        <div class="mt-4 grid gap-3 rounded-lg border border-white/10 bg-black/25 p-4 sm:grid-cols-4 sm:items-end">
-          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">Ważność (dni)
+        <div class={`mt-4 grid gap-3 ${staffPanelInset} sm:grid-cols-4 sm:items-end`}>
+          <label class={`grid gap-1 ${staffEyebrow}`}>Ważność (dni)
             <input class="input" type="number" min="1" max="30" value={ttlDays} onInput={event => { setTtlDays(Number(event.currentTarget.value)); setPreview(null); setPreviewKey("") }} />
           </label>
-          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">Promień km
+          <label class={`grid gap-1 ${staffEyebrow}`}>Promień km
             <input class="input" type="number" min="10" max="500" value={radiusKm} onInput={event => { setRadiusKm(Number(event.currentTarget.value)); setPreview(null); setPreviewKey("") }} />
           </label>
-          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">Język
+          <label class={`grid gap-1 ${staffEyebrow}`}>Język
             <select class="input" value={locale} onChange={event => { setLocale(event.currentTarget.value === "en" ? "en" : "pl"); setPreview(null); setPreviewKey("") }}><option value="pl">PL</option><option value="en">EN</option></select>
           </label>
           <div class="flex flex-wrap gap-2">
-            <button type="button" disabled={disabled || busy || selectedApproved.length === 0} onClick={() => void previewInvites()} class="rounded-lg border border-cyan-300/40 px-4 py-2 text-[10px] font-black text-cyan-200 disabled:opacity-40">PODGLĄD ({selectedApproved.length})</button>
-            <button type="button" disabled={disabled || busy || selectedApproved.length === 0 || !preview} onClick={queueInvites} class="rounded-lg bg-cyan-300 px-4 py-2 text-[10px] font-black text-zinc-950 disabled:opacity-40">WYŚLIJ ZAPROSZENIA</button>
+            <button type="button" disabled={disabled || busy || selectedApproved.length === 0} onClick={() => void previewInvites()} class={staffSecondaryButton}>PODGLĄD ({selectedApproved.length})</button>
+            <button type="button" disabled={disabled || busy || selectedApproved.length === 0 || !preview} onClick={queueInvites} class={staffAccentButton}>WYŚLIJ ZAPROSZENIA</button>
           </div>
         </div>
-        {preview ? <div class="mt-3 rounded-lg border border-cyan-300/20 bg-cyan-300/[0.04] p-4 text-xs text-zinc-300">
-          <div class="flex flex-wrap justify-between gap-2"><strong class="text-cyan-100">PREVIEW · {preview.beaconCount} kontaktów · tokeny: 0</strong><span>TTL {preview.ttlDays} dni · {preview.radiusKm} km · {preview.locale.toUpperCase()}</span></div>
-          <p class="mt-2 text-zinc-500">{Object.entries(preview.byKind).map(([kind, count]) => `${kindLabel(kind)}: ${count}`).join(" · ")}</p>
-          <details class="mt-3"><summary class="cursor-pointer font-black text-zinc-300">Pokaż mail</summary><strong class="mt-3 block text-white">{preview.delivery.subject}</strong><pre class="mt-2 whitespace-pre-wrap font-sans leading-5 text-zinc-400">{preview.delivery.text}</pre></details>
+        {preview ? <div class="mt-3 rounded-lg border border-virya-signal/20 bg-virya-signal/[0.04] p-4 text-xs text-virya-text">
+          <div class="flex flex-wrap justify-between gap-2"><strong class="text-virya-hot">PREVIEW · {preview.beaconCount} kontaktów · tokeny: 0</strong><span>TTL {preview.ttlDays} dni · {preview.radiusKm} km · {preview.locale.toUpperCase()}</span></div>
+          <p class="mt-2 text-virya-muted">{Object.entries(preview.byKind).map(([kind, count]) => `${kindLabel(kind)}: ${count}`).join(" · ")}</p>
+          <details class="mt-3"><summary class="cursor-pointer font-black text-virya-text">Pokaż mail</summary><strong class="mt-3 block text-virya-text">{preview.delivery.subject}</strong><pre class="mt-2 whitespace-pre-wrap font-sans leading-5 text-virya-muted">{preview.delivery.text}</pre></details>
         </div> : null}
         <div class="mt-4 grid gap-2">
           {(data.approvedCandidates ?? []).length === 0 ? <Empty>Brak zatwierdzonych kandydatów bez aktywnego konta Latarnika.</Empty> : data.approvedCandidates.map(candidate => (
-            <article key={candidate.id} class="flex min-h-12 flex-wrap items-center gap-3 rounded-xl border border-emerald-400/15 bg-emerald-400/[0.04] px-4 py-3">
+            <article key={candidate.id} class="flex min-h-12 flex-wrap items-center gap-3 rounded-lg border border-virya-success/20 bg-virya-success/[0.04] px-4 py-3">
               <label class="flex min-w-0 flex-1 items-center gap-3">
                 <input type="checkbox" checked={selected.has(candidate.id)} onChange={() => { toggleSelected(candidate.id); setPreview(null); setPreviewKey("") }} />
                 <span class="min-w-0 flex-1">
-                  <strong class="block truncate text-sm text-zinc-100">{candidate.displayName}</strong>
-                  <span class="block truncate text-xs text-zinc-500">{candidate.contactEmail} · {kindLabel(candidate.beaconKind)}</span>
+                  <strong class="block truncate text-sm text-virya-text">{candidate.displayName}</strong>
+                  <span class="block truncate text-xs text-virya-muted">{candidate.contactEmail} · {kindLabel(candidate.beaconKind)}</span>
                 </span>
               </label>
-              <span class="text-[9px] font-black uppercase tracking-wider text-emerald-300">review OK</span>
-              <button type="button" disabled={disabled || busy} onClick={() => void showSingleQr(candidate)} class="rounded-lg border border-emerald-300/30 px-3 py-2 text-[9px] font-black text-emerald-200 disabled:opacity-40">POKAŻ QR</button>
+              <span class="text-[9px] font-black uppercase tracking-wider text-virya-success">review OK</span>
+              <button type="button" disabled={disabled || busy} onClick={() => void showSingleQr(candidate)} class="virya-button min-h-[44px] min-w-0 border border-virya-success/30 px-3 text-[10px] text-virya-success transition-colors hover:border-virya-success/50 disabled:opacity-40">POKAŻ QR</button>
             </article>
           ))}
         </div>
@@ -402,27 +415,27 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
 
       {(data.inviteJobs ?? []).length ? (
         <div class="mt-8">
-          <p class="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">Ostatnie invite joby</p>
+          <p class={staffEyebrow}>Ostatnie invite joby</p>
           <div class="mt-3 grid gap-2">
             {data.inviteJobs.slice(0, 8).map(job => (
-              <div key={job.id} class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-xs">
-                <span class="text-zinc-300"><strong>{job.beaconCount}</strong> kontaktów · aktywni {job.activeCount ?? 0} · web {job.webCount ?? 0} / Android {job.androidCount ?? 0} · push {job.pushEnabledCount ?? 0} · pomoc {job.helpingCount ?? 0} · coverage {job.coverageCount ?? 0}</span>
+              <div key={job.id} class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-virya-edge bg-virya-bg/60 px-4 py-3 text-xs">
+                <span class="text-virya-text"><strong>{job.beaconCount}</strong> kontaktów · aktywni {job.activeCount ?? 0} · web {job.webCount ?? 0} / Android {job.androidCount ?? 0} · push {job.pushEnabledCount ?? 0} · pomoc {job.helpingCount ?? 0} · coverage {job.coverageCount ?? 0}</span>
                 <span class={`rounded-full border px-3 py-1 text-[9px] font-black uppercase ${statusClass(job.status)}`}>{job.status}</span>
-                <span class="text-zinc-600">{displayDate(job.createdAt)}</span>
+                <span class="text-virya-muted">{displayDate(job.createdAt)}</span>
               </div>
             ))}
           </div>
         </div>
       ) : null}
-      {inviteQr ? <div class="fixed inset-0 z-[120] grid place-items-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label="Jednorazowe zaproszenie Latarnika">
-        <div class="w-full max-w-md rounded-xl border border-cyan-300/25 bg-zinc-950 p-6 shadow-2xl">
-          <p class="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Zaproszenie do Latarnika</p>
-          <h3 class="mt-2 text-xl font-black text-white">{inviteQr.displayName}</h3>
+      {inviteQr ? <div class="fixed inset-0 z-[120] grid place-items-center bg-virya-bg/85 p-4" role="dialog" aria-modal="true" aria-label="Jednorazowe zaproszenie Latarnika">
+        <div class="w-full max-w-md rounded-lg border border-virya-signal/25 bg-virya-bg p-6 shadow-2xl">
+          <p class={staffEyebrowAccent}>Zaproszenie do Latarnika</p>
+          <h3 class={`mt-2 ${staffTitle}`}>{inviteQr.displayName}</h3>
           <div class="mx-auto mt-5 max-w-[280px] rounded-lg bg-white p-4"><img src={inviteQr.qr} alt="Jednorazowy QR zaproszenia do Latarnika" class="h-auto w-full" /></div>
-          <p class="mt-4 text-center text-xs text-zinc-500">Ważne do {displayDate(inviteQr.expiresAt)}. QR i link nie są zapisywane przez panel.</p>
+          <p class="mt-4 text-center text-xs text-virya-muted">Ważne do {displayDate(inviteQr.expiresAt)}. QR i link nie są zapisywane przez panel.</p>
           <div class="mt-5 grid gap-2 sm:grid-cols-2">
-            <button type="button" onClick={() => void copyInviteLink()} class="min-h-11 rounded-xl border border-white/15 px-4 text-xs font-black text-zinc-200">{copied ? "SKOPIOWANO" : "KOPIUJ LINK"}</button>
-            <button type="button" onClick={closeInviteQr} class="min-h-11 rounded-xl bg-cyan-300 px-4 text-xs font-black text-zinc-950">ZAMKNIJ I WYCZYŚĆ</button>
+            <button type="button" onClick={() => void copyInviteLink()} class={staffSecondaryButton}>{copied ? "SKOPIOWANO" : "KOPIUJ LINK"}</button>
+            <button type="button" onClick={closeInviteQr} class={staffAccentButton}>ZAMKNIJ I WYCZYŚĆ</button>
           </div>
         </div>
       </div> : null}
@@ -431,12 +444,12 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
-  return <div class="rounded-xl border border-white/10 bg-white/[0.03] px-2 py-2">
-    <strong class="block text-lg text-white">{value}</strong>
-    <span class="text-[9px] font-black tracking-wider text-zinc-500">{label}</span>
+  return <div class="rounded-lg border border-virya-edge bg-virya-surface/80 px-2 py-2">
+    <strong class="block text-lg text-virya-text">{value}</strong>
+    <span class="text-[9px] font-black tracking-wider text-virya-muted">{label}</span>
   </div>
 }
 
 function Empty({ children }: { children: ComponentChildren }) {
-  return <p class="rounded-xl border border-dashed border-white/10 px-4 py-5 text-sm text-zinc-500">{children}</p>
+  return <p class={staffEmpty}>{children}</p>
 }

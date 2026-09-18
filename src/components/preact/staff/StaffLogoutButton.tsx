@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks"
 import { staffApi } from "./staffApi"
-import { staffLogoutButton } from "./staffButtons"
+import { staffLogoutButton } from "./staffUi"
 
 // Every staff surface shares one session cookie, so every staff surface needs
 // the same way out of it. One button instead of a per-panel copy.

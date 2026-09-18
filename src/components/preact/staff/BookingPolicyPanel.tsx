@@ -1,6 +1,14 @@
 import { useEffect, useState } from "preact/hooks"
 import { staffApi, type StaffApiError } from "./staffApi"
-import { staffAccentButton } from "./staffButtons"
+import {
+  staffAccentButton,
+  staffBadge,
+  staffEmpty,
+  staffEyebrowAccent,
+  staffMetricLabel,
+  staffNoticeBase,
+  staffNoticeTones,
+} from "./staffUi"
 
 const REQUEST_TIMEOUT_MS = 10_000
 
@@ -105,15 +113,15 @@ export default function BookingPolicyPanel({ summary, onSaved }: Props) {
     <div>
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Booking manager · guardrails</p>
-          <h3 class="mt-1 text-lg font-black text-white">Ile gramy i gdzie autopilot ma cisnąć</h3>
-          <p class="mt-1 max-w-3xl text-sm text-zinc-400">To trwała polityka w CrowdRelay, nie lokalne ustawienie panelu. Konflikt wersji blokuje nadpisanie nowszych decyzji.</p>
+          <p class={staffEyebrowAccent}>Booking manager · guardrails</p>
+          <h3 class="mt-1 text-lg font-black text-virya-text">Ile gramy i gdzie autopilot ma cisnąć</h3>
+          <p class="mt-1 max-w-3xl text-sm text-virya-muted">To trwała polityka w CrowdRelay, nie lokalne ustawienie panelu. Konflikt wersji blokuje nadpisanie nowszych decyzji.</p>
         </div>
-        {summary && <span class="rounded-full border border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">v{summary.version} · {summary.source}</span>}
+        {summary && <span class={staffBadge}>v{summary.version} · {summary.source}</span>}
       </div>
 
       {!summary ? (
-        <p class="mt-4 rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Polityka bookingowa jest chwilowo niedostępna.</p>
+        <p class={`mt-4 ${staffEmpty}`}>Polityka bookingowa jest chwilowo niedostępna.</p>
       ) : (
         <div class="mt-4 grid gap-4">
           <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -122,22 +130,22 @@ export default function BookingPolicyPanel({ summary, onSaved }: Props) {
             <PolicyNumber label="Próg stretch %" value={stretchScore} min={0} max={100} onInput={setStretchScore} />
             <PolicyNumber label="Próg far-shot %" value={farShotScore} min={0} max={100} onInput={setFarShotScore} />
           </div>
-          <label class="grid gap-2 text-xs font-bold uppercase tracking-[0.12em] text-zinc-400">
+          <label class={`grid gap-2 ${staffMetricLabel}`}>
             Rynki priorytetowe
             <input
               value={markets}
               onInput={event => setMarkets(event.currentTarget.value)}
               spellcheck={false}
-              class="min-h-11 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm font-semibold normal-case tracking-normal text-zinc-100 outline-none focus:border-amber-300/60"
+              class="input min-h-11 text-sm font-semibold normal-case tracking-normal"
               placeholder="PL, DE-EAST, CZ, SK"
             />
           </label>
-          <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-zinc-200">
-            <input type="checkbox" checked={weekend} onChange={event => setWeekend(event.currentTarget.checked)} class="h-5 w-5 accent-amber-300" />
+          <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-virya-edge bg-virya-bg/40 px-3 py-2 text-sm text-virya-text">
+            <input type="checkbox" checked={weekend} onChange={event => setWeekend(event.currentTarget.checked)} class="h-5 w-5 accent-virya-signal" />
             Preferuj sensowne weekendowe one-shoty poza trasą
           </label>
-          {error && <p role="alert" class="rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{error}</p>}
-          {saved && <p role="status" class="rounded-xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-sm text-emerald-100">{saved}</p>}
+          {error && <p role="alert" class={`${staffNoticeBase} ${staffNoticeTones.error}`}>{error}</p>}
+          {saved && <p role="status" class={`${staffNoticeBase} ${staffNoticeTones.success}`}>{saved}</p>}
           <div>
             <button type="button" disabled={busy} onClick={() => void save()} class={staffAccentButton}>
               {busy ? "ZAPISUJĘ…" : "ZAPISZ POLITYKĘ BOOKINGOWĄ"}
@@ -151,7 +159,7 @@ export default function BookingPolicyPanel({ summary, onSaved }: Props) {
 
 function PolicyNumber({ label, value, min, max, onInput }: { label: string; value: string; min: number; max: number; onInput: (value: string) => void }) {
   return (
-    <label class="grid gap-2 text-xs font-bold uppercase tracking-[0.12em] text-zinc-400">
+    <label class={`grid gap-2 ${staffMetricLabel}`}>
       {label}
       <input
         type="number"
@@ -160,7 +168,7 @@ function PolicyNumber({ label, value, min, max, onInput }: { label: string; valu
         max={max}
         value={value}
         onInput={event => onInput(event.currentTarget.value)}
-        class="min-h-11 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm font-semibold normal-case tracking-normal text-zinc-100 outline-none focus:border-amber-300/60"
+        class="input min-h-11 text-sm font-semibold normal-case tracking-normal"
       />
     </label>
   )

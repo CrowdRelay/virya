@@ -1,6 +1,22 @@
 import { useEffect, useState } from "preact/hooks"
 import { staffApi } from "./staffApi"
 import { date } from "./AutopilotHandoffs"
+import {
+  staffAccentButton,
+  staffBadge,
+  staffBadgeSignal,
+  staffBadgeSuccess,
+  staffConfirmButton,
+  staffEmpty,
+  staffEyebrow,
+  staffEyebrowAccent,
+  staffField,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanelInset,
+  staffSecondaryButton,
+  staffTitle,
+} from "./staffUi"
 
 const REQUEST_TIMEOUT_MS = 10_000
 
@@ -121,13 +137,13 @@ const STEP_STATE_LABELS: Record<StepState, string> = {
 }
 
 const STEP_TONES: Record<StepState, string> = {
-  done: "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
-  parked: "border-amber-300/30 bg-amber-300/10 text-amber-200",
-  due: "border-amber-300/40 bg-amber-300/15 text-amber-100",
-  upcoming: "border-white/10 bg-white/5 text-zinc-400",
-  held: "border-sky-300/30 bg-sky-300/10 text-sky-200",
-  disabled: "border-white/10 bg-white/5 text-zinc-500",
-  blocked: "border-rose-400/25 bg-rose-400/10 text-rose-200",
+  done: "border-virya-success/30 bg-virya-success/10 text-virya-success",
+  parked: "border-virya-warning/30 bg-virya-warning/10 text-yellow-100",
+  due: "border-virya-warning/40 bg-virya-warning/15 text-yellow-100",
+  upcoming: "border-virya-edge bg-white/5 text-virya-muted",
+  held: "border-virya-signal/30 bg-virya-signal/10 text-virya-hot",
+  disabled: "border-virya-edge bg-white/5 text-virya-muted",
+  blocked: "border-virya-danger/30 bg-virya-danger/10 text-rose-200",
 }
 
 const offsetLabel = (offset: number) => `R${offset > 0 ? "+" : ""}${offset}`
@@ -242,12 +258,12 @@ export default function StaffReleasePlansPanel() {
   }
 
   return (
-    <section class="rounded-xl border border-amber-300/20 bg-zinc-900/70 p-5">
+    <section class="rounded-lg border border-virya-signal/20 bg-virya-surface/80 p-5">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p class="text-xs font-black uppercase tracking-[0.2em] text-amber-300">Wydania · planowanie</p>
-          <h2 class="mt-2 text-xl font-black text-white">Plany wydawnicze i fale kontaktu</h2>
-          <p class="mt-1 max-w-3xl text-sm text-zinc-400">
+          <p class={staffEyebrowAccent}>Wydania · planowanie</p>
+          <h2 class={`mt-2 ${staffTitle}`}>Plany wydawnicze i fale kontaktu</h2>
+          <p class="mt-1 max-w-3xl text-sm text-virya-muted">
             Plan premiery kotwiczy automat: pitch do kuratorów playlist i mediów wychodzi falą przed datą.
             Fale składają się same — Ty tylko zatwierdzasz gotową paczkę.
           </p>
@@ -256,44 +272,44 @@ export default function StaffReleasePlansPanel() {
           type="button"
           disabled={loading}
           onClick={() => void load()}
-          class="min-h-[44px] rounded-xl border border-white/10 px-3 py-2 text-xs font-black text-zinc-200 disabled:opacity-50"
+          class={staffSecondaryButton}
         >
           {loading ? "ODŚWIEŻAM…" : "ODŚWIEŻ"}
         </button>
       </div>
-      {error && <p role="alert" class="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{error}</p>}
-      {message && <p role="status" class="mt-4 rounded-xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-sm text-emerald-100">{message}</p>}
+      {error && <p role="alert" class={`mt-4 ${staffNoticeBase} ${staffNoticeTones.error}`}>{error}</p>}
+      {message && <p role="status" class={`mt-4 ${staffNoticeBase} ${staffNoticeTones.success}`}>{message}</p>}
 
       <form
-        class="mt-5 grid gap-3 rounded-lg border border-white/10 bg-black/30 p-4 sm:grid-cols-2"
+        class={`mt-5 grid gap-3 ${staffPanelInset} sm:grid-cols-2`}
         onSubmit={event => {
           event.preventDefault()
           void submitPlan(event.currentTarget)
         }}
       >
-        <label class="grid gap-1 text-sm font-semibold text-zinc-200">
+        <label class={`grid gap-1 ${staffField}`}>
           Tytuł wydania
-          <input name="title" required maxLength={240} class="min-h-11 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-zinc-100" placeholder="Virya — nowy singiel" />
+          <input name="title" required maxLength={240} class="input min-h-11" placeholder="Virya — nowy singiel" />
         </label>
-        <label class="grid gap-1 text-sm font-semibold text-zinc-200">
+        <label class={`grid gap-1 ${staffField}`}>
           Data premiery
-          <input name="release_at" type="datetime-local" required class="min-h-11 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-zinc-100" />
+          <input name="release_at" type="datetime-local" required class="input min-h-11" />
         </label>
-        <label class="grid gap-1 text-sm font-semibold text-zinc-200 sm:col-span-2">
+        <label class={`grid gap-1 ${staffField} sm:col-span-2`}>
           Link do odsłuchu (opcjonalnie)
-          <input name="listen_url" type="url" class="min-h-11 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-zinc-100" placeholder="https://open.spotify.com/…" />
+          <input name="listen_url" type="url" class="input min-h-11" placeholder="https://open.spotify.com/…" />
         </label>
-        <label class="grid gap-1 text-sm font-semibold text-zinc-200 sm:col-span-2">
+        <label class={`grid gap-1 ${staffField} sm:col-span-2`}>
           Rodzaj wydania
-          <select name="tier" class="min-h-11 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-zinc-100" defaultValue="track">
+          <select name="tier" class="input min-h-11" defaultValue="track">
             <option value="single">Singiel — pełna oś: pitch, odliczanie, pre-save, fale</option>
             <option value="track">Utwór — zapowiedź, katalog, jedna fala, bez wydatków</option>
             <option value="filler">Wypełniacz — publikacja w cichy tydzień, bez osi, bez wydatków</option>
           </select>
         </label>
         {outcomes.length > 0 && (
-          <div class="rounded-lg border border-white/10 bg-black/20 p-3 sm:col-span-2">
-            <p class="text-xs font-black uppercase tracking-[0.16em] text-zinc-500">
+          <div class="rounded-lg border border-virya-edge bg-virya-bg/40 p-3 sm:col-span-2">
+            <p class={staffEyebrow}>
               Wyniki poprzednich wydań — rekord, nie statystyka
             </p>
             <ul class="mt-2 grid gap-1.5">
@@ -307,11 +323,11 @@ export default function StaffReleasePlansPanel() {
                   new Map(),
                 ),
               ).map(([releaseId, entry]) => (
-                <li key={releaseId} class="flex flex-wrap items-baseline gap-x-2 text-sm text-zinc-300">
-                  <span class="font-semibold text-zinc-100">{entry.title}</span>
-                  <span class="text-xs uppercase tracking-wide text-zinc-500">{TIER_LABELS[entry.tier] ?? entry.tier}</span>
+                <li key={releaseId} class="flex flex-wrap items-baseline gap-x-2 text-sm text-virya-text">
+                  <span class="font-semibold text-virya-text">{entry.title}</span>
+                  <span class="text-xs uppercase tracking-wide text-virya-muted">{TIER_LABELS[entry.tier] ?? entry.tier}</span>
                   {entry.reports.map(report => (
-                    <span key={report.report_kind} class="text-xs text-zinc-400">
+                    <span key={report.report_kind} class="text-xs text-virya-muted">
                       {REPORT_KIND_LABELS[report.report_kind] ?? report.report_kind}: {VERDICT_LABELS[report.verdict] ?? report.verdict}
                       {typeof report.payload?.observed?.fans_acquired_via_release_campaign === "number" &&
                         ` · ${report.payload.observed.fans_acquired_via_release_campaign} nowych przez link`}
@@ -320,59 +336,59 @@ export default function StaffReleasePlansPanel() {
                 </li>
               ))}
             </ul>
-            <p class="mt-2 text-xs text-zinc-500">
+            <p class="mt-2 text-xs text-virya-muted">
               Próbka jest za mała, by porównywać rodzaje — to zapis wyników, nie rekomendacja.
             </p>
           </div>
         )}
         <fieldset class="flex flex-wrap items-center gap-4 sm:col-span-2">
-          <legend class="text-sm font-semibold text-zinc-200">Przełączniki</legend>
-          <label class="flex min-h-11 items-center gap-2 text-sm text-zinc-300"><input type="checkbox" name="communication_enabled" checked /> komunikacja do fanów</label>
-          <label class="flex min-h-11 items-center gap-2 text-sm text-zinc-300"><input type="checkbox" name="press_enabled" /> press kit</label>
-          <label class="flex min-h-11 items-center gap-2 text-sm text-zinc-300"><input type="checkbox" name="assets_ready" /> materiały gotowe</label>
+          <legend class={staffField}>Przełączniki</legend>
+          <label class="flex min-h-11 items-center gap-2 text-sm text-virya-text"><input type="checkbox" name="communication_enabled" checked /> komunikacja do fanów</label>
+          <label class="flex min-h-11 items-center gap-2 text-sm text-virya-text"><input type="checkbox" name="press_enabled" /> press kit</label>
+          <label class="flex min-h-11 items-center gap-2 text-sm text-virya-text"><input type="checkbox" name="assets_ready" /> materiały gotowe</label>
         </fieldset>
         <button
           type="submit"
           disabled={busy !== null}
-          class="min-h-[44px] justify-self-start rounded-xl bg-emerald-300 px-4 py-2 text-xs font-black text-zinc-950 disabled:opacity-50 sm:col-span-2"
+          class={`justify-self-start ${staffAccentButton} sm:col-span-2`}
         >
           {busy === "plan" ? "ZAPISUJĘ…" : "ZAPISZ PLAN"}
         </button>
       </form>
 
       <div class="mt-6 grid gap-3">
-        <h3 class="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">Plany ({plans.length})</h3>
+        <h3 class={staffEyebrow}>Plany ({plans.length})</h3>
         {plans.map(plan => (
-          <article key={plan.release_id} class="rounded-lg border border-white/10 bg-black/30 p-4">
-            <strong class="block text-white">{plan.title}</strong>
-            <p class="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">premiera: {date(plan.release_at)}</p>
+          <article key={plan.release_id} class={staffPanelInset}>
+            <strong class="block text-virya-text">{plan.title}</strong>
+            <p class="mt-1 text-xs uppercase tracking-[0.14em] text-virya-muted">premiera: {date(plan.release_at)}</p>
             <div class="mt-2 flex flex-wrap gap-2">
-              <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${plan.active ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200" : "border-white/10 bg-white/5 text-zinc-500"}`}>
+              <span class={plan.active ? staffBadgeSuccess : staffBadge}>
                 {plan.active ? "AKTYWNY" : "WYŁĄCZONY"}
               </span>
-              <span class="rounded-full border border-violet-300/20 bg-violet-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-violet-200">
+              <span class={staffBadge}>
                 {TIER_LABELS[plan.tier] ?? plan.tier}
               </span>
-              <span class="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-amber-200">
+              <span class={staffBadgeSignal}>
                 {LIFECYCLE_LABELS[plan.lifecycle] ?? plan.lifecycle}
               </span>
               {FLAG_LABELS.map(([flag, label]) => (
-                <span key={flag} class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${plan[flag] ? "border-sky-300/20 bg-sky-300/10 text-sky-200" : "border-white/10 bg-white/5 text-zinc-500"}`}>
+                <span key={flag} class={plan[flag] ? staffBadgeSuccess : staffBadge}>
                   {label}
                 </span>
               ))}
             </div>
             {Array.isArray(plan.timeline) && plan.timeline.length > 0 && (
-              <details class="mt-3 rounded-lg border border-white/5 bg-black/20">
-                <summary class="cursor-pointer select-none px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-zinc-400">
+              <details class="mt-3 rounded-lg border border-virya-edge/60 bg-virya-bg/40">
+                <summary class="cursor-pointer select-none px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-virya-muted">
                   Oś czasu premiery — {plan.timeline.filter(step => step.state === "done").length}/{plan.timeline.length} gotowe
                 </summary>
                 <ol class="grid gap-1 px-3 pb-3">
                   {plan.timeline.map(step => (
                     <li key={step.milestone} class="flex flex-wrap items-center gap-2 rounded-md px-2 py-1.5">
-                      <span class="w-14 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-500">{offsetLabel(step.offset_days)}</span>
-                      <span class="min-w-32 flex-1 text-sm text-zinc-200">{MILESTONE_LABELS[step.milestone] ?? step.milestone}</span>
-                      <span class="text-[10px] uppercase tracking-[0.12em] text-zinc-500">
+                      <span class="w-14 text-[10px] font-black uppercase tracking-[0.12em] text-virya-muted">{offsetLabel(step.offset_days)}</span>
+                      <span class="min-w-32 flex-1 text-sm text-virya-text">{MILESTONE_LABELS[step.milestone] ?? step.milestone}</span>
+                      <span class="text-[10px] uppercase tracking-[0.12em] text-virya-muted">
                         {step.state === "done" && step.completed_at ? `gotowe ${date(step.completed_at)}` : `termin ${date(step.due_at)}`}
                       </span>
                       <span class={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] ${STEP_TONES[step.state]}`}>
@@ -386,21 +402,21 @@ export default function StaffReleasePlansPanel() {
           </article>
         ))}
         {!loading && plans.length === 0 && !error && (
-          <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">Brak planów — dodaj pierwszy powyżej.</p>
+          <p class={staffEmpty}>Brak planów — dodaj pierwszy powyżej.</p>
         )}
       </div>
 
       <div class="mt-6 grid gap-3">
-        <h3 class="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">Fale ({waves.length})</h3>
+        <h3 class={staffEyebrow}>Fale ({waves.length})</h3>
         {waves.map(wave => (
-          <article key={wave.wave_id} class="rounded-lg border border-white/10 bg-black/30 p-4">
+          <article key={wave.wave_id} class={staffPanelInset}>
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
-                <strong class="block text-white">{STATE_LABELS[wave.state]} · {wave.target_kind}</strong>
-                <p class="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">
+                <strong class="block text-virya-text">{STATE_LABELS[wave.state]} · {wave.target_kind}</strong>
+                <p class="mt-1 text-xs uppercase tracking-[0.14em] text-virya-muted">
                   otwarta {date(wave.opened_at)} · kotwica {date(wave.anchor_at)}
                 </p>
-                <p class="mt-2 text-sm text-zinc-300">{wave.pitches} pitchy gotowe · {wave.eligible_targets} celów kwalifikuje się</p>
+                <p class="mt-2 text-sm text-virya-text">{wave.pitches} pitchy gotowe · {wave.eligible_targets} celów kwalifikuje się</p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
                 {wave.state === "sealed" ? (
@@ -409,12 +425,12 @@ export default function StaffReleasePlansPanel() {
                     disabled={busy !== null}
                     onClick={() => void approveWave(wave)}
                     title={confirming === `wave:${wave.wave_id}` ? "Kliknij ponownie, aby wypuścić całą falę" : undefined}
-                    class={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-black disabled:opacity-50 ${confirming === `wave:${wave.wave_id}` ? "border border-amber-300/40 bg-amber-300/20 text-amber-100" : "bg-emerald-300 text-zinc-950"}`}
+                    class={confirming === `wave:${wave.wave_id}` ? staffConfirmButton : staffAccentButton}
                   >
                     {busy === `wave:${wave.wave_id}` ? "WYPUSZCZAM…" : confirming === `wave:${wave.wave_id}` ? "POTWIERDŹ" : "ZATWIERDŹ FALĘ"}
                   </button>
                 ) : (
-                  <span class="max-w-[200px] text-right text-xs leading-snug text-zinc-500">
+                  <span class="max-w-[200px] text-right text-xs leading-snug text-virya-muted">
                     {wave.state === "drafting" ? "automat jeszcze składa falę" : "decyzja już zapadła"}
                   </span>
                 )}
@@ -423,7 +439,7 @@ export default function StaffReleasePlansPanel() {
           </article>
         ))}
         {!loading && waves.length === 0 && !error && (
-          <p class="rounded-lg bg-black/20 p-4 text-sm text-zinc-500">
+          <p class={staffEmpty}>
             Brak fal. Automat otworzy falę, gdy będą cele danego rodzaju (radio / press / creator / patron) wokół premiery lub koncertu.
           </p>
         )}

@@ -5,7 +5,16 @@ import StaffLatarnikNetworkManager, { type BeaconNetworkOverview } from "./Staff
 import StaffLatarnikReleaseManager, { type BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
 import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { StaffLoginCard, StaffStatusCard } from "./AdminConsoleUi"
-import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
+import {
+  staffAccentButton,
+  staffEyebrow,
+  staffEyebrowAccent,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffSecondaryButton,
+  staffSubtitle,
+  staffTitle,
+} from "./staffUi"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 
@@ -242,14 +251,14 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
     <div class="relative grid gap-6">
       {loading && <BackendLoader overlay label="Pobieram sieć Latarników…" />}
 
-      <section class="border-b border-zinc-800 pb-6">
+      <section class="border-b border-virya-edge pb-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">CrowdRelay / latarnicy</p>
+            <p class={staffEyebrowAccent}>CrowdRelay / latarnicy</p>
             {embedded
-              ? <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">Sieć Latarników</h2>
-              : <h1 class="mt-2 text-3xl font-black text-white sm:text-4xl">Sieć Latarników</h1>}
-            <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+              ? <h2 class="mt-2 text-2xl font-black text-virya-text sm:text-3xl">Sieć Latarników</h2>
+              : <h1 class="mt-2 text-3xl font-black text-virya-text sm:text-4xl">Sieć Latarników</h1>}
+            <p class={`mt-3 max-w-2xl ${staffSubtitle}`}>
               Promotorzy, kluby, media i partnerzy sceny. Każdy widzi popyt w swoim
               mieście i materiały prasowe pod ręką.
             </p>
@@ -262,39 +271,39 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
         {message ? <Message>{message}</Message> : null}
       </section>
 
-      <section class="rounded-xl border border-white/10 bg-black/25 p-6 sm:p-8">
-        <p class="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">Test</p>
-        <h2 class="mt-1 text-xl font-black text-white">Dodaj Latarnika ręcznie</h2>
-        <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+      <section class="rounded-lg border border-virya-edge bg-virya-bg/50 p-6 sm:p-8">
+        <p class={staffEyebrow}>Test</p>
+        <h2 class={`mt-1 ${staffTitle}`}>Dodaj Latarnika ręcznie</h2>
+        <p class={`mt-3 max-w-2xl ${staffSubtitle}`}>
           Pomija research i review, więc używaj tego wyłącznie dla nas — do
           sprawdzenia, jak sieć wygląda z drugiej strony. Dla obcych kontaktów
           bramka zgody obowiązuje bez wyjątku.
         </p>
         <form onSubmit={mintTestBeacon} class="mt-5 grid gap-3 sm:grid-cols-2 sm:items-end">
-          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+          <label class={`grid gap-1 ${staffEyebrow}`}>
             Nazwa
             <input value={testName} onInput={event => setTestName(event.currentTarget.value)}
               placeholder="Wojtek — test"
-              class="min-h-11 rounded-xl border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-amber-300" />
+              class="input min-h-11 text-sm" />
           </label>
-          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+          <label class={`grid gap-1 ${staffEyebrow}`}>
             E-mail
             <input type="email" value={testEmail} onInput={event => setTestEmail(event.currentTarget.value)}
               placeholder="ty@example.com"
-              class="min-h-11 rounded-xl border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-amber-300" />
+              class="input min-h-11 text-sm" />
           </label>
-          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+          <label class={`grid gap-1 ${staffEyebrow}`}>
             Rodzaj
             <select value={testKind} onChange={event => setTestKind(event.currentTarget.value)}
-              class="min-h-11 rounded-xl border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-amber-300">
+              class="input min-h-11 text-sm">
               {KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </label>
-          <label class="grid gap-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+          <label class={`grid gap-1 ${staffEyebrow}`}>
             Miasto
             <select value={testCity} onChange={event => setTestCity(event.currentTarget.value)}
               disabled={cities.length === 0}
-              class="min-h-11 rounded-xl border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-amber-300 disabled:opacity-50">
+              class="input min-h-11 text-sm disabled:opacity-50">
               <option value="">{cities.length === 0 ? "Lista miast niedostępna" : "Bez miasta (radar nie działa)"}</option>
               {cities.map(city => <option key={city.slug} value={city.slug}>{city.name}</option>)}
             </select>
@@ -305,14 +314,14 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
           </button>
         </form>
         {inviteUrl ? (
-          <div class="mt-4 rounded-xl border border-emerald-400/25 bg-emerald-400/[0.05] p-4">
-            <p class="text-[10px] font-black uppercase tracking-wider text-emerald-300">Link zaproszenia</p>
+          <div class="mt-4 rounded-lg border border-virya-success/25 bg-virya-success/[0.05] p-4">
+            <p class="text-[10px] font-black uppercase tracking-wider text-virya-success">Link zaproszenia</p>
             <p class="mt-2 break-all font-mono text-xs text-emerald-100">{inviteUrl}</p>
             <div class="mt-3 flex flex-wrap gap-2">
-              <a href={inviteUrl} class="rounded-lg bg-emerald-300 px-4 py-2 text-[10px] font-black text-zinc-950">OTWÓRZ</a>
+              <a href={inviteUrl} class={staffAccentButton}>OTWÓRZ</a>
               <button type="button" onClick={() => {
                 void navigator.clipboard.writeText(inviteUrl).then(() => setCopied(true))
-              }} class="rounded-lg border border-emerald-300/30 px-4 py-2 text-[10px] font-black text-emerald-200">
+              }} class="virya-button min-h-[44px] min-w-0 border border-virya-success/30 px-4 text-xs text-virya-success transition-colors hover:border-virya-success/50">
                 {copied ? "SKOPIOWANE" : "KOPIUJ"}
               </button>
             </div>
@@ -341,5 +350,5 @@ export default function StaffBeaconsManager({ embedded = false }: { embedded?: b
 }
 
 function Message({ children }: { children: ComponentChildren }) {
-  return <p class="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100" role="status">{children}</p>
+  return <p class={`mt-4 ${staffNoticeBase} ${staffNoticeTones.warn}`} role="status">{children}</p>
 }

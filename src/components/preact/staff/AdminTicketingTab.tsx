@@ -15,7 +15,25 @@ import {
   formatDate,
   money,
 } from "./adminConsoleShared"
-import { staffAccentButton, staffSecondaryButton } from "./staffButtons"
+import {
+  staffAccentButton,
+  staffBadge,
+  staffBadgeDanger,
+  staffBadgeSuccess,
+  staffBadgeWarn,
+  staffEyebrowAccent,
+  staffField,
+  staffMetricLabel,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanel,
+  staffPanelInset,
+  staffSecondaryButton,
+  staffSubtitle,
+  staffTableHead,
+  staffTableRow,
+  staffTitle,
+} from "./staffUi"
 
 function validateTicketForm(form: TicketForm): string | null {
   const currency = form.currency.trim().toUpperCase()
@@ -210,13 +228,13 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
   return (
     <section class="relative grid gap-5" aria-busy={loading}>
       {loading && <BackendLoader overlay label="Pobieram sprzedaż…" />}
-      <div class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+      <div class={`${staffPanel} sm:p-6`}>
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 class="text-xl font-black text-white">
+            <h2 class={staffTitle}>
               Sprzedaż biletów per koncert
             </h2>
-            <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400 text-pretty">
+            <p class={`mt-2 max-w-3xl text-pretty ${staffSubtitle}`}>
               Ustaw okno sprzedaży, VAT, limit zamówienia, całkowitą pulę oraz
               typy i ceny biletów. Opłacenie następuje w Stripe, a system
               rozdziela sprzedaż od aktywnych rezerwacji.
@@ -233,13 +251,13 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
             </button>
           )}
         </div>
-        <label class="mt-5 block text-sm font-semibold text-zinc-200">
+        <label class={`mt-5 block ${staffField}`}>
           Koncert
           <select
             value={eventSlug}
             disabled={loading || busy}
             onChange={event => void load(event.currentTarget.value)}
-            class="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white"
+            class="input mt-2 min-h-12"
           >
             <option value="">Wybierz wydarzenie</option>
             {events.map(event => (
@@ -255,15 +273,15 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
         <form onSubmit={save} class="grid gap-5">
           {overview && <TicketingInventorySummary overview={overview} />}
 
-          <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+          <section class={`${staffPanel} sm:p-6`}>
             <div class="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h3 class="text-lg font-black text-white">
+                <h3 class="text-lg font-black text-virya-text">
                   Ustawienia sprzedaży
                 </h3>
-                <p class="mt-1 text-sm text-zinc-500">{selectedEvent?.title}</p>
+                <p class="mt-1 text-sm text-virya-muted">{selectedEvent?.title}</p>
               </div>
-              <label class="flex min-h-12 items-center gap-3 rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white">
+              <label class="flex min-h-12 items-center gap-3 rounded-xl border border-virya-edge px-4 py-3 text-sm font-bold text-virya-text">
                 <input
                   type="checkbox"
                   checked={form.active}
@@ -331,11 +349,11 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
             </div>
           </section>
 
-          <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+          <section class={`${staffPanel} sm:p-6`}>
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 class="text-lg font-black text-white">Typy biletów</h3>
-                <p class="mt-1 text-sm text-zinc-500">
+                <h3 class="text-lg font-black text-virya-text">Typy biletów</h3>
+                <p class="mt-1 text-sm text-virya-muted">
                   Cena brutto. Pula typu nie może przekraczać puli wydarzenia.
                 </p>
               </div>
@@ -357,7 +375,7 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
                     ],
                   }))
                 }
-                class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10"
+                class={staffSecondaryButton}
               >
                 Dodaj typ
               </button>
@@ -367,7 +385,7 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
               {form.ticketTypes.map((type, index) => (
                 <article
                   key={index}
-                  class="grid gap-4 rounded-lg border border-white/5 bg-black/30 p-4 xl:grid-cols-[1fr_1.2fr_.7fr_.6fr_auto]"
+                  class={`grid gap-4 ${staffPanelInset} xl:grid-cols-[1fr_1.2fr_.7fr_.6fr_auto]`}
                 >
                   <Field
                     label="Slug"
@@ -401,7 +419,7 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
                     required={false}
                   />
                   <div class="flex flex-wrap items-end gap-2">
-                    <label class="flex h-[46px] items-center gap-2 rounded-xl border border-white/10 px-3 text-xs font-bold text-white">
+                    <label class="flex h-[46px] items-center gap-2 rounded-xl border border-virya-edge px-3 text-xs font-bold text-virya-text">
                       <input
                         type="checkbox"
                         checked={type.active}
@@ -424,12 +442,12 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
                           ),
                         }))
                       }
-                      class="h-[46px] rounded-xl border border-rose-400/30 px-3 text-sm font-bold text-rose-200 disabled:opacity-30"
+                      class="virya-button h-[46px] min-w-0 border border-virya-danger/30 px-3 text-xs text-rose-200 transition-colors hover:border-virya-danger/50 disabled:opacity-30"
                     >
                       Usuń
                     </button>
                   </div>
-                  <label class="grid gap-2 text-sm font-semibold text-zinc-200 xl:col-span-5">
+                  <label class={`grid gap-2 ${staffField} xl:col-span-5`}>
                     Opis
                     <textarea
                       value={type.description}
@@ -440,7 +458,7 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
                           description: event.currentTarget.value,
                         })
                       }
-                      class="min-h-24 w-full resize-y rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm leading-6 text-white outline-none focus:border-amber-300"
+                      class="input min-h-24 resize-y text-sm leading-6"
                     />
                   </label>
                 </article>
@@ -456,7 +474,7 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
             {message && (
               <p
                 role="status"
-                class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
+                class={`mt-4 ${staffNoticeBase} ${staffNoticeTones.warn}`}
               >
                 {message}
               </p>
@@ -478,13 +496,13 @@ function TicketingInventorySummary({
   overview: TicketingOverview
 }) {
   return (
-    <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+    <section class={`${staffPanel} sm:p-6`}>
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.7fr)] lg:items-end">
         <div>
-          <p class="text-xs font-bold uppercase tracking-[.2em] text-amber-300">
+          <p class={staffEyebrowAccent}>
             Stan puli
           </p>
-          <p class="mt-2 text-sm leading-6 text-zinc-400">
+          <p class={`mt-2 ${staffSubtitle}`}>
             Rezerwacje i checkouty blokują miejsca tylko do czasu opłacenia lub
             wygaśnięcia. Nie są liczone jako sprzedaż.
           </p>
@@ -559,29 +577,22 @@ const orderStatus = (status: string): { label: string; tone: OrderTone } => {
 export function OrderStatusBadge({ status }: { status: string }) {
   const display = orderStatus(status)
   const tones: Record<OrderTone, string> = {
-    amber: "border-amber-300/30 bg-amber-300/10 text-amber-100",
-    emerald: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100",
-    sky: "border-sky-300/30 bg-sky-300/10 text-sky-100",
-    rose: "border-rose-300/30 bg-rose-300/10 text-rose-100",
-    zinc: "border-white/10 bg-white/5 text-zinc-300",
+    amber: staffBadgeWarn,
+    emerald: staffBadgeSuccess,
+    sky: staffBadge,
+    rose: staffBadgeDanger,
+    zinc: staffBadge,
   }
-  const tone = tones[display.tone]
 
-  return (
-    <span
-      class={`inline-flex min-h-7 items-center rounded-full border px-2.5 py-1 text-xs font-black uppercase tracking-wider ${tone}`}
-    >
-      {display.label}
-    </span>
-  )
+  return <span class={tones[display.tone]}>{display.label}</span>
 }
 
 function RecentOrders({ orders }: { orders: RecentOrder[] }) {
   return (
-    <section class="overflow-hidden rounded-xl border border-white/10 bg-zinc-900/70">
-      <div class="border-b border-white/10 p-5 sm:p-6">
-        <h3 class="text-lg font-black text-white">Ostatnie zamówienia</h3>
-        <p class="mt-1 text-sm text-zinc-500">
+    <section class={`overflow-hidden ${staffPanel} p-0`}>
+      <div class="border-b border-virya-edge p-5 sm:p-6">
+        <h3 class="text-lg font-black text-virya-text">Ostatnie zamówienia</h3>
+        <p class="mt-1 text-sm text-virya-muted">
           Checkout w toku jest rezerwacją, nie zakończoną sprzedażą.
         </p>
       </div>
@@ -590,24 +601,24 @@ function RecentOrders({ orders }: { orders: RecentOrder[] }) {
         {orders.map(order => (
           <article
             key={order.order_id}
-            class="rounded-lg border border-white/5 bg-black/25 p-4"
+            class={staffPanelInset}
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="break-all font-mono text-xs font-bold text-white">
+                <p class="break-all font-mono text-xs font-bold text-virya-text">
                   {order.public_reference}
                 </p>
-                <p class="mt-1 text-xs text-zinc-500">
+                <p class="mt-1 text-xs text-virya-muted">
                   {order.buyer_email_masked}
                 </p>
               </div>
               <OrderStatusBadge status={order.status} />
             </div>
-            <div class="mt-4 flex items-end justify-between gap-3 border-t border-white/5 pt-3">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+            <div class="mt-4 flex items-end justify-between gap-3 border-t border-virya-edge pt-3">
+              <span class={staffMetricLabel}>
                 Kwota
               </span>
-              <strong class="text-base text-white">
+              <strong class="text-base text-virya-text">
                 {money(order.amount_gross_minor, order.currency)}
               </strong>
             </div>
@@ -617,7 +628,7 @@ function RecentOrders({ orders }: { orders: RecentOrder[] }) {
 
       <div class="hidden overflow-x-auto sm:block">
         <table class="min-w-full text-left text-sm">
-          <thead class="bg-black/30 text-xs uppercase tracking-wider text-zinc-500">
+          <thead class={`bg-virya-bg/60 ${staffTableHead}`}>
             <tr>
               <th class="px-4 py-3">Numer</th>
               <th class="px-4 py-3">Kupujący</th>
@@ -629,16 +640,16 @@ function RecentOrders({ orders }: { orders: RecentOrder[] }) {
             {orders.map(order => (
               <tr
                 key={order.order_id}
-                class="border-t border-white/5 text-zinc-300"
+                class={`${staffTableRow} text-virya-muted`}
               >
-                <td class="px-4 py-3 font-mono text-xs text-white">
+                <td class="px-4 py-3 font-mono text-xs text-virya-text">
                   {order.public_reference}
                 </td>
                 <td class="px-4 py-3">{order.buyer_email_masked}</td>
                 <td class="px-4 py-3">
                   <OrderStatusBadge status={order.status} />
                 </td>
-                <td class="px-4 py-3 text-right font-bold text-white">
+                <td class="px-4 py-3 text-right font-bold text-virya-text">
                   {money(order.amount_gross_minor, order.currency)}
                 </td>
               </tr>

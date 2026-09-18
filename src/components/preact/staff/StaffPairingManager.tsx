@@ -2,7 +2,19 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { generateQr, type GeneratedQr } from "../../../lib/qrCode"
 import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { StaffLoginCard, StaffStatusCard } from "./AdminConsoleUi"
-import { staffAccentButton, staffLogoutButton } from "./staffButtons"
+import {
+  staffAccentButton,
+  staffEyebrowAccent,
+  staffField,
+  staffLogoutButton,
+  staffMetricLabel,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanel,
+  staffSecondaryButton,
+  staffSubtitle,
+  staffTitle,
+} from "./staffUi"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type ApiError = StaffApiError
@@ -242,16 +254,16 @@ export default function StaffPairingManager() {
 
   return (
     <div class="grid gap-6">
-      <section class="border-b border-zinc-800 pb-6">
+      <section class="border-b border-virya-edge pb-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">
+            <p class={staffEyebrowAccent}>
               Virya Signal / device pairing
             </p>
-            <h1 class="mt-3 text-3xl font-black text-white sm:text-4xl">
+            <h1 class="mt-3 text-3xl font-black text-virya-text sm:text-4xl">
               Zaloguj telefon jako staff
             </h1>
-            <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400 sm:text-base">
+            <p class={`mt-3 max-w-3xl ${staffSubtitle} sm:text-base`}>
               W aplikacji wybierz strefę operatora, naciśnij „Zeskanuj kod QR”,
               zeskanuj kod z tej strony i ustaw lokalny PIN urządzenia.
             </p>
@@ -270,15 +282,15 @@ export default function StaffPairingManager() {
       <div class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
         <form
           onSubmit={generate}
-          class="min-w-0 rounded-xl border border-white/10 bg-zinc-900/70 p-6"
+          class="min-w-0 rounded-lg border border-virya-edge bg-virya-surface/80 p-6"
         >
-          <h2 class="text-xl font-black text-white">Nowe parowanie</h2>
-          <p class="mt-2 text-sm leading-6 text-zinc-500">
+          <h2 class={staffTitle}>Nowe parowanie</h2>
+          <p class={`mt-2 ${staffSubtitle}`}>
             Kod jest przeznaczony dla jednej zaufanej osoby i automatycznie znika
             z ekranu po wygaśnięciu.
           </p>
           <div class="mt-6 grid gap-4">
-            <label class="text-sm font-semibold text-zinc-200">
+            <label class={staffField}>
               Nazwa osoby lub urządzenia
               <input
                 value={displayName}
@@ -286,15 +298,15 @@ export default function StaffPairingManager() {
                 autoComplete="off"
                 onInput={event => setDisplayName(event.currentTarget.value)}
                 placeholder="np. Kuba — bramka"
-                class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300"
+                class="input mt-2"
               />
             </label>
-            <label class="text-sm font-semibold text-zinc-200">
+            <label class={staffField}>
               Ważność kodu
               <select
                 value={ttlMinutes}
                 onChange={event => setTtlMinutes(Number(event.currentTarget.value))}
-                class="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-amber-300"
+                class="input mt-2"
               >
                 <option value={3}>3 minuty</option>
                 <option value={5}>5 minut</option>
@@ -308,20 +320,20 @@ export default function StaffPairingManager() {
               {busy ? "GENERUJĘ…" : "WYGENERUJ QR STAFF"}
             </button>
           </div>
-          <div class="mt-6 rounded-lg border border-amber-300/20 bg-amber-300/5 p-4 text-xs leading-5 text-amber-100/80">
+          <div class={`mt-6 ${staffNoticeBase} ${staffNoticeTones.warn}`}>
             QR zawiera wyłącznie jednorazowy kod ważny przez kilka minut — nie
             zawiera klucza administratora ani trwałego tokena staff. Po wymianie
             CrowdRelay wydaje osobną, odwoływalną sesję dla tego urządzenia.
           </div>
         </form>
 
-        <section class="min-w-0 rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+        <section class={`min-w-0 ${staffPanel} sm:p-6`}>
           {!qr || !envelope ? (
-            <div class="grid min-h-[420px] place-items-center rounded-lg border border-dashed border-white/10 bg-black/20 p-8 text-center">
+            <div class="grid min-h-[420px] place-items-center rounded-lg border border-dashed border-virya-edge bg-virya-bg/40 p-8 text-center">
               <div>
-                <div class="text-5xl text-zinc-500" aria-hidden="true">▦</div>
-                <h2 class="mt-4 text-xl font-black text-white">Kod nie został wygenerowany</h2>
-                <p class="mt-2 max-w-sm text-sm leading-6 text-zinc-500">
+                <div class="text-5xl text-virya-muted" aria-hidden="true">▦</div>
+                <h2 class={`mt-4 ${staffTitle}`}>Kod nie został wygenerowany</h2>
+                <p class="mt-2 max-w-sm text-sm leading-6 text-virya-muted">
                   Nadaj czytelną nazwę urządzeniu i wygeneruj krótkotrwały QR.
                 </p>
               </div>
@@ -330,10 +342,10 @@ export default function StaffPairingManager() {
             <div class="grid gap-5">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">Staff</p>
-                  <h2 class="mt-1 text-xl font-black text-white">{envelope.displayName}</h2>
+                  <p class={staffMetricLabel}>Staff</p>
+                  <h2 class={`mt-1 ${staffTitle}`}>{envelope.displayName}</h2>
                 </div>
-                <div class={`rounded-xl px-3 py-2 text-right ${expired ? "bg-rose-400/10 text-rose-200" : "bg-amber-300/10 text-amber-200"}`}>
+                <div class={`rounded-lg px-3 py-2 text-right ${expired ? "bg-virya-danger/10 text-rose-200" : "bg-virya-signal/10 text-virya-hot"}`}>
                   <div class="text-[10px] font-bold uppercase tracking-wider">{expired ? "Wygasł" : "Pozostało"}</div>
                   <div class="font-mono text-xl font-black tabular-nums">{formatCountdown(secondsLeft)}</div>
                 </div>
@@ -343,13 +355,13 @@ export default function StaffPairingManager() {
                 aria-hidden={expired ? "true" : undefined}
                 dangerouslySetInnerHTML={{ __html: qr.svg }}
               />
-              <p class="text-center text-xs text-zinc-500">
+              <p class="text-center text-xs text-virya-muted">
                 Ważny do {expiryLabel}. Po wygaśnięciu wygeneruj nowy kod.
               </p>
               <button
                 type="button"
                 onClick={clearPairing}
-                class="w-full rounded-xl border border-rose-400/20 px-4 py-3 text-sm font-bold text-rose-200 hover:bg-rose-400/10"
+                class="virya-button min-h-[44px] w-full min-w-0 border border-virya-danger/30 px-4 text-xs text-rose-200 transition-colors hover:border-virya-danger/50"
               >
                 UKRYJ KOD
               </button>
@@ -357,24 +369,24 @@ export default function StaffPairingManager() {
           )}
         </section>
       </div>
-      <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-6">
+      <section class="rounded-lg border border-virya-edge bg-virya-surface/80 p-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 class="text-xl font-black text-white">Sparowane urządzenia</h2>
-            <p class="mt-1 text-sm text-zinc-500">Każdą sesję można odwołać niezależnie, bez rotacji wspólnego klucza.</p>
+            <h2 class={staffTitle}>Sparowane urządzenia</h2>
+            <p class="mt-1 text-sm text-virya-muted">Każdą sesję można odwołać niezależnie, bez rotacji wspólnego klucza.</p>
           </div>
-          <button type="button" onClick={() => void loadSessions()} disabled={busy} class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-zinc-200 disabled:opacity-50">Odśwież</button>
+          <button type="button" onClick={() => void loadSessions()} disabled={busy} class={staffSecondaryButton}>Odśwież</button>
         </div>
         <div class="mt-4 grid gap-2">
-          {sessions.length === 0 ? <p class="text-sm text-zinc-500">Brak aktywności urządzeń do pokazania.</p> : sessions.map(session => {
+          {sessions.length === 0 ? <p class="text-sm text-virya-muted">Brak aktywności urządzeń do pokazania.</p> : sessions.map(session => {
             const active = !session.revokedAt && Date.parse(session.expiresAt) > Date.now()
             return (
-              <div key={session.id} class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/25 px-4 py-3">
+              <div key={session.id} class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-virya-edge bg-virya-bg/60 px-4 py-3">
                 <div>
-                  <strong class="text-sm text-white">{session.displayName}</strong>
-                  <p class="mt-1 text-xs text-zinc-500">{active ? `ważna do ${new Date(session.expiresAt).toLocaleString("pl-PL")}` : "wygasła lub odwołana"}</p>
+                  <strong class="text-sm text-virya-text">{session.displayName}</strong>
+                  <p class="mt-1 text-xs text-virya-muted">{active ? `ważna do ${new Date(session.expiresAt).toLocaleString("pl-PL")}` : "wygasła lub odwołana"}</p>
                 </div>
-                {active ? <button type="button" onClick={() => void revokeSession(session.id)} disabled={busy} class="rounded-xl border border-rose-400/30 px-3 py-2 text-xs font-black text-rose-200 disabled:opacity-50">ODWOŁAJ</button> : null}
+                {active ? <button type="button" onClick={() => void revokeSession(session.id)} disabled={busy} class="virya-button min-h-[44px] min-w-0 border border-virya-danger/30 px-3 text-xs text-rose-200 transition-colors hover:border-virya-danger/50 disabled:opacity-50">ODWOŁAJ</button> : null}
               </div>
             )
           })}
@@ -389,7 +401,7 @@ function Message({ children }: { children: string }) {
   return (
     <p
       role="status"
-      class="mt-5 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
+      class={`mt-5 ${staffNoticeBase} ${staffNoticeTones.error}`}
     >
       {children}
     </p>

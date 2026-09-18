@@ -12,7 +12,22 @@ import type {
 } from "../../../server/staffQrApi"
 import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
 import { ConfirmButton, Notice, StaffLoginCard, StaffStatusCard, type NoticeState } from "./AdminConsoleUi"
-import { staffAccentButton, staffLogoutButton, staffSecondaryButton } from "./staffButtons"
+import {
+  staffAccentButton,
+  staffBadge,
+  staffBadgeSuccess,
+  staffEmpty,
+  staffEyebrow,
+  staffEyebrowAccent,
+  staffLogoutButton,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanel,
+  staffPanelInset,
+  staffSecondaryButton,
+  staffTableHead,
+  staffTitle,
+} from "./staffUi"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
 type Language = "pl" | "en"
@@ -427,15 +442,15 @@ export default function ConcertQrManager() {
   return (
     <div class="relative grid w-full min-w-0 max-w-full gap-6">
       {dataLoading && <BackendLoader overlay label="Pobieram koncerty, kampanie QR i bramkę…" />}
-      <header class="flex flex-col gap-4 border-b border-zinc-800 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <header class="flex flex-col gap-4 border-b border-virya-edge pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div class="min-w-0">
-          <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
+          <p class={staffEyebrowAccent}>
             VIRYA // STAFF
           </p>
-          <h1 class="mt-3 text-3xl font-black uppercase leading-none text-white sm:text-4xl">
+          <h1 class="mt-3 text-3xl font-black uppercase leading-none text-virya-text sm:text-4xl">
             Koncertowe QR
           </h1>
-          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
+          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-virya-muted">
             Twórz krótkotrwałe, odwoływalne kody przypisane do konkretnego koncertu. Token trafia wyłącznie do fragmentu URL i nie jest wysyłany w referrerze.
           </p>
         </div>
@@ -470,8 +485,8 @@ export default function ConcertQrManager() {
         <Metric label="Łączne check-iny" value={String(campaigns.reduce((sum, campaign) => sum + campaign.checkin_count, 0))} />
       </section>
       {lastLoadedAt && (
-        <p class="-mt-2 flex items-center gap-2 text-xs text-zinc-500" role="status">
-          <span class={`inline-block h-2 w-2 rounded-full ${autoRefresh ? "bg-emerald-400" : "bg-zinc-600"}`} aria-hidden="true"></span>
+        <p class="-mt-2 flex items-center gap-2 text-xs text-virya-muted" role="status">
+          <span class={`inline-block h-2 w-2 rounded-full ${autoRefresh ? "bg-virya-success" : "bg-virya-edge"}`} aria-hidden="true"></span>
           Dane z {Math.max(0, Math.round((Date.now() - lastLoadedAt.getTime()) / 1000))} s temu
           {autoRefresh ? " · odświeżam automatycznie co 15 s" : ""}
         </p>
@@ -480,7 +495,7 @@ export default function ConcertQrManager() {
       <div class="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <form onSubmit={createCampaign} class={panelClass}>
           <p class={eyebrowClass}>Nowa kampania</p>
-          <h2 class="mt-2 text-xl font-black uppercase text-white">Wybierz koncert i czas</h2>
+          <h2 class={`mt-2 ${staffTitle} uppercase`}>Wybierz koncert i czas</h2>
 
           <label class={labelClass}>
             Koncert
@@ -512,11 +527,11 @@ export default function ConcertQrManager() {
           </label>
 
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
-            <label class="min-w-0 text-[9px] font-black uppercase tracking-widest text-zinc-400">
+            <label class={`min-w-0 ${staffEyebrow}`}>
               Aktywny od
               <input type="datetime-local" value={validFrom} onInput={event => setValidFrom(event.currentTarget.value)} required class={inputClass} />
             </label>
-            <label class="min-w-0 text-[9px] font-black uppercase tracking-widest text-zinc-400">
+            <label class={`min-w-0 ${staffEyebrow}`}>
               Aktywny do
               <input type="datetime-local" value={validUntil} onInput={event => setValidUntil(event.currentTarget.value)} required class={inputClass} />
             </label>
@@ -528,12 +543,12 @@ export default function ConcertQrManager() {
           </label>
 
           {dataLoaded && events.length === 0 && (
-            <div class="mt-5 border border-amber-400/25 bg-amber-400/[.045] p-4 text-xs leading-relaxed text-zinc-300">
+            <div class={`mt-5 ${staffNoticeBase} ${staffNoticeTones.warn}`}>
               CrowdRelay nie zwrócił żadnego opublikowanego koncertu. Uruchom ponownie produkcyjny setup po wdrożeniu aktualnego bootstrapu.
             </div>
           )}
 
-          <button type="submit" disabled={busy || !selectedEvent} class="virya-button virya-button--primary mt-6 min-h-[48px] w-full px-5">
+          <button type="submit" disabled={busy || !selectedEvent} class={`${staffAccentButton} mt-6 w-full`}>
             {busy ? "Zapisywanie…" : "Utwórz bezpieczny QR"}
           </button>
         </form>
@@ -542,14 +557,14 @@ export default function ConcertQrManager() {
           <div class="flex min-w-0 flex-wrap items-start justify-between gap-4">
             <div class="min-w-0">
               <p class={eyebrowClass}>Podgląd / druk</p>
-              <h2 class="mt-2 text-xl font-black uppercase text-white">
+              <h2 class={`mt-2 ${staffTitle} uppercase`}>
                 {activeCampaign?.event_title ?? "Wybierz kampanię"}
               </h2>
             </div>
             <select
               value={selectedCampaignId ?? ""}
               onChange={event => setSelectedCampaignId(event.currentTarget.value || null)}
-              class="virya-input min-h-[44px] w-full min-w-0 max-w-full text-xs sm:w-auto sm:max-w-[22rem]"
+              class="input min-h-[44px] min-w-0 max-w-full text-xs sm:w-auto sm:max-w-[22rem]"
             >
               <option value="">
                 {dataLoaded && campaigns.length === 0
@@ -569,7 +584,7 @@ export default function ConcertQrManager() {
               <button
                 type="button"
                 onClick={() => setFullscreen(true)}
-                class="block w-full min-w-0 max-w-full overflow-hidden border border-zinc-700 bg-white p-4 hover:border-amber-400 [&>svg]:block [&>svg]:h-auto [&>svg]:w-full [&>svg]:max-w-full"
+                class="block w-full min-w-0 max-w-full overflow-hidden border border-virya-edge bg-white p-4 hover:border-virya-signal [&>svg]:block [&>svg]:h-auto [&>svg]:w-full [&>svg]:max-w-full"
                 aria-label="Otwórz QR na pełnym ekranie"
                 dangerouslySetInnerHTML={{ __html: qr.svg }}
               />
@@ -580,7 +595,7 @@ export default function ConcertQrManager() {
                   <Info label="Od" value={formatDate(activeCampaign.valid_from)} />
                   <Info label="Do" value={formatDate(activeCampaign.valid_until)} />
                 </dl>
-                <label class="mt-5 block text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                <label class={`mt-5 block ${staffEyebrow}`}>
                   Język strony po skanie
                   <select value={language} onChange={event => setLanguage(event.currentTarget.value as Language)} class={inputClass}>
                     <option value="pl">Polski</option>
@@ -608,7 +623,7 @@ export default function ConcertQrManager() {
               </div>
             </div>
           ) : (
-            <p class="mt-6 border border-dashed border-zinc-700 p-8 text-center text-xs leading-relaxed text-zinc-500">
+            <p class={`mt-6 ${staffEmpty}`}>
               Utwórz kampanię albo wybierz aktywną pozycję z listy.
             </p>
           )}
@@ -617,28 +632,28 @@ export default function ConcertQrManager() {
 
       <section class={panelClass}>
         <p class={eyebrowClass}>Historia</p>
-        <h2 class="mt-2 text-xl font-black uppercase text-white">Kampanie koncertowe</h2>
+        <h2 class={`mt-2 ${staffTitle} uppercase`}>Kampanie koncertowe</h2>
         {campaigns.length === 0 ? (
-          <p class="mt-5 text-xs text-zinc-500">Brak kampanii.</p>
+          <p class="mt-5 text-xs text-virya-muted">Brak kampanii.</p>
         ) : (
           <>
             {/* Desktop: pełna tabela. Mobile: karty — na bramce działa się jednym
                 kciukiem i poziomy scroll tabeli był nie do użycia. */}
             <div class="mt-5 hidden w-full max-w-full overflow-x-auto overscroll-x-contain lg:block">
             <table class="w-full min-w-[760px] border-collapse text-left text-xs">
-              <thead class="text-[8px] font-black uppercase tracking-widest text-zinc-500">
-                <tr class="border-b border-zinc-800">
+              <thead class={staffTableHead}>
+                <tr class="border-b border-virya-edge">
                   <th class="p-3">Kampania</th><th class="p-3">Koncert</th><th class="p-3">Aktywność</th><th class="p-3">Check-iny</th><th class="p-3">Stan</th>
                 </tr>
               </thead>
               <tbody>
                 {campaigns.map(campaign => (
-                  <tr key={campaign.id} class="border-b border-zinc-900 hover:bg-zinc-900/40">
-                    <td class="p-3 font-bold text-white"><button type="button" onClick={() => setSelectedCampaignId(campaign.id)} class="text-left hover:text-amber-400">{campaign.label}</button></td>
-                    <td class="p-3 text-zinc-300">{campaign.event_title}</td>
-                    <td class="p-3 text-zinc-400">{formatDate(campaign.valid_from)}<br />{formatDate(campaign.valid_until)}</td>
-                    <td class="p-3 font-mono text-amber-400">{campaign.checkin_count}{campaign.max_checkins ? ` / ${campaign.max_checkins}` : ""}</td>
-                    <td class="p-3"><span class={campaign.active ? "text-emerald-300" : "text-zinc-500"}>{campaign.active ? "Aktywny" : "Wyłączony"}</span></td>
+                  <tr key={campaign.id} class="border-b border-virya-edge/60 hover:bg-white/[.04]">
+                    <td class="p-3 font-bold text-virya-text"><button type="button" onClick={() => setSelectedCampaignId(campaign.id)} class="text-left hover:text-virya-hot">{campaign.label}</button></td>
+                    <td class="p-3 text-virya-text">{campaign.event_title}</td>
+                    <td class="p-3 text-virya-muted">{formatDate(campaign.valid_from)}<br />{formatDate(campaign.valid_until)}</td>
+                    <td class="p-3 font-mono text-virya-hot">{campaign.checkin_count}{campaign.max_checkins ? ` / ${campaign.max_checkins}` : ""}</td>
+                    <td class="p-3"><span class={campaign.active ? "text-virya-success" : "text-virya-muted"}>{campaign.active ? "Aktywny" : "Wyłączony"}</span></td>
                   </tr>
                 ))}
               </tbody>
@@ -646,16 +661,16 @@ export default function ConcertQrManager() {
             </div>
             <div class="mt-5 grid gap-3 lg:hidden">
               {campaigns.map(campaign => (
-                <article key={campaign.id} class={`rounded-lg border p-4 ${campaign.id === selectedCampaignId ? "border-amber-400/50 bg-amber-400/[.05]" : "border-zinc-800 bg-black/30"}`}>
+                <article key={campaign.id} class={campaign.id === selectedCampaignId ? "rounded-lg border border-virya-signal/50 bg-virya-signal/[.05] p-4" : staffPanelInset}>
                   <div class="flex items-start justify-between gap-3">
-                    <button type="button" onClick={() => setSelectedCampaignId(campaign.id)} class="min-h-[44px] text-left font-bold text-white hover:text-amber-400">{campaign.label}</button>
-                    <span class={`flex-none rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider ${campaign.active ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" : "border-white/10 bg-white/5 text-zinc-500"}`}>{campaign.active ? "Aktywny" : "Wyłączony"}</span>
+                    <button type="button" onClick={() => setSelectedCampaignId(campaign.id)} class="min-h-[44px] text-left font-bold text-virya-text hover:text-virya-hot">{campaign.label}</button>
+                    <span class={campaign.active ? `flex-none ${staffBadgeSuccess}` : `flex-none ${staffBadge}`}>{campaign.active ? "Aktywny" : "Wyłączony"}</span>
                   </div>
-                  <p class="mt-1 text-sm text-zinc-300">{campaign.event_title}</p>
+                  <p class="mt-1 text-sm text-virya-text">{campaign.event_title}</p>
                   <dl class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                    <div><dt class="text-zinc-500">Ważny od</dt><dd class="font-semibold text-zinc-200">{formatDate(campaign.valid_from)}</dd></div>
-                    <div><dt class="text-zinc-500">Ważny do</dt><dd class="font-semibold text-zinc-200">{formatDate(campaign.valid_until)}</dd></div>
-                    <div><dt class="text-zinc-500">Check-iny</dt><dd class="font-mono font-bold text-amber-400">{campaign.checkin_count}{campaign.max_checkins ? ` / ${campaign.max_checkins}` : ""}</dd></div>
+                    <div><dt class="text-virya-muted">Ważny od</dt><dd class="font-semibold text-virya-text">{formatDate(campaign.valid_from)}</dd></div>
+                    <div><dt class="text-virya-muted">Ważny do</dt><dd class="font-semibold text-virya-text">{formatDate(campaign.valid_until)}</dd></div>
+                    <div><dt class="text-virya-muted">Check-iny</dt><dd class="font-mono font-bold text-virya-hot">{campaign.checkin_count}{campaign.max_checkins ? ` / ${campaign.max_checkins}` : ""}</dd></div>
                   </dl>
                 </article>
               ))}
@@ -678,24 +693,24 @@ export default function ConcertQrManager() {
 }
 
 function Info({ label, value }: { label: string; value: string }) {
-  return <div><dt class="text-[8px] font-black uppercase tracking-widest text-zinc-500">{label}</dt><dd class="mt-1 font-semibold text-zinc-200">{value}</dd></div>
+  return <div><dt class={staffEyebrow}>{label}</dt><dd class="mt-1 font-semibold text-virya-text">{value}</dd></div>
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div class="virya-panel relative overflow-hidden p-4">
       <div class="virya-live-card__rail" aria-hidden="true" />
-      <p class="text-[8px] font-black uppercase tracking-[.2em] text-zinc-500">{label}</p>
-      <p class="mt-2 font-mono text-2xl font-black text-white">{value}</p>
+      <p class={staffEyebrow}>{label}</p>
+      <p class="mt-2 font-mono text-2xl font-black text-virya-text">{value}</p>
     </div>
   )
 }
 
-const panelClass = "virya-panel min-w-0 max-w-full p-5 sm:p-6"
-const eyebrowClass = "text-[9px] font-black uppercase tracking-[.28em] text-amber-400"
-const labelClass = "mt-5 block min-w-0 text-[9px] font-black uppercase tracking-widest text-zinc-400"
-const inputClass = "virya-input mt-2 w-full min-w-0 max-w-full px-3 text-sm"
-const primaryButton = "virya-button virya-button--primary min-h-[44px] min-w-0 px-4"
+const panelClass = `${staffPanel} min-w-0 max-w-full sm:p-6`
+const eyebrowClass = staffEyebrowAccent
+const labelClass = `mt-5 block min-w-0 ${staffEyebrow}`
+const inputClass = "input mt-2 min-h-12 min-w-0 max-w-full text-sm"
+const primaryButton = staffAccentButton
 const secondaryButton = staffSecondaryButton
 
 function toLocalInput(value: Date) {

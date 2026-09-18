@@ -5,7 +5,24 @@ import { ConfirmButton, Notice, StaffLoginCard, StaffStatusCard, type NoticeStat
 import type { BeaconNetworkOverview } from "./StaffLatarnikNetworkManager"
 import type { BeaconReleaseOverview } from "./StaffLatarnikReleaseManager"
 import { bootstrapStaffPanel, staffApi, type StaffApiError } from "./staffApi"
-import { staffAccentButton, staffAccentChip, staffSecondaryButton } from "./staffButtons"
+import {
+  staffAccentButton,
+  staffAccentChip,
+  staffBadge,
+  staffBadgeDanger,
+  staffBadgeSuccess,
+  staffBadgeWarn,
+  staffEmpty,
+  staffEyebrow,
+  staffEyebrowAccent,
+  staffField,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanel,
+  staffPanelInset,
+  staffSecondaryButton,
+  staffSubtitle,
+} from "./staffUi"
 import StaffLogoutButton from "./StaffLogoutButton"
 
 type LoadState = "checking" | "login" | "ready" | "unconfigured" | "error"
@@ -547,12 +564,12 @@ export default function StaffCommerceManager() {
   return (
     <div class="relative grid gap-6">
       {loading && <BackendLoader overlay label="Pobieram merch, magazyn i losowania…" />}
-      <section class="border-b border-zinc-800 pb-6">
+      <section class="border-b border-virya-edge pb-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="text-xs font-black uppercase tracking-[0.24em] text-amber-300">CrowdRelay / commerce</p>
-            <h1 class="mt-3 text-3xl font-black text-white sm:text-4xl">Merch, magazyn i losowania</h1>
-            <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400 sm:text-base">
+            <p class={staffEyebrowAccent}>CrowdRelay / commerce</p>
+            <h1 class="mt-3 text-3xl font-black text-virya-text sm:text-4xl">Merch, magazyn i losowania</h1>
+            <p class={`mt-3 max-w-3xl ${staffSubtitle} sm:text-base`}>
               Jeden stan magazynowy dla strony, Virya Signal, sprzedaży Stripe i nagród.
             </p>
           </div>
@@ -565,7 +582,7 @@ export default function StaffCommerceManager() {
           </div>
         </div>
         {overview?.degraded.active ? (
-          <p class="mt-5 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+          <p class={`mt-5 ${staffNoticeBase} ${staffNoticeTones.warn}`}>
             Tryb częściowy: niedostępne sekcje {overview.degraded.unavailable.join(", ")}.
           </p>
         ) : null}
@@ -573,26 +590,26 @@ export default function StaffCommerceManager() {
       </section>
 
       {!inventoryReady ? (
-        <section class="rounded-xl border border-amber-300/25 bg-zinc-900/80 p-5 sm:p-7">
+        <section class="rounded-lg border border-virya-warning/25 bg-virya-surface/80 p-5 sm:p-7">
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p class="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Przygotowanie magazynu</p>
-              <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">Policz warianty, zapisz i uruchom</h2>
-              <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">
-                Katalog został założony automatycznie. Wpisz rzeczywisty stan każdego wariantu — także <strong class="text-zinc-200">0</strong>.
+              <p class={staffEyebrowAccent}>Przygotowanie magazynu</p>
+              <h2 class="mt-2 text-2xl font-black text-virya-text sm:text-3xl">Policz warianty, zapisz i uruchom</h2>
+              <p class={`mt-3 max-w-3xl ${staffSubtitle}`}>
+                Katalog został założony automatycznie. Wpisz rzeczywisty stan każdego wariantu — także <strong class="text-virya-text">0</strong>.
                 Sam zapis nie uruchamia sprzedaży. Dopiero przycisk READY wykonuje preflight i atomowo włącza publiczny stan, rezerwacje Stripe oraz kampanie.
               </p>
             </div>
-            <div class="rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-right">
-              <strong class="block text-2xl text-white">{activation?.counted_active_variants ?? 0}/{activation?.total_active_variants ?? inventoryItems.length}</strong>
-              <span class="text-xs text-zinc-500">wariantów zatwierdzonych</span>
+            <div class="rounded-lg border border-virya-edge bg-virya-bg/60 px-4 py-3 text-right">
+              <strong class="block text-2xl text-virya-text">{activation?.counted_active_variants ?? 0}/{activation?.total_active_variants ?? inventoryItems.length}</strong>
+              <span class="text-xs text-virya-muted">wariantów zatwierdzonych</span>
             </div>
           </div>
 
           {activation?.blockers.length ? (
             <div class="mt-5 grid gap-2">
               {activation.blockers.map(blocker => (
-                <p key={blocker} class="rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-2 text-sm text-amber-100">
+                <p key={blocker} class={`${staffNoticeBase} ${staffNoticeTones.warn}`}>
                   {activationBlocker(blocker)}
                 </p>
               ))}
@@ -604,9 +621,9 @@ export default function StaffCommerceManager() {
               {inventoryItems.length === 0 ? (
                 <Empty>Lista produktów jest chwilowo niedostępna. Odśwież stronę — katalog załaduje się automatycznie.</Empty>
               ) : inventoryItems.map(item => (
-                <label key={item.variant_id} class={`rounded-lg border p-4 ${item.counted ? "border-emerald-400/20 bg-emerald-400/[0.04]" : "border-white/10 bg-black/30"}`}>
-                  <span class="block text-sm font-black text-white">{item.product_name} — {item.variant_label}</span>
-                  <code class="mt-1 block text-[11px] text-zinc-500">{item.sku}</code>
+                <label key={item.variant_id} class={item.counted ? "rounded-lg border border-virya-success/20 bg-virya-success/[0.04] p-4" : staffPanelInset}>
+                  <span class="block text-sm font-black text-virya-text">{item.product_name} — {item.variant_label}</span>
+                  <code class="mt-1 block text-[11px] text-virya-muted">{item.sku}</code>
                   <span class="mt-3 flex items-center gap-3">
                     <input
                       type="number"
@@ -617,18 +634,18 @@ export default function StaffCommerceManager() {
                       value={stockCounts[item.sku] ?? ""}
                       onInput={event => setStockCounts(current => ({ ...current, [item.sku]: event.currentTarget.value }))}
                       placeholder="0"
-                      class="input w-full"
+                      class="input"
                     />
-                    <span class="shrink-0 text-xs font-bold text-zinc-500">SZT.</span>
+                    <span class="shrink-0 text-xs font-bold text-virya-muted">SZT.</span>
                   </span>
-                  <span class="mt-2 block text-[11px] text-zinc-500">
+                  <span class="mt-2 block text-[11px] text-virya-muted">
                     {item.counted ? `Ostatnio zapisano ${item.on_hand}; rezerwacje ${item.reserved}.` : "Jeszcze niezatwierdzony."}
                   </span>
                 </label>
               ))}
             </div>
             <div class="mt-5 grid gap-3 sm:grid-cols-2">
-              <button type="submit" disabled={busy || !stocktakeComplete} class="rounded-xl bg-white px-5 py-3 font-black text-zinc-950 disabled:opacity-40">
+              <button type="submit" disabled={busy || !stocktakeComplete} class={staffAccentButton}>
                 {busy ? "ZAPISUJĘ…" : "ZAPISZ DOKŁADNY STAN"}
               </button>
               <button
@@ -640,19 +657,19 @@ export default function StaffCommerceManager() {
                 {activation?.ready ? "NAPRAW AKTYWACJĘ" : "MAGAZYN GOTOWY — READY"}
               </button>
             </div>
-            <p class="mt-3 text-xs leading-5 text-zinc-500">
+            <p class="mt-3 text-xs leading-5 text-virya-muted">
               READY jest aktywny dopiero po zapisaniu wszystkich aktywnych SKU i sprawdzeniu, że rezerwacje nie przekraczają stanu. Jeżeli same flagi się rozjadą, ten sam przycisk bezpiecznie je naprawi. Kliknięcie nie zmienia mail-flow ani workflowów n8n.
             </p>
           </form>
         </section>
       ) : (
-        <section class="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.05] px-5 py-4">
+        <section class="rounded-lg border border-virya-success/20 bg-virya-success/[0.05] px-5 py-4">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p class="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Magazyn aktywny</p>
-              <p class="mt-1 text-sm text-zinc-300">Publiczny stan, rezerwacje Stripe i kampanie są włączone. Aktywował: {activation?.ready_by ?? "staff"}.</p>
+              <p class="text-xs font-black uppercase tracking-[0.2em] text-virya-success">Magazyn aktywny</p>
+              <p class="mt-1 text-sm text-virya-text">Publiczny stan, rezerwacje Stripe i kampanie są włączone. Aktywował: {activation?.ready_by ?? "staff"}.</p>
             </div>
-            <span class="rounded-full bg-emerald-300 px-4 py-2 text-xs font-black text-zinc-950">READY</span>
+            <span class="rounded-full bg-virya-success px-4 py-2 text-xs font-black text-virya-bg">READY</span>
           </div>
         </section>
       )}
@@ -660,13 +677,13 @@ export default function StaffCommerceManager() {
       {inventoryReady ? (<>
 
       <section class="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <div class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
+        <div class={`${staffPanel} sm:p-6`}>
           <div class="flex items-end justify-between gap-4">
             <div>
-              <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Magazyn</p>
-              <h2 class="mt-2 text-2xl font-black text-white">Dokładny stan wariantów</h2>
+              <p class={staffEyebrow}>Magazyn</p>
+              <h2 class="mt-2 text-2xl font-black text-virya-text">Dokładny stan wariantów</h2>
             </div>
-            <span class="text-xs text-zinc-500">sprzedaż + rezerwacje + kampanie</span>
+            <span class="text-xs text-virya-muted">sprzedaż + rezerwacje + kampanie</span>
           </div>
           <div class="mt-5 grid gap-3">
             {variants.length === 0 ? <Empty>Katalog jest chwilowo niedostępny.</Empty> : variants.map(({ product, variant }) => {
@@ -675,13 +692,13 @@ export default function StaffCommerceManager() {
               const recommendation = recommendationBySku.get(variant.sku)
               const promotable = recommendation?.recommended_max_giveaway ?? 0
               return (
-                <article key={variant.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
+                <article key={variant.id} class={staffPanelInset}>
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p class="font-bold text-white">{product.name} — {variant.label}</p>
-                      <code class="mt-1 block text-xs text-zinc-500">{variant.sku}</code>
+                      <p class="font-bold text-virya-text">{product.name} — {variant.label}</p>
+                      <code class="mt-1 block text-xs text-virya-muted">{variant.sku}</code>
                     </div>
-                    <span class={`rounded-full px-3 py-1 text-xs font-black ${available <= 0 ? "bg-red-400/15 text-red-300" : available <= variant.low_stock_threshold ? "bg-amber-400/15 text-amber-200" : "bg-emerald-400/15 text-emerald-300"}`}>
+                    <span class={available <= 0 ? staffBadgeDanger : available <= variant.low_stock_threshold ? staffBadgeWarn : staffBadgeSuccess}>
                       dostępne {available}
                     </span>
                   </div>
@@ -694,10 +711,10 @@ export default function StaffCommerceManager() {
                     <Metric label="Bezpiecznie rozdać" value={promotable} />
                   </div>
                   {recommendation ? (
-                    <p class={`mt-3 rounded-lg border px-3 py-2 text-xs leading-5 ${recommendation.recommendation === "candidate" ? "border-emerald-400/20 bg-emerald-400/5 text-emerald-100" : recommendation.recommendation === "limited" ? "border-amber-400/20 bg-amber-400/5 text-amber-100" : "border-white/10 bg-white/[0.03] text-zinc-400"}`}>
+                    <p class={`mt-3 rounded-lg border px-3 py-2 text-xs leading-5 ${recommendation.recommendation === "candidate" ? "border-virya-success/20 bg-virya-success/5 text-emerald-100" : recommendation.recommendation === "limited" ? "border-virya-warning/20 bg-virya-warning/5 text-yellow-100" : "border-virya-edge bg-white/[0.03] text-virya-muted"}`}>
                       <strong>{recommendation.recommendation === "candidate" ? "DOBRY KANDYDAT" : recommendation.recommendation === "limited" ? "TYLKO MAŁA AKCJA" : "NIE ROZDAWAĆ TERAZ"}</strong>
                       <span class="ml-2">{recommendation.reason}</span>
-                      <span class="ml-2 text-zinc-500">Pewność: {recommendation.confidence} · historia {recommendation.history_days} dni · koncerty 60 dni: {recommendation.upcoming_events_60d}</span>
+                      <span class="ml-2 text-virya-muted">Pewność: {recommendation.confidence} · historia {recommendation.history_days} dni · koncerty 60 dni: {recommendation.upcoming_events_60d}</span>
                     </p>
                   ) : null}
                 </article>
@@ -706,9 +723,9 @@ export default function StaffCommerceManager() {
           </div>
         </div>
 
-        <form onSubmit={adjustStock} class="h-fit rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
-          <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Ruch magazynowy</p>
-          <h2 class="mt-2 text-2xl font-black text-white">Przyjęcie lub korekta</h2>
+        <form onSubmit={adjustStock} class={`h-fit ${staffPanel} sm:p-6`}>
+          <p class={staffEyebrow}>Ruch magazynowy</p>
+          <h2 class="mt-2 text-2xl font-black text-virya-text">Przyjęcie lub korekta</h2>
           <div class="mt-5 grid gap-4">
             <Field label="Wariant">
               <select value={stockSku} onChange={event => setStockSku(event.currentTarget.value)} class="input">
@@ -729,9 +746,9 @@ export default function StaffCommerceManager() {
       </section>
 
       <section class="grid gap-6 xl:grid-cols-[1fr_1.35fr]">
-        <form onSubmit={createCampaign} class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
-          <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Nowa kampania</p>
-          <h2 class="mt-2 text-2xl font-black text-white">Losowanie wielu nagród</h2>
+        <form onSubmit={createCampaign} class={`${staffPanel} sm:p-6`}>
+          <p class={staffEyebrow}>Nowa kampania</p>
+          <h2 class="mt-2 text-2xl font-black text-virya-text">Losowanie wielu nagród</h2>
           <div class="mt-5 grid gap-4 sm:grid-cols-2">
             <Field label="Nazwa" wide>
               <input value={campaign.name} onInput={event => setCampaign(current => ({ ...current, name: event.currentTarget.value, slug: current.slug || slugify(event.currentTarget.value) }))} maxLength={200} class="input" />
@@ -772,7 +789,7 @@ export default function StaffCommerceManager() {
               </Field>
             ) : null}
             {campaign.eligibilityKind === "synesthesia_completion" ? (
-              <div class="sm:col-span-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[.04] p-3 text-xs leading-5 text-cyan-100/80">
+              <div class="sm:col-span-2 rounded-lg border border-virya-signal/20 bg-virya-signal/[.04] p-3 text-xs leading-5 text-virya-hot">
                 Synesthesia jest trybem stałym: <strong>5 płyt · 1 ukończenie = 1 los</strong>. Bez bonusu za polecenia i check-in. Kandydaci trafiają do zwykłego CrowdRelay Proof of Fair, a stock jest rezerwowany przed losowaniem.
               </div>
             ) : null}
@@ -785,7 +802,7 @@ export default function StaffCommerceManager() {
                 <option value="scheduled">Od razu zaplanowana</option>
               </select>
             </Field>
-            <div class="sm:col-span-2 rounded-xl border border-white/10 bg-black/30 p-3 text-xs leading-5 text-zinc-400">
+            <div class="sm:col-span-2 rounded-lg border border-virya-edge bg-virya-bg/60 p-3 text-xs leading-5 text-virya-muted">
               System natychmiast rezerwuje {Math.max(0, campaign.winnerCount * campaign.unitsPerWinner)} szt. Nagrody nie będą w tym czasie dostępne do sprzedaży.
             </div>
             <button type="submit" disabled={busy || !campaign.name || !campaign.slug || !campaign.prizeSku} class={`${staffAccentButton} sm:col-span-2`}>
@@ -794,21 +811,21 @@ export default function StaffCommerceManager() {
           </div>
         </form>
 
-        <div class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
-          <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Kampanie</p>
-          <h2 class="mt-2 text-2xl font-black text-white">Sterowanie losowaniami</h2>
+        <div class={`${staffPanel} sm:p-6`}>
+          <p class={staffEyebrow}>Kampanie</p>
+          <h2 class="mt-2 text-2xl font-black text-virya-text">Sterowanie losowaniami</h2>
           <div class="mt-5 grid gap-3">
             {(overview?.campaigns ?? []).length === 0 ? <Empty>Brak kampanii wielonagrodowych.</Empty> : overview?.campaigns.map(item => (
-              <article key={item.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
+              <article key={item.id} class={staffPanelInset}>
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p class="font-black text-white">{item.name}</p>
-                    <p class="mt-1 text-xs text-zinc-500">{item.prize_name} / {item.prize_variant} · {item.winner_count} × {item.units_per_winner}</p>
-                    {item.eligibility_kind === "synesthesia_completion" ? <p class="mt-1 text-xs font-semibold text-cyan-200/80">Synesthesia · 1 ukończenie = 1 los</p> : null}
+                    <p class="font-black text-virya-text">{item.name}</p>
+                    <p class="mt-1 text-xs text-virya-muted">{item.prize_name} / {item.prize_variant} · {item.winner_count} × {item.units_per_winner}</p>
+                    {item.eligibility_kind === "synesthesia_completion" ? <p class="mt-1 text-xs font-semibold text-virya-hot">Synesthesia · 1 ukończenie = 1 los</p> : null}
                   </div>
-                  <span class="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-zinc-200">{campaignStatus(item.status)}</span>
+                  <span class={staffBadge}>{campaignStatus(item.status)}</span>
                 </div>
-                <div class="mt-3 grid gap-1 text-xs text-zinc-400 sm:grid-cols-2">
+                <div class="mt-3 grid gap-1 text-xs text-virya-muted sm:grid-cols-2">
                   <span>Zamknięcie: {displayDate(item.closes_at)}</span>
                   <span>Losowanie: {displayDate(item.draw_at)}</span>
                   <span>Zarezerwowano: {item.reserved_quantity} szt.</span>
@@ -819,7 +836,7 @@ export default function StaffCommerceManager() {
                     const scheduleKey = `/api/staff/commerce/campaigns/${item.id}/schedule`
                     const cancelKey = `/api/staff/commerce/campaigns/${item.id}/cancel`
                     return <div class="mt-4 flex flex-wrap gap-2">
-                      <button type="button" disabled={(rowBusy !== null && rowBusy !== scheduleKey) || busy} onClick={() => void mutate(scheduleKey, {}, "Kampania została zaplanowana.", scheduleKey)} class="rounded-lg bg-emerald-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">{rowBusy === scheduleKey ? "ZAPISUJĘ…" : "ZAPLANUJ"}</button>
+                      <button type="button" disabled={(rowBusy !== null && rowBusy !== scheduleKey) || busy} onClick={() => void mutate(scheduleKey, {}, "Kampania została zaplanowana.", scheduleKey)} class={staffAccentChip}>{rowBusy === scheduleKey ? "ZAPISUJĘ…" : "ZAPLANUJ"}</button>
                       <ConfirmButton busy={(rowBusy !== null && rowBusy !== cancelKey) || busy} busyLabel="ANULUJĘ…" confirmLabel="TAK, ANULUJ" onConfirm={() => void mutate(cancelKey, {}, "Kampania anulowana, zarezerwowane sztuki wróciły do magazynu.", cancelKey)}>ANULUJ</ConfirmButton>
                     </div>
                   })()
@@ -842,20 +859,20 @@ export default function StaffCommerceManager() {
         </div>
       </section>
 
-      <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
-        <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Losowania / administracja</p>
-        <h2 class="mt-2 text-2xl font-black text-white">Wszystkie losowania</h2>
-        <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+      <section class={`${staffPanel} sm:p-6`}>
+        <p class={staffEyebrow}>Losowania / administracja</p>
+        <h2 class="mt-2 text-2xl font-black text-virya-text">Wszystkie losowania</h2>
+        <p class={`mt-2 max-w-3xl ${staffSubtitle}`}>
           Tu są także losowania wejściówek, które nie mają merchowego magazynu. Błędne losowanie usuniesz tylko do momentu pierwszego wykonania, ogłoszenia zwycięzców albo wygenerowania publicznego dowodu uczciwości. Koncert nie jest usuwany.
         </p>
         <div class="mt-5 grid gap-3">
           {(overview?.draws ?? []).length === 0 ? <Empty>Brak skonfigurowanych losowań.</Empty> : overview?.draws.map(draw => (
-            <article key={draw.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
+            <article key={draw.id} class={staffPanelInset}>
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p class="font-black text-white">{draw.name}</p>
-                  <p class="mt-1 font-mono text-[11px] text-zinc-500">{draw.slug}</p>
-                  <p class="mt-2 text-xs text-zinc-400">
+                  <p class="font-black text-virya-text">{draw.name}</p>
+                  <p class="mt-1 font-mono text-[11px] text-virya-muted">{draw.slug}</p>
+                  <p class="mt-2 text-xs text-virya-muted">
                     {draw.prize_kind === "admission_pass" ? "Wejściówki" : "Nagroda fizyczna"}
                     {draw.eligibility_kind === "synesthesia_completion"
                       ? " · Synesthesia"
@@ -863,9 +880,9 @@ export default function StaffCommerceManager() {
                     {` · ${draw.winner_count} zwycięzców`}
                   </p>
                 </div>
-                <span class="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-zinc-200">{campaignStatus(draw.status)}</span>
+                <span class={staffBadge}>{campaignStatus(draw.status)}</span>
               </div>
-              <div class="mt-3 grid gap-1 text-xs text-zinc-400 sm:grid-cols-2 lg:grid-cols-4">
+              <div class="mt-3 grid gap-1 text-xs text-virya-muted sm:grid-cols-2 lg:grid-cols-4">
                 <span>Losowanie: {displayDate(draw.draw_at)}</span>
                 <span>Runy: {draw.run_count}</span>
                 <span>Zwycięzcy: {draw.selected_winners}</span>
@@ -876,7 +893,7 @@ export default function StaffCommerceManager() {
                   href={`/pl/dowody/losowania/${encodeURIComponent(draw.slug)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="rounded-lg border border-cyan-300/30 bg-cyan-300/[.04] px-3 py-2 text-xs font-black text-cyan-200 hover:bg-cyan-300/10"
+                  class="rounded-lg border border-virya-signal/30 bg-virya-signal/[.04] px-3 py-2 text-xs font-black text-virya-hot hover:bg-virya-signal/10"
                 >
                   IDŹ DO LOSOWANIA ↗
                 </a>
@@ -892,7 +909,7 @@ export default function StaffCommerceManager() {
                 )}
               </div>
               {!draw.can_delete && (
-                <p class="mt-3 text-xs font-semibold text-zinc-500">
+                <p class="mt-3 text-xs font-semibold text-virya-muted">
                   {draw.run_count > 0 || draw.selected_winners > 0 || draw.proof_count > 0
                     ? "Zablokowane: to losowanie ma już trwałą historię lub publiczny dowód uczciwości."
                     : "Zablokowane w aktualnym stanie losowania."}
@@ -903,18 +920,18 @@ export default function StaffCommerceManager() {
         </div>
       </section>
 
-      <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">
-        <p class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Realizacja</p>
-        <h2 class="mt-2 text-2xl font-black text-white">Wydawanie nagród</h2>
+      <section class={`${staffPanel} sm:p-6`}>
+        <p class={staffEyebrow}>Realizacja</p>
+        <h2 class="mt-2 text-2xl font-black text-virya-text">Wydawanie nagród</h2>
         <div class="mt-5 grid gap-3 md:grid-cols-2">
           {(overview?.fulfillments ?? []).length === 0 ? <Empty>Po losowaniu pojawią się tutaj zwycięzcy i statusy nagród.</Empty> : overview?.fulfillments.map(item => (
-            <article key={item.id} class="rounded-lg border border-white/10 bg-black/30 p-4">
+            <article key={item.id} class={staffPanelInset}>
               <div class="flex items-start justify-between gap-3">
                 <div>
-                  <p class="font-black text-white">#{item.winner_rank} {item.fan_display_name || item.fan_email_masked}</p>
-                  <p class="mt-1 text-xs text-zinc-500">{item.draw_slug} · {item.prize_name} / {item.prize_variant} × {item.quantity}</p>
+                  <p class="font-black text-virya-text">#{item.winner_rank} {item.fan_display_name || item.fan_email_masked}</p>
+                  <p class="mt-1 text-xs text-virya-muted">{item.draw_slug} · {item.prize_name} / {item.prize_variant} × {item.quantity}</p>
                 </div>
-                <span class="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black text-zinc-200">{fulfillmentStatus(item.status)}</span>
+                <span class={staffBadge}>{fulfillmentStatus(item.status)}</span>
               </div>
               {item.status === "pending" ? (
                 (() => {
@@ -928,7 +945,7 @@ export default function StaffCommerceManager() {
                 })()
               ) : item.status === "prepared" ? (() => {
                 const deliveredKey = `fulfillments/${item.winner_id}/delivered`
-                return <button type="button" disabled={(rowBusy !== null) || busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "delivered", actor_id: "virya-staff-web", note: "delivered in staff panel" }, "Nagroda wydana; zapisano rozchód promocyjny.", deliveredKey)} class="mt-4 rounded-lg bg-emerald-300 px-3 py-2 text-xs font-black text-zinc-950 disabled:opacity-50">{rowBusy === deliveredKey ? "ZAPISUJĘ…" : "OZNACZ JAKO WYDANĄ"}</button>
+                return <button type="button" disabled={(rowBusy !== null) || busy} onClick={() => void mutate(`/api/staff/commerce/fulfillments/${item.winner_id}`, { status: "delivered", actor_id: "virya-staff-web", note: "delivered in staff panel" }, "Nagroda wydana; zapisano rozchód promocyjny.", deliveredKey)} class={`${staffAccentChip} mt-4`}>{rowBusy === deliveredKey ? "ZAPISUJĘ…" : "OZNACZ JAKO WYDANĄ"}</button>
               })() : null}
             </article>
           ))}
@@ -940,13 +957,13 @@ export default function StaffCommerceManager() {
 }
 
 function Field({ label, wide = false, children }: { label: string; wide?: boolean; children: ComponentChildren }) {
-  return <label class={`grid gap-2 text-sm font-semibold text-zinc-200 ${wide ? "sm:col-span-2" : ""}`}>{label}{children}</label>
+  return <label class={`grid gap-2 ${staffField} ${wide ? "sm:col-span-2" : ""}`}>{label}{children}</label>
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
-  return <div class="rounded-lg bg-white/[0.04] px-2 py-2"><strong class="block text-base text-white">{value}</strong><span class="text-zinc-500">{label}</span></div>
+  return <div class="rounded-lg bg-white/[0.04] px-2 py-2"><strong class="block text-base text-virya-text">{value}</strong><span class="text-virya-muted">{label}</span></div>
 }
 
 function Empty({ children }: { children: ComponentChildren }) {
-  return <p class="rounded-xl border border-dashed border-white/10 px-4 py-6 text-sm text-zinc-500">{children}</p>
+  return <p class={staffEmpty}>{children}</p>
 }

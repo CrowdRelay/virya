@@ -1,6 +1,19 @@
 import { useMemo, useState } from "preact/hooks"
 import { staffApi } from "./staffApi"
-import { staffAccentButton, staffAccentChip } from "./staffButtons"
+import {
+  staffAccentButton,
+  staffAccentChip,
+  staffBadge,
+  staffEmpty,
+  staffEyebrow,
+  staffEyebrowAccent,
+  staffField,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanelInset,
+  staffSecondaryButton,
+  staffSubtitle,
+} from "./staffUi"
 
 type Pool = {
   activeReleaseLatarnicy: number
@@ -152,12 +165,12 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
   }
 
   return (
-    <section class="rounded-xl border border-amber-300/25 bg-gradient-to-br from-amber-300/[0.06] to-zinc-950 p-5 sm:p-7">
+    <section class="rounded-lg border border-virya-signal/25 bg-gradient-to-br from-virya-signal/[0.06] to-virya-bg p-5 sm:p-7">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p class="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Latarnik / physical release</p>
-          <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">Płyty dla aktywnych Latarników</h2>
-          <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400">
+          <p class={staffEyebrowAccent}>Latarnik / physical release</p>
+          <h2 class="mt-2 text-2xl font-black text-virya-text sm:text-3xl">Płyty dla aktywnych Latarników</h2>
+          <p class={`mt-3 max-w-3xl ${staffSubtitle}`}>
             Jedna kampania = jedno fizyczne wydanie. Launch robi świeży snapshot aktywnych Latarników, rezerwuje po 1 sztuce SKU i kolejkuje mail „Dziękujemy Latarniku…”. Wysyłasz tylko osobom, które potwierdzą Paczkomat.
           </p>
         </div>
@@ -169,51 +182,51 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
       </div>
 
       <div class="mt-6 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr]">
-        <label class="grid gap-2 text-sm font-semibold text-zinc-200 lg:col-span-2">
+        <label class={`grid gap-2 ${staffField} lg:col-span-2`}>
           Nazwa wydania
           <input value={title} onInput={event => { setTitle(event.currentTarget.value); if (!slug) setSlug(slugify(event.currentTarget.value)) }} placeholder="np. Echoes Of The Modern Mind — LP 2026" class="input" />
         </label>
-        <label class="grid gap-2 text-sm font-semibold text-zinc-200">
+        <label class={`grid gap-2 ${staffField}`}>
           Slug
           <input value={slug} onInput={event => setSlug(slugify(event.currentTarget.value))} placeholder="echoes-lp-2026" class="input" />
         </label>
-        <label class="grid gap-2 text-sm font-semibold text-zinc-200 lg:col-span-2">
+        <label class={`grid gap-2 ${staffField} lg:col-span-2`}>
           Fizyczny SKU
           <select value={sku} onChange={event => setSku(event.currentTarget.value)} class="input">
             {skus.map(item => <option value={item.sku}>{item.label} · dostępne {item.available}</option>)}
           </select>
         </label>
-        <label class="grid gap-2 text-sm font-semibold text-zinc-200">
+        <label class={`grid gap-2 ${staffField}`}>
           Paczkomat potwierdź do
           <input type="datetime-local" value={deadline} onInput={event => setDeadline(event.currentTarget.value)} class="input" />
         </label>
       </div>
       <div class="mt-4 flex flex-wrap gap-2">
-        <button type="button" disabled={disabled || busy || !title.trim() || !sku} onClick={() => void create(false)} class="rounded-xl border border-white/15 px-4 py-3 text-xs font-black text-zinc-200 disabled:opacity-40">ZAPISZ SZKIC</button>
+        <button type="button" disabled={disabled || busy || !title.trim() || !sku} onClick={() => void create(false)} class={staffSecondaryButton}>ZAPISZ SZKIC</button>
         <button type="button" disabled={disabled || busy || !title.trim() || !sku || launchBlocked} onClick={() => {
           if (window.confirm(`Uruchomić kampanię dla ${pool.activeReleaseLatarnicy} aktywnych Latarników i zarezerwować ${pool.activeReleaseLatarnicy} szt. ${sku}?`)) void create(true)
         }} class={staffAccentButton}>UTWÓRZ I URUCHOM</button>
       </div>
       {launchBlocked ? (
-        <p class="mt-3 text-xs leading-5 text-amber-200/80">
+        <p class="mt-3 text-xs leading-5 text-virya-warning">
           Launch zablokowany: potrzebujesz co najmniej 1 aktywnego Latarnika, kompletnego maila dla całej aktywnej puli i stocku ≥ {pool.activeReleaseLatarnicy}. {selected ? `Wybrany SKU ma teraz ${selected.available} dostępnych szt.` : "Wybierz SKU."}
         </p>
       ) : null}
-      {message ? <p class="mt-4 rounded-xl border border-amber-300/20 bg-black/30 px-4 py-3 text-sm text-amber-100" role="status">{message}</p> : null}
+      {message ? <p class={`mt-4 ${staffNoticeBase} ${staffNoticeTones.warn}`} role="status">{message}</p> : null}
 
       <div class="mt-7 grid gap-4">
         {(data.campaigns ?? []).length === 0 ? (
-          <p class="rounded-xl border border-dashed border-white/10 px-4 py-6 text-sm text-zinc-500">Nie ma jeszcze kampanii fizycznych wydań.</p>
+          <p class={staffEmpty}>Nie ma jeszcze kampanii fizycznych wydań.</p>
         ) : data.campaigns.map(campaign => {
           const recipients = recipientsByCampaign.get(campaign.id) ?? []
           return (
-            <article key={campaign.id} class="rounded-lg border border-white/10 bg-black/35 p-4 sm:p-5">
+            <article key={campaign.id} class={`${staffPanelInset} sm:p-5`}>
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p class="font-black text-white">{campaign.title}</p>
-                  <p class="mt-1 text-xs text-zinc-500">{campaign.productName} · {campaign.variantLabel} · {campaign.sku}</p>
+                  <p class="font-black text-virya-text">{campaign.title}</p>
+                  <p class="mt-1 text-xs text-virya-muted">{campaign.productName} · {campaign.variantLabel} · {campaign.sku}</p>
                 </div>
-                <span class="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black text-zinc-200">{statusLabel(campaign.status)}</span>
+                <span class={staffBadge}>{statusLabel(campaign.status)}</span>
               </div>
               <div class="mt-4 grid grid-cols-3 gap-2 text-xs sm:grid-cols-6">
                 <Metric label="PULA" value={campaign.eligibleCount} />
@@ -234,22 +247,22 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
                   { action: "close", campaignId: campaign.id },
                   "Kampania zamknięta; niewykorzystana rezerwacja wróciła do stocku.",
                   `Zamknąć „${campaign.title}”? Osoby bez potwierdzenia wygasną, a niewykorzystany stock zostanie zwolniony.`,
-                )} class="mt-4 rounded-lg border border-zinc-600 px-3 py-2 text-xs font-black text-zinc-300 disabled:opacity-40">ZAMKNIJ KAMPANIĘ</button>
+                )} class={`mt-4 ${staffSecondaryButton}`}>ZAMKNIJ KAMPANIĘ</button>
               ) : null}
 
               {recipients.length ? (
                 <div class="mt-5 grid gap-2">
                   {recipients.map(person => (
-                    <div key={person.beaconId} class="rounded-xl border border-white/8 bg-zinc-950/70 p-3">
+                    <div key={person.beaconId} class="rounded-lg border border-virya-edge/60 bg-virya-bg/70 p-3">
                       <div class="flex flex-wrap items-start justify-between gap-2">
                         <div>
-                          <strong class="text-sm text-zinc-100">{person.displayName}</strong>
-                          <span class="ml-2 text-xs text-zinc-600">{person.city || person.beaconKind}</span>
+                          <strong class="text-sm text-virya-text">{person.displayName}</strong>
+                          <span class="ml-2 text-xs text-virya-muted">{person.city || person.beaconKind}</span>
                           {person.recipientName && person.parcelLockerCode ? (
-                            <p class="mt-1 text-xs text-zinc-300">{person.recipientName} · {person.recipientPhone} · <strong class="text-amber-200">{person.parcelLockerCode}</strong></p>
+                            <p class="mt-1 text-xs text-virya-text">{person.recipientName} · {person.recipientPhone} · <strong class="text-virya-hot">{person.parcelLockerCode}</strong></p>
                           ) : null}
                           {person.status === "delivered" && person.activationDueAt ? (
-                            <p class="mt-1 text-[11px] text-zinc-500">
+                            <p class="mt-1 text-[11px] text-virya-muted">
                               {person.activationQueuedAt
                                 ? "Aktywizacja zakolejkowana."
                                 : person.activationSuppressedAt
@@ -258,13 +271,13 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
                             </p>
                           ) : null}
                         </div>
-                        <span class="text-[9px] font-black uppercase tracking-wider text-zinc-500">{recipientStatus(person.status)}</span>
+                        <span class={staffEyebrow}>{recipientStatus(person.status)}</span>
                       </div>
                       <div class="mt-3 flex flex-wrap gap-2">
-                        {person.status === "confirmed" && <button type="button" disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "prepared" }, `${person.displayName}: przygotowana.`)} class="rounded-lg bg-white px-2 py-1.5 text-[10px] font-black text-zinc-950">PRZYGOTOWANA</button>}
+                        {person.status === "confirmed" && <button type="button" disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "prepared" }, `${person.displayName}: przygotowana.`)} class={staffAccentChip}>PRZYGOTOWANA</button>}
                         {["confirmed", "prepared"].includes(person.status) && <button type="button" disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "sent" }, `${person.displayName}: wysłana; zapisano promotional_issue.`)} class={staffAccentChip}>WYSŁANA</button>}
-                        {person.status === "sent" && <button type="button" disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "delivered" }, `${person.displayName}: dostarczona.`)} class="rounded-lg bg-emerald-300 px-2 py-1.5 text-[10px] font-black text-zinc-950">DOSTARCZONA</button>}
-                        {["notified", "confirmed", "prepared"].includes(person.status) && <button type="button" disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "cancelled" }, `${person.displayName}: anulowana i zwolniono sztukę.`, `Anulować egzemplarz dla ${person.displayName}?`)} class="rounded-lg border border-red-400/30 px-2 py-1.5 text-[10px] font-black text-red-300">ANULUJ</button>}
+                        {person.status === "sent" && <button type="button" disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "delivered" }, `${person.displayName}: dostarczona.`)} class={staffAccentChip}>DOSTARCZONA</button>}
+                        {["notified", "confirmed", "prepared"].includes(person.status) && <button type="button" disabled={busy} onClick={() => void action({ action: "recipient-status", campaignId: campaign.id, beaconId: person.beaconId, status: "cancelled" }, `${person.displayName}: anulowana i zwolniono sztukę.`, `Anulować egzemplarz dla ${person.displayName}?`)} class="virya-button min-h-[44px] min-w-0 border border-virya-danger/30 px-3 text-[10px] text-rose-200 transition-colors hover:border-virya-danger/50 disabled:opacity-50">ANULUJ</button>}
                       </div>
                     </div>
                   ))}
@@ -279,8 +292,8 @@ export default function StaffLatarnikReleaseManager({ data, skus, disabled, onRe
 }
 
 function Metric({ label, value, warn = false }: { label: string; value: number; warn?: boolean }) {
-  return <div class={`rounded-xl border px-2 py-2 ${warn ? "border-red-400/30 bg-red-400/10" : "border-white/10 bg-white/[0.03]"}`}>
-    <strong class={`block text-lg ${warn ? "text-red-300" : "text-white"}`}>{value}</strong>
-    <span class="text-[9px] font-black tracking-wider text-zinc-500">{label}</span>
+  return <div class={`rounded-lg border px-2 py-2 ${warn ? "border-virya-danger/30 bg-virya-danger/10" : "border-virya-edge bg-virya-surface/80"}`}>
+    <strong class={`block text-lg ${warn ? "text-rose-200" : "text-virya-text"}`}>{value}</strong>
+    <span class="text-[9px] font-black tracking-wider text-virya-muted">{label}</span>
   </div>
 }

@@ -11,6 +11,26 @@ import type {
 } from "../../../types/audience"
 import { staffApi, type StaffApiError } from "./staffApi"
 import { ConfirmButton } from "./AdminConsoleUi"
+import {
+  staffAccentButton,
+  staffBadge,
+  staffBadgeSuccess,
+  staffEyebrow,
+  staffEyebrowAccent,
+  staffMetricLabel,
+  staffMetricTile,
+  staffMetricValue,
+  staffNoticeBase,
+  staffNoticeTones,
+  staffPanel,
+  staffPanelInset,
+  staffSecondaryButton,
+  staffSubtitle,
+  staffTabActive,
+  staffTabHint,
+  staffTab,
+  staffTabLabel,
+} from "./staffUi"
 
 type Pane = "fans" | "segments" | "campaigns" | "analytics"
 type RequestError = StaffApiError
@@ -139,20 +159,20 @@ export default function AudienceIntelligence() {
   )
 
   if (loading && !dashboard) {
-    return <Panel><p class="text-sm text-zinc-400">Ładuję Audience Intelligence…</p></Panel>
+    return <Panel><p class="text-sm text-virya-muted">Ładuję Audience Intelligence…</p></Panel>
   }
 
   return (
     <div class="grid gap-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p class="text-[10px] font-black uppercase tracking-[.28em] text-cyan-300">Audience Intelligence</p>
-          <h2 class="mt-1 text-2xl font-black text-white">Relacja z fanem, nie licznik followersów</h2>
-          <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+          <p class={staffEyebrowAccent}>Audience Intelligence</p>
+          <h2 class="mt-1 text-2xl font-black text-virya-text">Relacja z fanem, nie licznik followersów</h2>
+          <p class={`mt-2 max-w-3xl ${staffSubtitle}`}>
             Wszystko o fanie w jednym miejscu: pozyskanie, zainteresowanie koncertami, bilety, wejścia, polecenia, nagrody i Synesthesia.
           </p>
         </div>
-        <button type="button" disabled={busy} onClick={() => void refresh()} class="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50">
+        <button type="button" disabled={busy} onClick={() => void refresh()} class={staffSecondaryButton}>
           {busy ? "Pracuję…" : "Odśwież"}
         </button>
       </div>
@@ -184,16 +204,16 @@ export default function AudienceIntelligence() {
         <Metric label="Segmenty" value={dashboard?.segments.length ?? 0} />
       </div>
 
-      <nav class="grid grid-cols-2 gap-2 rounded-lg border border-white/10 bg-black/30 p-2 sm:grid-cols-4">
+      <nav class="grid grid-cols-2 gap-2 rounded-lg border border-virya-edge bg-virya-bg/70 p-2 sm:grid-cols-4">
         {([
           ["fans", "Fani", "Fan 360"],
           ["segments", "Segmenty", "kogo znamy"],
           ["campaigns", "Kampanie", "co wysyłamy"],
           ["analytics", "Analityka", "co działa"],
         ] as const).map(([key, label, hint]) => (
-          <button type="button" key={key} onClick={() => setPane(key)} class={`rounded-xl px-3 py-3 text-left ${pane === key ? "bg-cyan-300 text-zinc-950" : "text-zinc-300 hover:bg-white/10"}`}>
-            <strong class="block text-sm">{label}</strong>
-            <span class={`mt-1 block text-[11px] ${pane === key ? "text-zinc-700" : "text-zinc-500"}`}>{hint}</span>
+          <button type="button" key={key} onClick={() => setPane(key)} class={pane === key ? staffTabActive : staffTab}>
+            <strong class={staffTabLabel}>{label}</strong>
+            <span class={staffTabHint}>{hint}</span>
           </button>
         ))}
       </nav>
@@ -248,20 +268,20 @@ function FansPane(props: {
           <input value={props.city} onInput={event => props.setCity(event.currentTarget.value)} placeholder="miasto, np. wroclaw" class={inputClass} />
           <button type="submit" disabled={props.busy} class={primaryButton}>Filtruj</button>
         </form>
-        <div class="mt-4 divide-y divide-white/5">
+        <div class="mt-4 divide-y divide-virya-edge/60">
           {props.fans.map(fan => (
             <button type="button" key={fan.id} onClick={() => void props.openFan(fan)} class="grid w-full grid-cols-[1fr_auto] gap-3 px-2 py-4 text-left hover:bg-white/[.035]">
               <span class="min-w-0">
-                <strong class="block truncate text-sm text-white">{fan.display_name || fan.email}</strong>
-                <span class="mt-1 block truncate text-xs text-zinc-500">{fan.email}</span>
-                <span class="mt-2 block text-[11px] text-zinc-500">
+                <strong class="block truncate text-sm text-virya-text">{fan.display_name || fan.email}</strong>
+                <span class="mt-1 block truncate text-xs text-virya-muted">{fan.email}</span>
+                <span class="mt-2 block text-[11px] text-virya-muted">
                   eventy {fan.event_interests} · wejścia {fan.attended_events} · bilety {fan.paid_ticket_orders} · ref {fan.qualified_referrals}
                 </span>
               </span>
-              <span class={`self-start rounded-full px-2 py-1 text-[10px] font-black uppercase ${fan.status === "active" ? "bg-emerald-400/15 text-emerald-300" : "bg-white/10 text-zinc-400"}`}>{fan.status}</span>
+              <span class={`self-start ${fan.status === "active" ? staffBadgeSuccess : staffBadge}`}>{fan.status}</span>
             </button>
           ))}
-          {!props.fans.length && <p class="py-8 text-center text-sm text-zinc-500">Brak fanów dla tego filtra.</p>}
+          {!props.fans.length && <p class="py-8 text-center text-sm text-virya-muted">Brak fanów dla tego filtra.</p>}
         </div>
       </Panel>
       <FanDetailPane detail={props.selected} close={props.closeFan} reload={props.reloadFan} />
@@ -273,7 +293,7 @@ function FanDetailPane({ detail, close, reload }: { detail: AudienceFanDetail | 
   const [tag, setTag] = useState("")
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
-  if (!detail) return <Panel><p class="text-sm text-zinc-500">Wybierz fana, żeby otworzyć Fan 360.</p></Panel>
+  if (!detail) return <Panel><p class="text-sm text-virya-muted">Wybierz fana, żeby otworzyć Fan 360.</p></Panel>
   const mutateTag = async (value: string, remove = false) => {
     if (!value || busy) return
     setBusy(true); setMessage("")
@@ -295,11 +315,11 @@ function FanDetailPane({ detail, close, reload }: { detail: AudienceFanDetail | 
     <Panel>
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-[10px] font-black uppercase tracking-[.24em] text-cyan-300">Fan 360</p>
-          <h3 class="mt-1 truncate text-xl font-black text-white">{detail.fan.display_name || detail.fan.email}</h3>
-          <p class="mt-1 truncate text-xs text-zinc-500">{detail.fan.email}</p>
+          <p class={staffEyebrowAccent}>Fan 360</p>
+          <h3 class="mt-1 truncate text-xl font-black text-virya-text">{detail.fan.display_name || detail.fan.email}</h3>
+          <p class="mt-1 truncate text-xs text-virya-muted">{detail.fan.email}</p>
         </div>
-        <button type="button" onClick={close} class="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-zinc-300">Zamknij</button>
+        <button type="button" onClick={close} class={staffSecondaryButton}>Zamknij</button>
       </div>
       <div class="mt-4 flex flex-wrap gap-2">
         {detail.tags.map(value => (
@@ -312,7 +332,7 @@ function FanDetailPane({ detail, close, reload }: { detail: AudienceFanDetail | 
         <input value={tag} onInput={event => setTag(event.currentTarget.value)} placeholder="tag, np. ambassador" class={`${inputClass} min-w-0 flex-1`} />
         <button type="submit" disabled={busy || !tag.trim()} class={secondaryButton}>Dodaj</button>
       </form>
-      {message && <p class="mt-2 text-xs text-rose-300">{message}</p>}
+      {message && <p class="mt-2 text-xs text-rose-200">{message}</p>}
       <Timeline title="Pozyskanie" rows={detail.acquisitions.map(item => ({ title: item.source, meta: item.campaign_name || "bez kampanii", date: item.occurred_at }))} />
       <Timeline title="Koncerty" rows={detail.event_interests.map(item => ({ title: item.event_title, meta: "zainteresowanie", date: item.created_at }))} />
       <Timeline title="Wejścia" rows={detail.attendance.map(item => ({ title: item.event_title, meta: item.status, date: item.redeemed_at }))} />
@@ -353,7 +373,7 @@ function SegmentsPane({ dashboard, reload }: { dashboard: AudienceDashboard | nu
   return (
     <div class="grid gap-5 xl:grid-cols-[.85fr_1.15fr]">
       <Panel>
-        <h3 class="text-lg font-black text-white">Nowy segment</h3>
+        <h3 class="text-lg font-black text-virya-text">Nowy segment</h3>
         <form onSubmit={create} class="mt-4 grid gap-3">
           <input required value={name} onInput={event => setName(event.currentTarget.value)} placeholder="Nazwa, np. Gorzów — zainteresowani" class={inputClass} />
           <input required value={slug} onInput={event => setSlug(event.currentTarget.value.replace(/[^a-zA-Z0-9_-]/g, "-").toLowerCase())} placeholder="slug" class={inputClass} />
@@ -363,27 +383,27 @@ function SegmentsPane({ dashboard, reload }: { dashboard: AudienceDashboard | nu
           <label class={labelClass}>Synesthesia<select value={synesthesia} onChange={event => setSynesthesia(event.currentTarget.value as typeof synesthesia)} class={inputClass}><option value="any">dowolnie</option><option value="yes">ukończona</option><option value="no">nieukończona</option></select></label>
           <label class={labelClass}>Zgoda na wiadomości<select value={consent} onChange={event => setConsent(event.currentTarget.value as typeof consent)} class={inputClass}><option value="yes">tak</option><option value="any">dowolnie</option><option value="no">nie</option></select></label>
           <button type="submit" disabled={busy || !slug || !name} class={primaryButton}>{busy ? "Zapisuję…" : "Utwórz segment"}</button>
-          {message && <p class="text-xs text-rose-300">{message}</p>}
+          {message && <p class="text-xs text-rose-200">{message}</p>}
         </form>
       </Panel>
       <Panel>
-        <h3 class="text-lg font-black text-white">Segmenty</h3>
+        <h3 class="text-lg font-black text-virya-text">Segmenty</h3>
         <div class="mt-3 grid gap-3">
           {(dashboard?.segments ?? []).map(segment => (
-            <div key={segment.id} class="rounded-lg border border-white/8 bg-black/25 p-4">
+            <div key={segment.id} class={staffPanelInset}>
               <div class="flex flex-wrap items-start justify-between gap-3">
-                <div><strong class="text-sm text-white">{segment.name}</strong><p class="mt-1 text-xs text-zinc-500">{segment.slug}</p></div>
+                <div><strong class="text-sm text-virya-text">{segment.name}</strong><p class="mt-1 text-xs text-virya-muted">{segment.slug}</p></div>
                 <button type="button" onClick={async () => { setBusy(true); try { setPreview(await request<SegmentPreview>(`/api/staff/admin/audience/segments/${encodeURIComponent(segment.slug)}/preview?limit=20`)) } finally { setBusy(false) } }} class={secondaryButton}>Podgląd</button>
               </div>
-              <p class="mt-3 break-words text-[11px] leading-5 text-zinc-500">{JSON.stringify(segment.filter)}</p>
+              <p class="mt-3 break-words text-[11px] leading-5 text-virya-muted">{JSON.stringify(segment.filter)}</p>
             </div>
           ))}
-          {!(dashboard?.segments.length) && <p class="text-sm text-zinc-500">Nie ma jeszcze segmentów.</p>}
+          {!(dashboard?.segments.length) && <p class="text-sm text-virya-muted">Nie ma jeszcze segmentów.</p>}
         </div>
         {preview && (
-          <div class="mt-5 rounded-lg border border-cyan-300/20 bg-cyan-300/[.05] p-4">
-            <strong class="text-sm text-cyan-100">{preview.segment.name}: {preview.total} fanów</strong>
-            <div class="mt-3 grid gap-2">{preview.sample.map(fan => <span key={fan.id} class="truncate text-xs text-zinc-400">{fan.display_name || fan.email}</span>)}</div>
+          <div class="mt-5 rounded-lg border border-virya-signal/20 bg-virya-signal/[.05] p-4">
+            <strong class="text-sm text-virya-hot">{preview.segment.name}: {preview.total} fanów</strong>
+            <div class="mt-3 grid gap-2">{preview.sample.map(fan => <span key={fan.id} class="truncate text-xs text-virya-muted">{fan.display_name || fan.email}</span>)}</div>
           </div>
         )}
       </Panel>
@@ -439,7 +459,7 @@ function CampaignsPane({ campaigns, dashboard, reload }: { campaigns: Communicat
   return (
     <div class="grid gap-5 xl:grid-cols-[.85fr_1.15fr]">
       <Panel>
-        <h3 class="text-lg font-black text-white">Nowy draft</h3>
+        <h3 class="text-lg font-black text-virya-text">Nowy draft</h3>
         <form onSubmit={create} class="mt-4 grid gap-3">
           <input required value={name} onInput={event => setName(event.currentTarget.value)} placeholder="Nazwa kampanii" class={inputClass} />
           <input required value={slug} onInput={event => setSlug(event.currentTarget.value.replace(/[^a-zA-Z0-9_-]/g, "-").toLowerCase())} placeholder="slug" class={inputClass} />
@@ -448,16 +468,16 @@ function CampaignsPane({ campaigns, dashboard, reload }: { campaigns: Communicat
           <input required value={template} onInput={event => setTemplate(event.currentTarget.value)} placeholder="szablon wiadomości" class={inputClass} />
           <input value={subject} onInput={event => setSubject(event.currentTarget.value)} placeholder="temat (email)" class={inputClass} />
           <button type="submit" disabled={busy || !name || !slug || !segment || !template} class={primaryButton}>{busy ? "Zapisuję…" : "Utwórz draft"}</button>
-          {message && <p class="text-xs text-rose-300">{message}</p>}
+          {message && <p class="text-xs text-rose-200">{message}</p>}
         </form>
       </Panel>
       <Panel>
-        <h3 class="text-lg font-black text-white">Kampanie</h3>
+        <h3 class="text-lg font-black text-virya-text">Kampanie</h3>
         <div class="mt-3 grid gap-3">
           {campaigns.map(campaign => (
-            <div key={campaign.id} class="rounded-lg border border-white/8 bg-black/25 p-4">
-              <div class="flex flex-wrap items-start justify-between gap-3"><div><strong class="text-sm text-white">{campaign.name}</strong><p class="mt-1 text-xs text-zinc-500">{campaign.channel} · {campaign.segment_slug} · {campaign.status}</p></div><span class="text-[11px] text-zinc-500">{time(campaign.scheduled_at)}</span></div>
-              {campaign.status === "completed" && <p class="mt-3 text-xs text-zinc-400">dostarczono {campaign.delivered_count ?? 0}/{campaign.recipient_count ?? 0} · błędy {campaign.failed_count ?? 0}</p>}
+            <div key={campaign.id} class={staffPanelInset}>
+              <div class="flex flex-wrap items-start justify-between gap-3"><div><strong class="text-sm text-virya-text">{campaign.name}</strong><p class="mt-1 text-xs text-virya-muted">{campaign.channel} · {campaign.segment_slug} · {campaign.status}</p></div><span class="text-[11px] text-virya-muted">{time(campaign.scheduled_at)}</span></div>
+              {campaign.status === "completed" && <p class="mt-3 text-xs text-virya-muted">dostarczono {campaign.delivered_count ?? 0}/{campaign.recipient_count ?? 0} · błędy {campaign.failed_count ?? 0}</p>}
               {campaign.status === "draft" && (scheduleTarget === campaign.id ? (
                 <div class="mt-3 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
                   <input type="datetime-local" value={scheduleAt} min={localInput(new Date().toISOString())} onInput={event => setScheduleAt(event.currentTarget.value)} class={inputClass} />
@@ -470,7 +490,7 @@ function CampaignsPane({ campaigns, dashboard, reload }: { campaigns: Communicat
               {campaign.status === "scheduled" && <div class="mt-3"><button type="button" disabled={busy} onClick={() => void cancel(campaign)} class={secondaryButton}>Anuluj przed wysyłką</button></div>}
             </div>
           ))}
-          {!campaigns.length && <p class="text-sm text-zinc-500">Brak kampanii.</p>}
+          {!campaigns.length && <p class="text-sm text-virya-muted">Brak kampanii.</p>}
         </div>
       </Panel>
     </div>
@@ -481,25 +501,25 @@ function AnalyticsPane({ dashboard }: { dashboard: AudienceDashboard | null }) {
   return (
     <div class="grid gap-5 xl:grid-cols-2">
       <Panel>
-        <h3 class="text-lg font-black text-white">Funnel wg źródła</h3>
+        <h3 class="text-lg font-black text-virya-text">Funnel wg źródła</h3>
         <div class="mt-4 grid gap-3">
           {(dashboard?.funnel ?? []).map(row => (
-            <div key={row.source} class="rounded-lg border border-white/8 bg-black/25 p-4">
-              <strong class="text-sm text-white">{row.source}</strong>
+            <div key={row.source} class={staffPanelInset}>
+              <strong class="text-sm text-virya-text">{row.source}</strong>
               <div class="mt-3 grid grid-cols-4 gap-2 text-center text-[11px]"><Small label="pozyskani" value={row.acquired_fans} /><Small label="aktywni" value={row.active_fans} /><Small label="kupili" value={row.ticket_buyers} /><Small label="przyszli" value={row.attendees} /></div>
             </div>
           ))}
-          {!(dashboard?.funnel.length) && <p class="text-sm text-zinc-500">Jeszcze brak danych funnel.</p>}
+          {!(dashboard?.funnel.length) && <p class="text-sm text-virya-muted">Jeszcze brak danych funnel.</p>}
         </div>
       </Panel>
       <Panel>
-        <h3 class="text-lg font-black text-white">Przychód biletowy</h3>
-        <p class="mt-1 text-xs text-zinc-500">Waluty są rozdzielone — panel nie sumuje ich bez kursu.</p>
+        <h3 class="text-lg font-black text-virya-text">Przychód biletowy</h3>
+        <p class="mt-1 text-xs text-virya-muted">Waluty są rozdzielone — panel nie sumuje ich bez kursu.</p>
         <div class="mt-4 grid gap-3">
           {(dashboard?.revenue ?? []).map(row => (
-            <div key={row.currency} class="rounded-lg border border-white/8 bg-black/25 p-4"><div class="flex items-end justify-between gap-3"><div><strong class="text-2xl font-black text-white">{money(row.after_refunds_minor, row.currency)}</strong><p class="mt-1 text-xs text-zinc-500">po refundach · {row.paid_orders} zamówień</p></div><span class="text-xs text-zinc-500">refund {money(row.refunded_minor, row.currency)}</span></div></div>
+            <div key={row.currency} class={staffPanelInset}><div class="flex items-end justify-between gap-3"><div><strong class="text-2xl font-black text-virya-text">{money(row.after_refunds_minor, row.currency)}</strong><p class="mt-1 text-xs text-virya-muted">po refundach · {row.paid_orders} zamówień</p></div><span class="text-xs text-virya-muted">refund {money(row.refunded_minor, row.currency)}</span></div></div>
           ))}
-          {!(dashboard?.revenue.length) && <p class="text-sm text-zinc-500">Jeszcze brak płatnych zamówień.</p>}
+          {!(dashboard?.revenue.length) && <p class="text-sm text-virya-muted">Jeszcze brak płatnych zamówień.</p>}
         </div>
       </Panel>
     </div>
@@ -508,23 +528,23 @@ function AnalyticsPane({ dashboard }: { dashboard: AudienceDashboard | null }) {
 
 function Timeline({ title, rows }: { title: string; rows: Array<{ title: string; meta: string; date: string | null }> }) {
   if (!rows.length) return null
-  return <section class="mt-5"><h4 class="text-[10px] font-black uppercase tracking-[.22em] text-zinc-500">{title}</h4><div class="mt-2 grid gap-2">{rows.slice(0, 8).map((row, index) => <div key={`${row.title}-${row.date}-${index}`} class="grid grid-cols-[1fr_auto] gap-3 text-xs"><span class="min-w-0"><strong class="block truncate text-zinc-200">{row.title}</strong><span class="block truncate text-zinc-500">{row.meta}</span></span><time class="text-right text-[10px] text-zinc-600">{time(row.date)}</time></div>)}</div></section>
+  return <section class="mt-5"><h4 class={staffEyebrow}>{title}</h4><div class="mt-2 grid gap-2">{rows.slice(0, 8).map((row, index) => <div key={`${row.title}-${row.date}-${index}`} class="grid grid-cols-[1fr_auto] gap-3 text-xs"><span class="min-w-0"><strong class="block truncate text-virya-text">{row.title}</strong><span class="block truncate text-virya-muted">{row.meta}</span></span><time class="text-right text-[10px] text-virya-muted">{time(row.date)}</time></div>)}</div></section>
 }
 
 function Panel({ children }: { children: ComponentChildren }) {
-  return <section class="rounded-xl border border-white/10 bg-zinc-900/70 p-5 sm:p-6">{children}</section>
+  return <section class={`${staffPanel} sm:p-6`}>{children}</section>
 }
 function Metric({ label, value }: { label: string; value: number }) {
-  return <div class="rounded-lg border border-white/10 bg-zinc-900/70 p-4"><span class="text-[10px] font-bold uppercase tracking-[.18em] text-zinc-500">{label}</span><strong class="mt-2 block text-2xl font-black text-white">{new Intl.NumberFormat("pl-PL").format(value)}</strong></div>
+  return <div class={staffMetricTile}><span class={staffMetricLabel}>{label}</span><strong class={`block ${staffMetricValue}`}>{new Intl.NumberFormat("pl-PL").format(value)}</strong></div>
 }
 function Small({ label, value }: { label: string; value: number }) {
-  return <span><strong class="block text-sm text-white">{value}</strong><span class="text-zinc-600">{label}</span></span>
+  return <span><strong class="block text-sm text-virya-text">{value}</strong><span class="text-virya-muted">{label}</span></span>
 }
 function Notice({ children, tone }: { children: ComponentChildren; tone: "warn" | "safe" }) {
-  return <div role="status" class={`rounded-lg border px-4 py-3 text-sm leading-6 ${tone === "warn" ? "border-amber-300/30 bg-amber-300/10 text-amber-100" : "border-emerald-400/20 bg-emerald-400/[.07] text-emerald-100"}`}>{children}</div>
+  return <div role="status" class={`${staffNoticeBase} ${tone === "warn" ? staffNoticeTones.warn : staffNoticeTones.success}`}>{children}</div>
 }
 
-const inputClass = "w-full rounded-xl border border-white/10 bg-black/40 px-3 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300/60"
-const labelClass = "grid gap-1 text-xs font-bold text-zinc-400"
-const primaryButton = "rounded-xl bg-cyan-300 px-4 py-3 text-sm font-black text-zinc-950 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
-const secondaryButton = "rounded-xl border border-white/15 px-4 py-2.5 text-sm font-bold text-zinc-200 hover:bg-white/10 disabled:opacity-40"
+const inputClass = "input"
+const labelClass = "grid gap-1 text-xs font-bold text-virya-muted"
+const primaryButton = staffAccentButton
+const secondaryButton = staffSecondaryButton
