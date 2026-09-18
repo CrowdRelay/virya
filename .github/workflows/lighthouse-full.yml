@@ -45,15 +45,13 @@ jobs:
 
       - name: Install Chromium for Lighthouse
         # Same mechanism as lighthouse.yml — Playwright ships linux/arm64
-        # chromium and chrome-launcher honors CHROME_PATH.
+        # chromium and chrome-launcher honors CHROME_PATH. Full chrome binary
+        # only: headless_shell hits a zygote sandbox fatal on this box.
         run: |
           set -euo pipefail
           npm --prefix "${RUNNER_TEMP}/pw" install --no-audit --no-fund playwright@1.49.1
           "${RUNNER_TEMP}/pw/node_modules/.bin/playwright" install --with-deps chromium
-          chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/headless_shell' | head -1)"
-          if [ -z "${chrome_path}" ]; then
-            chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/chrome' | head -1)"
-          fi
+          chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/chrome' | head -1)"
           test -x "${chrome_path}"
           echo "CHROME_PATH=${chrome_path}" >> "${GITHUB_ENV}"
 

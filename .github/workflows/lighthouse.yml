@@ -44,17 +44,14 @@ jobs:
 
       - name: Install Chromium for Lighthouse
         # The ARM runner has no system Chrome; Playwright ships linux/arm64
-        # chromium builds, and chrome-launcher honors CHROME_PATH. Prefer
-        # headless_shell over the full browser — Lighthouse runs headless
-        # anyway and the shell needs markedly less RAM on this 2-core box.
+        # chromium builds, and chrome-launcher honors CHROME_PATH. Use the
+        # full chrome binary — headless_shell dies on this box with a zygote
+        # "No usable sandbox" fatal even with --no-sandbox.
         run: |
           set -euo pipefail
           npm --prefix "${RUNNER_TEMP}/pw" install --no-audit --no-fund playwright@1.49.1
           "${RUNNER_TEMP}/pw/node_modules/.bin/playwright" install --with-deps chromium
-          chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/headless_shell' | head -1)"
-          if [ -z "${chrome_path}" ]; then
-            chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/chrome' | head -1)"
-          fi
+          chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/chrome' | head -1)"
           test -x "${chrome_path}"
           echo "CHROME_PATH=${chrome_path}" >> "${GITHUB_ENV}"
 
