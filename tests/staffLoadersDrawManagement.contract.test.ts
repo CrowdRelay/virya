@@ -9,6 +9,7 @@ test("standalone staff tabs use the same scoped backend loader as Control Center
   const accounting = read("src/components/preact/staff/AccountingManager.tsx")
   const commerce = read("src/components/preact/staff/StaffCommerceManager.tsx")
   const loader = read("src/components/preact/staff/BackendLoader.tsx")
+  const staffUi = read("src/components/preact/staff/staffUi.ts")
 
   for (const [source, label] of [
     [qr, "Pobieram koncerty, kampanie QR i bramkę"],
@@ -19,7 +20,11 @@ test("standalone staff tabs use the same scoped backend loader as Control Center
     assert.ok(source.includes(label), `missing loader label: ${label}`)
     assert.match(source, /overlay/)
   }
-  assert.match(loader, /animate-pulse/)
+  // The pulse moved into the shared staffSkeleton/staffSkeletonBlock tokens —
+  // BackendLoader must use them, and the tokens must carry the animation.
+  assert.match(loader, /staffSkeleton/)
+  assert.match(staffUi, /staffSkeleton\s*=\s*"[^"]*animate-pulse/)
+  assert.match(staffUi, /staffSkeletonBlock\s*=\s*"[^"]*animate-pulse/)
 })
 
 test("staff commerce manages every draw and only exposes fail-closed deletion", () => {

@@ -12,6 +12,7 @@ const ui = [
 ].map(read).join("\n")
 const route = read("src/pages/api/staff/admin/signal/overview.ts")
 const loader = read("src/components/preact/staff/BackendLoader.tsx")
+const staffUi = read("src/components/preact/staff/staffUi.ts")
 
 test("admin panel exposes a dedicated aggregate-only Signal tab", () => {
   for (const marker of [
@@ -42,6 +43,9 @@ test("backend-backed admin sections expose scoped loading overlays", () => {
   ]) {
     assert.ok(ui.includes(marker), `missing admin loading marker: ${marker}`)
   }
-  assert.match(loader, /animate-pulse/)
+  // The pulse lives in the shared staffSkeleton tokens now — assert the
+  // loader uses them and the tokens still carry the animation.
+  assert.match(loader, /staffSkeleton/)
+  assert.match(staffUi, /staffSkeleton\s*=\s*"[^"]*animate-pulse/)
   assert.match(loader, /role="status"/)
 })

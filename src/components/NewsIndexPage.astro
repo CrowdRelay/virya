@@ -3,14 +3,17 @@ import Layout from "./Layout.astro"
 import Navbar from "./Navbar.astro"
 import Footer from "./Footer.astro"
 import ScrollToTop from "./ScrollToTop.astro"
+import BlurImage from "./BlurImage.astro"
 import { t, lp } from "../i18n/t"
 import { newsPosts, formatNewsDate, type NewsLang } from "../data/news"
 import { getSeoTags } from "../utils/seo"
+import rawDims from "../imageDimensions.json"
 
 interface Props {
   lang: NewsLang
 }
 
+const dims = rawDims as Record<string, { w: number; h: number }>
 const { lang } = Astro.props
 const isPl = lang === "pl"
 const { canonicalUrl, hreflangLinks } = getSeoTags("/news/", lang)
@@ -42,9 +45,12 @@ const description = isPl
             <article class="group overflow-hidden border border-zinc-800 bg-zinc-900/35 transition-colors hover:border-zinc-700">
               <a href={lp(lang, `/news/${post.slug}/`)} class="grid lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
                 <div class={`overflow-hidden bg-zinc-900 ${index === 0 ? "lg:min-h-80" : "lg:min-h-64"}`}>
-                  <img
+                  <BlurImage
                     src={post.image}
                     alt={post.imageAlt[lang]}
+                    width={dims[post.image]?.w || 1200}
+                    height={dims[post.image]?.h || 675}
+                    sizes="(max-width: 1023px) calc(100vw - 3rem), 420px"
                     loading={index === 0 ? "eager" : "lazy"}
                     fetchpriority={index === 0 ? "high" : "auto"}
                     class="h-full min-h-56 w-full object-cover transition duration-500 group-hover:scale-[1.015]"

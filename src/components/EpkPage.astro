@@ -106,7 +106,7 @@ const members = [
               <ul class="mt-6 divide-y divide-zinc-800/70 border-y border-zinc-800/70">
                 {items.map(item => (
                   <li class="grid grid-cols-[64px_1fr_auto] items-center gap-4 py-4">
-                    <img src={`/covers/${item.src}`} alt={item.alt} width="64" height="64" loading="lazy" class="h-16 w-16 object-cover" />
+                    <img src={`/covers/${item.src}`} alt="" width="64" height="64" loading="lazy" class="h-16 w-16 object-cover" />
                     <div class="min-w-0">
                       <a href={lp(lang, `/music/${slugify(item.title)}/`)} class="font-bold text-zinc-100 transition-colors hover:text-amber-300">{item.title}</a>
                     </div>

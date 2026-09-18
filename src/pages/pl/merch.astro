@@ -16,7 +16,9 @@ const { canonicalUrl, hreflangLinks } = getSeoTags("/merch/", lang)
 const title = "Sklep | Virya"
 const description = "Oficjalny sklep Virya. Albumy, koszulki, torby — wszystko wysyłane do Paczkomatu InPost, z darmowymi naklejkami do każdego zamówienia."
 const firstProductImage = "/covers/echoes.webp"
-const productImageSizes = "(max-width: 1023px) calc((100vw - 4.5rem) / 2), 380px"
+// Must match the product grid's img `sizes` byte-for-byte — a mismatched
+// preload fetches a different srcset candidate than the LCP image picks.
+const productImageSizes = "(max-width: 519px) calc(100vw - 2.5rem), (max-width: 1023px) calc((100vw - 4.5rem) / 2), 380px"
 const firstProductSrcset = (responsiveSrcsets as Record<string, string>)[firstProductImage]
 ---
 

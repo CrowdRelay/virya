@@ -8,7 +8,6 @@ interface Props {
   appId?: string
 }
 const { lang = "en", size = "md", appId = "music.virya.signal" } = Astro.props
-const alt = lang === "pl" ? "Pobierz w Google Play" : "Get it on Google Play"
 const height = size === "sm" ? 40 : 48
 ---
 
@@ -17,7 +16,6 @@ const height = size === "sm" ? 40 : 48
   target="_blank"
   rel="noopener noreferrer"
   class="play-store-badge"
-  aria-label={alt}
   style={`--badge-h:${height}px`}
 >
   <svg viewBox="0 0 24 24" width={height * 0.85} height={height * 0.85} aria-hidden="true">

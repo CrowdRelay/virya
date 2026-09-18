@@ -25,7 +25,22 @@
   --color-cyan-200: #bddbd5;
   --color-cyan-300: #93c6c0;
   /* Two near-identical blacks (#09090b vs #070908) banded where footer
-     met body; route the neutral through the brand background instead. */
+     met body; route the neutral through the brand background instead.
+     The whole zinc ramp is virya-tinted — surfaces, borders and muted
+     text share the palette's green bias instead of the neutral default,
+     so ~700 call sites land on one ramp without markup churn. Luminance
+     matches the original scale step-for-step (muted text slightly
+     brighter — a contrast win on the near-black background). */
+  --color-zinc-50: #f6faf8;
+  --color-zinc-100: #eef4f1;
+  --color-zinc-200: #dce5e1;
+  --color-zinc-300: #ccd8d4;
+  --color-zinc-400: #98a5a0;
+  --color-zinc-500: #7d8f89;
+  --color-zinc-600: #55665f;
+  --color-zinc-700: #3a4744;
+  --color-zinc-800: #27322f;
+  --color-zinc-900: #101715;
   --color-zinc-950: #070908;
   /* Semantic virya palette as named utilities (bg-virya-surface,
      text-virya-muted, border-virya-edge…). The hexes are the single source;
@@ -195,7 +210,7 @@
   }
 
   .virya-eyebrow {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 850;
     line-height: 1.2;
     letter-spacing: 0.28em;

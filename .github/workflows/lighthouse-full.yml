@@ -1,23 +1,24 @@
-name: Lighthouse
+name: Lighthouse (full)
 
+# Full-route Lighthouse sweep: every prerendered page in dist/, once nightly
+# and on demand. The push gate (lighthouse.yml) covers a representative subset
+# at 3-run medians; this covers the long tail — lyrics/music/legal/PL mirrors —
+# at 1 run each so the whole surface stays honest without taxing every push.
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+  schedule:
+    - cron: "23 3 * * *" # 03:23 UTC — off-peak on the shared runner box
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
-  lighthouse:
-    name: Lighthouse guard
-    # Self-hosted ARM64: hosted x64 minutes are billed on private repos.
-    # The org runner is free, unlimited, and already runs every build.
+  lighthouse-full:
+    name: Lighthouse full sweep
     runs-on: [self-hosted, arm64, frontend]
-    # 14 representative routes × 3 runs ≈ 30 min on the shared ARM box.
-    timeout-minutes: 45
+    # ~70 routes × 1 run × ~45s on the ARM box ≈ 55 min; headroom for
+    # cold npm/playwright caches.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -43,8 +44,8 @@ jobs:
           VIRYA_SOURCE_SHA: ${{ github.sha }}
 
       - name: Install Chromium for Lighthouse
-        # The ARM runner has no system Chrome; Playwright ships linux/arm64
-        # chromium builds, and chrome-launcher honors CHROME_PATH.
+        # Same mechanism as lighthouse.yml — Playwright ships linux/arm64
+        # chromium and chrome-launcher honors CHROME_PATH.
         run: |
           set -euo pipefail
           npm --prefix "${RUNNER_TEMP}/pw" install --no-audit --no-fund playwright@1.49.1
@@ -53,15 +54,15 @@ jobs:
           test -x "${chrome_path}"
           echo "CHROME_PATH=${chrome_path}" >> "${GITHUB_ENV}"
 
-      - name: Run Lighthouse CI
-        # npx, not a devDependency: @lhci/cli drags deprecated transitives
-        # (tmp, uuid) that fail scripts/audit-dependencies.mjs. CI-only tool.
+      - name: Run Lighthouse CI (full matrix)
         run: npx --yes @lhci/cli@0.15.1 autorun
+        env:
+          LHCI_FULL: "1"
 
       - name: Upload Lighthouse report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: lighthouse-report
+          name: lighthouse-full-report
           path: .lighthouseci
           retention-days: 14
