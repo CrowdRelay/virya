@@ -45,7 +45,7 @@ const ogImage = new URL(post.image, VIRYA_SITE_ORIGIN).toString()
 
         <header class="mt-5 max-w-4xl">
           <div class="flex flex-wrap items-center gap-3">
-            <span class="border border-amber-400/40 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-amber-400">{post.tag[lang]}</span>
+            <span class="virya-badge virya-badge--signal">{post.tag[lang]}</span>
             <time datetime={post.publishedAt} class="text-[10px] uppercase tracking-widest text-zinc-500">{formatNewsDate(post.publishedAt, lang)}</time>
           </div>
           <h1 class="mt-5 text-4xl font-black uppercase leading-[0.98] tracking-tight text-white sm:text-5xl lg:text-6xl">{post.title[lang]}</h1>

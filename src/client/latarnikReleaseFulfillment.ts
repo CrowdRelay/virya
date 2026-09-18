@@ -113,7 +113,7 @@ export const renderLatarnikReleases = (
     product.textContent = [campaign.productName, campaign.variantLabel].filter(Boolean).join(" · ")
     title.append(heading, product)
     const badge = document.createElement("span")
-    badge.className = "border border-amber-400/40 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-amber-400"
+    badge.className = "virya-badge virya-badge--signal"
     badge.textContent = statusLabel(lang, campaign.recipientStatus)
     top.append(title, badge)
 

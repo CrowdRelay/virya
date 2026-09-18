@@ -2,6 +2,7 @@
 import { SIGNAL_COPY } from "../data/signalCopy"
 import { AREA_COPY } from "../data/areaCopy"
 import { lp, type Lang } from "../i18n/t"
+import SectionHeading from "./SectionHeading.astro"
 
 interface Props { lang?: Lang }
 const { lang = "en" } = Astro.props
@@ -20,9 +21,9 @@ const benefits = lang === "pl"
   <div class="virya-section__inner relative grid gap-10 lg:grid-cols-2 lg:gap-12 lg:divide-x lg:divide-zinc-800/60">
     {/* Signal block */}
     <div class="lg:pr-12">
-      <p class="virya-eyebrow">{signal.eyebrow}</p>
-      <h2 class="virya-heading mt-4">{signal.heading}</h2>
-      <p class="virya-copy mt-6 text-zinc-300">{signal.body}</p>
+      <SectionHeading eyebrow={signal.eyebrow} sub={signal.body} subClass="text-zinc-300">
+        {signal.heading}
+      </SectionHeading>
 
       <div class="mt-8 flex flex-wrap gap-3">
         <a href={lp(lang, "/signal/")} class="virya-button virya-button--primary">

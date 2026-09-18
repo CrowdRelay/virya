@@ -154,11 +154,9 @@ const schema = {
 
       <section class="virya-section signal-deferred border-t border-zinc-800/60">
         <div class="virya-section__inner grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div class="max-w-4xl">
-            <p class="virya-eyebrow">{copy.area.eyebrow}</p>
-            <h2 class="virya-heading mt-4">{copy.area.heading}</h2>
-            <p class="virya-copy mt-6 text-zinc-300">{copy.area.body}</p>
-          </div>
+          <SectionHeading eyebrow={copy.area.eyebrow} sub={copy.area.body} subClass="text-zinc-300" class="max-w-4xl">
+            {copy.area.heading}
+          </SectionHeading>
           <div class="flex flex-col gap-3 sm:flex-row lg:flex-col">
             <a href={lp(lang, "/area/")} class="virya-button virya-button--primary">{copy.area.cta}</a>
             <a href={lp(lang, "/merch/")} class="virya-button virya-button--secondary">{copy.area.merch}</a>

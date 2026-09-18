@@ -1,15 +1,18 @@
 ---
 // The eyebrow / heading / lede trio repeated on every public page — one
 // component keeps the spacing rhythm identical instead of hand-set mt-4/mt-6
-// per call site. Heading level and tone are caller's choice; the slot takes
-// markup so inline accents still work.
+// per call site. Optional pieces own their gaps (eyebrow mb-4, sub mt-6) so
+// nothing leaves a stray margin when absent. headingClass replaces the
+// default wholesale; *Class hooks are for tone utilities only — two
+// same-property utilities resolve by stylesheet order, not markup order.
 interface Props {
   eyebrow?: string
   eyebrowClass?: string
-  as?: "h1" | "h2" | "h3"
+  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6"
   headingClass?: string
   headingId?: string
   sub?: string
+  subClass?: string
   class?: string
 }
 const {
@@ -19,12 +22,13 @@ const {
   headingClass = "virya-heading",
   headingId,
   sub,
+  subClass = "",
   class: className = "",
 } = Astro.props
 ---
 
 <div class={className}>
-  {eyebrow && <p class={`virya-eyebrow ${eyebrowClass}`}>{eyebrow}</p>}
-  <Tag id={headingId} class={`${headingClass} mt-4`}><slot /></Tag>
-  {sub && <p class="virya-copy mt-6">{sub}</p>}
+  {eyebrow && <p class={`virya-eyebrow mb-4 ${eyebrowClass}`}>{eyebrow}</p>}
+  <Tag id={headingId} class={headingClass}><slot /></Tag>
+  {sub && <p class={`virya-copy mt-6 ${subClass}`}>{sub}</p>}
 </div>
