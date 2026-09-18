@@ -6,6 +6,7 @@ import ScrollToTop from "./ScrollToTop.astro"
 import SignalHub from "./preact/signal/SignalHub"
 import SynesthesiaLeaderboard from "./SynesthesiaLeaderboard.astro"
 import PlayStoreBadge from "./PlayStoreBadge.astro"
+import SectionHeading from "./SectionHeading.astro"
 import { SIGNAL_COPY } from "../data/signalCopy"
 import { getSeoTags } from "../utils/seo"
 import { lp, type Lang } from "../i18n/t"
@@ -129,12 +130,13 @@ const schema = {
 
       <section class="virya-section virya-surface" aria-labelledby="signal-benefits-heading">
         <div class="virya-section__inner">
-          <div class="max-w-4xl">
-            <p class="virya-eyebrow">{lang === "pl" ? "Po co Sygnał" : "Why Signal"}</p>
-            <h2 id="signal-benefits-heading" class="virya-heading mt-4">
-              {lang === "pl" ? "Jedna prosta relacja z zespołem" : "One simple connection to the band"}
-            </h2>
-          </div>
+          <SectionHeading
+            eyebrow={lang === "pl" ? "Po co Sygnał" : "Why Signal"}
+            headingId="signal-benefits-heading"
+            class="max-w-4xl"
+          >
+            {lang === "pl" ? "Jedna prosta relacja z zespołem" : "One simple connection to the band"}
+          </SectionHeading>
           <div class="mt-10 grid gap-px border-y border-zinc-800 bg-zinc-800 md:grid-cols-3">
             {benefits.map(item => (
               <article class="bg-zinc-950 px-5 py-7 sm:px-7 sm:py-8">

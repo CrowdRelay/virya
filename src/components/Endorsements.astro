@@ -2,6 +2,7 @@
 import type { Lang } from "../i18n/t"
 import { lp } from "../i18n/t"
 import { THOMANN_HOME_URL, thomannAffiliateUrl } from "../lib/thomann"
+import SectionHeading from "./SectionHeading.astro"
 
 interface Props {
   lang?: Lang
@@ -15,13 +16,15 @@ const thomannUrl = thomannAffiliateUrl(THOMANN_HOME_URL, "partners")
 
 <div class="virya-section border-t border-zinc-800/60">
   <div class="virya-section__inner">
-    <p class="virya-eyebrow">VIRYA // PARTNERS</p>
-    <h2 class="virya-heading mt-4">{isPl ? "Endorsementy i partnerzy" : "Endorsements & partners"}</h2>
-    <p class="virya-copy mt-5 mb-10">
-      {isPl
+    <SectionHeading
+      eyebrow="VIRYA // PARTNERS"
+      sub={isPl
         ? "Marki i partnerzy, którzy wspierają koncertowy ekosystem VIRYA"
         : "Brands and partners supporting the VIRYA live ecosystem"}
-    </p>
+      class="mb-10"
+    >
+      {isPl ? "Endorsementy i partnerzy" : "Endorsements & partners"}
+    </SectionHeading>
 
     <div class="grid gap-5">
       <a

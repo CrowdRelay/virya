@@ -58,14 +58,14 @@ const description = isPl
                 </div>
                 <div class="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
                   <div class="mb-4 flex flex-wrap items-center gap-3">
-                    <span class="border border-amber-400/40 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-amber-400">{post.tag[lang]}</span>
-                    <time datetime={post.publishedAt} class="text-[10px] uppercase tracking-widest text-zinc-400">{formatNewsDate(post.publishedAt, lang)}</time>
+                    <span class="virya-badge virya-badge--signal">{post.tag[lang]}</span>
+                    <time datetime={post.publishedAt} class="text-xs uppercase tracking-widest text-zinc-400">{formatNewsDate(post.publishedAt, lang)}</time>
                   </div>
                   <h2 class="text-2xl font-black uppercase tracking-tight text-zinc-100 transition-colors group-hover:text-amber-400 sm:text-3xl">
                     {post.title[lang]}
                   </h2>
                   <p class="mt-4 max-w-2xl text-sm leading-6 text-zinc-400">{post.excerpt[lang]}</p>
-                  <span class="mt-6 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-amber-400">
+                  <span class="mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400">
                     {t(lang, "news.readMore")}
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                   </span>

@@ -83,7 +83,7 @@ const windowLabel = (days: number) =>
           <p class="virya-eyebrow text-zinc-500">{t(lang, "proof.eyebrow")}</p>
           <h1 class="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">{card.act_name}</h1>
 
-          <p class={`mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs uppercase tracking-wider ${honest ? "border-emerald-700 text-emerald-300" : "border-amber-700 text-amber-300"}`}>
+          <p class={`mt-4 virya-badge virya-badge--pill ${honest ? "virya-badge--success" : "virya-badge--warn"}`}>
             {t(lang, verdictKey ?? "proof.gone")}
           </p>
 

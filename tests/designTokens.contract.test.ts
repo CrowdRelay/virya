@@ -104,8 +104,8 @@ test("design-token ratchet — markup stays inside the counted scales", () => {
   }
 
   ratchet("radiusVariants", radii.size, 7)
-  ratchet("textPxArbitrary", textPx, 340)
-  ratchet("arbitraryPxTotal", arbitraryPx, 499)
+  ratchet("textPxArbitrary", textPx, 337)
+  ratchet("arbitraryPxTotal", arbitraryPx, 496)
   ratchet("hexOutsideExempt", hex, 12)
   ratchet("buttonsMissingType", buttonsMissingType, 0)
   ratchet("shadowUtilities", shadows, 17)

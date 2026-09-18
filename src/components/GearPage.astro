@@ -8,6 +8,7 @@ import Layout from "./Layout.astro"
 import Navbar from "./Navbar.astro"
 import Footer from "./Footer.astro"
 import ScrollToTop from "./ScrollToTop.astro"
+import SectionHeading from "./SectionHeading.astro"
 
 interface Props {
   lang?: Lang
@@ -39,15 +40,16 @@ const gear = GEAR_ITEMS.map((item) => ({
     <main id="main-content" class="pt-24">
       <section class="virya-section border-b border-zinc-800/60">
         <div class="virya-section__inner">
-          <p class="virya-eyebrow">VIRYA // LIVE RIG</p>
-          <h1 class="virya-heading mt-4 max-w-4xl">
-            {isPl ? "Sprzęt, którego naprawdę używamy" : "Gear we actually use"}
-          </h1>
-          <p class="virya-copy mt-6 max-w-3xl">
-            {isPl
+          <SectionHeading
+            as="h1"
+            eyebrow="VIRYA // LIVE RIG"
+            headingClass="virya-heading max-w-4xl"
+            sub={isPl
               ? "Bez losowego katalogu i bez polecania rzeczy, których nie znamy. To elementy obecnego koncertowego setupu VIRYA oraz sprzęt zapasowy opisany w naszym riderze."
               : "No random catalogue and no recommendations for gear we do not know. These are pieces from the current VIRYA live setup and the fallback equipment listed in our rider."}
-          </p>
+          >
+            {isPl ? "Sprzęt, którego naprawdę używamy" : "Gear we actually use"}
+          </SectionHeading>
 
         </div>
       </section>
@@ -56,8 +58,7 @@ const gear = GEAR_ITEMS.map((item) => ({
         <div class="virya-section__inner">
           <div class="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p class="virya-eyebrow">VIRYA // GEAR</p>
-              <h2 class="virya-heading mt-4">{isPl ? "Koncertowy setup" : "Live setup"}</h2>
+              <SectionHeading eyebrow="VIRYA // GEAR">{isPl ? "Koncertowy setup" : "Live setup"}</SectionHeading>
             </div>
             <a
               href="/techrider.pdf"

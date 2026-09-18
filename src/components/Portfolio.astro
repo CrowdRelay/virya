@@ -2,6 +2,7 @@
 import { t, lp, type Lang } from "../i18n/t"
 import items from "./portfolio/items.json"
 import BlurImage from "./BlurImage.astro"
+import SectionHeading from "./SectionHeading.astro"
 
 interface Props {
   lang?: Lang
@@ -13,9 +14,9 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
 
 <div class="virya-section border-t border-zinc-800/60">
   <div class="virya-section__inner">
-    <p class="virya-eyebrow">VIRYA // MUSIC</p>
-    <h2 class="virya-heading mt-4">{t(lang, "music.heading")}</h2>
-    <p class="virya-copy mt-5 mb-10">{t(lang, "music.sub")}</p>
+    <SectionHeading eyebrow="VIRYA // MUSIC" sub={t(lang, "music.sub")} class="mb-10">
+      {t(lang, "music.heading")}
+    </SectionHeading>
 
     <div class="grid grid-cols-1 gap-1 overflow-hidden lg:grid-cols-3">
     {items.map((item) => {

@@ -1,5 +1,6 @@
 ---
 import BlurImage from "./BlurImage.astro"
+import SectionHeading from "./SectionHeading.astro"
 import { PRODUCTS } from "../data/products.js"
 import { lp, type Lang } from "../i18n/t"
 
@@ -13,15 +14,15 @@ const imageSrc = (src: string) => src.startsWith("/") ? src : `/images/${src}`
   <div class="virya-section__inner">
     <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
       <div>
-        <p class="virya-eyebrow">VIRYA // MERCH</p>
-        <h2 id="merch-teaser-heading" class="virya-heading mt-4">
-          {lang === "pl" ? "Rzeczy, które zabierasz z koncertu" : "Take a piece of the show with you"}
-        </h2>
-        <p class="virya-copy mt-5">
-          {lang === "pl"
+        <SectionHeading
+          eyebrow="VIRYA // MERCH"
+          headingId="merch-teaser-heading"
+          sub={lang === "pl"
             ? "Oficjalne wydania i merch VIRYA. Małe stany magazynowe, wysyłka z Polski i zero marketplace'owego plastiku."
             : "Official VIRYA releases and merch. Small inventory, shipped from Poland, without the marketplace feel."}
-        </p>
+        >
+          {lang === "pl" ? "Rzeczy, które zabierasz z koncertu" : "Take a piece of the show with you"}
+        </SectionHeading>
       </div>
       <a href={lp(lang, "/merch/")} class="virya-button virya-button--secondary">
         {lang === "pl" ? "Cały sklep" : "Full store"} <span aria-hidden="true">→</span>

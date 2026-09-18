@@ -395,6 +395,47 @@
     opacity: 0.5;
   }
 
+  /* Small uppercase tag/pill — one vocabulary for the scattered
+     `border px-2 py-1 text-[9px] uppercase` picks on public pages. Sizes
+     sit at the 12px legibility floor Lighthouse audits. */
+  .virya-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid var(--virya-border);
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--virya-text-muted);
+  }
+
+  .virya-badge--signal {
+    border-color: rgb(132 180 172 / 0.4);
+    color: var(--virya-signal-hot);
+  }
+
+  .virya-badge--success {
+    border-color: rgb(52 211 153 / 0.35);
+    color: var(--virya-success);
+  }
+
+  .virya-badge--warn {
+    border-color: rgb(251 191 36 / 0.35);
+    color: var(--virya-warning);
+  }
+
+  .virya-badge--danger {
+    border-color: rgb(251 113 133 / 0.35);
+    color: var(--virya-danger);
+  }
+
+  .virya-badge--pill {
+    border-radius: 9999px;
+  }
+
   .virya-live-card {
     position: relative;
     isolation: isolate;

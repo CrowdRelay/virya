@@ -1,0 +1,30 @@
+---
+// The eyebrow / heading / lede trio repeated on every public page — one
+// component keeps the spacing rhythm identical instead of hand-set mt-4/mt-6
+// per call site. Heading level and tone are caller's choice; the slot takes
+// markup so inline accents still work.
+interface Props {
+  eyebrow?: string
+  eyebrowClass?: string
+  as?: "h1" | "h2" | "h3"
+  headingClass?: string
+  headingId?: string
+  sub?: string
+  class?: string
+}
+const {
+  eyebrow,
+  eyebrowClass = "",
+  as: Tag = "h2",
+  headingClass = "virya-heading",
+  headingId,
+  sub,
+  class: className = "",
+} = Astro.props
+---
+
+<div class={className}>
+  {eyebrow && <p class={`virya-eyebrow ${eyebrowClass}`}>{eyebrow}</p>}
+  <Tag id={headingId} class={`${headingClass} mt-4`}><slot /></Tag>
+  {sub && <p class="virya-copy mt-6">{sub}</p>}
+</div>
