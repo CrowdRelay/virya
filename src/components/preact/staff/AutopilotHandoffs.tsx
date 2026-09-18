@@ -660,7 +660,7 @@ export default function AutopilotHandoffs({ feed }: { feed: AutopilotFeed }) {
         {items.map(item => (
           <article
             key={item.id}
-            class={`cursor-pointer ${staffRow} hover:border-virya-signal/40`}
+            class={`cursor-pointer ${staffRow}`}
             onClick={() => setSelected(item)}
             role="button"
             tabIndex={0}

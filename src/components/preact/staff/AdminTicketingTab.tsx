@@ -27,6 +27,7 @@ import {
   staffNoticeBase,
   staffNoticeTones,
   staffPanel,
+  staffPanelFlush,
   staffPanelInset,
   staffSecondaryButton,
   staffSubtitle,
@@ -589,7 +590,7 @@ export function OrderStatusBadge({ status }: { status: string }) {
 
 function RecentOrders({ orders }: { orders: RecentOrder[] }) {
   return (
-    <section class={`overflow-hidden ${staffPanel} p-0`}>
+    <section class={`overflow-hidden ${staffPanelFlush}`}>
       <div class="border-b border-virya-edge p-5 sm:p-6">
         <h3 class="text-lg font-black text-virya-text">Ostatnie zamówienia</h3>
         <p class="mt-1 text-sm text-virya-muted">

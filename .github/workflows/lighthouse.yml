@@ -44,19 +44,31 @@ jobs:
 
       - name: Install Chromium for Lighthouse
         # The ARM runner has no system Chrome; Playwright ships linux/arm64
-        # chromium builds, and chrome-launcher honors CHROME_PATH.
+        # chromium builds, and chrome-launcher honors CHROME_PATH. Prefer
+        # headless_shell over the full browser — Lighthouse runs headless
+        # anyway and the shell needs markedly less RAM on this 2-core box.
         run: |
           set -euo pipefail
           npm --prefix "${RUNNER_TEMP}/pw" install --no-audit --no-fund playwright@1.49.1
           "${RUNNER_TEMP}/pw/node_modules/.bin/playwright" install --with-deps chromium
-          chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/chrome' | head -1)"
+          chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/headless_shell' | head -1)"
+          if [ -z "${chrome_path}" ]; then
+            chrome_path="$(find "$HOME/.cache/ms-playwright" -type f -path '*chrome-linux/chrome' | head -1)"
+          fi
           test -x "${chrome_path}"
           echo "CHROME_PATH=${chrome_path}" >> "${GITHUB_ENV}"
 
       - name: Run Lighthouse CI
         # npx, not a devDependency: @lhci/cli drags deprecated transitives
         # (tmp, uuid) that fail scripts/audit-dependencies.mjs. CI-only tool.
-        run: npx --yes @lhci/cli@0.15.1 autorun
+        # Collect retries once: the box shares lanes with prod services and
+        # other runner jobs, so a Chrome launch occasionally starves and times
+        # out. Assert and upload run once on the collected reports — a real
+        # assertion failure should fail fast, not burn another 30 minutes.
+        run: |
+          npx --yes @lhci/cli@0.15.1 collect || npx --yes @lhci/cli@0.15.1 collect
+          npx --yes @lhci/cli@0.15.1 assert
+          npx --yes @lhci/cli@0.15.1 upload
 
       - name: Upload Lighthouse report
         if: always()

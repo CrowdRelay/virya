@@ -10,6 +10,7 @@ const ROUTES = globSync("**/index.html", { cwd: join(__dirname, "dist") })
 
 // Push-gate subset: one representative page per template family, bilingual.
 // The full matrix runs nightly via LHCI_FULL=1 (see lighthouse-full.yml).
+// No /live/ here — live/[slug] is SSR-only, so there is no live index in dist.
 const SUBSET = [
   "/",
   "/pl/",
@@ -17,7 +18,6 @@ const SUBSET = [
   "/pl/about/",
   "/epk/",
   "/news/",
-  "/live/",
   "/merch/",
   "/gallery/",
   "/videos/",

@@ -91,7 +91,7 @@ const coverSizes = "(max-width: 1023px) calc(100vw - 3rem), 220px"
                         href={`#track-${track.number}`}
                         class="track-link block text-xs text-zinc-400 hover:text-amber-400 transition-colors py-1.5 px-2 hover:bg-zinc-900/60 rounded"
                       >
-                        <span class="text-zinc-600 mr-2">{String(track.number).padStart(2, "0")}</span>
+                        <span class="text-zinc-400 mr-2">{String(track.number).padStart(2, "0")}</span>
                         {track.title}
                       </a>
                     </li>
@@ -106,19 +106,19 @@ const coverSizes = "(max-width: 1023px) calc(100vw - 3rem), 220px"
               <section id={`track-${track.number}`} class="scroll-mt-28">
                 {item.tracks.length > 1 && (
                   <div class="flex items-center gap-3 mb-6">
-                    <span class="text-[10px] font-bold text-zinc-600">{String(track.number).padStart(2, "0")}</span>
+                    <span class="text-[10px] font-bold text-zinc-400">{String(track.number).padStart(2, "0")}</span>
                     <h2 class="text-lg font-black uppercase tracking-tight text-zinc-100">{track.title}</h2>
                     <div class="flex-1 h-px bg-zinc-800" />
                   </div>
                 )}
                 {track.lyrics === "[ Instrumental ]" ? (
-                  <span class="inline-block text-[10px] font-bold uppercase tracking-widest text-zinc-600 border border-zinc-800 px-2 py-0.5">Instrumental</span>
+                  <span class="inline-block text-[10px] font-bold uppercase tracking-widest text-zinc-400 border border-zinc-800 px-2 py-0.5">Instrumental</span>
                 ) : track.lyrics ? (
                   <div class="font-mono text-sm leading-8 text-zinc-300 whitespace-pre-wrap selection:bg-amber-400/20">
                     {track.lyrics}
                   </div>
                 ) : (
-                  <p class="text-zinc-600 text-xs uppercase tracking-widest italic">{t(lang, "lyrics.soon")}</p>
+                  <p class="text-zinc-400 text-xs uppercase tracking-widest italic">{t(lang, "lyrics.soon")}</p>
                 )}
               </section>
             ))}

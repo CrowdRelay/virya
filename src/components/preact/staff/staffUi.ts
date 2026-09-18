@@ -17,6 +17,12 @@ export {
 export const staffPanel =
   "rounded-lg border border-virya-edge bg-virya-surface/80 p-5"
 
+/** Panel chrome with no padding — rows inside carry their own. Do NOT try to
+ *  get this by appending `p-0` to staffPanel: Tailwind emits p-0 before p-5 in
+ *  the stylesheet, so same-specificity cascade always lets p-5 win. */
+export const staffPanelFlush =
+  "rounded-lg border border-virya-edge bg-virya-surface/80"
+
 /** Nested surface inside a panel (rows, sub-groups, code blocks). */
 export const staffPanelInset =
   "rounded-lg border border-virya-edge bg-virya-bg/60 p-4"
@@ -92,7 +98,7 @@ export const staffTableCell = "py-3 pr-4 align-top text-virya-text"
 
 /** Row-level surface for dense lists (queue items, fans, orders). */
 export const staffRow =
-  "rounded-lg border border-virya-edge bg-virya-bg/60 p-4 transition-colors hover:border-zinc-600"
+  "rounded-lg border border-virya-edge bg-virya-bg/60 p-4 transition-colors hover:border-virya-signal/40"
 
 /** Armed state of a two-click confirm — warn tone at accent-button geometry.
  *  Composing staffAccentChip + warn overrides would put two bg/text colors in

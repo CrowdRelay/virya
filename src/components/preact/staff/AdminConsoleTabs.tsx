@@ -20,6 +20,7 @@ import {
   staffNoticeBase,
   staffNoticeTones,
   staffPanel,
+  staffPanelFlush,
   staffPanelInset,
   staffSecondaryButton,
   staffSubtitle,
@@ -80,7 +81,7 @@ export function OverviewTab({
 
       <AutopilotHandoffs feed={feed} />
 
-      <section class={`${staffPanel} p-0`}>
+      <section class={`${staffPanelFlush}`}>
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-virya-edge px-5 py-4">
           <div><h2 class="text-lg font-black text-virya-text">Nadchodzące</h2><p class="mt-1 text-sm text-virya-muted">Najważniejsze rzeczy przed kolejnymi koncertami.</p></div>
           <div class="flex gap-2">
@@ -366,7 +367,7 @@ export function SignalTab() {
         </section>
       </div>
 
-      <section class={`overflow-hidden ${staffPanel} p-0`}>
+      <section class={`overflow-hidden ${staffPanelFlush}`}>
         <div class="border-b border-virya-edge p-5 sm:p-6">
           <h3 class={staffTitle}>Najsilniejsze miasta</h3>
           <p class="mt-1 text-sm text-virya-muted">

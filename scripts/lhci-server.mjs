@@ -4,7 +4,7 @@
  * Serves dist/ (the prerendered public pages) with the same headers as
  * production so Best Practices audits (CSP, COOP, X-Frame-Options) measure
  * the real policy instead of a friendlier test double. Skipped audits in
- * lighthouserc.json: is-on-https and redirects-http (this is HTTP, not
+ * lighthouserc.cjs: is-on-https and redirects-http (this is HTTP, not
  * HTTPS), and errors-in-console — the public tenant-config fetch is
  * CORS-rejected from localhost, an artifact of the audit origin, not the page.
  *
