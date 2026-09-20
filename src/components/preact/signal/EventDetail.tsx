@@ -552,7 +552,17 @@ export default function EventDetail({
                       {lang === "pl" ? "Pula Virya" : "Virya allocation"}
                     </p>
                     <p class="mt-2 text-3xl font-black text-white">
-                      {ticketInventory.available}
+                      {ticketInventory.available === 0
+                        ? lang === "pl"
+                          ? "Wyprzedane"
+                          : "Sold out"
+                        : ticketInventory.availablePercent <= 20
+                          ? lang === "pl"
+                            ? "Ostatnie bilety"
+                            : "Last tickets"
+                          : lang === "pl"
+                            ? "Dostępne"
+                            : "Available"}
                     </p>
                   </div>
                   {lowestPrice != null && (
@@ -803,9 +813,13 @@ function lowestAvailablePrice(sale: TicketSaleOffer): number | null {
 function ticketStateLabel(sale: TicketSaleOffer, lang: Lang): string {
   if (sale.sales_state === "open") {
     const inventory = normalizeTicketInventory(sale)
-    return lang === "pl"
-      ? `${inventory.available} biletów dostępnych`
-      : `${inventory.available} tickets available`
+    if (inventory.available === 0) {
+      return lang === "pl" ? "Wyprzedane" : "Sold out"
+    }
+    if (inventory.availablePercent <= 20) {
+      return lang === "pl" ? "Ostatnie bilety" : "Last tickets"
+    }
+    return lang === "pl" ? "Bilety dostępne" : "Tickets available"
   }
   if (sale.sales_state === "upcoming") {
     return lang === "pl" ? "Sprzedaż wkrótce" : "Tickets on sale soon"

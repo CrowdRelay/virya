@@ -157,16 +157,31 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
     labels.opensNewTab ??
     (lang === "pl" ? "Otwiera się w nowej karcie" : "Opens in a new tab")
   const inventory = sale ? normalizeTicketInventory(sale) : null
+  const lowStock =
+    inventory != null &&
+    inventory.available > 0 &&
+    inventory.availablePercent <= 20
+  const availableLabel = lowStock
+    ? lang === "pl"
+      ? "ostatnie bilety"
+      : "last tickets"
+    : lang === "pl"
+      ? "bilety dostępne"
+      : "tickets available"
 
   const ticketStatus = sale
     ? sale.sales_state === "open"
       ? sale.from_price_gross_minor == null
         ? lang === "pl"
-          ? `${inventory?.available ?? sale.available} dostępnych`
-          : `${inventory?.available ?? sale.available} available`
+          ? lowStock
+            ? "Ostatnie bilety"
+            : "Bilety dostępne"
+          : lowStock
+            ? "Last tickets"
+            : "Tickets available"
         : lang === "pl"
-          ? `Od ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${inventory?.available ?? sale.available} dostępnych`
-          : `From ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${inventory?.available ?? sale.available} available`
+          ? `Od ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${availableLabel}`
+          : `From ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${availableLabel}`
       : sale.sales_state === "upcoming"
         ? lang === "pl"
           ? "Sprzedaż wkrótce"

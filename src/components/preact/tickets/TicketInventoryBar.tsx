@@ -20,12 +20,14 @@ const labels = {
     reserved: "W trakcie płatności",
     available: "Dostępne",
     low: "Ostatnie bilety",
+    soldOut: "Wyprzedane",
   },
   en: {
     sold: "Sold",
     reserved: "Payment in progress",
     available: "Available",
     low: "Last tickets",
+    soldOut: "Sold out",
   },
 } as const
 
@@ -41,9 +43,21 @@ export default function TicketInventoryBar({
   const text = labels[lang]
   const lowStock =
     inventory.available > 0 && inventory.availablePercent <= 20
+  const discreetLabel =
+    inventory.available === 0
+      ? text.soldOut
+      : lowStock
+        ? text.low
+        : text.available
+  const discreetKey =
+    inventory.available === 0
+      ? "virya-ticket-inventory__key--sold"
+      : lowStock
+        ? "virya-ticket-inventory__key--urgent"
+        : "virya-ticket-inventory__key--available"
   const ariaLabel = showSales
     ? `${text.sold}: ${inventory.sold}. ${text.reserved}: ${inventory.reserved}. ${text.available}: ${inventory.available}.`
-    : `${text.available}: ${inventory.available}.`
+    : discreetLabel
 
   return (
     <div class={className}>
@@ -79,15 +93,15 @@ export default function TicketInventoryBar({
         <dl
           class={`virya-ticket-inventory__legend ${compact ? "virya-ticket-inventory__legend--compact" : ""}`}
         >
-          <div>
-            <dt>
-              <span class="virya-ticket-inventory__key virya-ticket-inventory__key--available" />
-              {text.available}
-            </dt>
-            <dd>{inventory.available}</dd>
-          </div>
           {showSales ? (
             <>
+              <div>
+                <dt>
+                  <span class="virya-ticket-inventory__key virya-ticket-inventory__key--available" />
+                  {text.available}
+                </dt>
+                <dd>{inventory.available}</dd>
+              </div>
               <div>
                 <dt>
                   <span class="virya-ticket-inventory__key virya-ticket-inventory__key--reserved" />
@@ -104,14 +118,12 @@ export default function TicketInventoryBar({
               </div>
             </>
           ) : (
-            lowStock && (
-              <div>
-                <dt>
-                  <span class="virya-ticket-inventory__key virya-ticket-inventory__key--urgent" />
-                  {text.low}
-                </dt>
-              </div>
-            )
+            <div>
+              <dt>
+                <span class={`virya-ticket-inventory__key ${discreetKey}`} />
+                {discreetLabel}
+              </dt>
+            </div>
           )}
         </dl>
       )}

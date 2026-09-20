@@ -40,6 +40,7 @@ const copy = {
     closed: "Sprzedaż online została zakończona.",
     soldOut: "Ta pula biletów jest wyprzedana.",
     remaining: "Dostępne",
+    low: "Ostatnie bilety",
     name: "Imię i nazwisko",
     email: "E-mail do biletu",
     invoice: "Potrzebuję faktury",
@@ -94,6 +95,7 @@ const copy = {
     closed: "Online ticket sales have closed.",
     soldOut: "This ticket allocation is sold out.",
     remaining: "Available",
+    low: "Last tickets",
     name: "Full name",
     email: "Ticket e-mail",
     invoice: "I need an invoice",
@@ -469,7 +471,13 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
         </div>
         <div class="virya-ticket-allocation">
           <span>{text.allocation}</span>
-          <strong>{inventory.available}</strong>
+          <strong>
+            {inventory.available === 0
+              ? text.soldOut
+              : inventory.availablePercent <= 20
+                ? text.low
+                : text.remaining}
+          </strong>
           <TicketInventoryBar inventory={sale} lang={lang} class="mt-4" />
         </div>
       </div>
@@ -538,12 +546,15 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                             {type.description}
                           </p>
                         )}
-                        <dl class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                          <div class="flex gap-1">
-                            <dt>{text.remaining}:</dt>
-                            <dd class="text-zinc-300">{type.available}</dd>
-                          </div>
-                        </dl>
+                        <p class="mt-3 text-[9px] font-black uppercase tracking-widest text-zinc-500">
+                          {type.available === 0
+                            ? text.soldOut
+                            : typeof type.capacity === "number" &&
+                                type.capacity > 0 &&
+                                type.available / type.capacity <= 0.2
+                              ? text.low
+                              : text.remaining}
+                        </p>
                       </div>
 
                       <div class="virya-ticket-stepper" role="group" aria-label={type.name}>
