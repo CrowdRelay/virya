@@ -165,8 +165,8 @@ export default function LiveEventCard({ event, lang, index, labels, campaignId }
           ? `${inventory?.available ?? sale.available} dostępnych`
           : `${inventory?.available ?? sale.available} available`
         : lang === "pl"
-          ? `Od ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${inventory?.available ?? sale.available} dostępnych${inventory?.reserved ? ` · ${inventory.reserved} w płatności` : ""}`
-          : `From ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${inventory?.available ?? sale.available} available${inventory?.reserved ? ` · ${inventory.reserved} in payment` : ""}`
+          ? `Od ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${inventory?.available ?? sale.available} dostępnych`
+          : `From ${money(sale.from_price_gross_minor, sale.currency, locale)} · ${inventory?.available ?? sale.available} available`
       : sale.sales_state === "upcoming"
         ? lang === "pl"
           ? "Sprzedaż wkrótce"

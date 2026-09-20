@@ -40,8 +40,6 @@ const copy = {
     closed: "Sprzedaż online została zakończona.",
     soldOut: "Ta pula biletów jest wyprzedana.",
     remaining: "Dostępne",
-    reserved: "W trakcie płatności",
-    sold: "Sprzedane",
     name: "Imię i nazwisko",
     email: "E-mail do biletu",
     invoice: "Potrzebuję faktury",
@@ -96,8 +94,6 @@ const copy = {
     closed: "Online ticket sales have closed.",
     soldOut: "This ticket allocation is sold out.",
     remaining: "Available",
-    reserved: "Payment in progress",
-    sold: "Sold",
     name: "Full name",
     email: "Ticket e-mail",
     invoice: "I need an invoice",
@@ -474,7 +470,6 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
         <div class="virya-ticket-allocation">
           <span>{text.allocation}</span>
           <strong>{inventory.available}</strong>
-          <small>/ {inventory.capacity}</small>
           <TicketInventoryBar inventory={sale} lang={lang} class="mt-4" />
         </div>
       </div>
@@ -522,19 +517,6 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                     0,
                     Math.min(type.available, sale.max_per_order - otherCount),
                   )
-                  const typeSold = Number.isFinite(type.sold) ? type.sold : 0
-                  const typeReserved = Number.isFinite(type.reserved)
-                    ? type.reserved
-                    : 0
-                  const typeInventory = normalizeTicketInventory({
-                    capacity:
-                      type.capacity ??
-                      Math.max(0, typeSold + typeReserved + type.available),
-                    sold: typeSold,
-                    reserved: typeReserved,
-                    available: type.available,
-                  })
-
                   return (
                     <div key={type.id} class="virya-ticket-type">
                       <div class="min-w-0">
@@ -559,20 +541,8 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                         <dl class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-black uppercase tracking-widest text-zinc-500">
                           <div class="flex gap-1">
                             <dt>{text.remaining}:</dt>
-                            <dd class="text-zinc-300">{typeInventory.available}</dd>
+                            <dd class="text-zinc-300">{type.available}</dd>
                           </div>
-                          {typeInventory.reserved > 0 && (
-                            <div class="flex gap-1 text-amber-300/80">
-                              <dt>{text.reserved}:</dt>
-                              <dd>{typeInventory.reserved}</dd>
-                            </div>
-                          )}
-                          {typeInventory.sold > 0 && (
-                            <div class="flex gap-1">
-                              <dt>{text.sold}:</dt>
-                              <dd>{typeInventory.sold}</dd>
-                            </div>
-                          )}
                         </dl>
                       </div>
 

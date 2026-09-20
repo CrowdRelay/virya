@@ -761,6 +761,10 @@
     background: rgb(132 180 172);
   }
 
+  .virya-ticket-inventory__key--urgent {
+    background: rgb(243 197 26);
+  }
+
   .virya-ticket-allocation > span {
     display: block;
     font-size: 0.5rem;

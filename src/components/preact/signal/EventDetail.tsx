@@ -806,15 +806,9 @@ function lowestAvailablePrice(sale: TicketSaleOffer): number | null {
 function ticketStateLabel(sale: TicketSaleOffer, lang: Lang): string {
   if (sale.sales_state === "open") {
     const inventory = normalizeTicketInventory(sale)
-    const reserved =
-      inventory.reserved > 0
-        ? lang === "pl"
-          ? ` · ${inventory.reserved} w płatności`
-          : ` · ${inventory.reserved} in payment`
-        : ""
     return lang === "pl"
-      ? `${inventory.available} biletów dostępnych${reserved}`
-      : `${inventory.available} tickets available${reserved}`
+      ? `${inventory.available} biletów dostępnych`
+      : `${inventory.available} tickets available`
   }
   if (sale.sales_state === "upcoming") {
     return lang === "pl" ? "Sprzedaż wkrótce" : "Tickets on sale soon"
