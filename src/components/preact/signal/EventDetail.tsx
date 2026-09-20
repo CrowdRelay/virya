@@ -553,9 +553,6 @@ export default function EventDetail({
                     </p>
                     <p class="mt-2 text-3xl font-black text-white">
                       {ticketInventory.available}
-                      <span class="ml-1 text-sm text-zinc-500">
-                        / {ticketInventory.capacity}
-                      </span>
                     </p>
                   </div>
                   {lowestPrice != null && (
