@@ -7,6 +7,7 @@ import EventDetail from "./preact/signal/EventDetail"
 import TicketCheckout from "./preact/tickets/TicketCheckout"
 import EcosystemRail from "./EcosystemRail.astro"
 import { SIGNAL_COPY } from "../data/signalCopy"
+import { VIRYA_GROUP_REF } from "../data/viryaIdentity"
 import type { Lang } from "../i18n/t"
 import { loadLiveEvent, loadLiveTicketSale } from "../server/liveEvents"
 
@@ -96,7 +97,7 @@ const structuredOffers = ticketSale
         image: event.image_url ? [event.image_url] : undefined,
         url: canonical,
         offers: structuredOffers,
-        performer: { "@type": "MusicGroup", name: "Virya" },
+        performer: VIRYA_GROUP_REF,
       })} />
     )}
   </Fragment>

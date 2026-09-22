@@ -8,6 +8,7 @@ import SynesthesiaLeaderboard from "./SynesthesiaLeaderboard.astro"
 import PlayStoreBadge from "./PlayStoreBadge.astro"
 import SectionHeading from "./SectionHeading.astro"
 import { SIGNAL_COPY } from "../data/signalCopy"
+import { VIRYA_GROUP_REF } from "../data/viryaIdentity"
 import { getSeoTags } from "../utils/seo"
 import { lp, type Lang } from "../i18n/t"
 
@@ -61,7 +62,7 @@ const schema = {
   operatingSystem: "Any",
   isAccessibleForFree: true,
   inLanguage: lang,
-  creator: { "@type": "MusicGroup", name: "Virya", url: "https://virya.music/" },
+  creator: VIRYA_GROUP_REF,
 }
 ---
 

@@ -7,6 +7,7 @@ import Footer from "../../components/Footer.astro"
 import ScrollToTop from "../../components/ScrollToTop.astro"
 import AreaExperience from "../../components/AreaExperience.astro"
 import { AREA_COPY } from "../../data/areaCopy"
+import { VIRYA_GROUP_REF } from "../../data/viryaIdentity"
 import { getSeoTags } from "../../utils/seo"
 
 const lang = "pl"
@@ -22,11 +23,7 @@ const schema = {
   operatingSystem: "Any",
   isAccessibleForFree: true,
   inLanguage: "pl",
-  creator: {
-    "@type": "MusicGroup",
-    name: "Virya",
-    url: "https://virya.music/",
-  },
+  creator: VIRYA_GROUP_REF,
 }
 ---
 

@@ -28,6 +28,16 @@ export const VIRYA_IDENTITY = {
   ],
 } as const
 
+// Other schema nodes (MusicRecording.byArtist, MusicEvent.performer, ...)
+// reference the canonical entity by @id instead of redeclaring a bare
+// MusicGroup — that's what ties the whole graph to one first-party identity.
+export const VIRYA_GROUP_REF = {
+  "@type": "MusicGroup",
+  "@id": VIRYA_IDENTITY["@id"],
+  name: VIRYA_IDENTITY.name,
+  url: VIRYA_IDENTITY.url,
+} as const
+
 export function serializeViryaIdentity(): string {
   return JSON.stringify(VIRYA_IDENTITY).replace(/</g, "\\u003c")
 }

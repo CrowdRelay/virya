@@ -4,6 +4,10 @@ import netlify from "@astrojs/netlify"
 import sitemap from "@astrojs/sitemap"
 import tailwindcss from "@tailwindcss/vite"
 
+// A sitemap entry is an indexing request — never list a path that answers
+// with noindex (meta or X-Robots-Tag). That means checkout results, prize
+// claims, ticket wallets, personal Signal pages and every staff tool stay out;
+// /staff is a prefix rule so new staff surfaces are excluded by default.
 const SITEMAP_EXCLUDED_PATHS = new Set([
   "/merch/success",
   "/merch/cancel",
@@ -11,10 +15,16 @@ const SITEMAP_EXCLUDED_PATHS = new Set([
   "/pl/merch/cancel",
   "/thomann",
   "/pl/thomann",
-  // Remove these two entries when the first real news post is published.
-  "/news",
-  "/pl/news",
+  "/win",
+  "/pl/win",
+  "/my-signal",
+  "/pl/my-signal",
+  "/signal/confirm",
+  "/pl/signal/confirm",
+  "/signal/unsubscribe",
+  "/pl/signal/unsubscribe",
 ])
+const SITEMAP_EXCLUDED_PREFIXES = ["/staff", "/pl/staff"]
 
 export default defineConfig({
   site: "https://virya.music",
@@ -34,7 +44,10 @@ export default defineConfig({
     sitemap({
       filter: page => {
         const pathname = new URL(page).pathname.replace(/\/+$/, "")
-        return !SITEMAP_EXCLUDED_PATHS.has(pathname)
+        return (
+          !SITEMAP_EXCLUDED_PATHS.has(pathname) &&
+          !SITEMAP_EXCLUDED_PREFIXES.some(p => pathname.startsWith(p))
+        )
       },
       i18n: {
         defaultLocale: "en",
