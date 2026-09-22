@@ -1,5 +1,6 @@
 import { readServerEnv } from "../../server/runtimeEnv.ts"
 import { stripeFor } from "../../server/stripeClient.ts"
+import { resolveStripeCredentials } from "../../server/tenantStripe.ts"
 import type Stripe from "stripe"
 import type { APIRoute } from "astro"
 import { siteOriginForRequest } from "../../config"
@@ -269,6 +270,20 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: "Ticket checkout temporarily unavailable" }, 503)
   }
 
+  // The tenant's Stripe pair — the credential store wins, env is the
+  // fallback. `ticketingEnabled` is the tenant's own opt-in: a false here is
+  // the same "paused" answer as the ecosystem flag, before any fan-facing
+  // side effect (Signal join) runs. `null` means CrowdRelay could not say —
+  // the reserve enforces the flag upstream either way.
+  const stripeCredentials = await resolveStripeCredentials()
+  if (stripeCredentials.ticketingEnabled === false) {
+    return json({ error: "Ticket sales are temporarily paused" }, 503)
+  }
+  const stripeKey = stripeCredentials.secretKey
+  if (!stripeKey) {
+    return json({ error: "Ticket checkout temporarily unavailable" }, 503)
+  }
+
   // Signal-member pricing: discounted types are only reservable together with
   // a Signal join opt-in on this very checkout. The join is attempted first so
   // an unentitled order never reserves inventory it could not keep.
@@ -300,11 +315,6 @@ export const POST: APIRoute = async ({ request }) => {
         503,
       )
     }
-  }
-
-  const stripeKey = readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY)?.trim()
-  if (!stripeKey) {
-    return json({ error: "Ticket checkout temporarily unavailable" }, 503)
   }
 
   let reservation
