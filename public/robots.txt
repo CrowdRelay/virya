@@ -1,4 +1,8 @@
 Sitemap: https://virya.music/sitemap-index.xml
 User-agent: *
 Allow: /
-Disallow: 
+Disallow: /api/
+
+# noindex surfaces (/staff, /win, /tickets, /signal/confirm, /my-signal, ...)
+# stay crawlable on purpose: a Disallow would stop crawlers from ever seeing
+# the noindex directive. They are excluded from the sitemap instead.

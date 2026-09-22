@@ -9,6 +9,7 @@ import { t, lp } from "../../../i18n/t"
 import { getSeoTags, serializeJsonLd } from "../../../utils/seo"
 import items from "../../../components/portfolio/items.json"
 import lyricsData from "../../../data/lyrics.json"
+import { VIRYA_GROUP_REF } from "../../../data/viryaIdentity"
 
 export const prerender = true
 
@@ -39,7 +40,7 @@ const hasLyrics = (lyricsData as Array<{slug: string}>).some(l => l.slug === slu
       "@context": "https://schema.org",
       "@type": item.type === "single" ? "MusicRecording" : "MusicAlbum",
       "name": item.title,
-      "byArtist": { "@type": "MusicGroup", "name": "Virya" },
+      "byArtist": VIRYA_GROUP_REF,
       "image": `https://virya.music/covers/${item.src}`,
       ...(item.link ? { "url": item.link } : {}),
     })} />

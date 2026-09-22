@@ -10,6 +10,7 @@ import BlurImage from "../../../components/BlurImage.astro"
 import { t, lp } from "../../../i18n/t"
 import { getSeoTags, serializeJsonLd } from "../../../utils/seo"
 import lyrics from "../../../data/lyrics.json"
+import { VIRYA_GROUP_REF } from "../../../data/viryaIdentity"
 import items from "../../../components/portfolio/items.json"
 import responsiveSrcsets from "../../../srcsets.json"
 
@@ -30,8 +31,8 @@ const tracks = [...item.tracks].sort((a, b) => a.number - b.number)
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
 const portfolioItem = (items as Array<{title: string; link?: string}>).find(i => slugify(i.title) === slug)
 const schema = item.type === "single"
-  ? { "@context": "https://schema.org", "@type": "MusicRecording", "name": item.title, "byArtist": { "@type": "MusicGroup", "name": "Virya" }, "datePublished": String(item.year), ...(tracks[0]?.lyrics && tracks[0].lyrics !== "[ Instrumental ]" ? { "lyrics": { "@type": "CreativeWork", "text": tracks[0].lyrics } } : {}) }
-  : { "@context": "https://schema.org", "@type": "MusicAlbum", "name": item.title, "byArtist": { "@type": "MusicGroup", "name": "Virya" }, "datePublished": String(item.year), "track": tracks.map(tr => ({ "@type": "MusicRecording", "name": tr.title, "position": tr.number })) }
+  ? { "@context": "https://schema.org", "@type": "MusicRecording", "name": item.title, "byArtist": VIRYA_GROUP_REF, "datePublished": String(item.year), ...(tracks[0]?.lyrics && tracks[0].lyrics !== "[ Instrumental ]" ? { "lyrics": { "@type": "CreativeWork", "text": tracks[0].lyrics } } : {}) }
+  : { "@context": "https://schema.org", "@type": "MusicAlbum", "name": item.title, "byArtist": VIRYA_GROUP_REF, "datePublished": String(item.year), "track": tracks.map(tr => ({ "@type": "MusicRecording", "name": tr.title, "position": tr.number })) }
 const path = `/lyrics/${slug}/`
 const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
 const title = `${item.title} — Teksty | Virya`
