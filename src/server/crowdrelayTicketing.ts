@@ -259,6 +259,22 @@ export const cancelTicketOrder = (
     },
   )
 
+// The tenant's Stripe pair as CrowdRelay's secret store holds it. Absent
+// fields mean the tenant never set them — the deployment env vars remain the
+// fallback. `ticketing_enabled` is the tenant's own opt-in, enforced again
+// at the reserve; here it is the early answer the checkout page needs.
+export type TenantStripeCredentials = {
+  ticketing_enabled: boolean
+  stripe_secret_key: string | null
+  stripe_webhook_secret: string | null
+}
+
+export const fetchTenantStripeCredentials = () =>
+  ticketingRequest<TenantStripeCredentials>("internal/stripe-credentials", {
+    authenticated: true,
+    timeoutMs: 5_000,
+  })
+
 export const applyStripeTicketEvent = (body: TicketStripeEvent) =>
   ticketingRequest<TicketStripeEventResult>(
     "internal/ticket-orders/stripe-events",

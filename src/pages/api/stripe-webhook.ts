@@ -1,5 +1,6 @@
 import { readServerEnv } from "../../server/runtimeEnv.ts"
 import { stripeFor } from "../../server/stripeClient.ts"
+import { resolveStripeCredentials } from "../../server/tenantStripe.ts"
 import type Stripe from "stripe"
 import type { APIRoute } from "astro"
 import { sendOrderEmail } from "../../utils/orderEmail"
@@ -34,18 +35,27 @@ const decimalPlnToMinor = (value: string | null | undefined): number => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const stripeKey = readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY)?.trim()
-  const webhookSecret = readServerEnv("STRIPE_WEBHOOK_SECRET", import.meta.env.STRIPE_WEBHOOK_SECRET)?.trim()
+  // Tenant-stored credentials win; env is the deployment fallback. The env
+  // webhook secret is also kept as a second verifier — sessions created on
+  // the previous account still have paid orders to fulfil while Stripe
+  // retries them through the old endpoint.
+  const resolved = await resolveStripeCredentials()
+  const stripeKey = resolved.secretKey
+  const webhookSecret = resolved.webhookSecret
+  const envWebhookSecret =
+    readServerEnv("STRIPE_WEBHOOK_SECRET", import.meta.env.STRIPE_WEBHOOK_SECRET)?.trim() || null
+  const envStripeKey =
+    readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY)?.trim() || null
 
   if (!stripeKey) {
     return new Response("Stripe not configured", { status: 500 })
   }
   if (!webhookSecret) {
-    console.error("[stripe-webhook] STRIPE_WEBHOOK_SECRET is not configured")
+    console.error("[stripe-webhook] no webhook signing secret configured")
     return new Response("Stripe webhook not configured", { status: 500 })
   }
 
-  const stripe = stripeFor(stripeKey)
+  let stripe = stripeFor(stripeKey)
   let rawBody: string
   try {
     rawBody = await readLimitedText(request, MAX_BODY_BYTES)
@@ -63,8 +73,29 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret)
   } catch (err) {
-    console.error("[stripe-webhook] signature verification failed:", err)
-    return new Response("Webhook signature invalid", { status: 400 })
+    // During a tenant-key migration the resolved secret belongs to the new
+    // account while retries for sessions created on the old one still arrive
+    // signed with the env secret. Try it before refusing — a paid order on
+    // the previous account is still a fan to fulfil. And when the env secret
+    // is the one that verifies, the event's objects live on that account —
+    // every retrieve below must run against the env key's client, not the
+    // tenant-stored one.
+    if (envWebhookSecret && envWebhookSecret !== webhookSecret) {
+      try {
+        event = stripe.webhooks.constructEvent(rawBody, sig, envWebhookSecret)
+        if (!envStripeKey) {
+          console.error("[stripe-webhook] env-signed event but no env STRIPE_SECRET_KEY to reconcile it")
+          return new Response("Stripe webhook not configured", { status: 500 })
+        }
+        stripe = stripeFor(envStripeKey)
+      } catch (envErr) {
+        console.error("[stripe-webhook] signature verification failed:", envErr)
+        return new Response("Webhook signature invalid", { status: 400 })
+      }
+    } else {
+      console.error("[stripe-webhook] signature verification failed:", err)
+      return new Response("Webhook signature invalid", { status: 400 })
+    }
   }
 
   try {

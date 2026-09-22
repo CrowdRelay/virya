@@ -6,6 +6,7 @@ import {
   isStaffQrConfigured,
 } from "../../../../server/staffQrAuth"
 import { isStaffApiConfigured } from "../../../../server/staffQrApi"
+import { resolveStripeCredentials } from "../../../../server/tenantStripe.ts"
 import { VIRYA_OPERATIONS_EMAIL } from "../../../../config"
 
 export const prerender = false
@@ -15,6 +16,9 @@ const configured = (value: unknown, min = 1) =>
 
 export const GET: APIRoute = async ({ cookies }) => {
   const authenticated = hasStaffQrSession(cookies)
+  // "Is Stripe configured" is the resolved pair — the tenant-stored key or
+  // the env fallback — not only the env var.
+  const stripe = authenticated ? await resolveStripeCredentials() : null
   return areaJson({
     authenticated,
     configured: isStaffQrConfigured() && isStaffApiConfigured(),
@@ -28,7 +32,7 @@ export const GET: APIRoute = async ({ cookies }) => {
           gmail:
             configured(VIRYA_OPERATIONS_EMAIL) &&
             configured(readServerEnv("GMAIL_APP_PASSWORD", import.meta.env.GMAIL_APP_PASSWORD), 8),
-          stripe: configured(readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY), 16),
+          stripe: configured(stripe?.secretKey, 8),
         }
       : undefined,
   })

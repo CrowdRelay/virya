@@ -1,5 +1,6 @@
 import { readServerEnv } from "../../server/runtimeEnv.ts"
 import { stripeFor } from "../../server/stripeClient.ts"
+import { resolveStripeCredentials } from "../../server/tenantStripe.ts"
 import type Stripe from "stripe"
 import type { APIRoute } from "astro"
 import { siteOriginForRequest } from "../../config"
@@ -186,7 +187,9 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: "Invalid checkout request" }, 400)
     }
 
-    const stripeKey = readServerEnv("STRIPE_SECRET_KEY", import.meta.env.STRIPE_SECRET_KEY)
+    // Merch sells through the same Stripe account as tickets — the tenant's
+    // stored key wins, the env var is the deployment fallback.
+    const stripeKey = (await resolveStripeCredentials()).secretKey
     if (!stripeKey) {
       return json({ error: "Checkout temporarily unavailable" }, 503)
     }
