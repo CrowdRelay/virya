@@ -1,4 +1,9 @@
 # Branded CrowdRelay acquisition routes. The browser reaches the API first so
 # attribution/referral cookies are set by signal-api before the final redirect.
 /go/*  https://signal-api.virya.music/v1/go/:splat  302!
+# CrowdRelay executors publish tracked links as https://virya.music/l/{slug}
+# (telegram_executor, social_post_executor/tracked_links, community path) while
+# the resolver is GET /v1/go/{slug} — both forms stay. Found 2026-09-23: every
+# tracked link published so far 404'd.
+/l/*   https://signal-api.virya.music/v1/go/:splat   302!
 /r/*   https://signal-api.virya.music/v1/r/:splat   302!
