@@ -49,9 +49,16 @@ export type ResolvedStripeCredentials = {
   source: "tenant" | "env" | "none"
 }
 
-// The merge decision, pure so it is testable without the transport: a set
-// tenant key always wins; each field falls back to env on its own because a
-// migrated account still has in-flight orders the old endpoint must verify.
+// The merge decision, pure so it is testable without the transport. The
+// pair resolves all-or-nothing per source: the moment the tenant stores
+// either field, BOTH fields come from the tenant — a per-field fallback
+// would pair a new-account secret key with the old account's webhook
+// secret, so checkout charges the new account while every signed event
+// fails verification and the fan's paid order never confirms. The missing
+// half stays null and its capability refuses loudly (webhook 500s on the
+// first event) instead of silently mixing accounts. Old-account retries
+// during a migration are covered by the webhook handler's explicit
+// env-secret second verifier, not by this resolution.
 export const resolveCredentialPair = (
   tenant: TenantStripeCredentials | null,
   envSecret: string | undefined,
@@ -59,13 +66,14 @@ export const resolveCredentialPair = (
 ): ResolvedStripeCredentials => {
   const tenantSecret = tenant?.stripe_secret_key?.trim() || null
   const tenantWebhook = tenant?.stripe_webhook_secret?.trim() || null
-  const secretKey = tenantSecret ?? envSecret?.trim() ?? null
-  const webhookSecret = tenantWebhook ?? envWebhook?.trim() ?? null
+  const hasTenantField = tenantSecret !== null || tenantWebhook !== null
+  const secretKey = hasTenantField ? tenantSecret : envSecret?.trim() || null
+  const webhookSecret = hasTenantField ? tenantWebhook : envWebhook?.trim() || null
   return {
-    secretKey: secretKey || null,
-    webhookSecret: webhookSecret || null,
+    secretKey,
+    webhookSecret,
     ticketingEnabled: tenant?.ticketing_enabled ?? null,
-    source: tenantSecret ? "tenant" : secretKey ? "env" : "none",
+    source: hasTenantField ? "tenant" : secretKey ? "env" : "none",
   }
 }
 

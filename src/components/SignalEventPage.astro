@@ -52,7 +52,11 @@ const structuredOffers = ticketSale
       priceCurrency: ticketSale.currency,
       lowPrice: activePrices.length > 0 ? Math.min(...activePrices) : undefined,
       highPrice: activePrices.length > 0 ? Math.max(...activePrices) : undefined,
-      offerCount: ticketSale.available,
+      // offerCount intentionally omitted: it is the AggregateOffer's offer
+      // count, not stock — and publishing the exact remaining inventory in
+      // crawlable structured data leaks live sales velocity the UI itself
+      // only ever shows as labels.
+      offerCount: ticketSale.ticket_types.filter(ticket => ticket.active).length || undefined,
       availability: ticketSale.sales_state === "sold_out"
         ? "https://schema.org/SoldOut"
         : ticketSale.sales_state === "open"

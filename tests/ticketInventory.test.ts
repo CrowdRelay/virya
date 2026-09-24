@@ -19,3 +19,21 @@ test("clamps malformed counters and preserves the invariant", () => {
     assert.equal(value.sold + value.reserved + value.available, value.capacity)
   }
 })
+
+test("public band inventory renders the band, never a derived fraction", () => {
+  // The public contract ships `available` + `availability`, never the pool
+  // size — the bar draws the band width so "how many were sold" cannot be
+  // reconstructed from the wire.
+  const plenty = normalizeTicketInventory({ available: 137, availability: "plenty" })
+  assert.equal(plenty.availablePercent, 100)
+  assert.equal(plenty.sold, 0)
+  assert.equal(plenty.reserved, 0)
+
+  const low = normalizeTicketInventory({ available: 9, availability: "low" })
+  assert.equal(low.availablePercent, 20)
+  assert.ok(low.available === 9, "the buy bound is the real count, not the band")
+
+  const soldOut = normalizeTicketInventory({ available: 0, availability: "sold_out" })
+  assert.equal(soldOut.available, 0)
+  assert.equal(soldOut.availablePercent, 0)
+})

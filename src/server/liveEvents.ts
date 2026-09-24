@@ -3,10 +3,10 @@ import { readLimitedJson } from "./readLimitedJson.ts"
 import { CURATED_LIVE_EVENTS } from "../data/liveEvents"
 import type {
   PublicEvent,
+  TicketAvailability,
   TicketSaleOffer,
   TicketSaleSummary,
 } from "../lib/crowdrelay-client"
-import { normalizeTicketInventory } from "../lib/ticketInventory"
 
 const DEFAULT_CROWDRELAY_URL = "https://signal-api.virya.music/v1/"
 const DEFAULT_BANDSINTOWN_APP_ID = "virya-website"
@@ -381,17 +381,14 @@ const pruneTicketSaleCache = () => {
 
 const ticketSaleSummary = (sale: TicketSaleOffer): TicketSaleSummary => {
   const activeTypes = sale.ticket_types.filter(type => type.active)
-  const inventory = normalizeTicketInventory(sale)
   const availablePrices = activeTypes
     .filter(type => type.available > 0)
     .map(type => type.price_gross_minor)
 
   return {
     currency: sale.currency,
-    capacity: inventory.capacity,
-    sold: inventory.sold,
-    reserved: inventory.reserved,
-    available: inventory.available,
+    availability: sale.availability,
+    available: sale.available,
     sales_open_at: sale.sales_open_at,
     sales_close_at: sale.sales_close_at,
     sales_state: sale.sales_state,
@@ -505,9 +502,6 @@ export const loadLiveEvent = async (
 const isNonNegativeNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value >= 0
 
-const isOptionalNonNegativeNumber = (value: unknown): boolean =>
-  value === undefined || isNonNegativeNumber(value)
-
 const isTicketTypeOffer = (value: unknown): boolean => {
   if (!value || typeof value !== "object") return false
   const ticketType = value as Record<string, unknown>
@@ -518,10 +512,7 @@ const isTicketTypeOffer = (value: unknown): boolean => {
     (ticketType.description === null ||
       typeof ticketType.description === "string") &&
     isNonNegativeNumber(ticketType.price_gross_minor) &&
-    (ticketType.capacity === null ||
-      isNonNegativeNumber(ticketType.capacity)) &&
-    isOptionalNonNegativeNumber(ticketType.sold) &&
-    isOptionalNonNegativeNumber(ticketType.reserved) &&
+    isTicketAvailability(ticketType.availability) &&
     isNonNegativeNumber(ticketType.available) &&
     typeof ticketType.sort_order === "number" &&
     typeof ticketType.active === "boolean"
@@ -537,6 +528,54 @@ const TICKET_SALE_STATES = new Set([
   "event_unavailable",
 ])
 
+const TICKET_AVAILABILITIES = new Set(["plenty", "low", "sold_out"])
+
+const isTicketAvailability = (value: unknown): value is TicketAvailability =>
+  typeof value === "string" && TICKET_AVAILABILITIES.has(value)
+
+// The band CrowdRelay names — nothing left is sold out, the last fifth is
+// low. An upstream that predates the band ships the counts it derived from,
+// so the same rule derives it here rather than dropping the sale.
+const bandFromCounts = (
+  available: number,
+  capacity: number,
+): TicketAvailability =>
+  available <= 0
+    ? "sold_out"
+    : capacity > 0 && available / capacity <= 0.2
+      ? "low"
+      : "plenty"
+
+// A legacy sale view carries `capacity`/`sold`/`reserved` and no band; the
+// current contract is the reverse. Deriving the band keeps the shows page
+// alive across a staggered deploy without ever rendering a count.
+const withDerivedAvailability = (value: unknown): unknown => {
+  if (!value || typeof value !== "object") return value
+  const sale = value as Record<string, unknown>
+  if (isTicketAvailability(sale.availability)) return value
+  if (!isNonNegativeNumber(sale.available) || !isNonNegativeNumber(sale.capacity))
+    return value
+  const ticketTypes = Array.isArray(sale.ticket_types)
+    ? sale.ticket_types.map(ticketType => {
+        if (!ticketType || typeof ticketType !== "object") return ticketType
+        const type = ticketType as Record<string, unknown>
+        return isTicketAvailability(type.availability) ||
+          !isNonNegativeNumber(type.available) ||
+          !isNonNegativeNumber(type.capacity)
+          ? type
+          : {
+              ...type,
+              availability: bandFromCounts(type.available, type.capacity),
+            }
+      })
+    : sale.ticket_types
+  return {
+    ...sale,
+    availability: bandFromCounts(sale.available, sale.capacity),
+    ticket_types: ticketTypes,
+  }
+}
+
 const isTicketSaleOffer = (value: unknown): value is TicketSaleOffer => {
   if (!value || typeof value !== "object") return false
   const sale = value as Record<string, unknown>
@@ -544,9 +583,7 @@ const isTicketSaleOffer = (value: unknown): value is TicketSaleOffer => {
     typeof sale.event_slug === "string" &&
     typeof sale.currency === "string" &&
     typeof sale.vat_rate_basis_points === "number" &&
-    isNonNegativeNumber(sale.capacity) &&
-    isOptionalNonNegativeNumber(sale.sold) &&
-    isOptionalNonNegativeNumber(sale.reserved) &&
+    isTicketAvailability(sale.availability) &&
     isNonNegativeNumber(sale.available) &&
     typeof sale.sales_state === "string" &&
     TICKET_SALE_STATES.has(sale.sales_state) &&
@@ -563,7 +600,7 @@ const fetchLiveTicketSale = async (
       `public/events/${encodeURIComponent(slug)}/tickets`,
       safeBaseUrl(),
     )
-    const value = await fetchJson(url)
+    const value = withDerivedAvailability(await fetchJson(url))
     return isTicketSaleOffer(value) ? value : null
   } catch (error) {
     // CrowdRelay deliberately returns 404 when an event has no first-party sale.
