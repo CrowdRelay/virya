@@ -29,17 +29,33 @@ test("env is the fallback when the tenant store has no rows", () => {
   assert.equal(resolved.source, "env")
 })
 
-test("each field falls back independently — a half-migrated pair still resolves", () => {
-  // Tenant set the secret key but not the webhook secret yet: new checkouts
-  // charge the tenant account while events still signed with the env secret
-  // verify.
+test("the pair resolves all-or-nothing — a half-stored tenant pair never mixes with env", () => {
+  // Tenant stored the secret key but not the webhook secret: checkout
+  // charges the new account, so verifying its events with the OLD account's
+  // env secret would fail every signature — the fan pays, the order never
+  // confirms. The missing half stays absent and refuses loudly instead.
   const resolved = resolveCredentialPair(
     tenant({ stripe_webhook_secret: null }),
     "sk_live_env",
     "whsec_env",
   )
   assert.equal(resolved.secretKey, "sk_live_tenant")
-  assert.equal(resolved.webhookSecret, "whsec_env")
+  assert.equal(resolved.webhookSecret, null)
+  assert.equal(resolved.source, "tenant")
+})
+
+test("a tenant webhook secret alone commits the pair too", () => {
+  // The mirror image: only the webhook secret stored. The secret key does
+  // not fall back to env — checkout refuses rather than charging the old
+  // account while the tenant believes the migration happened.
+  const resolved = resolveCredentialPair(
+    tenant({ stripe_secret_key: null }),
+    "sk_live_env",
+    "whsec_env",
+  )
+  assert.equal(resolved.secretKey, null)
+  assert.equal(resolved.webhookSecret, "whsec_tenant")
+  assert.equal(resolved.source, "tenant")
 })
 
 test("an unreachable store resolves to env and reports opt-in unknown", () => {
