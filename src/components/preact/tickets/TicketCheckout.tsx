@@ -547,11 +547,9 @@ export default function TicketCheckout({ lang, slug, initialSale = null }: Props
                           </p>
                         )}
                         <p class="mt-3 text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                          {type.available === 0
+                          {type.available === 0 || type.availability === "sold_out"
                             ? text.soldOut
-                            : typeof type.capacity === "number" &&
-                                type.capacity > 0 &&
-                                type.available / type.capacity <= 0.2
+                            : type.availability === "low"
                               ? text.low
                               : text.remaining}
                         </p>

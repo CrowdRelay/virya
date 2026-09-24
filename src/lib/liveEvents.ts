@@ -27,16 +27,14 @@ const isNullableString = (value: unknown): value is string | null =>
 const isNonNegativeNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value >= 0
 
-const isOptionalNonNegativeNumber = (value: unknown): boolean =>
-  value === undefined || isNonNegativeNumber(value)
+const TICKET_AVAILABILITY_BANDS = new Set(["plenty", "low", "sold_out"])
 
 const isTicketSaleSummary = (value: unknown): boolean => {
   if (!isRecord(value)) return false
   return (
     typeof value.currency === "string" &&
-    isNonNegativeNumber(value.capacity) &&
-    isOptionalNonNegativeNumber(value.sold) &&
-    isOptionalNonNegativeNumber(value.reserved) &&
+    typeof value.availability === "string" &&
+    TICKET_AVAILABILITY_BANDS.has(value.availability) &&
     isNonNegativeNumber(value.available) &&
     typeof value.sales_open_at === "string" &&
     typeof value.sales_close_at === "string" &&

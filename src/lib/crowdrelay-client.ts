@@ -57,11 +57,15 @@ export type TicketSaleState =
   | "inactive"
   | "event_unavailable"
 
+/** The scarcity band the public API reports — `plenty`, the last-fifth
+ *  `low`, or `sold_out`. The venue's operating counts (`capacity`, `sold`,
+ *  `reserved`) never leave the staff surfaces, so the public bar renders
+ *  the band, not a proportion. */
+export type TicketAvailability = "plenty" | "low" | "sold_out"
+
 export interface TicketSaleSummary {
   currency: string
-  capacity: number
-  sold: number
-  reserved: number
+  availability: TicketAvailability
   available: number
   sales_open_at: string
   sales_close_at: string
@@ -104,9 +108,7 @@ export interface TicketTypeOffer {
   name: string
   description: string | null
   price_gross_minor: number
-  capacity: number | null
-  sold: number
-  reserved: number
+  availability: TicketAvailability
   available: number
   sort_order: number
   active: boolean
@@ -122,9 +124,7 @@ export interface TicketSaleOffer {
   starts_at: string
   currency: string
   vat_rate_basis_points: number
-  capacity: number
-  sold: number
-  reserved: number
+  availability: TicketAvailability
   available: number
   max_per_order: number
   sales_open_at: string
@@ -141,28 +141,6 @@ export interface TicketSaleOffer {
 }
 
 
-export interface ConfigureTicketTypeInput {
-  slug: string
-  name: string
-  description?: string | null
-  price_gross_minor: number
-  capacity?: number | null
-  sort_order: number
-  active: boolean
-}
-
-export interface ConfigureTicketSaleInput {
-  currency: string
-  vat_rate_basis_points: number
-  capacity: number
-  max_per_order: number
-  hold_seconds: number
-  sales_open_at: string
-  sales_close_at: string
-  active: boolean
-  ticket_types: ConfigureTicketTypeInput[]
-}
-
 export interface TicketOrderSummary {
   order_id: string
   public_reference: string
@@ -172,18 +150,6 @@ export interface TicketOrderSummary {
   amount_refunded_minor: number
   currency: string
   paid_at: string | null
-}
-
-export interface AdminTicketingOverview {
-  sale: TicketSaleOffer
-  reserved_orders: number
-  checkout_created_orders: number
-  reserved_tickets: number
-  paid_orders: number
-  paid_tickets: number
-  gross_sales_minor: number
-  refunded_minor: number
-  recent_orders: TicketOrderSummary[]
 }
 
 export interface TicketOrderItem {
@@ -705,38 +671,6 @@ export class CrowdRelayClient {
   getTicketSale(slug: string): Promise<TicketSaleOffer> {
     return this.#request(`public/events/${encodeURIComponent(slug)}/tickets`, {
       timeoutMs: 2_500,
-    })
-  }
-
-  getAdminTicketingOverview(
-    slug: string,
-    adminApiKey: string,
-  ): Promise<AdminTicketingOverview> {
-    return this.#request(`admin/events/${encodeURIComponent(slug)}/ticketing`, {
-      bearerToken: adminApiKey,
-    })
-  }
-
-  getStaffTicketingOverview(
-    slug: string,
-    staffApiKey: string,
-  ): Promise<AdminTicketingOverview> {
-    return this.#request(`staff/events/${encodeURIComponent(slug)}/ticketing`, {
-      bearerToken: staffApiKey,
-    })
-  }
-
-  configureTicketSale(
-    slug: string,
-    input: ConfigureTicketSaleInput,
-    adminApiKey: string,
-    idempotencyKey = newIdempotencyKey(),
-  ): Promise<TicketSaleOffer> {
-    return this.#request(`admin/events/${encodeURIComponent(slug)}/ticketing`, {
-      method: "POST",
-      body: input,
-      idempotencyKey,
-      bearerToken: adminApiKey,
     })
   }
 
