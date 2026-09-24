@@ -44,7 +44,7 @@ export const translations = {
       heading: "Band",
       sub: "Who we are",
       teaser:
-        "Founded in 2023, Virya blend modern metalcore with influences from well beyond metal — think Architects, Tesseract and Twelve Foot Ninja, filtered through their own voice. Strength, technique and emotion, with the belief that every concert is a real catharsis.",
+        "VIRYA are a Wrocław-based modern metalcore band combining weight, progressive structures, electronics and melody. After the 2024 EP \"From The Ashes\", the band released the debut full-length \"Echoes Of The Modern Mind\" in May 2025. VIRYA reached the finals of Road to Mystic and Metal 2 The Masses Poland, then placed second at Góra Rocka in 2026, made the final three at Zakrę Śmigem Fest from 86 submissions, and appeared in Wrocław as part of the wrOFF \"Włącz się na nowe!\" series at Klub Łącznik.",
       noPain: "No pain, no gain.",
       readStory: "Read the full story",
       follow: "Follow us",
@@ -53,11 +53,11 @@ export const translations = {
       links: "Links",
       pressPack: "Press Pack",
       story1:
-        "Virya was born in 2023 from a refusal to follow established paths. Founded by guitarist Wojciech Bator and drummer Jakub Dąbrowski, the band set out to dismantle genre boundaries — fusing the ferocity of modern metalcore with unexpected influences that reach far beyond metal. Technical precision, raw emotion, and relentless energy define the sound. Architects, Tesseract, and Twelve Foot Ninja may come to mind, but Virya carves its own path.",
+        "The VIRYA project was born in 2022, with the band taking shape in Wrocław in 2023. VIRYA play modern metalcore / modern metal, combining weight, progressive structures, electronics and melody. The live show remains the band's core: intense, direct and built around releasing energy together with the audience. No pain, no gain.",
       story2:
-        "The current chapter of Virya is carried by vocalist Marcin \"Yanusin\" Janusiński, guitarist Wojciech Bator, drummer Jakub Dąbrowski and bassist Lubomyr Kosakovsky. The lineup keeps the band focused on a live-first sound: precise, heavy and built to hit with real physical energy on stage.",
+        "In 2024, the band released the EP \"From The Ashes\", followed on May 2, 2025 by the debut full-length album \"Echoes Of The Modern Mind\". In 2025, VIRYA reached the final of Road to Mystic, making the final four from 50 acts selected by the jury, and the final of Metal 2 The Masses Poland, the Polish pathway to Bloodstock Open Air.",
       story3:
-        "The name Virya is more than a name — it is a declaration. Rooted in the concept of positive energy and unbreakable will, it is the band's manifesto: that every concert must be a catharsis, a release of raw power shared between the band and the audience. Their music carries the weight of life's hardships and the defiant belief that rising above them is always possible. No pain, no gain.",
+        "In 2026, VIRYA placed second at Góra Rocka after reaching the final eight from 183 submissions. That summer, vocalist Marcin Janusiński joined the lineup, bringing experience from Gentuza and from organizing Emergenza and FestUza in Poland, and opening a new chapter in VIRYA's live development. In August, the band made the final three of the \"Muzyczne Świry\" competition at Zakrę Śmigem Fest, selected from 86 submissions from across Poland, and appeared at the same edition alongside acts including Turbo, Zacier and Stacja B. In September, VIRYA appeared on Radio RAM and then performed in Wrocław as part of the wrOFF \"Włącz się na nowe!\" initiative at Klub Łącznik.",
       roles: {
         guitar: "Guitar",
         vocals: "Vocals",
@@ -70,9 +70,9 @@ export const translations = {
       sub: "Electronic Press Kit",
       bioHeading: "Biography",
       bio1:
-        "Virya embodies not only positive energy and determination but also serves as the band's manifesto — a conviction that every concert is more than just a performance; it's a true catharsis, a release of raw energy and emotion. Their music reflects the struggles of everyday life while channeling an unbreakable fighting spirit and faith in each person's power to shape their own destiny. No pain, no gain.",
+        "VIRYA are a Wrocław-based modern metalcore band combining weight, progressive structures, electronics and melody. After the 2024 EP \"From The Ashes\", the band released the debut full-length \"Echoes Of The Modern Mind\" in May 2025. VIRYA reached the finals of Road to Mystic and Metal 2 The Masses Poland, then placed second at Góra Rocka in 2026, made the final three at Zakrę Śmigem Fest from 86 submissions, and appeared in Wrocław as part of the wrOFF \"Włącz się na nowe!\" series at Klub Łącznik.",
       bio2:
-        "The band released its debut EP, From The Ashes, in 2024, followed by the full-length album Echoes Of The Modern Mind on May 2, 2025. Virya have been finalists in numerous competitions — among them the 2025 Bloodstock and Mystic Festival qualifiers in Poland — and placed second at Góra Rocka 2026.",
+        "In 2026, VIRYA placed second at Góra Rocka after reaching the final eight from 183 submissions. That summer, vocalist Marcin Janusiński joined the lineup, bringing experience from Gentuza and from organizing Emergenza and FestUza in Poland, and opening a new chapter in VIRYA's live development. In August, the band made the final three of the \"Muzyczne Świry\" competition at Zakrę Śmigem Fest, selected from 86 submissions from across Poland, and appeared at the same edition alongside acts including Turbo, Zacier and Stacja B. In September, VIRYA appeared on Radio RAM and then performed in Wrocław as part of the wrOFF \"Włącz się na nowe!\" initiative at Klub Łącznik.",
       tractionHeading: "Reach",
       tractionNote: "Live numbers, refreshed from Bandsintown and the Virya Signal.",
       trackers: "Bandsintown trackers",
@@ -82,9 +82,9 @@ export const translations = {
       youtubeViews: "Recent YouTube views",
       youtubeSubscribers: "YouTube subscribers",
       ffoLabel: "For fans of",
-      ffo: "Architects, Tesseract, I Prevail, Erra, Thornhill, Slipknot",
+      ffo: "Architects, Tesseract, ERRA, Thornhill, Twelve Foot Ninja",
       styleLabel: "Style",
-      style: "Modern Metal with out-of-genre influences",
+      style: "Modern metalcore / modern metal",
       lineup: "Lineup",
       riderHeading: "Technical Rider",
       riderText:
@@ -617,7 +617,7 @@ export const translations = {
       heading: "Zespół",
       sub: "Kim jesteśmy",
       teaser:
-        "Założona w 2023 roku Virya łączy nowoczesny metalcore z inspiracjami daleko spoza metalu — Architects, Tesseract czy Twelve Foot Ninja, w naszym unikalnym stylu. Siła, technika i emocje, z przekonaniem, że każdy koncert to prawdziwe katharsis.",
+        "VIRYA to wrocławski zespół modern metalcore, który łączy ciężar, progresywne struktury, elektronikę i melodyjność. Po EP „From The Ashes” z 2024 roku zespół wydał debiutancki album „Echoes Of The Modern Mind” w maju 2025. VIRYA dotarła do finałów Road to Mystic i Metal 2 The Masses Poland, a w 2026 roku zajęła II miejsce na Góra Rocka, znalazła się w finałowej trójce Zakrę Śmigem Fest spośród 86 zgłoszeń i wystąpiła w ramach wrocławskiego cyklu wrOFF „Włącz się na nowe!” w Klubie Łącznik.",
       noPain: "No pain, no gain.",
       readStory: "Poznaj całą historię",
       follow: "Obserwuj nas",
@@ -626,11 +626,11 @@ export const translations = {
       links: "Linki",
       pressPack: "Dla prasy",
       story1:
-        "Virya narodziła się w 2023 roku z buntu wobec utartych ścieżek. Założona przez gitarzystę Wojciecha Batora i perkusistę Jakuba Dąbrowskiego, postawiła sobie za cel burzenie gatunkowych granic — łącząc furię nowoczesnego metalcore'u z nieoczekiwanymi wpływami sięgającymi daleko poza metal. Techniczna precyzja, surowe emocje i nieustępliwa energia definiują to brzmienie. Można pomyśleć o Architects, Tesseract czy Twelve Foot Ninja, ale Virya wytycza własną drogę.",
+        "Projekt VIRYA narodził się w 2022 roku, a jako zespół uformował się we Wrocławiu w 2023 roku. VIRYA gra modern metalcore / modern metal, łącząc ciężar, progresywne struktury, elektronikę i melodyjność. Fundamentem zespołu pozostaje koncert: intensywny, bezpośredni i nastawiony na wspólne z publicznością uwolnienie energii. No pain, no gain.",
       story2:
-        "Obecny rozdział VIRYI tworzą wokalista Marcin „Yanusin” Janusiński, gitarzysta Wojciech Bator, perkusista Jakub Dąbrowski i basista Lubomyr Kosakovsky. Ten skład rozwija koncertowe brzmienie zespołu: precyzyjne, ciężkie i zbudowane tak, by na scenie niosło prawdziwą fizyczną energię.",
+        "W 2024 roku zespół wydał EP „From The Ashes”, a 2 maja 2025 roku debiutancki album „Echoes Of The Modern Mind”. W 2025 roku VIRYA dotarła do finału Road to Mystic, trafiając do finałowej czwórki spośród 50 zespołów wskazanych przez jury, oraz do finału Metal 2 The Masses Poland, polskich eliminacji do Bloodstock Open Air.",
       story3:
-        "Nazwa Virya to coś więcej niż nazwa — to deklaracja. Zakorzeniona w idei pozytywnej energii i niezłomnej woli, jest manifestem zespołu: każdy koncert musi być katharsis, wyzwoleniem czystej siły dzielonej między zespołem a publicznością. Ich muzyka niesie ciężar życiowych zmagań i buntowniczą wiarę, że zawsze można się ponad nie wznieść. No pain, no gain.",
+        "W 2026 roku VIRYA zajęła II miejsce na Góra Rocka, po zakwalifikowaniu się do finałowej ósemki spośród 183 zgłoszeń. Latem do składu dołączył wokalista Marcin Janusiński, wcześniej związany z zespołem Gentuza oraz organizacją Emergenzy i FestUzy w Polsce, otwierając nowy etap koncertowy VIRYA. W sierpniu zespół znalazł się w finałowej trójce konkursu „Muzyczne Świry” na Zakrę Śmigem Fest, wybranej spośród 86 zgłoszeń z całej Polski, i wystąpił podczas tej samej edycji co m.in. Turbo, Zacier i Stacja B. We wrześniu VIRYA pojawiła się w Radiu RAM, a następnie zagrała we Wrocławiu w ramach inicjatywy wrOFF „Włącz się na nowe!” w Klubie Łącznik.",
       roles: {
         guitar: "Gitara",
         vocals: "Wokal",
@@ -643,9 +643,9 @@ export const translations = {
       sub: "Pakiet prasowy",
       bioHeading: "Biografia",
       bio1:
-        "Virya uosabia nie tylko pozytywną energię i determinację, ale stanowi także manifest zespołu — przekonanie, że każdy koncert to coś więcej niż zwykły występ; to prawdziwa katharsis, wyzwolenie surowej energii i emocji. Ich muzyka odzwierciedla zmagania codziennego życia, jednocześnie niosąc niezłomnego ducha walki i wiarę w moc każdego człowieka do kształtowania własnego losu. No pain, no gain.",
+        "VIRYA to wrocławski zespół modern metalcore, który łączy ciężar, progresywne struktury, elektronikę i melodyjność. Po EP „From The Ashes” z 2024 roku zespół wydał debiutancki album „Echoes Of The Modern Mind” w maju 2025. VIRYA dotarła do finałów Road to Mystic i Metal 2 The Masses Poland, a w 2026 roku zajęła II miejsce na Góra Rocka, znalazła się w finałowej trójce Zakrę Śmigem Fest spośród 86 zgłoszeń i wystąpiła w ramach wrocławskiego cyklu wrOFF „Włącz się na nowe!” w Klubie Łącznik.",
       bio2:
-        "Zespół wydał swój debiutancki mini-album From The Ashes w 2024 roku, a pełnoprawny album Echoes Of The Modern Mind ukazał się 2 maja 2025 roku. Virya była finalistką wielu konkursów, m.in. eliminacji Bloodstock i Mystic Festival 2025 w Polsce, oraz zajęła II miejsce na przeglądzie Góra Rocka 2026.",
+        "W 2026 roku VIRYA zajęła II miejsce na Góra Rocka, po zakwalifikowaniu się do finałowej ósemki spośród 183 zgłoszeń. Latem do składu dołączył wokalista Marcin Janusiński, wcześniej związany z zespołem Gentuza oraz organizacją Emergenzy i FestUzy w Polsce, otwierając nowy etap koncertowy VIRYA. W sierpniu zespół znalazł się w finałowej trójce konkursu „Muzyczne Świry” na Zakrę Śmigem Fest, wybranej spośród 86 zgłoszeń z całej Polski, i wystąpił podczas tej samej edycji co m.in. Turbo, Zacier i Stacja B. We wrześniu VIRYA pojawiła się w Radiu RAM, a następnie zagrała we Wrocławiu w ramach inicjatywy wrOFF „Włącz się na nowe!” w Klubie Łącznik.",
       tractionHeading: "Zasięg",
       tractionNote: "Liczby na żywo, odświeżane z Bandsintown i Sygnału Viryi.",
       trackers: "Obserwujący na Bandsintown",
@@ -655,9 +655,9 @@ export const translations = {
       youtubeViews: "Wyświetlenia na YouTube",
       youtubeSubscribers: "Subskrybenci YouTube",
       ffoLabel: "Dla fanów",
-      ffo: "Architects, Tesseract, I Prevail, Erra, Thornhill, Slipknot",
+      ffo: "Architects, Tesseract, ERRA, Thornhill, Twelve Foot Ninja",
       styleLabel: "Styl",
-      style: "Modern Metal z elementami spoza gatunku",
+      style: "Modern metalcore / modern metal",
       lineup: "Skład",
       riderHeading: "Rider techniczny",
       riderText:
