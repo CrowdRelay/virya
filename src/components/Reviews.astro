@@ -1,0 +1,281 @@
+---
+import { t, type Lang } from "../i18n/t"
+import SectionHeading from "./SectionHeading.astro"
+import ChevronLeft from "./ChevronLeft.astro"
+import ChevronRight from "./ChevronRight.astro"
+
+interface Props {
+  lang?: Lang
+}
+
+const { lang = "en" } = Astro.props
+const isPl = lang === "pl"
+
+interface Review {
+  outlet: string
+  reviewer: string
+  /** Display date per locale — print issues carry a month, web reviews a day. */
+  datePl?: string
+  dateEn?: string
+  /** `review` | `video` | `print` — rendered as a small tag. */
+  kind: "review" | "video" | "print"
+  /** The pull-quote, original Polish and English rendering. */
+  quotePl?: string
+  quoteEn?: string
+  /** Body line when no quote can be verified; provenance caption when one can. */
+  notePl?: string
+  noteEn?: string
+  score?: string
+  url?: string
+  urlLabelPl?: string
+  urlLabelEn?: string
+}
+
+const reviews: Review[] = [
+  {
+    outlet: "Szarpidrut",
+    reviewer: "Marcin Woszczewski / Stary Metalowiec",
+    kind: "review",
+    quotePl:
+      "„Virya ma w swojej muzyce coś, co powoduje, że słucha się „lepiej” niż niektórych klasyków gatunku.”",
+    quoteEn:
+      "“Virya's music has something that makes it listen ‘better’ than some of the genre's classics.”",
+    url: "https://www.szarpidrut.pl/newsy/01KDZFFNYKMX99QXD04SRS3PBX",
+    urlLabelPl: "Czytaj recenzję",
+    urlLabelEn: "Read review",
+  },
+  {
+    outlet: "Laboratorium Muzycznych Fuzji",
+    reviewer: "Konrad Puławski",
+    datePl: "22.09.2026",
+    dateEn: "22 September 2026",
+    kind: "review",
+    quotePl:
+      "„Największą siłą Echoes Of The Modern Mind pozostaje dla mnie wykonawcza dyscyplina, której muzycy pozwalają czasem pęknąć.”",
+    quoteEn:
+      "“For me, the greatest strength of Echoes Of The Modern Mind remains the performance discipline the musicians occasionally allow to crack.”",
+    score: "6.8/10",
+    url: "https://laboratoriummf.com/recenzje/virya-echoes-of-the-modern-mind/",
+    urlLabelPl: "Czytaj recenzję",
+    urlLabelEn: "Read review",
+  },
+  {
+    outlet: "Muzyczne Retrospekcje",
+    reviewer: "Kamil",
+    datePl: "wrzesień 2026",
+    dateEn: "September 2026",
+    kind: "review",
+    notePl: "Pełna recenzja albumu — publikacja potwierdzona przez autora.",
+    noteEn: "Full album review — publication confirmed directly by the author.",
+    url: "https://www.facebook.com/share/p/19HzzigGPe/",
+    urlLabelPl: "Czytaj na Facebooku",
+    urlLabelEn: "Read on Facebook",
+  },
+  {
+    outlet: "Druga Strona Metalu",
+    reviewer: "Piotr Gębura",
+    datePl: "8.07.2025",
+    dateEn: "8 July 2025",
+    kind: "video",
+    quotePl: "„Fajna muza.”",
+    quoteEn: "“Cool tunes.”",
+    url: "https://www.youtube.com/watch?v=K9aNzK6xKZs",
+    urlLabelPl: "Oglądaj recenzję",
+    urlLabelEn: "Watch the review",
+  },
+  {
+    outlet: "Teraz Rock",
+    reviewer: "Paweł Brzytwa",
+    datePl: "czerwiec 2025",
+    dateEn: "June 2025 issue",
+    kind: "print",
+    quotePl: "„światowe brzmienie”",
+    quoteEn: "“world-class sound”",
+    notePl:
+      "Sformułowanie potwierdzone w korespondencji z autorem — nie cytat dosłowny z wydania drukowanego.",
+    noteEn:
+      "Wording confirmed in correspondence with the author — not a verified verbatim print excerpt.",
+  },
+]
+
+const kindLabel = (kind: Review["kind"]): string =>
+  isPl
+    ? { review: "Recenzja", video: "Wideo", print: "Wydanie drukowane" }[kind]
+    : { review: "Review", video: "Video review", print: "Print edition" }[kind]
+---
+
+<div class="virya-section border-t border-zinc-800/60" id="reviews-root">
+  <div class="virya-section__inner">
+    <div class="mb-10 flex flex-wrap items-end justify-between gap-6">
+      <SectionHeading
+        eyebrow={`VIRYA // ${t(lang, "press.eyebrow").toUpperCase()}`}
+        sub={t(lang, "press.sub")}
+      >
+        {t(lang, "press.heading")}
+      </SectionHeading>
+
+      <div class="flex items-center gap-2" role="group" aria-label={isPl ? "Przewijanie recenzji" : "Browse reviews"}>
+        <button
+          type="button"
+          data-reviews-prev
+          aria-label={isPl ? "Poprzednia recenzja" : "Previous review"}
+          class="flex h-11 w-11 items-center justify-center border border-zinc-700/80 text-zinc-400 transition-all duration-200 hover:border-amber-400/70 hover:text-amber-400 disabled:pointer-events-none disabled:opacity-30"
+        >
+          <ChevronLeft class="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          data-reviews-next
+          aria-label={isPl ? "Następna recenzja" : "Next review"}
+          class="flex h-11 w-11 items-center justify-center border border-zinc-700/80 text-zinc-400 transition-all duration-200 hover:border-amber-400/70 hover:text-amber-400 disabled:pointer-events-none disabled:opacity-30"
+        >
+          <ChevronRight class="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+
+    <div
+      data-reviews-track
+      class="-mx-1 flex snap-x snap-mandatory gap-5 overflow-x-auto px-1 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      tabindex="0"
+      role="region"
+      aria-label={isPl ? "Recenzje prasy" : "Press reviews"}
+    >
+      {
+        reviews.map((review) => {
+          const quote = isPl ? review.quotePl : review.quoteEn
+          const note = isPl ? review.notePl : review.noteEn
+          const date = isPl ? review.datePl : review.dateEn
+          const urlLabel = isPl ? review.urlLabelPl : review.urlLabelEn
+          return (
+            <article class="group relative flex w-[min(85vw,540px)] shrink-0 snap-center flex-col border border-zinc-800/80 bg-zinc-900/35 transition-colors duration-300 hover:border-amber-400/60 hover:bg-zinc-900/60 sm:snap-start">
+              <div class="absolute inset-y-0 left-0 w-1 origin-left scale-x-50 bg-amber-400/70 transition-transform duration-300 group-hover:scale-x-100" aria-hidden="true" />
+
+              <div class="flex grow flex-col gap-5 px-7 py-7 sm:px-9">
+                <div class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.25em]">
+                  <span class="text-amber-400">{kindLabel(review.kind)}</span>
+                  {review.score && (
+                    <span class="border border-amber-400/50 px-2 py-0.5 text-amber-300">
+                      {review.score}
+                    </span>
+                  )}
+                </div>
+
+                {quote ? (
+                  <blockquote class="grow">
+                    <p class="text-lg leading-relaxed text-zinc-100 sm:text-xl">{quote}</p>
+                    {note && <p class="mt-4 text-xs leading-relaxed text-zinc-500">{note}</p>}
+                  </blockquote>
+                ) : (
+                  <p class="grow text-base leading-relaxed text-zinc-300">{note}</p>
+                )}
+
+                <footer class="flex flex-wrap items-end justify-between gap-4 border-t border-zinc-800/80 pt-5">
+                  <div class="min-w-0">
+                    <p class="text-sm font-black uppercase tracking-[0.14em] text-white">
+                      {review.outlet}
+                    </p>
+                    <p class="mt-1 text-xs text-zinc-400">
+                      {review.reviewer}
+                      {date && (
+                        <>
+                          <span aria-hidden="true"> · </span>
+                          {date}
+                        </>
+                      )}
+                    </p>
+                  </div>
+
+                  {review.url ? (
+                    <a
+                      href={review.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex min-h-10 items-center gap-2 border border-zinc-700/80 px-4 text-[10px] font-bold uppercase tracking-widest text-zinc-300 transition-all duration-200 hover:border-amber-400/70 hover:text-amber-400"
+                    >
+                      {urlLabel}
+                      <span aria-hidden="true">↗</span>
+                    </a>
+                  ) : (
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                      {isPl ? "Magazyn drukowany" : "Print magazine"}
+                    </span>
+                  )}
+                </footer>
+              </div>
+            </article>
+          )
+        })
+      }
+    </div>
+
+    <div class="mt-2 flex items-center justify-center gap-2" data-reviews-dots>
+      {
+        reviews.map((_, i) => (
+          <button
+            type="button"
+            data-reviews-dot={i}
+            aria-label={(isPl ? "Recenzja " : "Review ") + (i + 1)}
+            class="h-1.5 w-6 border border-zinc-700/80 bg-transparent transition-all duration-200 hover:border-amber-400/70 data-[active]:border-amber-400 data-[active]:bg-amber-400"
+          />
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+  const initReviews = () => {
+    const root = document.getElementById("reviews-root")
+    if (!root || root.dataset.initialized === "true") return
+    root.dataset.initialized = "true"
+
+    const track = root.querySelector<HTMLElement>("[data-reviews-track]")
+    const prev = root.querySelector<HTMLButtonElement>("[data-reviews-prev]")
+    const next = root.querySelector<HTMLButtonElement>("[data-reviews-next]")
+    const dots = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-reviews-dot]"))
+    if (!track || !prev || !next) return
+
+    const cards = Array.from(track.children) as HTMLElement[]
+
+    const currentIndex = (): number => {
+      const left = track.scrollLeft + track.clientLeft
+      let best = 0
+      let bestDist = Infinity
+      cards.forEach((card, i) => {
+        const dist = Math.abs(card.offsetLeft - track.offsetLeft - left)
+        if (dist < bestDist) {
+          bestDist = dist
+          best = i
+        }
+      })
+      return best
+    }
+
+    const sync = () => {
+      const atStart = track.scrollLeft <= 4
+      const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4
+      prev.disabled = atStart
+      next.disabled = atEnd
+      const active = currentIndex()
+      dots.forEach((dot, i) => {
+        if (i === active) dot.setAttribute("data-active", "")
+        else dot.removeAttribute("data-active")
+      })
+    }
+
+    const go = (i: number) => {
+      const card = cards[Math.max(0, Math.min(i, cards.length - 1))]
+      track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: "smooth" })
+    }
+
+    prev.addEventListener("click", () => go(currentIndex() - 1))
+    next.addEventListener("click", () => go(currentIndex() + 1))
+    dots.forEach((dot, i) => dot.addEventListener("click", () => go(i)))
+    track.addEventListener("scroll", sync, { passive: true })
+    window.addEventListener("resize", sync, { passive: true })
+    sync()
+  }
+
+  initReviews()
+</script>
