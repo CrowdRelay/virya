@@ -247,6 +247,15 @@ export interface FanSignupInput {
   locale?: string
   referral_code?: string
   campaign_id?: string
+  /** Campaign tags from the landing URL — see `signupAttribution.ts`. */
+  ad_attribution?: {
+    utm_source?: string
+    utm_medium?: string
+    utm_campaign?: string
+    utm_content?: string
+    utm_term?: string
+    event_source_url?: string
+  }
   consent: ConsentInput
 }
 
