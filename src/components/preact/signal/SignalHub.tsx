@@ -4,6 +4,10 @@ import type { Lang } from "../../../i18n/t"
 import type { CitySignal, PublicEvent } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import { loadLiveEvents, upcomingLiveEvents } from "../../../lib/liveEvents"
+import {
+  rememberLandingAttribution,
+  signupAttribution,
+} from "../../../lib/signupAttribution"
 import LiveEventCard, {
   LiveEventNotice,
   LiveEventSkeleton,
@@ -57,6 +61,10 @@ export default function SignalHub({ lang }: Props) {
   const [handoffState, setHandoffState] = useState<HandoffState>("idle")
   const [handoffRetryKey, setHandoffRetryKey] = useState(0)
   const campaignId = useMemo(() => campaignIdFromLocation(), [])
+
+  useEffect(() => {
+    rememberLandingAttribution()
+  }, [])
 
   useEffect(() => {
     const code = synesthesiaHandoffFromLocation()
@@ -218,12 +226,14 @@ export default function SignalHub({ lang }: Props) {
     try {
       const campaignId = campaignIdFromLocation()
       const referralCode = referralCodeFromLocation()
+      const attribution = signupAttribution()
       const result = await crowdrelay.signupFan({
         email,
         city_slug: citySlug,
         ...(displayName ? { display_name: displayName } : {}),
         ...(campaignId ? { campaign_id: campaignId } : {}),
         ...(referralCode ? { referral_code: referralCode } : {}),
+        ...(attribution ? { ad_attribution: attribution } : {}),
         locale,
         consent: {
           marketing: true,
