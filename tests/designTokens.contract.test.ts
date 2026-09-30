@@ -104,13 +104,15 @@ test("design-token ratchet — markup stays inside the counted scales", () => {
   }
 
   ratchet("radiusVariants", radii.size, 7)
-  // +3 since 335: Reviews.astro uses the site's micro-label convention
-  // (text-[10px] uppercase tracking) for the press-tag chip, the card CTA
-  // and the print-edition tag — the same utility Endorsements carries five
-  // times. No named 10px scale exists in @theme to route them through.
-  ratchet("textPxArbitrary", textPx, 338)
-  // +3 since 494: the three text-[10px] micro-labels above count here too.
-  ratchet("arbitraryPxTotal", arbitraryPx, 497)
+  // +5 since 338: the watch-capture form (WatchJoin) reuses SignalHub's
+  // micro-label convention verbatim — text-[9px] field labels, privacy note
+  // and referral title — and WatchPage carries one text-[10px] "watch on
+  // YouTube" link. Same utilities, same non-scale micro sizes.
+  ratchet("textPxArbitrary", textPx, 343)
+  // +10 since 497: the five text-[Npx] micro-labels above count here too,
+  // plus five min-h-[NNpx] touch-targets (50px inputs, 48/44px buttons,
+  // 42px retry) copied from the SignalHub form.
+  ratchet("arbitraryPxTotal", arbitraryPx, 507)
   ratchet("hexOutsideExempt", hex, 12)
   ratchet("buttonsMissingType", buttonsMissingType, 0)
   ratchet("shadowUtilities", shadows, 17)

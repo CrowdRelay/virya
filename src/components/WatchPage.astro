@@ -1,0 +1,143 @@
+---
+import Layout from "./Layout.astro"
+import Navbar from "./Navbar.astro"
+import Footer from "./Footer.astro"
+import WatchJoin from "./preact/signal/WatchJoin"
+import { t, type Lang } from "../i18n/t"
+import { getSeoTags, serializeJsonLd } from "../utils/seo"
+import type { PublicVideo } from "../server/publicVideo"
+import { VIRYA_GROUP_REF } from "../data/viryaIdentity"
+
+interface Props {
+  lang?: Lang
+  video: PublicVideo
+}
+
+const { lang = "en", video } = Astro.props
+const id = video.youtube_id
+
+const path = `/watch/${id}/`
+const { canonicalUrl, hreflangLinks } = getSeoTags(path, lang)
+const title = `${video.title} | Virya`
+const description = t(lang, "watch.body")
+const thumbnail = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
+const embedUrl = `https://www.youtube.com/embed/${id}`
+const youtubeWatchUrl = `https://www.youtube.com/watch?v=${id}`
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  name: video.title,
+  description,
+  thumbnailUrl: thumbnail,
+  uploadDate: video.published_at,
+  embedUrl,
+  url: canonicalUrl,
+  author: VIRYA_GROUP_REF,
+}
+---
+
+<Layout
+  title={title}
+  description={description}
+  canonical={canonicalUrl}
+  lang={lang}
+  ogImage={thumbnail}
+  ogImageWidth={480}
+  ogImageHeight={360}
+  ogType="video.other"
+  twitterCard="player"
+>
+  <Fragment slot="head">
+    {hreflangLinks.map((l) => <link rel={l.rel} hreflang={l.hreflang} href={l.href} />)}
+    <link rel="preconnect" href="https://i.ytimg.com" />
+    <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin />
+    <link rel="preload" as="image" href={thumbnail} fetchpriority="high" />
+    <meta property="og:video" content={embedUrl} />
+    <meta property="og:video:type" content="text/html" />
+    <meta property="og:video:width" content="1280" />
+    <meta property="og:video:height" content="720" />
+    <meta name="twitter:player" content={embedUrl} />
+    <meta name="twitter:player:width" content="1280" />
+    <meta name="twitter:player:height" content="720" />
+    <script type="application/ld+json" set:html={serializeJsonLd(schema)} />
+  </Fragment>
+
+  <div class="bg-zinc-950 min-h-screen flex flex-col">
+    <Navbar lang={lang} displayLinks={true} />
+
+    <main id="main-content" class="flex-1 pt-20">
+      <div class="px-6 pt-8 pb-12 max-w-4xl mx-auto">
+        <h1 class="text-2xl sm:text-3xl font-black uppercase tracking-wide text-zinc-100 mb-6">
+          {video.title}
+        </h1>
+
+        <div class="relative aspect-video overflow-hidden bg-zinc-950 border border-zinc-800/60" id="watch-player" data-id={id} data-title={video.title}>
+          <button
+            type="button"
+            id="watch-facade"
+            class="group absolute inset-0 w-full h-full cursor-pointer"
+            aria-label={t(lang, "videos.play", video.title)}
+          >
+            <img
+              src={thumbnail}
+              alt={video.title}
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+              width="480"
+              height="360"
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              style="color:transparent"
+            />
+            <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+              <div class="w-16 h-16 rounded-full bg-amber-400 group-hover:bg-amber-300 flex items-center justify-center transition-colors">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-black ml-1" aria-hidden="true">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <div class="mt-4 flex justify-end">
+          <a
+            href={youtubeWatchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors"
+          >
+            {t(lang, "videos.watchOn")} ↗
+          </a>
+        </div>
+
+        <section class="mt-10 border border-zinc-800/60 bg-zinc-900/40 p-6 sm:p-8">
+          <WatchJoin client:visible lang={lang} />
+        </section>
+      </div>
+    </main>
+
+    <Footer lang={lang} />
+  </div>
+</Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const player = document.getElementById("watch-player")
+    const facade = document.getElementById("watch-facade")
+    if (!player || !facade || player.dataset.initialized === "true") return
+    player.dataset.initialized = "true"
+    const id = player.dataset.id ?? ""
+    const title = player.dataset.title ?? ""
+    facade.addEventListener("click", () => {
+      const iframe = document.createElement("iframe")
+      iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`
+      iframe.title = title
+      iframe.allow =
+        "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      iframe.setAttribute("allowfullscreen", "")
+      iframe.className = "absolute inset-0 w-full h-full"
+      player.replaceChildren(iframe)
+    })
+  })
+</script>
