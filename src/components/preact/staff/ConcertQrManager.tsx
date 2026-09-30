@@ -59,6 +59,12 @@ export default function ConcertQrManager() {
   const [validFrom, setValidFrom] = useState("")
   const [validUntil, setValidUntil] = useState("")
   const [maxCheckins, setMaxCheckins] = useState("")
+  const [placement, setPlacement] = useState("")
+  const [announcedFromStage, setAnnouncedFromStage] = useState(false)
+  const [incentive, setIncentive] = useState("album draw chance")
+  const [contextPlacement, setContextPlacement] = useState("")
+  const [contextAnnouncedFromStage, setContextAnnouncedFromStage] = useState(false)
+  const [contextIncentive, setContextIncentive] = useState("")
   const [language, setLanguage] = useState<Language>("pl")
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -132,6 +138,21 @@ export default function ConcertQrManager() {
       null,
     [campaigns, selectedCampaignId],
   )
+
+  // Context describes what actually happened in the room. Keep an in-progress
+  // edit stable across the 15-second live refresh; only switching campaigns
+  // replaces the form with the selected campaign's persisted facts.
+  useEffect(() => {
+    if (!activeCampaign) {
+      setContextPlacement("")
+      setContextAnnouncedFromStage(false)
+      setContextIncentive("")
+      return
+    }
+    setContextPlacement(activeCampaign.placement ?? "")
+    setContextAnnouncedFromStage(activeCampaign.announced_from_stage)
+    setContextIncentive(activeCampaign.incentive ?? "")
+  }, [activeCampaign?.id])
 
   const checkinUrl = useMemo(() => {
     if (!activeCampaign?.token) return null
@@ -304,6 +325,9 @@ export default function ConcertQrManager() {
           valid_from: new Date(validFrom).toISOString(),
           valid_until: new Date(validUntil).toISOString(),
           max_checkins: maxCheckins ? Number(maxCheckins) : null,
+          placement: placement.trim() || null,
+          announced_from_stage: announcedFromStage,
+          incentive: incentive.trim() || null,
         },
       })
       setCampaigns(current => [campaign, ...current])
@@ -316,6 +340,44 @@ export default function ConcertQrManager() {
         text: status === 422
           ? "Sprawdź termin. QR może działać od 24 h przed do 36 h po rozpoczęciu koncertu."
           : "Nie udało się utworzyć kampanii QR.",
+      })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function saveContext(event: Event) {
+    event.preventDefault()
+    if (busy || !activeCampaign) return
+    setBusy(true)
+    setMessage(null)
+    const nextContext = {
+      placement: contextPlacement.trim() || null,
+      announced_from_stage: contextAnnouncedFromStage,
+      incentive: contextIncentive.trim() || null,
+    }
+    try {
+      await api(`/api/staff/qr/campaigns/${encodeURIComponent(activeCampaign.id)}/context`, {
+        method: "POST",
+        body: nextContext,
+      })
+      setCampaigns(current =>
+        current.map(campaign =>
+          campaign.id === activeCampaign.id
+            ? { ...campaign, ...nextContext }
+            : campaign,
+        ),
+      )
+      setMessage({
+        tone: "success",
+        text: "Kontekst QR zapisany — CrowdRelay może odróżnić samo wystawienie kodu od realnej zapowiedzi ze sceny.",
+      })
+    } catch (error) {
+      setMessage({
+        tone: "error",
+        text: (error as ApiError).status === 422
+          ? "Kontekst jest za długi albo nieprawidłowy."
+          : "Nie udało się zapisać kontekstu QR.",
       })
     } finally {
       setBusy(false)
@@ -542,6 +604,44 @@ export default function ConcertQrManager() {
             <input type="number" min="1" max="1000000" inputmode="numeric" value={maxCheckins} onInput={event => setMaxCheckins(event.currentTarget.value)} placeholder="Bez limitu" class={inputClass} />
           </label>
 
+          <fieldset class="mt-5 grid gap-4 border border-virya-edge p-4">
+            <legend class="px-2 text-[9px] font-black uppercase tracking-[.24em] text-virya-muted">
+              Kontekst pomiaru
+            </legend>
+            <label class={staffEyebrow}>
+              Gdzie fizycznie jest QR
+              <input
+                value={placement}
+                onInput={event => setPlacement(event.currentTarget.value)}
+                maxlength={128}
+                placeholder="np. merch table, wejście, ekran sceniczny"
+                class={inputClass}
+              />
+            </label>
+            <label class={staffEyebrow}>
+              Co faktycznie oferuje skan
+              <input
+                value={incentive}
+                onInput={event => setIncentive(event.currentTarget.value)}
+                maxlength={256}
+                placeholder="np. album draw chance"
+                class={inputClass}
+              />
+              <span class="mt-2 block normal-case tracking-normal text-[10px] font-normal leading-relaxed text-virya-muted">
+                To tylko zapis pomiarowy — nie tworzy benefitu. Wpisz wyłącznie coś, co fan naprawdę dostaje.
+              </span>
+            </label>
+            <label class="flex min-h-[44px] items-center gap-3 text-xs font-bold text-virya-text">
+              <input
+                type="checkbox"
+                checked={announcedFromStage}
+                onChange={event => setAnnouncedFromStage(event.currentTarget.checked)}
+                class="h-4 w-4"
+              />
+              QR będzie zapowiedziany ze sceny
+            </label>
+          </fieldset>
+
           {dataLoaded && events.length === 0 && (
             <div class={`mt-5 ${staffNoticeBase} ${staffNoticeTones.warn}`}>
               CrowdRelay nie zwrócił żadnego opublikowanego koncertu. Uruchom ponownie produkcyjny setup po wdrożeniu aktualnego bootstrapu.
@@ -602,6 +702,47 @@ export default function ConcertQrManager() {
                     <option value="en">English</option>
                   </select>
                 </label>
+
+                <form onSubmit={saveContext} class="mt-5 grid gap-3 border border-virya-edge p-4">
+                  <div>
+                    <p class={staffEyebrow}>Co faktycznie wydarzyło się z QR</p>
+                    <p class="mt-2 text-[10px] leading-relaxed text-virya-muted">
+                      Te pola są faktami po stronie pomiaru. Zapowiedź ze sceny jest też dowodem wykonania kroku QR dla autopilota.
+                    </p>
+                  </div>
+                  <label class={staffEyebrow}>
+                    Placement
+                    <input
+                      value={contextPlacement}
+                      onInput={event => setContextPlacement(event.currentTarget.value)}
+                      maxlength={128}
+                      placeholder="merch table / wejście / ekran"
+                      class={inputClass}
+                    />
+                  </label>
+                  <label class={staffEyebrow}>
+                    Incentive
+                    <input
+                      value={contextIncentive}
+                      onInput={event => setContextIncentive(event.currentTarget.value)}
+                      maxlength={256}
+                      placeholder="album draw chance"
+                      class={inputClass}
+                    />
+                  </label>
+                  <label class="flex min-h-[44px] items-center gap-3 text-xs font-bold text-virya-text">
+                    <input
+                      type="checkbox"
+                      checked={contextAnnouncedFromStage}
+                      onChange={event => setContextAnnouncedFromStage(event.currentTarget.checked)}
+                      class="h-4 w-4"
+                    />
+                    Faktycznie zapowiedziane ze sceny
+                  </label>
+                  <button type="submit" disabled={busy} class={staffSecondaryButton}>
+                    {busy ? "Zapisuję…" : "Zapisz kontekst pomiaru"}
+                  </button>
+                </form>
                 <div class="mt-5 grid gap-2 sm:grid-cols-2">
                   <button type="button" onClick={printCampaign} class={primaryButton}>Drukuj A4</button>
                   <button type="button" onClick={downloadSvg} class={secondaryButton}>Pobierz SVG</button>
