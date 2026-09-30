@@ -59,6 +59,12 @@ export default function ConcertQrManager() {
   const [validFrom, setValidFrom] = useState("")
   const [validUntil, setValidUntil] = useState("")
   const [maxCheckins, setMaxCheckins] = useState("")
+  const [newPlacement, setNewPlacement] = useState("")
+  const [newAnnouncedFromStage, setNewAnnouncedFromStage] = useState(false)
+  const [newIncentive, setNewIncentive] = useState("")
+  const [contextPlacement, setContextPlacement] = useState("")
+  const [contextAnnouncedFromStage, setContextAnnouncedFromStage] = useState(false)
+  const [contextIncentive, setContextIncentive] = useState("")
   const [language, setLanguage] = useState<Language>("pl")
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -133,7 +139,13 @@ export default function ConcertQrManager() {
     [campaigns, selectedCampaignId],
   )
 
-  const checkinUrl = useMemo(() => {
+  useEffect(() => {
+    setContextPlacement(activeCampaign?.placement ?? "")
+    setContextAnnouncedFromStage(activeCampaign?.announced_from_stage ?? false)
+    setContextIncentive(activeCampaign?.incentive ?? "")
+  }, [activeCampaign?.id, activeCampaign?.placement, activeCampaign?.announced_from_stage, activeCampaign?.incentive])
+
+    const checkinUrl = useMemo(() => {
     if (!activeCampaign?.token) return null
     const prefix = language === "pl" ? "/pl" : ""
     return `https://virya.music${prefix}/live/${encodeURIComponent(activeCampaign.event_slug)}/#checkin=${activeCampaign.token}`
@@ -248,6 +260,9 @@ export default function ConcertQrManager() {
     const starts = new Date(event.starts_at)
     setValidFrom(toLocalInput(new Date(starts.getTime() - 60 * 60 * 1000)))
     setValidUntil(toLocalInput(new Date(starts.getTime() + 5 * 60 * 60 * 1000)))
+    setNewPlacement("")
+    setNewAnnouncedFromStage(false)
+    setNewIncentive("")
   }
 
   async function login(event: Event) {
@@ -304,6 +319,9 @@ export default function ConcertQrManager() {
           valid_from: new Date(validFrom).toISOString(),
           valid_until: new Date(validUntil).toISOString(),
           max_checkins: maxCheckins ? Number(maxCheckins) : null,
+          placement: newPlacement.trim() || null,
+          announced_from_stage: newAnnouncedFromStage,
+          incentive: newIncentive.trim() || null,
         },
       })
       setCampaigns(current => [campaign, ...current])
@@ -322,7 +340,34 @@ export default function ConcertQrManager() {
     }
   }
 
-  async function revoke(campaign: StaffQrCampaign) {
+  async function saveCampaignContext() {
+    if (busy || !activeCampaign) return
+    setBusy(true)
+    setMessage(null)
+    try {
+      await api(`/api/staff/qr/campaigns/${encodeURIComponent(activeCampaign.id)}/context`, {
+        method: "POST",
+        body: {
+          placement: contextPlacement.trim() || null,
+          announced_from_stage: contextAnnouncedFromStage,
+          incentive: contextIncentive.trim() || null,
+        },
+      })
+      await loadData()
+      setMessage({ tone: "success", text: "Kontekst QR zapisany — wydruk użyje aktualnej obietnicy dla fana." })
+    } catch (error) {
+      setMessage({
+        tone: "error",
+        text: (error as ApiError).status === 422
+          ? "Sprawdź pola kontekstu QR."
+          : "Nie udało się zapisać kontekstu QR.",
+      })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+    async function revoke(campaign: StaffQrCampaign) {
     if (busy || !campaign.active) return
     setBusy(true)
     setMessage(null)
@@ -381,20 +426,26 @@ export default function ConcertQrManager() {
       language === "pl"
         ? {
             brand: "VIRYA // SYGNAŁ LIVE",
-            instruction: "Zeskanuj. Potwierdź obecność. Zwiększ szansę na album.",
+            instruction: activeCampaign.incentive
+              ? "Zeskanuj i odbierz"
+              : "Zeskanuj. Potwierdź obecność. Zwiększ szansę na album.",
+            offer: activeCampaign.incentive,
             note: "Jedno potwierdzenie na osobę i koncert. Kod działa wyłącznie w określonym czasie. Do udziału potrzebny jest aktywny Sygnał Virya.",
             valid: "Aktywny",
           }
         : {
             brand: "VIRYA // SIGNAL LIVE",
-            instruction: "Scan. Confirm attendance. Increase your album chance.",
+            instruction: activeCampaign.incentive
+              ? "Scan and get"
+              : "Scan. Confirm attendance. Increase your album chance.",
+            offer: activeCampaign.incentive,
             note: "One confirmation per person and show. The code works only during the stated window. An active Virya Signal is required.",
             valid: "Active",
           }
     const printLocale = language === "pl" ? "pl-PL" : "en-GB"
 
     popup.document.open()
-    popup.document.write(`<!doctype html><html lang="${language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>QR — ${escapeHtml(activeCampaign.event_title)}</title><style>@page{size:A4;margin:14mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#09090b}.sheet{min-height:260mm;border:3px solid #09090b;padding:18mm;display:flex;flex-direction:column;align-items:center;text-align:center}.brand{font-size:12px;font-weight:900;letter-spacing:.28em}.title{margin:14mm 0 2mm;font-size:34px;line-height:.95;text-transform:uppercase}.venue{font-size:17px;font-weight:700}.qr{width:145mm;max-width:100%;margin:12mm auto 8mm}.qr svg{display:block;width:100%;height:auto}.instruction{font-size:22px;font-weight:900;text-transform:uppercase}.note{max-width:140mm;margin-top:4mm;font-size:13px;line-height:1.5}.valid{margin-top:auto;font-size:11px}</style></head><body><main class="sheet"><div class="brand">${escapeHtml(printCopy.brand)}</div><h1 class="title">${escapeHtml(activeCampaign.event_title)}</h1><div class="venue">${escapeHtml(venue)}</div><div class="qr">${qr.svg}</div><div class="instruction">${escapeHtml(printCopy.instruction)}</div><p class="note">${escapeHtml(printCopy.note)}</p><div class="valid">${escapeHtml(printCopy.valid)}: ${escapeHtml(formatDate(activeCampaign.valid_from, printLocale))} — ${escapeHtml(formatDate(activeCampaign.valid_until, printLocale))}</div></main></body></html>`)
+    popup.document.write(`<!doctype html><html lang="${language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>QR — ${escapeHtml(activeCampaign.event_title)}</title><style>@page{size:A4;margin:14mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#09090b}.sheet{min-height:260mm;border:3px solid #09090b;padding:18mm;display:flex;flex-direction:column;align-items:center;text-align:center}.brand{font-size:12px;font-weight:900;letter-spacing:.28em}.title{margin:14mm 0 2mm;font-size:34px;line-height:.95;text-transform:uppercase}.venue{font-size:17px;font-weight:700}.qr{width:145mm;max-width:100%;margin:12mm auto 8mm}.qr svg{display:block;width:100%;height:auto}.instruction{font-size:22px;font-weight:900;text-transform:uppercase}.offer{max-width:150mm;margin-top:5mm;font-size:28px;font-weight:900;line-height:1.05}.note{max-width:140mm;margin-top:4mm;font-size:13px;line-height:1.5}.valid{margin-top:auto;font-size:11px}</style></head><body><main class="sheet"><div class="brand">${escapeHtml(printCopy.brand)}</div><h1 class="title">${escapeHtml(activeCampaign.event_title)}</h1><div class="venue">${escapeHtml(venue)}</div><div class="qr">${qr.svg}</div><div class="instruction">${escapeHtml(printCopy.instruction)}</div>${printCopy.offer ? `<div class="offer">${escapeHtml(printCopy.offer)}</div>` : ""}<p class="note">${escapeHtml(printCopy.note)}</p><div class="valid">${escapeHtml(printCopy.valid)}: ${escapeHtml(formatDate(activeCampaign.valid_from, printLocale))} — ${escapeHtml(formatDate(activeCampaign.valid_until, printLocale))}</div></main></body></html>`)
     popup.document.close()
     window.setTimeout(() => {
       popup.focus()
@@ -542,6 +593,21 @@ export default function ConcertQrManager() {
             <input type="number" min="1" max="1000000" inputmode="numeric" value={maxCheckins} onInput={event => setMaxCheckins(event.currentTarget.value)} placeholder="Bez limitu" class={inputClass} />
           </label>
 
+          <label class={labelClass}>
+            Co fan dostaje za skan (opcjonalnie, ale ważne dla konwersji)
+            <input value={newIncentive} onInput={event => setNewIncentive(event.currentTarget.value)} maxlength={256} placeholder="np. setlista z dzisiejszego koncertu" class={inputClass} />
+          </label>
+
+          <label class={labelClass}>
+            Gdzie wisi QR (opcjonalnie)
+            <input value={newPlacement} onInput={event => setNewPlacement(event.currentTarget.value)} maxlength={128} placeholder="np. merch / wejście / scena" class={inputClass} />
+          </label>
+
+          <label class="mt-5 flex min-h-11 items-center gap-3 text-xs font-bold uppercase tracking-widest text-virya-muted">
+            <input type="checkbox" checked={newAnnouncedFromStage} onChange={event => setNewAnnouncedFromStage(event.currentTarget.checked)} />
+            Zapowiedziany ze sceny
+          </label>
+
           {dataLoaded && events.length === 0 && (
             <div class={`mt-5 ${staffNoticeBase} ${staffNoticeTones.warn}`}>
               CrowdRelay nie zwrócił żadnego opublikowanego koncertu. Uruchom ponownie produkcyjny setup po wdrożeniu aktualnego bootstrapu.
@@ -595,6 +661,30 @@ export default function ConcertQrManager() {
                   <Info label="Od" value={formatDate(activeCampaign.valid_from)} />
                   <Info label="Do" value={formatDate(activeCampaign.valid_until)} />
                 </dl>
+                <div class="mt-5 border-t border-virya-edge pt-5">
+                  <p class={staffEyebrowAccent}>Kontekst konwersji</p>
+                  <label class={labelClass}>
+                    Co fan dostaje za skan
+                    <input value={contextIncentive} onInput={event => setContextIncentive(event.currentTarget.value)} maxlength={256} placeholder="np. setlista z dzisiejszego koncertu" class={inputClass} />
+                  </label>
+                  <label class={labelClass}>
+                    Gdzie wisi QR
+                    <input value={contextPlacement} onInput={event => setContextPlacement(event.currentTarget.value)} maxlength={128} placeholder="np. merch / wejście / scena" class={inputClass} />
+                  </label>
+                  <label class="mt-4 flex min-h-11 items-center gap-3 text-xs font-bold uppercase tracking-widest text-virya-muted">
+                    <input type="checkbox" checked={contextAnnouncedFromStage} onChange={event => setContextAnnouncedFromStage(event.currentTarget.checked)} />
+                    Zapowiedziany ze sceny
+                  </label>
+                  <button type="button" onClick={() => void saveCampaignContext()} disabled={busy} class={`${staffAccentButton} mt-4 w-full`}>
+                    {busy ? "Zapisywanie…" : "Zapisz kontekst QR"}
+                  </button>
+                  {!activeCampaign.incentive && (
+                    <div class={`mt-3 ${staffNoticeBase} ${staffNoticeTones.warn}`}>
+                      Ten QR nie ma jeszcze konkretnej obietnicy dla fana. Wydruk zadziała, ale użyje ogólnego komunikatu zamiast wartości typu setlista, zdjęcia lub early access.
+                    </div>
+                  )}
+                </div>
+
                 <label class={`mt-5 block ${staffEyebrow}`}>
                   Język strony po skanie
                   <select value={language} onChange={event => setLanguage(event.currentTarget.value as Language)} class={inputClass}>
@@ -686,6 +776,11 @@ export default function ConcertQrManager() {
             <button ref={fullscreenCloseRef} type="button" onClick={() => setFullscreen(false)} class="min-h-[44px] flex-none border border-black px-4 text-xs font-black uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">Zamknij</button>
           </div>
           <div class="mx-auto flex min-h-0 w-full max-w-[82vh] flex-1 items-center justify-center" dangerouslySetInnerHTML={{ __html: qr.svg }} />
+          {activeCampaign.incentive && (
+            <p class="mx-auto max-w-4xl pb-3 text-center text-2xl font-black uppercase leading-tight sm:text-4xl">
+              {activeCampaign.incentive}
+            </p>
+          )}
         </div>
       )}
     </div>

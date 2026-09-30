@@ -29,6 +29,9 @@ export type StaffQrCampaign = {
   valid_until: string
   max_checkins: number | null
   checkin_count: number
+  placement: string | null
+  announced_from_stage: boolean
+  incentive: string | null
   active: boolean
   revoked_at: string | null
   created_at: string
