@@ -59,6 +59,12 @@ export default function ConcertQrManager() {
   const [validFrom, setValidFrom] = useState("")
   const [validUntil, setValidUntil] = useState("")
   const [maxCheckins, setMaxCheckins] = useState("")
+  const [placement, setPlacement] = useState("")
+  const [incentive, setIncentive] = useState("")
+  const [announcedFromStage, setAnnouncedFromStage] = useState(false)
+  const [contextPlacement, setContextPlacement] = useState("")
+  const [contextIncentive, setContextIncentive] = useState("")
+  const [contextAnnouncedFromStage, setContextAnnouncedFromStage] = useState(false)
   const [language, setLanguage] = useState<Language>("pl")
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -147,6 +153,12 @@ export default function ConcertQrManager() {
       return null
     }
   }, [checkinUrl])
+
+  useEffect(() => {
+    setContextPlacement(activeCampaign?.placement ?? "")
+    setContextIncentive(activeCampaign?.incentive ?? "")
+    setContextAnnouncedFromStage(activeCampaign?.announced_from_stage ?? false)
+  }, [activeCampaign?.id])
 
   // Ticker zegara dla etykiety świeżości (co 5 s przelicza „X s temu”).
   useEffect(() => {
@@ -304,6 +316,9 @@ export default function ConcertQrManager() {
           valid_from: new Date(validFrom).toISOString(),
           valid_until: new Date(validUntil).toISOString(),
           max_checkins: maxCheckins ? Number(maxCheckins) : null,
+          placement: placement.trim() || null,
+          announced_from_stage: announcedFromStage,
+          incentive: incentive.trim() || null,
         },
       })
       setCampaigns(current => [campaign, ...current])
@@ -316,6 +331,33 @@ export default function ConcertQrManager() {
         text: status === 422
           ? "Sprawdź termin. QR może działać od 24 h przed do 36 h po rozpoczęciu koncertu."
           : "Nie udało się utworzyć kampanii QR.",
+      })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function saveContext() {
+    if (busy || !activeCampaign) return
+    setBusy(true)
+    setMessage(null)
+    try {
+      await api(`/api/staff/qr/campaigns/${encodeURIComponent(activeCampaign.id)}/context`, {
+        method: "POST",
+        body: {
+          placement: contextPlacement.trim() || null,
+          announced_from_stage: contextAnnouncedFromStage,
+          incentive: contextIncentive.trim() || null,
+        },
+      })
+      await loadData()
+      setMessage({ tone: "success", text: "Kontekst QR został zapisany." })
+    } catch (error) {
+      setMessage({
+        tone: "error",
+        text: (error as ApiError).status === 422
+          ? "Miejsce może mieć maks. 128 znaków, a obietnica za skan maks. 256."
+          : "Nie udało się zapisać kontekstu QR.",
       })
     } finally {
       setBusy(false)
@@ -381,13 +423,13 @@ export default function ConcertQrManager() {
       language === "pl"
         ? {
             brand: "VIRYA // SYGNAŁ LIVE",
-            instruction: "Zeskanuj. Potwierdź obecność. Zwiększ szansę na album.",
+            instruction: activeCampaign.incentive?.trim() || "Zeskanuj. Potwierdź obecność. Zwiększ szansę na album.",
             note: "Jedno potwierdzenie na osobę i koncert. Kod działa wyłącznie w określonym czasie. Do udziału potrzebny jest aktywny Sygnał Virya.",
             valid: "Aktywny",
           }
         : {
             brand: "VIRYA // SIGNAL LIVE",
-            instruction: "Scan. Confirm attendance. Increase your album chance.",
+            instruction: activeCampaign.incentive?.trim() || "Scan. Confirm attendance. Increase your album chance.",
             note: "One confirmation per person and show. The code works only during the stated window. An active Virya Signal is required.",
             valid: "Active",
           }
@@ -542,6 +584,21 @@ export default function ConcertQrManager() {
             <input type="number" min="1" max="1000000" inputmode="numeric" value={maxCheckins} onInput={event => setMaxCheckins(event.currentTarget.value)} placeholder="Bez limitu" class={inputClass} />
           </label>
 
+          <label class={labelClass}>
+            Gdzie stoi QR (opcjonalnie)
+            <input value={placement} onInput={event => setPlacement(event.currentTarget.value)} maxlength={128} placeholder="np. merch table / wyjście / scena" class={inputClass} />
+          </label>
+
+          <label class={labelClass}>
+            Co fan dostaje za skan (opcjonalnie)
+            <input value={incentive} onInput={event => setIncentive(event.currentTarget.value)} maxlength={256} placeholder="np. setlista z dzisiejszego koncertu / wcześniejszy dostęp do kolejnej daty" class={inputClass} />
+          </label>
+
+          <label class="mt-4 flex items-center gap-3 text-xs text-virya-muted">
+            <input type="checkbox" checked={announcedFromStage} onChange={event => setAnnouncedFromStage(event.currentTarget.checked)} />
+            Ten QR będzie zapowiedziany ze sceny
+          </label>
+
           {dataLoaded && events.length === 0 && (
             <div class={`mt-5 ${staffNoticeBase} ${staffNoticeTones.warn}`}>
               CrowdRelay nie zwrócił żadnego opublikowanego koncertu. Uruchom ponownie produkcyjny setup po wdrożeniu aktualnego bootstrapu.
@@ -594,6 +651,8 @@ export default function ConcertQrManager() {
                   <Info label="Check-iny" value={`${activeCampaign.checkin_count}${activeCampaign.max_checkins ? ` / ${activeCampaign.max_checkins}` : ""}`} />
                   <Info label="Od" value={formatDate(activeCampaign.valid_from)} />
                   <Info label="Do" value={formatDate(activeCampaign.valid_until)} />
+                  <Info label="Obietnica" value={activeCampaign.incentive || "Domyślna: dodatkowa szansa na album"} />
+                  <Info label="Umiejscowienie" value={activeCampaign.placement || "Nieopisane"} />
                 </dl>
                 <label class={`mt-5 block ${staffEyebrow}`}>
                   Język strony po skanie
@@ -602,6 +661,25 @@ export default function ConcertQrManager() {
                     <option value="en">English</option>
                   </select>
                 </label>
+
+                <div class="mt-5 border-t border-virya-edge pt-5">
+                  <p class={staffEyebrow}>Co widzi fan przy QR</p>
+                  <label class={labelClass}>
+                    Umiejscowienie
+                    <input value={contextPlacement} onInput={event => setContextPlacement(event.currentTarget.value)} maxlength={128} placeholder="np. merch table" class={inputClass} />
+                  </label>
+                  <label class={labelClass}>
+                    Obietnica za skan
+                    <input value={contextIncentive} onInput={event => setContextIncentive(event.currentTarget.value)} maxlength={256} placeholder="Puste = domyślna szansa na album" class={inputClass} />
+                  </label>
+                  <label class="mt-4 flex items-center gap-3 text-xs text-virya-muted">
+                    <input type="checkbox" checked={contextAnnouncedFromStage} onChange={event => setContextAnnouncedFromStage(event.currentTarget.checked)} />
+                    Zapowiedziany ze sceny
+                  </label>
+                  <button type="button" onClick={() => void saveContext()} disabled={busy} class={`${staffSecondaryButton} mt-4 w-full`}>
+                    {busy ? "Zapisywanie…" : "Zapisz kontekst QR"}
+                  </button>
+                </div>
                 <div class="mt-5 grid gap-2 sm:grid-cols-2">
                   <button type="button" onClick={printCampaign} class={primaryButton}>Drukuj A4</button>
                   <button type="button" onClick={downloadSvg} class={secondaryButton}>Pobierz SVG</button>
