@@ -228,6 +228,11 @@ export const translations = {
       playthrough: "Playthrough",
       other: "Other",
     },
+    watch: {
+      heading: "Get the next one first.",
+      body: "New videos, shows near you and news from us, straight to your inbox and the Signal app. No spam.",
+      join: "Join",
+    },
     press: {
       eyebrow: "Press",
       heading: "Reviews",
@@ -799,6 +804,11 @@ export const translations = {
       watchOn: "Oglądaj na YouTube",
       playthrough: "Playthrough",
       other: "Inne",
+    },
+    watch: {
+      heading: "Następny dostaniesz pierwszy.",
+      body: "Nowe klipy, koncerty w Twojej okolicy i wieści od nas, prosto na maila i do aplikacji Signal. Bez spamu.",
+      join: "Dołącz",
     },
     press: {
       eyebrow: "Prasa",

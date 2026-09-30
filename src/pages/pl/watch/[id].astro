@@ -1,0 +1,23 @@
+---
+export const prerender = false
+import WatchPage from "../../../components/WatchPage.astro"
+import { loadPublicVideo } from "../../../server/publicVideo.ts"
+
+const { id = "" } = Astro.params
+const youtubeWatchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`
+
+if (!/^[A-Za-z0-9_-]{11}$/.test(id)) {
+  return Astro.redirect(youtubeWatchUrl, 302)
+}
+
+const video = await loadPublicVideo(id).catch(() => null)
+if (!video) {
+  return Astro.redirect(youtubeWatchUrl, 302)
+}
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=0, s-maxage=30, stale-while-revalidate=60",
+)
+---
+<WatchPage lang="pl" video={video} />

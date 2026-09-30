@@ -24,7 +24,10 @@ test("public hydration stays deliberately sparse", () => {
   const source = astro.map(path => readFileSync(path, "utf8")).join("\n")
   const directives = source.match(/client:(?:load|idle|visible|media|only)/g) ?? []
   const eager = source.match(/client:load/g) ?? []
-  assert.ok(directives.length <= 14, `public hydrated islands grew to ${directives.length}`)
+  // +1 since 14: WatchJoin on /watch/{id} — the fan-capture form under the
+  // click-to-play facade. It is the conversion point the whole smart-link
+  // funnel exists for, so its hydration is the most intentional on the site.
+  assert.ok(directives.length <= 15, `public hydrated islands grew to ${directives.length}`)
   assert.ok(eager.length <= 6, `public eager hydrated islands grew to ${eager.length}`)
   assert.match(source, /client:visible/)
   assert.match(source, /client:idle/)

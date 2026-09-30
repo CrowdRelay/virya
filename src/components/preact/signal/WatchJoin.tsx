@@ -1,0 +1,279 @@
+import { useEffect, useState } from "preact/hooks"
+import { SIGNAL_COPY } from "../../../data/signalCopy"
+import type { Lang } from "../../../i18n/t"
+import { t } from "../../../i18n/t"
+import type { CitySignal } from "../../../lib/crowdrelay-client"
+import {
+  rememberLandingAttribution,
+  signupAttribution,
+} from "../../../lib/signupAttribution"
+import {
+  campaignIdFromLocation,
+  crowdrelay,
+  referralCodeFromLocation,
+  rememberSignalCity,
+  signalCityFromLocation,
+} from "../../../lib/crowdrelay"
+
+interface Props {
+  lang: Lang
+}
+
+type SubmitState = "idle" | "saving" | "pending" | "saved" | "error"
+
+// The single-field capture form under the watch-page embed: the fan just
+// watched (or is about to watch) a video after clicking a tracked link, so
+// the ask is one email, a city and consent — the same signupFan call
+// SignalHub's enrichment stage makes, minus the pre-registration step.
+export default function WatchJoin({ lang }: Props) {
+  const copy = SIGNAL_COPY[lang]
+  const locale = lang === "pl" ? "pl-PL" : "en-GB"
+  const [cities, setCities] = useState<CitySignal[] | null>(null)
+  const [cityError, setCityError] = useState(false)
+  const [selectedCity, setSelectedCity] = useState("")
+  const [submitState, setSubmitState] = useState<SubmitState>("idle")
+  const [submitMessage, setSubmitMessage] = useState("")
+  const [referralUrl, setReferralUrl] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+
+  useEffect(() => {
+    rememberLandingAttribution()
+  }, [])
+
+  useEffect(() => {
+    const rememberedCity = signalCityFromLocation()
+    if (rememberedCity) setSelectedCity(rememberedCity)
+
+    let cancelled = false
+    void crowdrelay
+      .listCities(100)
+      .then(items => {
+        if (cancelled) return
+        setCities(items)
+        setCityError(false)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setCities(null)
+        setCityError(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [reloadKey])
+
+  async function join(event: SubmitEvent) {
+    event.preventDefault()
+    const form = event.currentTarget as HTMLFormElement
+    const data = new FormData(form)
+    const email = String(data.get("email") ?? "").trim()
+    const citySlug = String(data.get("city") ?? "").trim()
+    const consent = data.get("consent") === "on"
+
+    if (!email || !citySlug || !consent) {
+      setSubmitState("error")
+      setSubmitMessage(copy.form.validationError)
+      return
+    }
+
+    setSubmitState("saving")
+    setSubmitMessage("")
+    setReferralUrl(null)
+    setCopied(false)
+
+    try {
+      const campaignId = campaignIdFromLocation()
+      const referralCode = referralCodeFromLocation()
+      const attribution = signupAttribution()
+      const result = await crowdrelay.signupFan({
+        email,
+        city_slug: citySlug,
+        ...(campaignId ? { campaign_id: campaignId } : {}),
+        ...(referralCode ? { referral_code: referralCode } : {}),
+        ...(attribution ? { ad_attribution: attribution } : {}),
+        locale,
+        consent: {
+          marketing: true,
+          policy_version: "virya-signal-v1",
+        },
+      })
+
+      rememberSignalCity(citySlug)
+      setSelectedCity(citySlug)
+      setReferralUrl(result.referral_url)
+      if (result.confirmation_required) {
+        setSubmitState("pending")
+        if (result.email_queued === true) {
+          setSubmitMessage(
+            result.email_kind === "session_recovery"
+              ? copy.form.recoveryBody
+              : copy.form.pendingBody,
+          )
+        } else if (result.email_queued === false) {
+          const minutes = Math.max(
+            1,
+            Math.ceil((result.retry_after_seconds ?? 15 * 60) / 60),
+          )
+          setSubmitMessage(copy.form.cooldownBody(minutes))
+        } else {
+          setSubmitMessage(copy.form.acceptedBody)
+        }
+      } else {
+        setSubmitState("saved")
+        setSubmitMessage(copy.form.savedBody)
+      }
+      form.reset()
+      setSelectedCity(citySlug)
+    } catch {
+      setSubmitState("error")
+      setSubmitMessage(copy.form.saveError)
+    }
+  }
+
+  async function shareReferral() {
+    if (!referralUrl) return
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({
+          title: "VIRYA Signal",
+          text: lang === "pl"
+            ? "Jeśli ciężka muzyka i lokalna scena są też Twoim światem, złap ten sygnał."
+            : "If heavy music and the local scene are your world too, catch this signal.",
+          url: referralUrl,
+        })
+        setCopied(true)
+        return
+      }
+      await navigator.clipboard.writeText(referralUrl)
+      setCopied(true)
+    } catch {
+      // A dismissed share sheet is not an error worth surfacing.
+    }
+  }
+
+  return (
+    <div>
+      <h2 class="text-lg font-black uppercase tracking-widest text-white">
+        {t(lang, "watch.heading")}
+      </h2>
+      <p class="mt-2 text-sm leading-relaxed text-zinc-400">
+        {t(lang, "watch.body")}
+      </p>
+
+      <form onSubmit={join} noValidate class="mt-6 grid gap-5">
+        <label class="block">
+          <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
+            {copy.form.email}
+          </span>
+          <input
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            disabled={submitState === "saving"}
+            class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm disabled:opacity-60"
+          />
+        </label>
+        <label class="block">
+          <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
+            {copy.form.city}
+          </span>
+          <select
+            name="city"
+            required
+            value={selectedCity}
+            onChange={event =>
+              setSelectedCity((event.currentTarget as HTMLSelectElement).value)
+            }
+            disabled={cities === null || submitState === "saving"}
+            class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm disabled:opacity-60"
+          >
+            <option value="">
+              {cities === null
+                ? copy.form.loadingCities
+                : copy.form.cityPlaceholder}
+            </option>
+            {(cities ?? []).map(city => (
+              <option value={city.slug} key={city.slug}>
+                {city.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {cityError && (
+          <div class="border border-amber-400/30 bg-amber-400/[.035] p-4 text-xs text-zinc-300">
+            <p>{copy.form.loadError}</p>
+            <button
+              type="button"
+              onClick={() => setReloadKey(value => value + 1)}
+              class="mt-3 min-h-[42px] font-black uppercase tracking-widest text-amber-400"
+            >
+              {lang === "pl" ? "SPRÓBUJ PONOWNIE" : "TRY AGAIN"}
+            </button>
+          </div>
+        )}
+        <label class="flex cursor-pointer items-start gap-3 border-l-2 border-amber-400/50 bg-amber-400/[.035] p-4">
+          <input
+            name="consent"
+            type="checkbox"
+            required
+            class="mt-0.5 h-4 w-4 shrink-0 accent-amber-400"
+          />
+          <span class="text-xs leading-relaxed text-zinc-300">
+            {copy.form.consent}
+          </span>
+        </label>
+        <p class="text-[9px] leading-relaxed text-zinc-500">
+          {copy.form.privacy}
+        </p>
+        <button
+          type="submit"
+          disabled={cities === null || submitState === "saving"}
+          class="virya-button virya-button--primary min-h-[48px] px-4 disabled:cursor-wait"
+        >
+          {submitState === "saving"
+            ? copy.form.saving
+            : t(lang, "watch.join")}
+        </button>
+      </form>
+
+      {submitState !== "idle" && submitState !== "saving" && (
+        <div
+          class={`mt-4 border p-5 ${
+            submitState === "error"
+              ? "border-red-400/40 bg-red-400/[.04]"
+              : "border-amber-400/40 bg-amber-400/[.04]"
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          <p class="text-xs font-black uppercase tracking-widest text-white">
+            {submitState === "pending"
+              ? copy.form.pendingTitle
+              : submitState === "saved"
+                ? copy.form.savedTitle
+                : copy.form.saveError}
+          </p>
+          <p class="mt-2 text-xs leading-relaxed text-zinc-300">
+            {submitMessage}
+          </p>
+          {referralUrl && (
+            <div class="mt-5">
+              <p class="text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                {copy.form.referralTitle}
+              </p>
+              <button
+                type="button"
+                onClick={shareReferral}
+                class="virya-button virya-button--secondary mt-2 min-h-[44px] px-4"
+              >
+                {copied ? copy.form.copied : copy.form.copy}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
