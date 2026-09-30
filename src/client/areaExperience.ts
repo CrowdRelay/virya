@@ -1,4 +1,7 @@
 import { createAreaCollectionRenderer, type AreaLatestClaim } from "./areaCollectionRenderer"
+import { crowdrelay, campaignIdFromLocation, referralCodeFromLocation } from "../lib/crowdrelay"
+import { createSignalSignupSubmitter, signalSignupInput } from "../lib/signalSignup"
+import { signupAttribution } from "../lib/signupAttribution"
 
 // Browser runtime for AreaExperience.astro. Keep private coordinates server-side.
 type DropInfo = {
@@ -158,6 +161,7 @@ const initAreaExperience = () => {
     const claimAuthRequired = root.querySelector<HTMLElement>("[data-claim-auth-required]")
     const claimAuthText = root.querySelector<HTMLElement>("[data-claim-auth-text]")
     const claimAuthLink = root.querySelector<HTMLElement>("[data-claim-auth-link]")
+    const submitSignup = createSignalSignupSubmitter(crowdrelay)
     const claimInlineForm = root.querySelector<HTMLFormElement>("[data-claim-inline-signup]")
     const claimInlineEmail = root.querySelector<HTMLInputElement>("[data-claim-inline-email]")
     const claimInlineButton = root.querySelector<HTMLButtonElement>("[data-claim-inline-button]")
@@ -252,15 +256,16 @@ const initAreaExperience = () => {
           claimInlineStatus.textContent = copy.claimInlineSending
         }
         try {
-          const response = await fetch("/api/signal-preregister", {
-            method: "POST",
-            signal: AbortSignal.timeout(12_000),
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, locale: lang }),
-          })
-          if (!response.ok) throw new Error("preregister failed")
+          const consent = new FormData(claimInlineForm).get("consent") === "on"
+          const result = await submitSignup(signalSignupInput(email, lang, consent, {
+            campaign_id: campaignIdFromLocation(),
+            referral_code: referralCodeFromLocation(),
+            ad_attribution: signupAttribution(),
+          }))
           if (claimInlineStatus) {
-            claimInlineStatus.textContent = copy.claimInlineSent
+            claimInlineStatus.textContent = result.email_queued === false
+              ? (lang === "pl" ? "Użyj poprzedniego linku ze skrzynki. Nowa wiadomość nie została wysłana." : "Use the previous inbox link. No new email was sent.")
+              : copy.claimInlineSent
           }
           if (claimInlineForm) {
             // Disable the form after successful submit

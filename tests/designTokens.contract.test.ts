@@ -104,15 +104,10 @@ test("design-token ratchet — markup stays inside the counted scales", () => {
   }
 
   ratchet("radiusVariants", radii.size, 7)
-  // +5 since 338: the watch-capture form (WatchJoin) reuses SignalHub's
-  // micro-label convention verbatim — text-[9px] field labels, privacy note
-  // and referral title — and WatchPage carries one text-[10px] "watch on
-  // YouTube" link. Same utilities, same non-scale micro sizes.
-  ratchet("textPxArbitrary", textPx, 343)
-  // +10 since 497: the five text-[Npx] micro-labels above count here too,
-  // plus five min-h-[NNpx] touch-targets (50px inputs, 48/44px buttons,
-  // 42px retry) copied from the SignalHub form.
-  ratchet("arbitraryPxTotal", arbitraryPx, 507)
+  // The consented single-step Signal form removes three micro-labels and
+  // four arbitrary utilities from the obsolete preregistration stage.
+  ratchet("textPxArbitrary", textPx, 340)
+  ratchet("arbitraryPxTotal", arbitraryPx, 503)
   ratchet("hexOutsideExempt", hex, 12)
   ratchet("buttonsMissingType", buttonsMissingType, 0)
   ratchet("shadowUtilities", shadows, 17)

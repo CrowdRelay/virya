@@ -4,6 +4,7 @@ import type { Lang } from "../../../i18n/t"
 import type { CitySignal, PublicEvent } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import { loadLiveEvents, upcomingLiveEvents } from "../../../lib/liveEvents"
+import { createSignalSignupSubmitter, signalSignupInput, signalOfferFromSearch, signalOfferCopy } from "../../../lib/signalSignup"
 import {
   rememberLandingAttribution,
   signupAttribution,
@@ -28,8 +29,6 @@ interface Props {
 
 type SubmitState = "idle" | "saving" | "pending" | "saved" | "error"
 type HandoffState = "idle" | "linking" | "linked" | "login" | "retry" | "error"
-type FormStage = "email" | "enrichment"
-type PreregisterState = "idle" | "sending" | "sent" | "error"
 
 type CacheEntry<T> = {
   storedAt: number
@@ -53,10 +52,8 @@ export default function SignalHub({ lang }: Props) {
   const [submitMessage, setSubmitMessage] = useState("")
   const [referralUrl, setReferralUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [formStage, setFormStage] = useState<FormStage>("email")
-  const [preregisterState, setPreregisterState] = useState<PreregisterState>("idle")
-  const [preregisteredEmail, setPreregisteredEmail] = useState("")
-  const [displayName, setDisplayName] = useState("")
+  const submitSignup = useMemo(() => createSignalSignupSubmitter(crowdrelay), [])
+  const [offer, setOffer] = useState<"shows" | "releases" | undefined>()
   const [reloadKey, setReloadKey] = useState(0)
   const [handoffState, setHandoffState] = useState<HandoffState>("idle")
   const [handoffRetryKey, setHandoffRetryKey] = useState(0)
@@ -64,6 +61,7 @@ export default function SignalHub({ lang }: Props) {
 
   useEffect(() => {
     rememberLandingAttribution()
+    setOffer(signalOfferFromSearch(window.location.search))
   }, [])
 
   useEffect(() => {
@@ -166,53 +164,16 @@ export default function SignalHub({ lang }: Props) {
     [events],
   )
 
-  async function preRegister(event: Event) {
-    event.preventDefault()
-    const form = event.currentTarget as HTMLFormElement
-    const data = new FormData(form)
-    const email = String(data.get("email") ?? "").trim()
-    const name = String(data.get("display_name") ?? "").trim()
-
-    if (!email) {
-      setPreregisterState("error")
-      return
-    }
-
-    setPreregisterState("sending")
-    setPreregisteredEmail(email)
-    setDisplayName(name)
-
-    try {
-      const campaignId = campaignIdFromLocation()
-      const referralCode = referralCodeFromLocation()
-      const response = await fetch("/api/signal-preregister", {
-        method: "POST",
-        signal: AbortSignal.timeout(12_000),
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          locale: lang,
-          ...(campaignId ? { campaign_id: campaignId } : {}),
-          ...(referralCode ? { referral_code: referralCode } : {}),
-        }),
-      })
-      if (!response.ok) throw new Error("preregister failed")
-      setPreregisterState("sent")
-      setFormStage("enrichment")
-    } catch {
-      setPreregisterState("error")
-    }
-  }
-
   async function completeSignup(event: SubmitEvent) {
     event.preventDefault()
     const form = event.currentTarget as HTMLFormElement
     const data = new FormData(form)
-    const email = preregisteredEmail || String(data.get("email") ?? "").trim()
+    const email = String(data.get("email") ?? "").trim()
+    const displayName = String(data.get("display_name") ?? "").trim()
     const citySlug = String(data.get("city") ?? "").trim()
     const consent = data.get("consent") === "on"
 
-    if (!email || !citySlug || !consent) {
+    if (!email || !consent) {
       setSubmitState("error")
       setSubmitMessage(copy.form.validationError)
       return
@@ -227,19 +188,13 @@ export default function SignalHub({ lang }: Props) {
       const campaignId = campaignIdFromLocation()
       const referralCode = referralCodeFromLocation()
       const attribution = signupAttribution()
-      const result = await crowdrelay.signupFan({
-        email,
-        city_slug: citySlug,
+      const result = await submitSignup(signalSignupInput(email, locale, consent, {
+        ...(citySlug ? { city_slug: citySlug } : {}),
         ...(displayName ? { display_name: displayName } : {}),
         ...(campaignId ? { campaign_id: campaignId } : {}),
         ...(referralCode ? { referral_code: referralCode } : {}),
         ...(attribution ? { ad_attribution: attribution } : {}),
-        locale,
-        consent: {
-          marketing: true,
-          policy_version: "virya-signal-v1",
-        },
-      })
+      }))
 
       rememberSignalCity(citySlug)
       setSelectedCity(citySlug)
@@ -372,7 +327,7 @@ export default function SignalHub({ lang }: Props) {
           <div>
             <p class="virya-eyebrow">{copy.form.eyebrow}</p>
             <h2 class="virya-heading mt-4">{copy.form.heading}</h2>
-            <p class="virya-copy mt-6 text-zinc-300">{copy.form.body}</p>
+            <p class="virya-copy mt-6 text-zinc-300">{offer ? signalOfferCopy(offer, lang) : copy.form.body}</p>
             <div class="mt-8 grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
               {copy.teaser.chips.slice(0, 3).map((chip, index) => (
                 <div class="bg-zinc-950 p-4" key={chip}>
@@ -388,9 +343,7 @@ export default function SignalHub({ lang }: Props) {
           </div>
 
           <div class="virya-panel p-5 shadow-2xl sm:p-7 lg:p-8">
-            {/* Stage 1: Email-first capture */}
-            {formStage === "email" && (
-              <form onSubmit={preRegister} noValidate class="grid gap-5">
+              <form onSubmit={completeSignup} class="grid gap-5">
                 <div class="rounded border border-amber-400/25 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300">
                   <strong class="block text-sm uppercase text-white">
                     {lang === "pl" ? "Po co to jest?" : "What is this for?"}
@@ -423,73 +376,20 @@ export default function SignalHub({ lang }: Props) {
                     name="display_name"
                     type="text"
                     autoComplete="nickname"
-                    maxLength={160}
+                    maxLength={120}
                     class="virya-input mt-2 min-h-[50px] bg-zinc-900 px-4 text-sm"
                   />
                 </label>
-                {preregisterState === "error" && (
-                  <p class="border-l-2 border-red-400 bg-red-400/[.035] p-3 text-xs text-red-200" role="alert">
-                    {copy.form.preregisterError}
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  disabled={preregisterState === "sending"}
-                  class="virya-button virya-button--primary min-h-[50px] px-6 disabled:cursor-wait"
-                >
-                  {preregisterState === "sending"
-                    ? copy.form.preregisterSaving
-                    : copy.form.preregisterSubmit}
-                </button>
-                <p class="text-[9px] leading-relaxed text-zinc-500">
-                  {copy.form.privacy}
-                </p>
-              </form>
-            )}
-
-            {/* Stage 2: Enrichment (city + consent) — optional */}
-            {formStage === "enrichment" && (
-              <div class="grid gap-5">
-                {preregisterState === "sent" && (
-                  <div
-                    class="border border-amber-400/40 bg-amber-400/[.04] p-5"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <p class="text-xs font-black uppercase tracking-widest text-white">
-                      {copy.form.preregisterTitle}
-                    </p>
-                    <p class="mt-2 text-xs leading-relaxed text-zinc-300">
-                      {copy.form.preregisterBody}
-                    </p>
-                    <a
-                      href={pagePath(lang, "/my-signal/")}
-                      class="mt-4 inline-flex min-h-[44px] items-center text-[9px] font-black uppercase tracking-widest text-amber-400 hover:text-amber-300"
-                    >
-                      {copy.form.skipEnrichment} →
-                    </a>
-                  </div>
-                )}
-
-                <div class="border-t border-zinc-800 pt-5">
-                  <p class="text-[9px] font-black uppercase tracking-[.24em] text-amber-400">
-                    {copy.form.enrichmentHeading}
-                  </p>
-                  <p class="mt-2 text-xs leading-relaxed text-zinc-400">
-                    {copy.form.enrichmentBody}
-                  </p>
-                </div>
-
-                <form onSubmit={completeSignup} noValidate class="grid gap-5">
-                  <input type="hidden" name="email" value={preregisteredEmail} />
-                  <input type="hidden" name="display_name" value={displayName} />
+                <details class="grid gap-3">
+                  <summary class="min-h-[44px] cursor-pointer text-xs text-amber-400">
+                    {lang === "pl" ? "Dodaj miasto do alertów (opcjonalnie)" : "Add your city for show alerts (optional)"}
+                  </summary>
                   <label class="block">
                     <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
                       {copy.form.city}
                     </span>
                     <select
                       name="city"
-                      required
                       value={selectedCity}
                       onChange={event =>
                         setSelectedCity(
@@ -528,6 +428,7 @@ export default function SignalHub({ lang }: Props) {
                       ? "Miasto służy do alertów o koncertach. Nie publikujemy małych liczników fanów."
                       : "Your city is used for nearby show alerts. We do not publish small fan counters."}
                   </p>
+                </details>
                   <label class="flex cursor-pointer items-start gap-3 border-l-2 border-amber-400/50 bg-amber-400/[.035] p-4">
                     <input
                       name="consent"
@@ -544,12 +445,12 @@ export default function SignalHub({ lang }: Props) {
                   </p>
                   <button
                     type="submit"
-                    disabled={cities === null || submitState === "saving"}
+                    disabled={submitState === "saving"}
                     class="virya-button virya-button--primary min-h-[48px] px-4 disabled:cursor-wait"
                   >
                     {submitState === "saving"
-                      ? copy.form.enrichmentSaving
-                      : copy.form.enrichmentSubmit}
+                      ? copy.form.saving
+                      : copy.form.submit}
                   </button>
                 </form>
 
@@ -594,8 +495,6 @@ export default function SignalHub({ lang }: Props) {
                     )}
                   </div>
                 )}
-              </div>
-            )}
           </div>
         </div>
       </section>

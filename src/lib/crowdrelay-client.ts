@@ -242,7 +242,7 @@ export interface ConsentInput {
 
 export interface FanSignupInput {
   email: string
-  city_slug: string
+  city_slug?: string
   display_name?: string
   locale?: string
   referral_code?: string
