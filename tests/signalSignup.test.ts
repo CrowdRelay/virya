@@ -72,6 +72,131 @@ test("real browser client calls durable signup with credentials and no city", as
   assert.deepEqual(await submit(signalSignupInput("fan@example.test", "en", true, { referral_code: "Ref_123" })), result)
 })
 
+test("a new attempt after cooldown does not replay the old no-email response", async () => {
+  let now = 0
+  let sequence = 0
+  let queued = 0
+  const keys: string[] = []
+  const completed = new Map<string, object>()
+  const client = new CrowdRelayClient({
+    baseUrl: "https://signal-api.virya.music/v1/",
+    fetch: async (_url, options) => {
+      const key = new Headers(options?.headers).get("Idempotency-Key")!
+      keys.push(key)
+      if (!completed.has(key)) {
+        const canSend = now >= 900
+        if (canSend) queued += 1
+        completed.set(key, {
+          ...result,
+          email_queued: canSend,
+          retry_after_seconds: canSend ? null : 900,
+        })
+      }
+      return Response.json(completed.get(key), { status: 202 })
+    },
+  })
+  const submit = createSignalSignupSubmitter(client, () => `key-${++sequence}`)
+  const input = signalSignupInput("fan@example.test", "en", true)
+  assert.equal((await submit(input)).email_queued, false)
+  now = 901
+  assert.equal((await submit(input)).email_queued, true)
+  assert.equal(queued, 1)
+  assert.deepEqual(keys, ["key-1", "key-2"])
+})
+
+test("received confirmation and recovery replies finish the attempt", async () => {
+  for (const email_kind of ["confirmation", "session_recovery"] as const) {
+    let sequence = 0
+    const keys: string[] = []
+    const submit = createSignalSignupSubmitter({
+      async signupFan(_input, key) {
+        keys.push(key)
+        return { ...result, email_kind }
+      },
+    }, () => `key-${++sequence}`)
+    const input = signalSignupInput("fan@example.test", "en", true)
+    await submit(input)
+    await submit(input)
+    assert.deepEqual(keys, ["key-1", "key-2"], email_kind)
+  }
+})
+
+test("overlapping identical submits share one request; a lost response keeps its key", async () => {
+  let rejectFirst!: (error: Error) => void
+  let sequence = 0
+  const keys: string[] = []
+  const submit = createSignalSignupSubmitter({
+    signupFan(_input, key) {
+      keys.push(key)
+      if (keys.length === 1) {
+        return new Promise<typeof result>((_resolve, reject) => { rejectFirst = reject })
+      }
+      return Promise.resolve(result)
+    },
+  }, () => `key-${++sequence}`)
+  const input = signalSignupInput("fan@example.test", "en", true)
+  const first = submit(input)
+  const duplicate = submit(input)
+  const outcomes = Promise.allSettled([first, duplicate])
+  await Promise.resolve()
+  assert.equal(keys.length, 1)
+  rejectFirst(new Error("response lost"))
+  assert.deepEqual((await outcomes).map(outcome => outcome.status), ["rejected", "rejected"])
+  await submit(input)
+  assert.deepEqual(keys, ["key-1", "key-1"])
+})
+
+test("editing another signup does not forget an unresolved operation", async () => {
+  let sequence = 0
+  let attempts = 0
+  const keys: string[] = []
+  const submit = createSignalSignupSubmitter({
+    async signupFan(_input, key) {
+      keys.push(key)
+      if (++attempts === 1) throw new Error("timeout after commit")
+      return result
+    },
+  }, () => `key-${++sequence}`)
+  const first = signalSignupInput("first@example.test", "en", true)
+  const edited = signalSignupInput("edited@example.test", "en", true)
+  await assert.rejects(submit(first), /timeout/)
+  await submit(edited)
+  await submit(first)
+  await submit(first)
+  assert.deepEqual(keys, ["key-1", "key-2", "key-1", "key-3"])
+})
+
+test("request identity stays bound to the submitted payload", async () => {
+  const emails: string[] = []
+  const submit = createSignalSignupSubmitter({
+    async signupFan(input) {
+      emails.push(input.email)
+      return result
+    },
+  }, () => "key-1")
+  const input = signalSignupInput("original@example.test", "en", true)
+  const pending = submit(input)
+  input.email = "edited@example.test"
+  await pending
+  assert.deepEqual(emails, ["original@example.test"])
+})
+
+test("a synchronously failing client can retry the same operation", async () => {
+  let calls = 0
+  const keys: string[] = []
+  const submit = createSignalSignupSubmitter({
+    signupFan(_input, key) {
+      keys.push(key)
+      if (++calls === 1) throw new Error("client failed")
+      return Promise.resolve(result)
+    },
+  }, () => "key-1")
+  const input = signalSignupInput("fan@example.test", "en", true)
+  await assert.rejects(submit(input), /client failed/)
+  assert.deepEqual(await submit(input), result)
+  assert.deepEqual(keys, ["key-1", "key-1"])
+})
+
 test("landing offers are truthful, bilingual and selected only from known values", () => {
   assert.equal(signalOfferFromSearch("?offer=shows"), "shows")
   assert.equal(signalOfferFromSearch("?offer=releases"), "releases")

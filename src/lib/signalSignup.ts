@@ -30,20 +30,38 @@ export function signalSignupInput(
   }
 }
 
-/** Keep the same key after a timeout so a retry replays the durable write. */
+/**
+ * Keep ambiguous retries on the same operation, including after an input edit.
+ * A received response ends the operation: the next submit must recheck the
+ * server's confirmation/recovery cooldown instead of replaying an old reply.
+ */
 export function createSignalSignupSubmitter(
   client: { signupFan(input: FanSignupInput, key: string): Promise<FanSignupResult> },
   newKey: () => string = () => crypto.randomUUID(),
 ): (input: FanSignupInput) => Promise<FanSignupResult> {
-  let previousBody: string | undefined
-  let key: string
-  return async input => {
+  type Attempt = { key: string; inFlight?: Promise<FanSignupResult> }
+  const attempts = new Map<string, Attempt>()
+  return input => {
     const body = JSON.stringify(input)
-    if (body !== previousBody) {
-      key = newKey()
-      previousBody = body
+    let attempt = attempts.get(body)
+    if (!attempt) {
+      attempt = { key: newKey() }
+      attempts.set(body, attempt)
     }
-    return client.signupFan(input, key)
+    if (attempt.inFlight) return attempt.inFlight
+
+    const current = attempt
+    const request = JSON.parse(body) as FanSignupInput
+    current.inFlight = Promise.resolve()
+      .then(() => client.signupFan(request, current.key))
+      .then(result => {
+        attempts.delete(body)
+        return result
+      })
+      .finally(() => {
+        current.inFlight = undefined
+      })
+    return current.inFlight
   }
 }
 
