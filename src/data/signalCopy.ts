@@ -268,7 +268,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       eyebrow: "Activate",
       heading: "Start your Virya Signal",
       body:
-        "Enter your email and we'll send you a link to activate Signal. Add your city and consent now or later — your call.",
+        "Get Virya music and show updates directly from the band. Enter your email, choose whether to hear from us, and confirm the inbox link. Your city is optional.",
       email: "Email",
       nickname: "Name or nickname (optional)",
       city: "Your city",
@@ -280,7 +280,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       saving: "Activating…",
       loadingCities: "Loading cities…",
       loadError: "Cities are temporarily unavailable. Try again in a moment.",
-      validationError: "Enter an email, choose a city and accept the consent.",
+      validationError: "Enter a valid email and accept the consent. Your city is optional.",
       saveError: "We could not activate the signal. Check the data and try again.",
       pendingTitle: "Check your inbox",
       pendingBody:
@@ -548,7 +548,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       eyebrow: "Aktywacja",
       heading: "Dołącz do Sygnału Virya",
       body:
-        "Podaj e-mail, a wyślemy Ci link do aktywacji. Miasto i zgodę możesz dodać od razu albo później — jak Ci wygodniej.",
+        "Dostawaj wiadomości o muzyce i koncertach Viryi bezpośrednio od zespołu. Podaj e-mail, zaakceptuj zgodę i potwierdź link ze skrzynki. Miasto jest opcjonalne.",
       email: "E-mail",
       nickname: "Imię lub nick (opcjonalnie)",
       city: "Twoje miasto",
@@ -560,7 +560,7 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       saving: "Aktywuję…",
       loadingCities: "Ładuję miasta…",
       loadError: "Lista miast jest chwilowo niedostępna. Spróbuj ponownie za moment.",
-      validationError: "Podaj e-mail, wybierz miasto i zaakceptuj zgodę.",
+      validationError: "Podaj poprawny e-mail i zaakceptuj zgodę. Miasto jest opcjonalne.",
       saveError: "Nie udało się aktywować sygnału. Sprawdź dane i spróbuj ponownie.",
       pendingTitle: "Sprawdź skrzynkę",
       pendingBody:

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "preact/hooks"
+import { useEffect, useMemo, useState } from "preact/hooks"
+import { createSignalSignupSubmitter, signalSignupInput } from "../../../lib/signalSignup"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
 import { t } from "../../../i18n/t"
@@ -21,10 +22,7 @@ interface Props {
 
 type SubmitState = "idle" | "saving" | "pending" | "saved" | "error"
 
-// The single-field capture form under the watch-page embed: the fan just
-// watched (or is about to watch) a video after clicking a tracked link, so
-// the ask is one email, a city and consent — the same signupFan call
-// SignalHub's enrichment stage makes, minus the pre-registration step.
+// Capture a consented email under the video. City enrichment never blocks signup.
 export default function WatchJoin({ lang }: Props) {
   const copy = SIGNAL_COPY[lang]
   const locale = lang === "pl" ? "pl-PL" : "en-GB"
@@ -36,6 +34,7 @@ export default function WatchJoin({ lang }: Props) {
   const [referralUrl, setReferralUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
+  const submitSignup = useMemo(() => createSignalSignupSubmitter(crowdrelay), [])
 
   useEffect(() => {
     rememberLandingAttribution()
@@ -71,7 +70,7 @@ export default function WatchJoin({ lang }: Props) {
     const citySlug = String(data.get("city") ?? "").trim()
     const consent = data.get("consent") === "on"
 
-    if (!email || !citySlug || !consent) {
+    if (!email || !consent) {
       setSubmitState("error")
       setSubmitMessage(copy.form.validationError)
       return
@@ -86,18 +85,12 @@ export default function WatchJoin({ lang }: Props) {
       const campaignId = campaignIdFromLocation()
       const referralCode = referralCodeFromLocation()
       const attribution = signupAttribution()
-      const result = await crowdrelay.signupFan({
-        email,
+      const result = await submitSignup(signalSignupInput(email, locale, consent, {
         city_slug: citySlug,
         ...(campaignId ? { campaign_id: campaignId } : {}),
         ...(referralCode ? { referral_code: referralCode } : {}),
         ...(attribution ? { ad_attribution: attribution } : {}),
-        locale,
-        consent: {
-          marketing: true,
-          policy_version: "virya-signal-v1",
-        },
-      })
+      }))
 
       rememberSignalCity(citySlug)
       setSelectedCity(citySlug)
@@ -177,11 +170,10 @@ export default function WatchJoin({ lang }: Props) {
         </label>
         <label class="block">
           <span class="text-[9px] font-black uppercase tracking-[.24em] text-zinc-400">
-            {copy.form.city}
+            {copy.form.city} ({lang === "pl" ? "opcjonalnie" : "optional"})
           </span>
           <select
             name="city"
-            required
             value={selectedCity}
             onChange={event =>
               setSelectedCity((event.currentTarget as HTMLSelectElement).value)
@@ -229,7 +221,7 @@ export default function WatchJoin({ lang }: Props) {
         </p>
         <button
           type="submit"
-          disabled={cities === null || submitState === "saving"}
+          disabled={submitState === "saving"}
           class="virya-button virya-button--primary min-h-[48px] px-4 disabled:cursor-wait"
         >
           {submitState === "saving"

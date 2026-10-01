@@ -9,6 +9,8 @@ import type {
 } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import { normalizeTicketInventory } from "../../../lib/ticketInventory"
+import { createSignalSignupSubmitter, signalSignupInput } from "../../../lib/signalSignup"
+import { signupAttribution } from "../../../lib/signupAttribution"
 import TicketInventoryBar from "../tickets/TicketInventoryBar"
 import {
   bestEffort,
@@ -17,6 +19,7 @@ import {
   clearPendingConcertCheckin,
   crowdrelay,
   getPendingConcertCheckin,
+  referralCodeFromLocation,
 } from "../../../lib/crowdrelay"
 
 interface Props {
@@ -617,7 +620,9 @@ function CheckinPanel({
   onRetry: () => void
 }) {
   const copy = SIGNAL_COPY[lang].event
+  const submitSignup = useMemo(() => createSignalSignupSubmitter(crowdrelay), [])
   const [inlineEmail, setInlineEmail] = useState("")
+  const [inlineMessage, setInlineMessage] = useState("")
   const [inlineState, setInlineState] = useState<"idle" | "sending" | "sent" | "error">("idle")
   const success = state === "success" || state === "duplicate"
   const body =
@@ -641,13 +646,15 @@ function CheckinPanel({
     if (!email || inlineState === "sending") return
     setInlineState("sending")
     try {
-      const response = await fetch("/api/signal-preregister", {
-        method: "POST",
-        signal: AbortSignal.timeout(12_000),
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, locale: lang }),
-      })
-      if (!response.ok) throw new Error("preregister failed")
+      const consent = new FormData(event.currentTarget as HTMLFormElement).get("consent") === "on"
+      const result = await submitSignup(signalSignupInput(email, lang, consent, {
+        campaign_id: campaignIdFromLocation(),
+        referral_code: referralCodeFromLocation(),
+        ad_attribution: signupAttribution(),
+      }))
+      setInlineMessage(result.email_queued === false
+        ? SIGNAL_COPY[lang].form.cooldownBody(Math.max(1, Math.ceil((result.retry_after_seconds ?? 900) / 60)))
+        : copy.checkinInlineSent)
       setInlineState("sent")
     } catch {
       setInlineState("error")
@@ -684,7 +691,7 @@ function CheckinPanel({
           </p>
           {state === "login" && inlineState === "sent" ? (
             <p class="mt-3 border-l-2 border-emerald-400 bg-emerald-400/[.04] p-3 text-xs font-semibold text-emerald-200">
-              {copy.checkinInlineSent}
+              {inlineMessage}
             </p>
           ) : state === "login" ? (
             <form onSubmit={submitInlineSignup} class="mt-4 grid gap-3 sm:max-w-md">
@@ -711,6 +718,10 @@ function CheckinPanel({
                   {inlineState === "sending" ? copy.checkinInlineSending : copy.checkinInlineSubmit}
                 </button>
               </div>
+              <label class="flex items-start gap-2 text-xs leading-relaxed text-zinc-300">
+                <input name="consent" type="checkbox" required class="mt-1 accent-amber-400" />
+                <span>{SIGNAL_COPY[lang].form.consent}</span>
+              </label>
               {inlineState === "error" && (
                 <p class="text-xs text-rose-300">{copy.checkinInlineError}</p>
               )}
