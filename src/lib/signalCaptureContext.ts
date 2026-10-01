@@ -6,7 +6,7 @@ export interface SignalCaptureContext {
 export function validatedCaptureContext(value: unknown): SignalCaptureContext | undefined {
   if (!value || typeof value !== "object" || Array.isArray(value)) return undefined
   const v = value as Record<string, unknown>
-  const offer = v.offer === "shows" || v.offer === "releases" ? v.offer : undefined
+  const offer: SignalCaptureContext["offer"] = v.offer === "shows" || v.offer === "releases" ? v.offer : undefined
   const event = typeof v.event_slug === "string" && /^[a-z0-9](?:[a-z0-9-]{0,118}[a-z0-9])?$/.test(v.event_slug) ? v.event_slug : undefined
   const video = typeof v.video_id === "string" && /^[A-Za-z0-9_-]{11}$/.test(v.video_id) ? v.video_id : undefined
   if (event && video) return offer ? { offer } : undefined
