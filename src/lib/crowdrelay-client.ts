@@ -625,6 +625,21 @@ export interface PushEndpointMutationResult {
   registered: boolean
 }
 
+export interface SignalInstallationInput {
+  installation_id: string
+  platform: "web"
+  app_version?: string
+}
+
+export interface SignalInstallationResult {
+  recorded: boolean
+}
+
+export interface SignalLinkResult {
+  recorded: boolean
+  linked: boolean
+}
+
 export interface CrowdRelayClientOptions {
   baseUrl: string
   timeoutMs?: number
@@ -838,6 +853,30 @@ export class CrowdRelayClient {
       body: input,
       idempotencyKey,
       timeoutMs: 4_000,
+    })
+  }
+
+  recordSignalInstallation(
+    input: SignalInstallationInput,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<SignalInstallationResult> {
+    return this.#request("public/signal/installations", {
+      method: "POST",
+      body: input,
+      idempotencyKey,
+      timeoutMs: 2_000,
+    })
+  }
+
+  linkSignalInstallation(
+    input: SignalInstallationInput,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<SignalLinkResult> {
+    return this.#request("me/signal/installations", {
+      method: "POST",
+      body: input,
+      idempotencyKey,
+      timeoutMs: 2_000,
     })
   }
 

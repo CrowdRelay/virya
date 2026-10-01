@@ -5,6 +5,7 @@ import type { CitySignal, PublicEvent } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
 import { loadLiveEvents, upcomingLiveEvents } from "../../../lib/liveEvents"
 import { createSignalSignupSubmitter, signalSignupInput, signalOfferFromSearch, signalOfferCopy } from "../../../lib/signalSignup"
+import { recordWebSignalInstall } from "../../../lib/signalInstall"
 import {
   rememberLandingAttribution,
   signupAttribution,
@@ -61,6 +62,7 @@ export default function SignalHub({ lang }: Props) {
 
   useEffect(() => {
     rememberLandingAttribution()
+    recordWebSignalInstall()
     setOffer(signalOfferFromSearch(window.location.search))
   }, [])
 

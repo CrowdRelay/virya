@@ -15,6 +15,7 @@ import {
   crowdrelay,
   synesthesiaHandoffFromLocation,
 } from "../../../lib/crowdrelay"
+import { linkWebSignalInstall, recordWebSignalInstall } from "../../../lib/signalInstall"
 
 interface Props {
   lang: Lang
@@ -59,6 +60,7 @@ export default function MySignal({ lang }: Props) {
   useEffect(() => {
     let cancelled = false
     const load = async () => {
+      recordWebSignalInstall()
       const handoff = synesthesiaHandoffFromLocation()
       if (handoff) {
         try {
@@ -94,6 +96,11 @@ export default function MySignal({ lang }: Props) {
         return
       }
       if (cancelled) return
+
+      // A 200 from me/home just proved the session cookie, so this is the
+      // earliest moment the install may carry a fan — the anonymous half was
+      // recorded on mount.
+      linkWebSignalInstall()
 
       // The single fan/home read-model unlocks the useful dashboard first.
       // Detailed reward/pass/interest views enrich it without extending TTI.
