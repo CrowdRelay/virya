@@ -59,6 +59,7 @@ export default function EventDetail({
     null,
   )
   const [checkinState, setCheckinState] = useState<CheckinState>("none")
+  const [checkinReferral, setCheckinReferral] = useState<string | null>(null)
   const [shareLabel, setShareLabel] = useState(copy.share)
   const campaignId = useMemo(() => campaignIdFromLocation(), [])
 
@@ -135,6 +136,7 @@ export default function EventDetail({
         if (cancelled) return
         clearPendingConcertCheckin()
         setCheckinState(result.created ? "success" : "duplicate")
+        setCheckinReferral(result.referral_url ?? null)
         setInterestState("saved")
       })
       .catch(error => {
@@ -165,6 +167,7 @@ export default function EventDetail({
       const result = await crowdrelay.checkInToEvent(slug, pending.token)
       clearPendingConcertCheckin()
       setCheckinState(result.created ? "success" : "duplicate")
+      setCheckinReferral(result.referral_url ?? null)
       setInterestState("saved")
     } catch (error) {
       if (error instanceof CrowdRelayError && error.status === 401) {
@@ -339,6 +342,7 @@ export default function EventDetail({
               <CheckinPanel
                 lang={lang}
                 state={checkinState}
+                referralUrl={checkinReferral}
                 onRetry={() => void retryCheckin()}
               />
             )}
@@ -613,10 +617,12 @@ function Fact({
 function CheckinPanel({
   lang,
   state,
+  referralUrl,
   onRetry,
 }: {
   lang: Lang
   state: Exclude<CheckinState, "none">
+  referralUrl: string | null
   onRetry: () => void
 }) {
   const copy = SIGNAL_COPY[lang].event
@@ -624,6 +630,7 @@ function CheckinPanel({
   const [inlineEmail, setInlineEmail] = useState("")
   const [inlineMessage, setInlineMessage] = useState("")
   const [inlineState, setInlineState] = useState<"idle" | "sending" | "sent" | "error">("idle")
+  const [referralLabel, setReferralLabel] = useState<string | null>(null)
   const success = state === "success" || state === "duplicate"
   const body =
     state === "working"
@@ -639,6 +646,20 @@ function CheckinPanel({
               : state === "full"
                 ? copy.checkinFull
                 : copy.checkinError
+
+  async function shareReferral() {
+    if (!referralUrl) return
+    try {
+      if (navigator.share) {
+        await navigator.share({ url: referralUrl })
+      } else {
+        await navigator.clipboard.writeText(referralUrl)
+      }
+      setReferralLabel(copy.checkinReferralCopied)
+    } catch {
+      setReferralLabel(null)
+    }
+  }
 
   async function submitInlineSignup(event: Event) {
     event.preventDefault()
@@ -689,6 +710,29 @@ function CheckinPanel({
           <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-200">
             {body}
           </p>
+          {success && referralUrl && (
+            <div class="mt-4 sm:max-w-md">
+              <p class="text-xs leading-relaxed text-zinc-300">
+                {copy.checkinReferral}
+              </p>
+              <div class="mt-2 flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="text"
+                  readOnly
+                  value={referralUrl}
+                  onFocus={event => event.currentTarget.select()}
+                  class="virya-input min-h-11 flex-1 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => void shareReferral()}
+                  class="virya-button virya-button--primary min-h-11 shrink-0 px-4"
+                >
+                  {referralLabel ?? copy.checkinReferralShare}
+                </button>
+              </div>
+            </div>
+          )}
           {state === "login" && inlineState === "sent" ? (
             <p class="mt-3 border-l-2 border-emerald-400 bg-emerald-400/[.04] p-3 text-xs font-semibold text-emerald-200">
               {inlineMessage}
