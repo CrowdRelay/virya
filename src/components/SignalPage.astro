@@ -5,7 +5,7 @@ import Footer from "./Footer.astro"
 import ScrollToTop from "./ScrollToTop.astro"
 import SignalHub from "./preact/signal/SignalHub"
 import SynesthesiaLeaderboard from "./SynesthesiaLeaderboard.astro"
-import PlayStoreBadge from "./PlayStoreBadge.astro"
+import SignalCampaignIntro from "./preact/signal/SignalCampaignIntro"
 import SectionHeading from "./SectionHeading.astro"
 import { SIGNAL_COPY } from "../data/signalCopy"
 import { VIRYA_GROUP_REF } from "../data/viryaIdentity"
@@ -88,46 +88,10 @@ const schema = {
       <header class="relative overflow-hidden border-b border-zinc-800/60 px-5 pb-16 pt-[calc(8rem+env(safe-area-inset-top))] sm:px-8 sm:pb-20 lg:px-12 lg:pb-28 lg:pt-40">
         <div class="signal-hero-grid absolute inset-0 opacity-60" aria-hidden="true"></div>
         <div class="absolute left-[6%] top-32 h-72 w-72 rounded-full bg-amber-400/[.08] blur-[120px]" aria-hidden="true"></div>
-        <div class="virya-container relative">
-          <p class="virya-eyebrow">{copy.hero.eyebrow}</p>
-          {/* The heading spans the container rather than the 1.1fr column. The
-              Polish hero copy is a 58-character sentence against 33 in English,
-              and inside the narrower column it wrapped to six display-size lines
-              that pushed the body and both calls to action below the fold. */}
-          <h1 class="virya-display virya-display--long mt-6">{copy.hero.heading}</h1>
-          <div class="mt-10 grid gap-12 lg:mt-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,.58fr)] lg:items-end">
-          <div>
-            <p class="max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg sm:leading-8">
-              {copy.hero.body}
-            </p>
-            <div class="mt-9 flex flex-wrap items-center gap-3">
-              <a href="#join-signal" class="virya-button virya-button--primary">
-                {copy.hero.primary} <span aria-hidden="true">→</span>
-              </a>
-              <a href={lp(lang, "/my-signal/")} class="virya-button virya-button--secondary">
-                {lang === "pl" ? "Mam już konto" : "I already joined"}
-              </a>
-              <PlayStoreBadge lang={lang} />
-            </div>
-          </div>
-
-          <aside class="border-l border-amber-400/45 pl-5 sm:pl-7">
-            <p class="virya-eyebrow text-zinc-400">{lang === "pl" ? "W skrócie" : "In short"}</p>
-            <dl class="mt-5 divide-y divide-zinc-800/70 border-y border-zinc-800/70">
-              {(lang === "pl"
-                ? [["Miasto", "koncerty i alerty"], ["Konto", "bez hasła"], ["Dane", "bez sprzedaży reklamodawcom"]]
-                : [["City", "shows and alerts"], ["Account", "no password"], ["Data", "never sold to advertisers"]]
-              ).map(([label, value]) => (
-                <div class="grid grid-cols-[5rem_1fr] gap-4 py-3 text-sm">
-                  <dt class="font-bold uppercase tracking-[.08em] text-zinc-400">{label}</dt>
-                  <dd class="text-zinc-200">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </aside>
-          </div>
-        </div>
+        <SignalCampaignIntro client:load lang={lang} />
       </header>
+
+      <SignalHub client:load lang={lang} />
 
       <section class="virya-section virya-surface" aria-labelledby="signal-benefits-heading">
         <div class="virya-section__inner">
@@ -150,7 +114,6 @@ const schema = {
         </div>
       </section>
 
-      <SignalHub client:visible lang={lang} />
       <SynesthesiaLeaderboard compact lang={lang} />
 
       <section class="virya-section signal-deferred border-t border-zinc-800/60">

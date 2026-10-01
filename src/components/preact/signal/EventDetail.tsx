@@ -648,6 +648,7 @@ function CheckinPanel({
     try {
       const consent = new FormData(event.currentTarget as HTMLFormElement).get("consent") === "on"
       const result = await submitSignup(signalSignupInput(email, lang, consent, {
+        capture_context: {offer:"shows",event_slug:slug},
         campaign_id: campaignIdFromLocation(),
         referral_code: referralCodeFromLocation(),
         ad_attribution: signupAttribution(),

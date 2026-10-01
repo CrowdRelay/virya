@@ -2,7 +2,7 @@ import type { FanSignupInput, FanSignupResult } from "./crowdrelay-client.ts"
 
 export type SignalSignupContext = Pick<
   FanSignupInput,
-  "city_slug" | "display_name" | "campaign_id" | "referral_code" | "ad_attribution"
+  "city_slug" | "display_name" | "campaign_id" | "referral_code" | "ad_attribution" | "capture_context"
 >
 
 /** Capture only explicit opt-in. City enriches a signup; it never gates one. */

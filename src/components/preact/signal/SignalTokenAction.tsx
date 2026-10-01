@@ -1,3 +1,4 @@
+import { captureReturnPath } from "../../../lib/signalCaptureContext"
 import { useEffect, useState } from "preact/hooks"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
@@ -37,6 +38,7 @@ export default function SignalTokenAction({ lang, action }: Props) {
   )
   const [pendingToken, setPendingToken] = useState<string | null>(null)
   const [email, setEmail] = useState("")
+  const [nextPath, setNextPath] = useState(pagePath(lang, "/my-signal/"))
   const [resending, setResending] = useState(false)
   const [resendDone, setResendDone] = useState(false)
 
@@ -66,7 +68,7 @@ export default function SignalTokenAction({ lang, action }: Props) {
         : crowdrelay.unsubscribeFan(token)
 
     void request
-      .then(async () => {
+      .then(async result => {
         if (cancelled) return
         setState("success")
         setMessage(
@@ -74,6 +76,7 @@ export default function SignalTokenAction({ lang, action }: Props) {
         )
 
         if (action !== "confirm") return
+        if ("capture_context" in result) setNextPath(captureReturnPath(result.capture_context, lang))
         const pending = getPendingConcertCheckin()
         if (!pending) return
         try {
@@ -159,6 +162,7 @@ export default function SignalTokenAction({ lang, action }: Props) {
       <p class="mt-5 max-w-2xl text-sm leading-relaxed text-zinc-300" role="status" aria-live="polite">
         {message}
       </p>
+      {state === "error" && pendingToken && <button type="button" onClick={() => exchange(pendingToken)} class="virya-button virya-button--secondary mt-6">{lang === "pl" ? "Spróbuj ponownie" : "Try again"}</button>}
       {state === "error" && action === "confirm" && (
         <form onSubmit={resendAccess} class="mt-6 max-w-md">
           <label class="block text-xs font-black uppercase tracking-wider text-zinc-300">
@@ -205,10 +209,10 @@ export default function SignalTokenAction({ lang, action }: Props) {
         )}
         {state === "success" && action === "confirm" && (
           <a
-            href={pagePath(lang, "/my-signal/")}
+            href={nextPath}
             class="virya-button virya-button--primary min-h-[46px] px-5"
           >
-            {copy.account}
+            {lang === "pl" ? "Wracam do muzyki i koncertów" : "Back to music and shows"}
           </a>
         )}
         <a
