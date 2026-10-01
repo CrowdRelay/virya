@@ -185,6 +185,9 @@ export interface SignalCopy {
     checkinInlineSending: string
     checkinInlineSent: string
     checkinInlineError: string
+    checkinReferral: string
+    checkinReferralShare: string
+    checkinReferralCopied: string
     share: string
     shared: string
     tickets: string
@@ -448,6 +451,9 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       checkinInlineSending: "Sending…",
       checkinInlineSent: "Sent! Check your email to confirm. Your check-in will complete automatically when you return.",
       checkinInlineError: "Something went wrong. Try again or go to the Signal page to join.",
+      checkinReferral: "Your link — send it to someone who should have been here.",
+      checkinReferralShare: "Share your link",
+      checkinReferralCopied: "Copied",
       share: "Share",
       shared: "Shared",
       tickets: "Tickets",
@@ -728,6 +734,9 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       checkinInlineSending: "Wysyłam…",
       checkinInlineSent: "Wysłane! Sprawdź maila, aby potwierdzić. Check-in dokończy się automatycznie, gdy wrócisz.",
       checkinInlineError: "Coś poszło nie tak. Spróbuj ponownie albo wejdź na stronę Sygnału.",
+      checkinReferral: "Twój link — wyślij go komuś, kto powinien tu być.",
+      checkinReferralShare: "Udostępnij swój link",
+      checkinReferralCopied: "Skopiowano",
       share: "Udostępnij",
       shared: "Udostępniono",
       tickets: "Bilety",

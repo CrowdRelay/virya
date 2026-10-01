@@ -302,6 +302,8 @@ export interface ConcertCheckinResult {
   campaign_id: string
   created: boolean
   checked_in_at: string
+  identity: string
+  referral_url: string | null
 }
 
 
