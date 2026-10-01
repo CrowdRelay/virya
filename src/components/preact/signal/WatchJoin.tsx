@@ -1,3 +1,4 @@
+import { captureContextForPage } from "../../../lib/signalCaptureContext"
 import { useEffect, useMemo, useState } from "preact/hooks"
 import { createSignalSignupSubmitter, signalSignupInput } from "../../../lib/signalSignup"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
@@ -86,6 +87,7 @@ export default function WatchJoin({ lang }: Props) {
       const referralCode = referralCodeFromLocation()
       const attribution = signupAttribution()
       const result = await submitSignup(signalSignupInput(email, locale, consent, {
+        capture_context: captureContextForPage(window.location.pathname, window.location.search),
         city_slug: citySlug,
         ...(campaignId ? { campaign_id: campaignId } : {}),
         ...(referralCode ? { referral_code: referralCode } : {}),

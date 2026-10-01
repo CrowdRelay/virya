@@ -1,3 +1,4 @@
+import { captureContextForPage } from "../../../lib/signalCaptureContext"
 import { useEffect, useMemo, useState } from "preact/hooks"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
 import type { Lang } from "../../../i18n/t"
@@ -191,6 +192,7 @@ export default function SignalHub({ lang }: Props) {
       const referralCode = referralCodeFromLocation()
       const attribution = signupAttribution()
       const result = await submitSignup(signalSignupInput(email, locale, consent, {
+        capture_context: captureContextForPage(window.location.pathname, window.location.search),
         ...(citySlug ? { city_slug: citySlug } : {}),
         ...(displayName ? { display_name: displayName } : {}),
         ...(campaignId ? { campaign_id: campaignId } : {}),

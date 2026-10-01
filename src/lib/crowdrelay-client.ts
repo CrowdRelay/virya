@@ -240,7 +240,10 @@ export interface ConsentInput {
   policy_version: string
 }
 
+import type { SignalCaptureContext } from "./signalCaptureContext"
+
 export interface FanSignupInput {
+  capture_context?: SignalCaptureContext
   email: string
   city_slug?: string
   display_name?: string
@@ -274,6 +277,7 @@ export interface FanAccessRequestResult {
 }
 
 export interface FanConfirmationResult {
+  capture_context?: SignalCaptureContext | null
   fan_id: string
   status: "active"
   referral_url: string
