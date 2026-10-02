@@ -107,7 +107,10 @@ test("design-token ratchet — markup stays inside the counted scales", () => {
   // The consented single-step Signal form removes three micro-labels and
   // four arbitrary utilities from the obsolete preregistration stage.
   ratchet("textPxArbitrary", textPx, 340)
-  ratchet("arbitraryPxTotal", arbitraryPx, 503)
+  // MySignal's mission buttons drop their min-h-[46px] overrides —
+  // .virya-button already enforces a taller 3rem floor, so the
+  // utilities were both drift and a regression of the component min.
+  ratchet("arbitraryPxTotal", arbitraryPx, 500)
   ratchet("hexOutsideExempt", hex, 12)
   ratchet("buttonsMissingType", buttonsMissingType, 0)
   ratchet("shadowUtilities", shadows, 17)

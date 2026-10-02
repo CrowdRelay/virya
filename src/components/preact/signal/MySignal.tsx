@@ -434,7 +434,7 @@ export default function MySignal({ lang }: Props) {
                 required
               />
             </label>
-            <button type="submit" disabled={recoveryState === "sending" || recoveryState === "sent"} class="virya-button virya-button--primary mt-3 min-h-[46px] px-5 disabled:opacity-50">
+            <button type="submit" disabled={recoveryState === "sending" || recoveryState === "sent"} class="virya-button virya-button--primary mt-3 px-5 disabled:opacity-50">
               {recoveryState === "sending"
                 ? lang === "pl" ? "WYSYŁAM…" : "SENDING…"
                 : recoveryState === "sent"
@@ -455,11 +455,11 @@ export default function MySignal({ lang }: Props) {
 
         <div class="mt-6 flex flex-wrap gap-3">
           {state.kind === "error" && (
-            <button type="button" onClick={() => { setState({ kind: "loading" }); setReloadKey(value => value + 1) }} class="virya-button virya-button--primary min-h-[46px] px-5">
+            <button type="button" onClick={() => { setState({ kind: "loading" }); setReloadKey(value => value + 1) }} class="virya-button virya-button--primary px-5">
               {lang === "pl" ? "SPRÓBUJ PONOWNIE" : "TRY AGAIN"}
             </button>
           )}
-          <a href={joinHref} class="virya-button virya-button--secondary min-h-[46px] px-5">
+          <a href={joinHref} class="virya-button virya-button--secondary px-5">
             {pendingHandoff
               ? lang === "pl" ? "NIE MAM SIGNAL — UTWÓRZ PROFIL" : "NEW TO SIGNAL — CREATE PROFILE"
               : copy.join}
@@ -522,7 +522,7 @@ export default function MySignal({ lang }: Props) {
                 type="button"
                 disabled={latarnikBusy}
                 onClick={() => void answerLatarnik("accept")}
-                class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+                class="virya-button virya-button--primary px-5 disabled:opacity-50"
               >
                 {latarnikBusy ? copy.latarnikWorking : copy.latarnikAccept}
               </button>
@@ -530,7 +530,7 @@ export default function MySignal({ lang }: Props) {
                 type="button"
                 disabled={latarnikBusy}
                 onClick={() => void answerLatarnik("decline")}
-                class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+                class="virya-button virya-button--secondary px-5 disabled:opacity-50"
               >
                 {copy.latarnikDecline}
               </button>
@@ -619,7 +619,7 @@ export default function MySignal({ lang }: Props) {
                         type="button"
                         disabled={latarnikBusy}
                         onClick={() => void shareLatarnikMission(mission)}
-                        class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+                        class="virya-button virya-button--primary px-5 disabled:opacity-50"
                       >
                         {copy.latarnikShare}
                       </button>
@@ -627,7 +627,7 @@ export default function MySignal({ lang }: Props) {
                         type="button"
                         disabled={latarnikBusy}
                         onClick={() => void dismissLatarnikMission(mission)}
-                        class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+                        class="virya-button virya-button--secondary px-5 disabled:opacity-50"
                       >
                         {copy.latarnikMissionDismiss}
                       </button>
@@ -641,7 +641,7 @@ export default function MySignal({ lang }: Props) {
                         type="button"
                         disabled={!referralUrl || latarnikBusy}
                         onClick={() => void shareLatarnikReferral()}
-                        class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+                        class="virya-button virya-button--primary px-5 disabled:opacity-50"
                       >
                         {copy.latarnikShare}
                       </button>
@@ -652,7 +652,7 @@ export default function MySignal({ lang }: Props) {
                       type="button"
                       disabled={latarnikBusy}
                       onClick={() => void answerLatarnik("pause")}
-                      class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+                      class="virya-button virya-button--secondary px-5 disabled:opacity-50"
                     >
                       {latarnikBusy ? copy.latarnikWorking : copy.latarnikPause}
                     </button>
@@ -661,7 +661,7 @@ export default function MySignal({ lang }: Props) {
                       type="button"
                       disabled={latarnikBusy}
                       onClick={() => void answerLatarnik("resume")}
-                      class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+                      class="virya-button virya-button--primary px-5 disabled:opacity-50"
                     >
                       {latarnikBusy ? copy.latarnikWorking : copy.latarnikResume}
                     </button>
@@ -671,7 +671,7 @@ export default function MySignal({ lang }: Props) {
                     type="button"
                     disabled={latarnikBusy}
                     onClick={() => void answerLatarnik("leave")}
-                    class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+                    class="virya-button virya-button--secondary px-5 disabled:opacity-50"
                   >
                     {copy.latarnikLeave}
                   </button>
