@@ -411,7 +411,7 @@ export interface MyLatarnik {
 }
 
 export interface LatarnikAnswerResult {
-  status: "candidate" | "invited" | "active" | "paused" | "revoked"
+  status: "active" | "paused" | "revoked"
 }
 
 export type AdmissionPassStatus =
