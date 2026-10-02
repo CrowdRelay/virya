@@ -508,7 +508,7 @@ export default function MySignal({ lang }: Props) {
         <p class="virya-tier__label">{copy.tierPriority}</p>
         {latarnik === "invited" && (
           <section class="virya-panel border-cyan-300/30 bg-cyan-300/[.035] p-5 sm:p-6">
-            <p class="text-[9px] font-black uppercase tracking-[.28em] text-cyan-300">
+            <p class="text-xs font-black uppercase tracking-widest text-cyan-300">
               {copy.latarnikEyebrow}
             </p>
             <h2 class="mt-3 text-2xl font-black uppercase text-white">
@@ -561,7 +561,7 @@ export default function MySignal({ lang }: Props) {
           <div class="grid gap-4">
             {(latarnik === "active" || latarnik === "paused") && (
               <section class="virya-panel border-cyan-300/30 bg-cyan-300/[.025] p-5 sm:p-6">
-                <p class="text-[9px] font-black uppercase tracking-[.28em] text-cyan-300">
+                <p class="text-xs font-black uppercase tracking-widest text-cyan-300">
                   {copy.latarnikEyebrow}
                 </p>
 
