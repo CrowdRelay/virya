@@ -17,9 +17,22 @@ test("signed-in Signal fan can read and answer only their own Latarnik role", as
         key: headers.get("Idempotency-Key"),
       })
       assert.equal(options?.credentials, "include")
-      return method === "GET"
-        ? Response.json({ state: "invited" })
-        : Response.json({ status: "active" })
+      const href = String(url)
+      if (method === "GET" && href.endsWith("/me/latarnik/mission")) {
+        return Response.json({
+          mission: {
+            id: "01990000-0000-7000-8000-000000000099",
+            kind: "show_one_person",
+            prompt: "Znasz jedną osobę, którą zabrałbyś na VIRYA?",
+            share_text: "VIRYA — Wrocław, 14.06. Szczegóły: https://virya.music/r/ref123",
+            status: "offered",
+            expires_at: "2026-10-12T12:00:00Z",
+          },
+        })
+      }
+      if (method === "GET") return Response.json({ state: "invited" })
+      if (href.includes("/mission/")) return Response.json({ recorded: true })
+      return Response.json({ status: "active" })
     },
   })
 
@@ -27,6 +40,18 @@ test("signed-in Signal fan can read and answer only their own Latarnik role", as
   assert.deepEqual(
     await client.answerMyLatarnik("accept", "latarnik-answer-1"),
     { status: "active" },
+  )
+  const mission = await client.getMyLatarnikMission()
+  assert.equal(mission.mission?.kind, "show_one_person")
+  assert.equal(
+    (
+      await client.answerMyLatarnikMission(
+        "01990000-0000-7000-8000-000000000099",
+        "tap",
+        "latarnik-mission-tap-1",
+      )
+    ).recorded,
+    true,
   )
 
   assert.deepEqual(calls, [
@@ -41,6 +66,18 @@ test("signed-in Signal fan can read and answer only their own Latarnik role", as
       method: "POST",
       body: { answer: "accept" },
       key: "latarnik-answer-1",
+    },
+    {
+      url: "https://signal-api.virya.music/v1/me/latarnik/mission",
+      method: "GET",
+      body: null,
+      key: null,
+    },
+    {
+      url: "https://signal-api.virya.music/v1/me/latarnik/mission/01990000-0000-7000-8000-000000000099/answer",
+      method: "POST",
+      body: { answer: "tap" },
+      key: "latarnik-mission-tap-1",
     },
   ])
 })
@@ -57,7 +94,11 @@ test("My Signal closes the invite-to-one-person referral loop", () => {
 
   assert.match(signal, /crowdrelay\.getMyLatarnik\(\)/)
   assert.match(signal, /answerLatarnik\("accept"\)/)
+  assert.match(signal, /crowdrelay\.getMyLatarnikMission\(\)/)
+  assert.match(signal, /shareLatarnikMission/)
+  assert.match(signal, /answerMyLatarnikMission\(mission\.id, "tap"\)/)
   assert.match(signal, /shareLatarnikReferral/)
+  assert.match(signal, /missionApi === "available"/)
   assert.match(signal, /current\.state !== expected/)
   assert.match(copy, /quality beats volume/)
   assert.match(copy, /jakość jest ważniejsza niż liczba/)
