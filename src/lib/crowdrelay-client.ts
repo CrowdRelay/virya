@@ -414,6 +414,23 @@ export interface LatarnikAnswerResult {
   status: "active" | "paused" | "revoked"
 }
 
+export interface LatarnikMission {
+  id: string
+  kind: "show_one_person" | "release_one_person"
+  prompt: string
+  share_text: string
+  status: "offered" | "tapped"
+  expires_at: string
+}
+
+export interface MyLatarnikMission {
+  mission: LatarnikMission | null
+}
+
+export interface LatarnikMissionAnswerResult {
+  recorded: boolean
+}
+
 export type AdmissionPassStatus =
   | "issued"
   | "claimed"
@@ -867,6 +884,26 @@ export class CrowdRelayClient {
       idempotencyKey,
       timeoutMs: 4_000,
     })
+  }
+
+  getMyLatarnikMission(): Promise<MyLatarnikMission> {
+    return this.#request("me/latarnik/mission")
+  }
+
+  answerMyLatarnikMission(
+    missionId: string,
+    answer: "tap" | "dismiss",
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<LatarnikMissionAnswerResult> {
+    return this.#request(
+      `me/latarnik/mission/${encodeURIComponent(missionId)}/answer`,
+      {
+        method: "POST",
+        body: { answer },
+        idempotencyKey,
+        timeoutMs: 4_000,
+      },
+    )
   }
 
   getFanHome(): Promise<FanHomeSnapshot> {
