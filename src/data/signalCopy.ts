@@ -143,6 +143,21 @@ export interface SignalCopy {
     actionMarkInterest: string
     actionLeaveEcho: string
     actionOpenSignal: string
+    latarnikEyebrow: string
+    latarnikInviteTitle: string
+    latarnikInviteBody: string
+    latarnikAccept: string
+    latarnikDecline: string
+    latarnikActiveTitle: string
+    latarnikActiveBody: string
+    latarnikShare: string
+    latarnikPause: string
+    latarnikPausedTitle: string
+    latarnikPausedBody: string
+    latarnikResume: string
+    latarnikLeave: string
+    latarnikWorking: string
+    latarnikError: string
   }
   action: {
     confirmTitle: string
