@@ -7,6 +7,8 @@ import type {
   AdmissionPass,
   FanEventInterest,
   FanHomeSnapshot,
+  LatarnikMission,
+  LatarnikState,
   ReferralProgress,
 } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
@@ -44,6 +46,9 @@ type State =
       progress: ReferralProgress
       events: FanEventInterest[]
       admissionPass: AdmissionPass | null
+      latarnik: LatarnikState
+      mission: LatarnikMission | null
+      missionApi: "available" | "legacy" | "error"
       detailsLoading: boolean
     }
 
@@ -53,6 +58,8 @@ export default function MySignal({ lang }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" })
   const [copied, setCopied] = useState(false)
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null)
+  const [latarnikBusy, setLatarnikBusy] = useState(false)
+  const [latarnikError, setLatarnikError] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
   const [recoveryEmail, setRecoveryEmail] = useState("")
   const [recoveryState, setRecoveryState] = useState<"idle" | "sending" | "sent" | "error">("idle")
@@ -110,17 +117,33 @@ export default function MySignal({ lang }: Props) {
         progress: EMPTY_PROGRESS,
         events: [],
         admissionPass: null,
+        latarnik: "none",
+        mission: null,
+        missionApi: "error",
         detailsLoading: true,
       })
 
-      const [progressResult, eventsResult, passResult] =
-        await Promise.allSettled([
-          crowdrelay.getReferralProgress(),
-          crowdrelay.listMyEvents(),
-          crowdrelay.getMyAdmissionPass(),
-        ])
+      const [
+        progressResult,
+        eventsResult,
+        passResult,
+        latarnikResult,
+        missionResult,
+      ] = await Promise.allSettled([
+        crowdrelay.getReferralProgress(),
+        crowdrelay.listMyEvents(),
+        crowdrelay.getMyAdmissionPass(),
+        crowdrelay.getMyLatarnik(),
+        crowdrelay.getMyLatarnikMission(),
+      ])
       if (cancelled) return
-      const authFailure = [progressResult, eventsResult, passResult].some(
+      const authFailure = [
+        progressResult,
+        eventsResult,
+        passResult,
+        latarnikResult,
+        missionResult,
+      ].some(
         result =>
           result.status === "rejected" &&
           result.reason instanceof CrowdRelayError &&
@@ -146,6 +169,21 @@ export default function MySignal({ lang }: Props) {
                 passResult.status === "fulfilled"
                   ? passResult.value
                   : current.admissionPass,
+              latarnik:
+                latarnikResult.status === "fulfilled"
+                  ? latarnikResult.value.state
+                  : current.latarnik,
+              mission:
+                missionResult.status === "fulfilled"
+                  ? missionResult.value.mission
+                  : current.mission,
+              missionApi:
+                missionResult.status === "fulfilled"
+                  ? "available"
+                  : missionResult.reason instanceof CrowdRelayError &&
+                      missionResult.reason.status === 404
+                    ? "legacy"
+                    : "error",
               detailsLoading: false,
             }
           : current,
@@ -200,6 +238,136 @@ export default function MySignal({ lang }: Props) {
       if (error instanceof DOMException && error.name === "AbortError") return
       try {
         await navigator.clipboard.writeText(referralUrl)
+        setCopied(true)
+      } catch {
+        setCopied(false)
+      }
+    }
+  }
+
+  async function answerLatarnik(
+    answer: "accept" | "decline" | "pause" | "resume" | "leave",
+  ) {
+    if (latarnikBusy) return
+    setLatarnikBusy(true)
+    setLatarnikError(false)
+    try {
+      const result = await crowdrelay.answerMyLatarnik(answer)
+      const next: LatarnikState =
+        result.status === "revoked" ? "ended" : result.status
+      setState(current =>
+        current.kind === "ready" ? { ...current, latarnik: next } : current,
+      )
+    } catch (error) {
+      if (error instanceof CrowdRelayError && error.status === 401) {
+        setState({ kind: "unauthorized" })
+      } else {
+        // A state-changing response can be lost after the server committed it.
+        // Re-read the role before showing an error so a successful accept/pause
+        // never looks failed merely because the network dropped the response.
+        try {
+          const current = await crowdrelay.getMyLatarnik()
+          const expected: LatarnikState =
+            answer === "accept" || answer === "resume"
+              ? "active"
+              : answer === "pause"
+                ? "paused"
+                : "ended"
+          setState(existing =>
+            existing.kind === "ready"
+              ? { ...existing, latarnik: current.state }
+              : existing,
+          )
+          setLatarnikError(current.state !== expected)
+        } catch (readError) {
+          if (readError instanceof CrowdRelayError && readError.status === 401) {
+            setState({ kind: "unauthorized" })
+          } else {
+            setLatarnikError(true)
+          }
+        }
+      }
+    } finally {
+      setLatarnikBusy(false)
+    }
+  }
+
+  async function shareLatarnikMission(mission: LatarnikMission) {
+    setLatarnikError(false)
+    // "tap" means exactly this button was used. It is not a completed share and
+    // earns nothing; the backend mission settles only on a qualified referral.
+    void crowdrelay
+      .answerMyLatarnikMission(mission.id, "tap")
+      .catch(() => undefined)
+
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({
+          title: "VIRYA",
+          text: mission.share_text,
+        })
+      } else {
+        await navigator.clipboard.writeText(mission.share_text)
+      }
+      setCopied(true)
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return
+      try {
+        await navigator.clipboard.writeText(mission.share_text)
+        setCopied(true)
+      } catch {
+        setCopied(false)
+      }
+    }
+  }
+
+  async function dismissLatarnikMission(mission: LatarnikMission) {
+    if (latarnikBusy) return
+    setLatarnikBusy(true)
+    setLatarnikError(false)
+    try {
+      await crowdrelay.answerMyLatarnikMission(mission.id, "dismiss")
+      setState(current =>
+        current.kind === "ready" ? { ...current, mission: null } : current,
+      )
+    } catch (error) {
+      if (error instanceof CrowdRelayError && error.status === 401) {
+        setState({ kind: "unauthorized" })
+      } else {
+        try {
+          const current = await crowdrelay.getMyLatarnikMission()
+          setState(existing =>
+            existing.kind === "ready"
+              ? { ...existing, mission: current.mission, missionApi: "available" }
+              : existing,
+          )
+          setLatarnikError(current.mission?.id === mission.id)
+        } catch {
+          setLatarnikError(true)
+        }
+      }
+    } finally {
+      setLatarnikBusy(false)
+    }
+  }
+
+  async function shareLatarnikReferral() {
+    if (!referralUrl) return
+    const text =
+      lang === "pl"
+        ? "Pomyślałem o Tobie, bo VIRYA może Ci naprawdę siąść. Jeśli nie — totalny luz."
+        : "Thought of you because Virya might genuinely be your thing. If not, no pressure."
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title: "VIRYA Signal", text, url: referralUrl })
+      } else {
+        await navigator.clipboard.writeText(`${text} ${referralUrl}`)
+      }
+      setCopied(true)
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return
+      try {
+        await navigator.clipboard.writeText(`${text} ${referralUrl}`)
         setCopied(true)
       } catch {
         setCopied(false)
@@ -301,7 +469,16 @@ export default function MySignal({ lang }: Props) {
     )
   }
 
-  const { home, progress, events, admissionPass, detailsLoading } = state
+  const {
+    home,
+    progress,
+    events,
+    admissionPass,
+    latarnik,
+    mission,
+    missionApi,
+    detailsLoading,
+  } = state
   const drawEntries = progress.draw_entries ?? []
   const coupons = progress.coupons ?? []
   const physicalRewards = progress.physical_rewards ?? []
@@ -318,13 +495,53 @@ export default function MySignal({ lang }: Props) {
   const hasReferralStats =
     progress.qualified_referrals > 0 || progress.pending_referrals > 0
   const hasActiveTier =
-    hasReferralStats || admissionPass !== null || hasActiveDraws
+    hasReferralStats ||
+    admissionPass !== null ||
+    hasActiveDraws ||
+    latarnik === "active" ||
+    latarnik === "paused"
 
   return (
     <div class="grid gap-6">
       {/* ── Priority tier ── */}
       <div class="virya-tier virya-tier--priority">
         <p class="virya-tier__label">{copy.tierPriority}</p>
+        {latarnik === "invited" && (
+          <section class="virya-panel border-cyan-300/30 bg-cyan-300/[.035] p-5 sm:p-6">
+            <p class="text-xs font-black uppercase tracking-widest text-cyan-300">
+              {copy.latarnikEyebrow}
+            </p>
+            <h2 class="mt-3 text-2xl font-black uppercase text-white">
+              {copy.latarnikInviteTitle}
+            </h2>
+            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+              {copy.latarnikInviteBody}
+            </p>
+            <div class="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={latarnikBusy}
+                onClick={() => void answerLatarnik("accept")}
+                class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+              >
+                {latarnikBusy ? copy.latarnikWorking : copy.latarnikAccept}
+              </button>
+              <button
+                type="button"
+                disabled={latarnikBusy}
+                onClick={() => void answerLatarnik("decline")}
+                class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+              >
+                {copy.latarnikDecline}
+              </button>
+            </div>
+            {latarnikError && (
+              <p class="mt-3 text-xs text-rose-300" role="status">
+                {copy.latarnikError}
+              </p>
+            )}
+          </section>
+        )}
         {priorityCard}
       </div>
 
@@ -342,6 +559,131 @@ export default function MySignal({ lang }: Props) {
           </section>
         ) : (
           <div class="grid gap-4">
+            {(latarnik === "active" || latarnik === "paused") && (
+              <section class="virya-panel border-cyan-300/30 bg-cyan-300/[.025] p-5 sm:p-6">
+                <p class="text-xs font-black uppercase tracking-widest text-cyan-300">
+                  {copy.latarnikEyebrow}
+                </p>
+
+                {latarnik === "paused" ? (
+                  <>
+                    <h2 class="mt-3 text-2xl font-black uppercase text-white">
+                      {copy.latarnikPausedTitle}
+                    </h2>
+                    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+                      {copy.latarnikPausedBody}
+                    </p>
+                  </>
+                ) : mission ? (
+                  <>
+                    <h2 class="mt-3 max-w-3xl text-2xl font-black uppercase text-white">
+                      {mission.prompt}
+                    </h2>
+                    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
+                      {mission.share_text}
+                    </p>
+                  </>
+                ) : missionApi === "available" ? (
+                  <>
+                    <h2 class="mt-3 text-2xl font-black uppercase text-white">
+                      {copy.latarnikIdleTitle}
+                    </h2>
+                    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+                      {copy.latarnikIdleBody}
+                    </p>
+                  </>
+                ) : missionApi === "legacy" ? (
+                  <>
+                    <h2 class="mt-3 text-2xl font-black uppercase text-white">
+                      {copy.latarnikActiveTitle}
+                    </h2>
+                    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+                      {copy.latarnikActiveBody}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2 class="mt-3 text-2xl font-black uppercase text-white">
+                      {copy.latarnikIdleTitle}
+                    </h2>
+                    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+                      {copy.latarnikMissionUnavailable}
+                    </p>
+                  </>
+                )}
+
+                <div class="mt-5 flex flex-wrap gap-3">
+                  {latarnik === "active" && mission && (
+                    <>
+                      <button
+                        type="button"
+                        disabled={latarnikBusy}
+                        onClick={() => void shareLatarnikMission(mission)}
+                        class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+                      >
+                        {copy.latarnikShare}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={latarnikBusy}
+                        onClick={() => void dismissLatarnikMission(mission)}
+                        class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+                      >
+                        {copy.latarnikMissionDismiss}
+                      </button>
+                    </>
+                  )}
+
+                  {latarnik === "active" &&
+                    missionApi === "legacy" &&
+                    !mission && (
+                      <button
+                        type="button"
+                        disabled={!referralUrl || latarnikBusy}
+                        onClick={() => void shareLatarnikReferral()}
+                        class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+                      >
+                        {copy.latarnikShare}
+                      </button>
+                    )}
+
+                  {latarnik === "active" ? (
+                    <button
+                      type="button"
+                      disabled={latarnikBusy}
+                      onClick={() => void answerLatarnik("pause")}
+                      class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+                    >
+                      {latarnikBusy ? copy.latarnikWorking : copy.latarnikPause}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={latarnikBusy}
+                      onClick={() => void answerLatarnik("resume")}
+                      class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+                    >
+                      {latarnikBusy ? copy.latarnikWorking : copy.latarnikResume}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={latarnikBusy}
+                    onClick={() => void answerLatarnik("leave")}
+                    class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+                  >
+                    {copy.latarnikLeave}
+                  </button>
+                </div>
+                {latarnikError && (
+                  <p class="mt-3 text-xs text-rose-300" role="status">
+                    {copy.latarnikError}
+                  </p>
+                )}
+              </section>
+            )}
+
             {/* Referral stats — only when fan has referrals */}
             {hasReferralStats && (
               <section class="grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
@@ -375,7 +717,7 @@ export default function MySignal({ lang }: Props) {
             )}
 
             {/* Referral link — always visible when URL exists, even with 0 referrals */}
-            {referralUrl && (
+            {referralUrl && latarnik !== "active" && (
               <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-5 sm:p-6">
                 <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                   <div class="min-w-0">

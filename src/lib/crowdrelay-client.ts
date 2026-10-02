@@ -403,6 +403,34 @@ export interface ReferralProgress {
   physical_rewards: PhysicalRewardGrant[]
 }
 
+export type LatarnikState = "none" | "invited" | "active" | "paused" | "ended"
+export type LatarnikAnswer = "accept" | "decline" | "pause" | "resume" | "leave"
+
+export interface MyLatarnik {
+  state: LatarnikState
+}
+
+export interface LatarnikAnswerResult {
+  status: "active" | "paused" | "revoked"
+}
+
+export interface LatarnikMission {
+  id: string
+  kind: "show_one_person" | "release_one_person"
+  prompt: string
+  share_text: string
+  status: "offered" | "tapped"
+  expires_at: string
+}
+
+export interface MyLatarnikMission {
+  mission: LatarnikMission | null
+}
+
+export interface LatarnikMissionAnswerResult {
+  recorded: boolean
+}
+
 export type AdmissionPassStatus =
   | "issued"
   | "claimed"
@@ -840,6 +868,42 @@ export class CrowdRelayClient {
 
   getReferralProgress(): Promise<ReferralProgress> {
     return this.#request("me/referral")
+  }
+
+  getMyLatarnik(): Promise<MyLatarnik> {
+    return this.#request("me/latarnik")
+  }
+
+  answerMyLatarnik(
+    answer: LatarnikAnswer,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<LatarnikAnswerResult> {
+    return this.#request("me/latarnik/answer", {
+      method: "POST",
+      body: { answer },
+      idempotencyKey,
+      timeoutMs: 4_000,
+    })
+  }
+
+  getMyLatarnikMission(): Promise<MyLatarnikMission> {
+    return this.#request("me/latarnik/mission")
+  }
+
+  answerMyLatarnikMission(
+    missionId: string,
+    answer: "tap" | "dismiss",
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<LatarnikMissionAnswerResult> {
+    return this.#request(
+      `me/latarnik/mission/${encodeURIComponent(missionId)}/answer`,
+      {
+        method: "POST",
+        body: { answer },
+        idempotencyKey,
+        timeoutMs: 4_000,
+      },
+    )
   }
 
   getFanHome(): Promise<FanHomeSnapshot> {
