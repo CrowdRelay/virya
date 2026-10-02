@@ -409,6 +409,24 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       actionMarkInterest: "MARK INTEREST",
       actionLeaveEcho: "LEAVE ECHO",
       actionOpenSignal: "OPEN SIGNAL",
+      latarnikEyebrow: "VIRYA // LATARNIK",
+      latarnikInviteTitle: "You can carry the signal further",
+      latarnikInviteBody:
+        "No spam and no quota. We will only ask for small, relevant actions you can ignore at any time. Start by sending one tracked Virya Signal link to one person who would genuinely care.",
+      latarnikAccept: "YES — BECOME A LATARNIK",
+      latarnikDecline: "NO, THANKS",
+      latarnikActiveTitle: "One person. One useful signal.",
+      latarnikActiveBody:
+        "Think of one person who would genuinely get Virya. Send them your personal link and stop there — quality beats volume.",
+      latarnikShare: "SEND TO ONE PERSON",
+      latarnikPause: "PAUSE",
+      latarnikPausedTitle: "Your Latarnik role is paused",
+      latarnikPausedBody:
+        "Nothing is expected while paused. Resume only when you feel like helping again.",
+      latarnikResume: "RESUME",
+      latarnikLeave: "LEAVE ROLE",
+      latarnikWorking: "SAVING…",
+      latarnikError: "We could not update your Latarnik choice. Try again.",
     },
     action: {
       confirmTitle: "Activating your Signal",
@@ -692,6 +710,24 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       actionMarkInterest: "ZAPISZ KONCERT",
       actionLeaveEcho: "ZOSTAW ECHO",
       actionOpenSignal: "OTWÓRZ SYGNAŁ",
+      latarnikEyebrow: "VIRYA // LATARNIK",
+      latarnikInviteTitle: "Możesz ponieść sygnał dalej",
+      latarnikInviteBody:
+        "Bez spamu i bez normy. Dostaniesz tylko małe, sensowne prośby, które możesz w każdej chwili zignorować. Na start wyślij jeden śledzony link Virya Signal jednej osobie, której naprawdę może to siąść.",
+      latarnikAccept: "TAK — ZOSTAJĘ LATARNIKIEM",
+      latarnikDecline: "NIE, DZIĘKI",
+      latarnikActiveTitle: "Jedna osoba. Jeden dobry sygnał.",
+      latarnikActiveBody:
+        "Pomyśl o jednej osobie, której VIRYA naprawdę może siąść. Wyślij jej swój osobisty link i na tym skończ — jakość jest ważniejsza niż liczba.",
+      latarnikShare: "WYŚLIJ 1 OSOBIE",
+      latarnikPause: "WSTRZYMAJ",
+      latarnikPausedTitle: "Latarnik jest wstrzymany",
+      latarnikPausedBody:
+        "Nic od Ciebie nie oczekujemy, dopóki rola jest wstrzymana. Wznów ją dopiero, gdy znowu będziesz mieć ochotę pomóc.",
+      latarnikResume: "WZNÓW",
+      latarnikLeave: "ZAKOŃCZ ROLĘ",
+      latarnikWorking: "ZAPISUJĘ…",
+      latarnikError: "Nie udało się zapisać decyzji Latarnika. Spróbuj ponownie.",
     },
     action: {
       confirmTitle: "Aktywuję Twój Sygnał",
