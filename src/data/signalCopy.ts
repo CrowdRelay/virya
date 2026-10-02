@@ -159,6 +159,7 @@ export interface SignalCopy {
     latarnikMissionDismiss: string
     latarnikIdleTitle: string
     latarnikIdleBody: string
+    latarnikMissionUnavailable: string
     latarnikWorking: string
     latarnikError: string
   }
@@ -447,6 +448,8 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       latarnikIdleTitle: "Nothing worth pushing right now",
       latarnikIdleBody:
         "That is intentional. We will surface one concrete show or release only when it fits your context. No filler missions, no quota.",
+      latarnikMissionUnavailable:
+        "We could not check the next mission right now. Nothing is being pushed; try again later.",
       latarnikWorking: "SAVING…",
       latarnikError: "We could not update your Latarnik choice. Try again.",
     },
@@ -752,6 +755,8 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
       latarnikIdleTitle: "Teraz nie ma nic wartego wciskania ludziom",
       latarnikIdleBody:
         "I tak ma być. Pokażemy jedną konkretną rzecz dopiero wtedy, gdy koncert albo premiera naprawdę pasuje do Twojego kontekstu. Bez zapychaczy i bez normy.",
+      latarnikMissionUnavailable:
+        "Nie udało się teraz sprawdzić kolejnej misji. Niczego nie wciskamy na siłę — wróć później.",
       latarnikWorking: "ZAPISUJĘ…",
       latarnikError: "Nie udało się zapisać decyzji Latarnika. Spróbuj ponownie.",
     },
