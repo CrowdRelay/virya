@@ -226,11 +226,7 @@ export default function MySignal({ lang }: Props) {
     try {
       const result = await crowdrelay.answerMyLatarnik(answer)
       const next: LatarnikState =
-        result.status === "revoked"
-          ? "ended"
-          : result.status === "candidate"
-            ? "none"
-            : result.status
+        result.status === "revoked" ? "ended" : result.status
       setState(current =>
         current.kind === "ready" ? { ...current, latarnik: next } : current,
       )
