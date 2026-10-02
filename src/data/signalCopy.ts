@@ -156,6 +156,9 @@ export interface SignalCopy {
     latarnikPausedBody: string
     latarnikResume: string
     latarnikLeave: string
+    latarnikMissionDismiss: string
+    latarnikIdleTitle: string
+    latarnikIdleBody: string
     latarnikWorking: string
     latarnikError: string
   }
@@ -440,6 +443,10 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         "Nothing is expected while paused. Resume only when you feel like helping again.",
       latarnikResume: "RESUME",
       latarnikLeave: "LEAVE ROLE",
+      latarnikMissionDismiss: "NOT THIS ONE",
+      latarnikIdleTitle: "Nothing worth pushing right now",
+      latarnikIdleBody:
+        "That is intentional. We will surface one concrete show or release only when it fits your context. No filler missions, no quota.",
       latarnikWorking: "SAVING…",
       latarnikError: "We could not update your Latarnik choice. Try again.",
     },
@@ -741,6 +748,10 @@ export const SIGNAL_COPY: Record<Lang, SignalCopy> = {
         "Nic od Ciebie nie oczekujemy, dopóki rola jest wstrzymana. Wznów ją dopiero, gdy znowu będziesz mieć ochotę pomóc.",
       latarnikResume: "WZNÓW",
       latarnikLeave: "ZAKOŃCZ ROLĘ",
+      latarnikMissionDismiss: "NIE TYM RAZEM",
+      latarnikIdleTitle: "Teraz nie ma nic wartego wciskania ludziom",
+      latarnikIdleBody:
+        "I tak ma być. Pokażemy jedną konkretną rzecz dopiero wtedy, gdy koncert albo premiera naprawdę pasuje do Twojego kontekstu. Bez zapychaczy i bez normy.",
       latarnikWorking: "ZAPISUJĘ…",
       latarnikError: "Nie udało się zapisać decyzji Latarnika. Spróbuj ponownie.",
     },
