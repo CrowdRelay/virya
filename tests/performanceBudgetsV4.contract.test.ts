@@ -27,8 +27,15 @@ test("public hydration stays deliberately sparse", () => {
   // +1 since 14: WatchJoin on /watch/{id} — the fan-capture form under the
   // click-to-play facade. It is the conversion point the whole smart-link
   // funnel exists for, so its hydration is the most intentional on the site.
-  assert.ok(directives.length <= 15, `public hydrated islands grew to ${directives.length}`)
-  assert.ok(eager.length <= 6, `public eager hydrated islands grew to ${eager.length}`)
+  // +1 since 15: SignalCampaignIntro on /signal — the hero swaps its promise
+  // (shows vs releases) from the captured URL offer, a client-only read on a
+  // static page, and client:load so the wrong copy never flashes.
+  assert.ok(directives.length <= 16, `public hydrated islands grew to ${directives.length}`)
+  // +1 since 6: SignalHub moved under the hero (the join form is the page's
+  // point, and #50's capture context makes it part of the fold) — at the top
+  // of the layout client:visible hydrates on first paint anyway, so load is
+  // the honest directive for where it now sits.
+  assert.ok(eager.length <= 7, `public eager hydrated islands grew to ${eager.length}`)
   assert.match(source, /client:visible/)
   assert.match(source, /client:idle/)
 })

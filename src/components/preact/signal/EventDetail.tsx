@@ -1,4 +1,3 @@
-import { captureContextForPage } from "../../../lib/signalCaptureContext"
 import type { ComponentChildren } from "preact"
 import { useEffect, useMemo, useState } from "preact/hooks"
 import { SIGNAL_COPY } from "../../../data/signalCopy"
@@ -343,6 +342,7 @@ export default function EventDetail({
               <CheckinPanel
                 lang={lang}
                 state={checkinState}
+                slug={slug}
                 referralUrl={checkinReferral}
                 onRetry={() => void retryCheckin()}
               />
@@ -618,11 +618,13 @@ function Fact({
 function CheckinPanel({
   lang,
   state,
+  slug,
   referralUrl,
   onRetry,
 }: {
   lang: Lang
   state: Exclude<CheckinState, "none">
+  slug: string
   referralUrl: string | null
   onRetry: () => void
 }) {
@@ -670,7 +672,7 @@ function CheckinPanel({
     try {
       const consent = new FormData(event.currentTarget as HTMLFormElement).get("consent") === "on"
       const result = await submitSignup(signalSignupInput(email, lang, consent, {
-        capture_context: captureContextForPage(window.location.pathname, window.location.search),
+        capture_context: {offer:"shows",event_slug:slug},
         campaign_id: campaignIdFromLocation(),
         referral_code: referralCodeFromLocation(),
         ad_attribution: signupAttribution(),
