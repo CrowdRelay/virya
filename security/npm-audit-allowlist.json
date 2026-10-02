@@ -73,6 +73,18 @@
         "20 minute CI timeout",
         "immutable Netlify artifact promotion"
       ]
+    },
+    {
+      "package": "node-forge",
+      "version": "1.4.0",
+      "advisory": "GHSA-86W9-CPQP-85RV",
+      "reason": "Upstream has no patched release; 1.4.0 is the latest published version and every version <=1.4.0 is affected. The package is transitive through Netlify dev tooling (listhen/ipx) and Virya never verifies PKCS#1 v1.5 signatures with it.",
+      "compensatingControls": [
+        "locked dependency graph",
+        "no direct source import",
+        "20 minute CI timeout",
+        "immutable Netlify artifact promotion"
+      ]
     }
   ]
 }
