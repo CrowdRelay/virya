@@ -68,7 +68,7 @@ test("fan dashboard renders from one private read-model before enrichment", () =
   assert.match(signal, /detailsLoading: true/)
   assert.match(
     signal,
-    /Promise\.allSettled\(\[\s*crowdrelay\.getReferralProgress\(\),\s*crowdrelay\.listMyEvents\(\),\s*crowdrelay\.getMyAdmissionPass\(\)/s,
+    /Promise\.allSettled\(\[\s*crowdrelay\.getReferralProgress\(\),\s*crowdrelay\.listMyEvents\(\),\s*crowdrelay\.getMyAdmissionPass\(\),\s*crowdrelay\.getMyLatarnik\(\),\s*crowdrelay\.getMyLatarnikMission\(\)/s,
   )
   assert.doesNotMatch(
     signal,
