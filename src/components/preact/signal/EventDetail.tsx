@@ -342,6 +342,7 @@ export default function EventDetail({
               <CheckinPanel
                 lang={lang}
                 state={checkinState}
+                slug={slug}
                 referralUrl={checkinReferral}
                 onRetry={() => void retryCheckin()}
               />
@@ -617,11 +618,13 @@ function Fact({
 function CheckinPanel({
   lang,
   state,
+  slug,
   referralUrl,
   onRetry,
 }: {
   lang: Lang
   state: Exclude<CheckinState, "none">
+  slug: string
   referralUrl: string | null
   onRetry: () => void
 }) {
