@@ -7,6 +7,7 @@ import type {
   AdmissionPass,
   FanEventInterest,
   FanHomeSnapshot,
+  LatarnikState,
   ReferralProgress,
 } from "../../../lib/crowdrelay-client"
 import { CrowdRelayError } from "../../../lib/crowdrelay-client"
@@ -44,6 +45,7 @@ type State =
       progress: ReferralProgress
       events: FanEventInterest[]
       admissionPass: AdmissionPass | null
+      latarnik: LatarnikState
       detailsLoading: boolean
     }
 
@@ -53,6 +55,8 @@ export default function MySignal({ lang }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" })
   const [copied, setCopied] = useState(false)
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null)
+  const [latarnikBusy, setLatarnikBusy] = useState(false)
+  const [latarnikError, setLatarnikError] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
   const [recoveryEmail, setRecoveryEmail] = useState("")
   const [recoveryState, setRecoveryState] = useState<"idle" | "sending" | "sent" | "error">("idle")
@@ -110,17 +114,19 @@ export default function MySignal({ lang }: Props) {
         progress: EMPTY_PROGRESS,
         events: [],
         admissionPass: null,
+        latarnik: "none",
         detailsLoading: true,
       })
 
-      const [progressResult, eventsResult, passResult] =
+      const [progressResult, eventsResult, passResult, latarnikResult] =
         await Promise.allSettled([
           crowdrelay.getReferralProgress(),
           crowdrelay.listMyEvents(),
           crowdrelay.getMyAdmissionPass(),
+          crowdrelay.getMyLatarnik(),
         ])
       if (cancelled) return
-      const authFailure = [progressResult, eventsResult, passResult].some(
+      const authFailure = [progressResult, eventsResult, passResult, latarnikResult].some(
         result =>
           result.status === "rejected" &&
           result.reason instanceof CrowdRelayError &&
@@ -146,6 +152,10 @@ export default function MySignal({ lang }: Props) {
                 passResult.status === "fulfilled"
                   ? passResult.value
                   : current.admissionPass,
+              latarnik:
+                latarnikResult.status === "fulfilled"
+                  ? latarnikResult.value.state
+                  : current.latarnik,
               detailsLoading: false,
             }
           : current,
@@ -200,6 +210,58 @@ export default function MySignal({ lang }: Props) {
       if (error instanceof DOMException && error.name === "AbortError") return
       try {
         await navigator.clipboard.writeText(referralUrl)
+        setCopied(true)
+      } catch {
+        setCopied(false)
+      }
+    }
+  }
+
+  async function answerLatarnik(
+    answer: "accept" | "decline" | "pause" | "resume" | "leave",
+  ) {
+    if (latarnikBusy) return
+    setLatarnikBusy(true)
+    setLatarnikError(false)
+    try {
+      const result = await crowdrelay.answerMyLatarnik(answer)
+      const next: LatarnikState =
+        result.status === "revoked"
+          ? "ended"
+          : result.status === "candidate"
+            ? "none"
+            : result.status
+      setState(current =>
+        current.kind === "ready" ? { ...current, latarnik: next } : current,
+      )
+    } catch (error) {
+      if (error instanceof CrowdRelayError && error.status === 401) {
+        setState({ kind: "unauthorized" })
+      } else {
+        setLatarnikError(true)
+      }
+    } finally {
+      setLatarnikBusy(false)
+    }
+  }
+
+  async function shareLatarnikReferral() {
+    if (!referralUrl) return
+    const text =
+      lang === "pl"
+        ? "Pomyślałem o Tobie, bo VIRYA może Ci naprawdę siąść. Jeśli nie — totalny luz."
+        : "Thought of you because Virya might genuinely be your thing. If not, no pressure."
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title: "VIRYA Signal", text, url: referralUrl })
+      } else {
+        await navigator.clipboard.writeText(`${text} ${referralUrl}`)
+      }
+      setCopied(true)
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return
+      try {
+        await navigator.clipboard.writeText(`${text} ${referralUrl}`)
         setCopied(true)
       } catch {
         setCopied(false)
@@ -301,7 +363,7 @@ export default function MySignal({ lang }: Props) {
     )
   }
 
-  const { home, progress, events, admissionPass, detailsLoading } = state
+  const { home, progress, events, admissionPass, latarnik, detailsLoading } = state
   const drawEntries = progress.draw_entries ?? []
   const coupons = progress.coupons ?? []
   const physicalRewards = progress.physical_rewards ?? []
@@ -318,13 +380,53 @@ export default function MySignal({ lang }: Props) {
   const hasReferralStats =
     progress.qualified_referrals > 0 || progress.pending_referrals > 0
   const hasActiveTier =
-    hasReferralStats || admissionPass !== null || hasActiveDraws
+    hasReferralStats ||
+    admissionPass !== null ||
+    hasActiveDraws ||
+    latarnik === "active" ||
+    latarnik === "paused"
 
   return (
     <div class="grid gap-6">
       {/* ── Priority tier ── */}
       <div class="virya-tier virya-tier--priority">
         <p class="virya-tier__label">{copy.tierPriority}</p>
+        {latarnik === "invited" && (
+          <section class="virya-panel border-cyan-300/30 bg-cyan-300/[.035] p-5 sm:p-6">
+            <p class="text-[9px] font-black uppercase tracking-[.28em] text-cyan-300">
+              {copy.latarnikEyebrow}
+            </p>
+            <h2 class="mt-3 text-2xl font-black uppercase text-white">
+              {copy.latarnikInviteTitle}
+            </h2>
+            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+              {copy.latarnikInviteBody}
+            </p>
+            <div class="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={latarnikBusy}
+                onClick={() => void answerLatarnik("accept")}
+                class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+              >
+                {latarnikBusy ? copy.latarnikWorking : copy.latarnikAccept}
+              </button>
+              <button
+                type="button"
+                disabled={latarnikBusy}
+                onClick={() => void answerLatarnik("decline")}
+                class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+              >
+                {copy.latarnikDecline}
+              </button>
+            </div>
+            {latarnikError && (
+              <p class="mt-3 text-xs text-rose-300" role="status">
+                {copy.latarnikError}
+              </p>
+            )}
+          </section>
+        )}
         {priorityCard}
       </div>
 
@@ -342,6 +444,68 @@ export default function MySignal({ lang }: Props) {
           </section>
         ) : (
           <div class="grid gap-4">
+            {(latarnik === "active" || latarnik === "paused") && (
+              <section class="virya-panel border-cyan-300/30 bg-cyan-300/[.025] p-5 sm:p-6">
+                <p class="text-[9px] font-black uppercase tracking-[.28em] text-cyan-300">
+                  {copy.latarnikEyebrow}
+                </p>
+                <h2 class="mt-3 text-2xl font-black uppercase text-white">
+                  {latarnik === "active"
+                    ? copy.latarnikActiveTitle
+                    : copy.latarnikPausedTitle}
+                </h2>
+                <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">
+                  {latarnik === "active"
+                    ? copy.latarnikActiveBody
+                    : copy.latarnikPausedBody}
+                </p>
+                <div class="mt-5 flex flex-wrap gap-3">
+                  {latarnik === "active" ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled={!referralUrl || latarnikBusy}
+                        onClick={() => void shareLatarnikReferral()}
+                        class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+                      >
+                        {copy.latarnikShare}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={latarnikBusy}
+                        onClick={() => void answerLatarnik("pause")}
+                        class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+                      >
+                        {latarnikBusy ? copy.latarnikWorking : copy.latarnikPause}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={latarnikBusy}
+                      onClick={() => void answerLatarnik("resume")}
+                      class="virya-button virya-button--primary min-h-[46px] px-5 disabled:opacity-50"
+                    >
+                      {latarnikBusy ? copy.latarnikWorking : copy.latarnikResume}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    disabled={latarnikBusy}
+                    onClick={() => void answerLatarnik("leave")}
+                    class="virya-button virya-button--secondary min-h-[46px] px-5 disabled:opacity-50"
+                  >
+                    {copy.latarnikLeave}
+                  </button>
+                </div>
+                {latarnikError && (
+                  <p class="mt-3 text-xs text-rose-300" role="status">
+                    {copy.latarnikError}
+                  </p>
+                )}
+              </section>
+            )}
+
             {/* Referral stats — only when fan has referrals */}
             {hasReferralStats && (
               <section class="grid gap-px border border-zinc-800 bg-zinc-800 sm:grid-cols-3">
