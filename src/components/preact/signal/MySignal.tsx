@@ -238,7 +238,30 @@ export default function MySignal({ lang }: Props) {
       if (error instanceof CrowdRelayError && error.status === 401) {
         setState({ kind: "unauthorized" })
       } else {
-        setLatarnikError(true)
+        // A state-changing response can be lost after the server committed it.
+        // Re-read the role before showing an error so a successful accept/pause
+        // never looks failed merely because the network dropped the response.
+        try {
+          const current = await crowdrelay.getMyLatarnik()
+          const expected: LatarnikState =
+            answer === "accept" || answer === "resume"
+              ? "active"
+              : answer === "pause"
+                ? "paused"
+                : "ended"
+          setState(existing =>
+            existing.kind === "ready"
+              ? { ...existing, latarnik: current.state }
+              : existing,
+          )
+          setLatarnikError(current.state !== expected)
+        } catch (readError) {
+          if (readError instanceof CrowdRelayError && readError.status === 401) {
+            setState({ kind: "unauthorized" })
+          } else {
+            setLatarnikError(true)
+          }
+        }
       }
     } finally {
       setLatarnikBusy(false)
@@ -539,7 +562,7 @@ export default function MySignal({ lang }: Props) {
             )}
 
             {/* Referral link — always visible when URL exists, even with 0 referrals */}
-            {referralUrl && (
+            {referralUrl && latarnik !== "active" && (
               <section class="virya-panel border-amber-400/30 bg-amber-400/[.035] p-5 sm:p-6">
                 <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                   <div class="min-w-0">
