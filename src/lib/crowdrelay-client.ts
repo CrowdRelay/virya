@@ -403,6 +403,17 @@ export interface ReferralProgress {
   physical_rewards: PhysicalRewardGrant[]
 }
 
+export type LatarnikState = "none" | "invited" | "active" | "paused" | "ended"
+export type LatarnikAnswer = "accept" | "decline" | "pause" | "resume" | "leave"
+
+export interface MyLatarnik {
+  state: LatarnikState
+}
+
+export interface LatarnikAnswerResult {
+  status: "candidate" | "invited" | "active" | "paused" | "revoked"
+}
+
 export type AdmissionPassStatus =
   | "issued"
   | "claimed"
@@ -840,6 +851,22 @@ export class CrowdRelayClient {
 
   getReferralProgress(): Promise<ReferralProgress> {
     return this.#request("me/referral")
+  }
+
+  getMyLatarnik(): Promise<MyLatarnik> {
+    return this.#request("me/latarnik")
+  }
+
+  answerMyLatarnik(
+    answer: LatarnikAnswer,
+    idempotencyKey = newIdempotencyKey(),
+  ): Promise<LatarnikAnswerResult> {
+    return this.#request("me/latarnik/answer", {
+      method: "POST",
+      body: { answer },
+      idempotencyKey,
+      timeoutMs: 4_000,
+    })
   }
 
   getFanHome(): Promise<FanHomeSnapshot> {
