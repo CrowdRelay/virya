@@ -353,11 +353,11 @@ export default function StaffLatarnikNetworkManager({ data, disabled, onRefresh 
                   <button type="button" disabled={disabled || busy || !canApprove} onClick={() => void approve(candidate)} class={staffAccentButton}>ZATWIERDŹ DO ZAPROSZENIA</button>
                 </div>
                 <div class="mt-3 grid gap-2 sm:grid-cols-2">
-                  <label class="flex min-h-11 items-center gap-3 rounded-xl border border-virya-edge px-3 py-2 text-xs text-virya-text">
+                  <label class="flex min-h-11 items-center gap-3 rounded-lg border border-virya-edge px-3 py-2 text-xs text-virya-text">
                     <input type="checkbox" checked={review.sourceVerified} onChange={event => patchReview(candidate.id, { sourceVerified: event.currentTarget.checked })} />
                     Źródło i tożsamość są zweryfikowane
                   </label>
-                  <label class="flex min-h-11 items-center gap-3 rounded-xl border border-virya-edge px-3 py-2 text-xs text-virya-text">
+                  <label class="flex min-h-11 items-center gap-3 rounded-lg border border-virya-edge px-3 py-2 text-xs text-virya-text">
                     <input type="checkbox" checked={review.consentConfirmed} onChange={event => patchReview(candidate.id, { consentConfirmed: event.currentTarget.checked })} />
                     Mam dowód zgody na marketing e-mail
                   </label>

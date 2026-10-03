@@ -56,11 +56,11 @@ export function OverviewTab({
       )}
 
       {next ? (
-        <section class="rounded-lg border border-virya-signal/25 bg-[radial-gradient(circle_at_90%_0%,rgba(132,180,172,.12),transparent_35%),rgba(16,23,21,.65)] p-5 sm:p-7">
+        <section class="rounded-lg border border-virya-signal/25 bg-virya-surface/70 p-5 sm:p-7">
           <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
             <div>
               <p class={staffEyebrowAccent}>Najbliższy koncert</p>
-              <h2 class="mt-2 text-3xl font-black uppercase tracking-tight text-virya-text sm:text-4xl">{next.title}</h2>
+              <h2 class="mt-2 text-3xl font-black tracking-tight text-virya-text sm:text-4xl">{next.title}</h2>
               <p class={`mt-3 ${staffSubtitle}`}>{formatDate(next.starts_at)}{next.venue ? ` · ${next.venue}` : ""}</p>
             </div>
             <div class="flex flex-wrap gap-3">

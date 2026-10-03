@@ -140,7 +140,7 @@ export default function BookingPolicyPanel({ summary, onSaved }: Props) {
               placeholder="PL, DE-EAST, CZ, SK"
             />
           </label>
-          <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-virya-edge bg-virya-bg/40 px-3 py-2 text-sm text-virya-text">
+          <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-virya-edge bg-virya-bg/40 px-3 py-2 text-sm text-virya-text">
             <input type="checkbox" checked={weekend} onChange={event => setWeekend(event.currentTarget.checked)} class="h-5 w-5 accent-virya-signal" />
             Preferuj sensowne weekendowe one-shoty poza trasą
           </label>

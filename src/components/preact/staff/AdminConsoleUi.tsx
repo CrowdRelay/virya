@@ -60,7 +60,7 @@ export function StaffLoginCard({
   busyLabel?: string
 }) {
   return (
-    <section class={`mx-auto max-w-lg ${staffPanel} p-7 shadow-2xl`}>
+    <section class={`mx-auto max-w-lg ${staffPanel} p-7`}>
       <p class={staffEyebrowAccent}>{eyebrow}</p>
       <h1 class="mt-3 text-3xl font-black text-virya-text">{title}</h1>
       <p class={`mt-3 ${staffSubtitle}`}>{description}</p>

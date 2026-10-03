@@ -282,7 +282,7 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
                 </h3>
                 <p class="mt-1 text-sm text-virya-muted">{selectedEvent?.title}</p>
               </div>
-              <label class="flex min-h-12 items-center gap-3 rounded-xl border border-virya-edge px-4 py-3 text-sm font-bold text-virya-text">
+              <label class="flex min-h-12 items-center gap-3 rounded-lg border border-virya-edge px-4 py-3 text-sm font-bold text-virya-text">
                 <input
                   type="checkbox"
                   checked={form.active}
@@ -420,7 +420,7 @@ export function TicketingTab({ events = [] }: { events: EventItem[] }) {
                     required={false}
                   />
                   <div class="flex flex-wrap items-end gap-2">
-                    <label class="flex h-[46px] items-center gap-2 rounded-xl border border-virya-edge px-3 text-xs font-bold text-virya-text">
+                    <label class="flex h-[46px] items-center gap-2 rounded-lg border border-virya-edge px-3 text-xs font-bold text-virya-text">
                       <input
                         type="checkbox"
                         checked={type.active}

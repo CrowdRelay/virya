@@ -399,9 +399,8 @@ export default function MySignal({ lang }: Props) {
       : pagePath(lang, "/signal/#join-signal")
     return (
       <div class="virya-panel relative overflow-hidden border-amber-400/30 bg-amber-400/[.035] p-6 sm:p-8">
-        <div class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl" aria-hidden="true"></div>
         <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">{copy.eyebrow}</p>
-        <h2 class="mt-3 max-w-2xl text-2xl font-black uppercase leading-tight text-white sm:text-3xl">
+        <h2 class="mt-3 max-w-2xl text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl">
           {state.kind === "unauthorized"
             ? pendingHandoff
               ? lang === "pl" ? "Dokończ połączenie z Signal" : "Finish connecting to Signal"
@@ -419,7 +418,7 @@ export default function MySignal({ lang }: Props) {
         </p>
 
         {state.kind === "unauthorized" && pendingHandoff && (
-          <form onSubmit={requestSessionRecovery} class="mt-6 max-w-md rounded-xl border border-cyan-300/15 bg-black/20 p-4">
+          <form onSubmit={requestSessionRecovery} class="mt-6 max-w-md rounded-lg border border-cyan-300/15 bg-black/20 p-4">
             <label class="block text-xs font-black uppercase tracking-wider text-zinc-300">
               {lang === "pl" ? "E-mail w Virya Signal" : "Virya Signal email"}
               <input
