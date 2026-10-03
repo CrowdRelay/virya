@@ -543,6 +543,9 @@ export default function MySignal({ lang }: Props) {
           </section>
         )}
         {priorityCard}
+        {/* The notification ask, where fans look. Renders nothing unless this
+            device can take push and has not (see lib/pushNudge.ts). */}
+        <PushNotificationControl lang={lang} nudge />
       </div>
 
       {/* ── Active tier ── */}

@@ -2,6 +2,11 @@ import { useEffect, useState } from "preact/hooks"
 import type { Lang } from "../../../i18n/t"
 import type { PushConfig } from "../../../lib/crowdrelay-client"
 import { crowdrelay } from "../../../lib/crowdrelay"
+import {
+  NUDGE_DISMISS_KEY,
+  parseDismissedAt,
+  shouldNudgePush,
+} from "../../../lib/pushNudge"
 
 const INSTALLATION_KEY = "virya-push-installation-v1"
 
@@ -14,8 +19,25 @@ type PushState =
   | { kind: "busy"; config: PushConfig; enabling: boolean }
   | { kind: "error"; config: PushConfig; enabledLocally: boolean; retry: "enable" | "disable" }
 
-export default function PushNotificationControl({ lang }: { lang: Lang }) {
+// `nudge` is the compact top-of-page ask: it renders only while this device
+// can take push and has not, says nothing otherwise, and a "not now" holds for
+// fourteen days (see lib/pushNudge.ts). The full panel lower down is unchanged.
+export default function PushNotificationControl({
+  lang,
+  nudge = false,
+}: {
+  lang: Lang
+  nudge?: boolean
+}) {
   const [state, setState] = useState<PushState>({ kind: "loading" })
+  const [dismissedAtMs, setDismissedAtMs] = useState<number | null>(() => {
+    if (!nudge) return null
+    try {
+      return parseDismissedAt(localStorage.getItem(NUDGE_DISMISS_KEY))
+    } catch {
+      return null
+    }
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -102,6 +124,69 @@ export default function PushNotificationControl({ lang }: { lang: Lang }) {
     } catch {
       setState({ kind: "error", config, enabledLocally: !localDisabled, retry: "disable" })
     }
+  }
+
+  if (nudge) {
+    const askable =
+      state.kind === "off" ||
+      state.kind === "busy" ||
+      (state.kind === "error" && !state.enabledLocally)
+    if (
+      !askable ||
+      !shouldNudgePush({
+        supported: true,
+        permission: Notification.permission,
+        subscribed: false,
+        dismissedAtMs,
+        nowMs: Date.now(),
+      })
+    ) {
+      return null
+    }
+    const config = state.config
+    const busy = state.kind === "busy"
+    return (
+      <section class="virya-panel border-amber-400/30 bg-amber-400/[.04] p-5 sm:p-6" data-push-nudge>
+        <p class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400">
+          {lang === "pl" ? "VIRYA SIGNAL / POWIADOMIENIA" : "VIRYA SIGNAL / NOTIFICATIONS"}
+        </p>
+        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-200">
+          {lang === "pl"
+            ? "Daj znać na telefon, gdy gramy blisko Ciebie albo wychodzi nowy numer. Bez spamu, wyłączysz w każdej chwili."
+            : "Get a ping on your phone when we play near you or a new track drops. No spam, switch it off any time."}
+        </p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            class="virya-button virya-button--primary min-h-[44px] px-4"
+            disabled={busy}
+            onClick={() => void enable(config)}
+          >
+            {busy
+              ? lang === "pl" ? "ZAPISUJĘ…" : "SAVING…"
+              : state.kind === "error"
+                ? lang === "pl" ? "PONÓW" : "RETRY"
+                : lang === "pl" ? "WŁĄCZ POWIADOMIENIA" : "ENABLE NOTIFICATIONS"}
+          </button>
+          <button
+            type="button"
+            class="virya-button virya-button--secondary min-h-[44px] px-4"
+            disabled={busy}
+            onClick={() => {
+              const at = Date.now()
+              try {
+                localStorage.setItem(NUDGE_DISMISS_KEY, String(at))
+              } catch {
+                // Storage can be unavailable; the ask still goes away for this visit.
+              }
+              setDismissedAtMs(at)
+            }}
+          >
+            {lang === "pl" ? "NIE TERAZ" : "NOT NOW"}
+          </button>
+        </div>
+      </section>
+    )
   }
 
   if (state.kind === "loading") {
