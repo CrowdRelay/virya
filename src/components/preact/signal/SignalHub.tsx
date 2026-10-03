@@ -346,7 +346,7 @@ export default function SignalHub({ lang }: Props) {
             </div>
           </div>
 
-          <div class="virya-panel p-5 shadow-2xl sm:p-7 lg:p-8">
+          <div class="virya-panel p-5 sm:p-7 lg:p-8">
               <form onSubmit={completeSignup} class="grid gap-5">
                 <div class="rounded border border-amber-400/25 bg-amber-400/[.035] p-4 text-xs leading-relaxed text-zinc-300">
                   <strong class="block text-sm uppercase text-white">

@@ -85,45 +85,45 @@ const rekorEntryUrl = (() => {
       )}
 
       {state.kind === "not_found" ? (
-        <section class="mt-10 rounded-3xl border border-white/10 bg-white/[.03] p-6">
+        <section class="mt-10 rounded-lg border border-white/10 bg-white/[.03] p-6">
           <h2 class="font-black text-zinc-100">Losowanie nie istnieje</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-400">Mogło zostać usunięte przed startem albo ten link jest już nieaktualny. Nie ma wyniku ani publicznego Proof of Fair do pokazania.</p>
         </section>
       ) : state.kind === "cancelled" ? (
-        <section class="mt-10 rounded-3xl border border-zinc-500/20 bg-white/[.03] p-6">
+        <section class="mt-10 rounded-lg border border-zinc-500/20 bg-white/[.03] p-6">
           <h2 class="font-black text-zinc-200">Losowanie zostało anulowane</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-400">Nie zostało przeprowadzone, dlatego nie powstał publiczny dowód wyniku.</p>
         </section>
       ) : state.kind === "scheduled" ? (
-        <section class="mt-10 rounded-3xl border border-cyan-300/20 bg-cyan-300/5 p-6">
+        <section class="mt-10 rounded-lg border border-cyan-300/20 bg-cyan-300/5 p-6">
           <p class="text-xs font-black uppercase tracking-wider text-cyan-300">Proof of Fair aktywny</p>
           <h2 class="mt-2 text-xl font-black text-cyan-100">Losowanie jest zaplanowane</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-400">Planowany termin: <strong class="text-zinc-200">{formatDrawAt(state.status.draw_at)}</strong>. Po zakończeniu tutaj automatycznie pojawi się niezależnie weryfikowalny dowód wyniku.</p>
         </section>
       ) : state.kind === "running" ? (
-        <section class="mt-10 rounded-3xl border border-cyan-300/20 bg-cyan-300/5 p-6">
+        <section class="mt-10 rounded-lg border border-cyan-300/20 bg-cyan-300/5 p-6">
           <p class="text-xs font-black uppercase tracking-wider text-cyan-300">Proof of Fair aktywny</p>
           <h2 class="mt-2 text-xl font-black text-cyan-100">Losowanie jest właśnie wykonywane</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-400">Po zapisaniu wyniku publiczny dowód pojawi się tutaj automatycznie.</p>
         </section>
       ) : state.kind === "completed_pending" ? (
-        <section class="mt-10 rounded-3xl border border-amber-300/20 bg-amber-300/5 p-6">
+        <section class="mt-10 rounded-lg border border-amber-300/20 bg-amber-300/5 p-6">
           <h2 class="font-black text-amber-200">Wynik zapisany — publikujemy Proof of Fair</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-400">Losowanie jest zakończone. Publiczny receipt i zewnętrzne potwierdzenie mogą pojawić się chwilę później.</p>
         </section>
       ) : state.kind === "unavailable" ? (
-        <section class="mt-10 rounded-3xl border border-rose-400/20 bg-rose-400/5 p-6">
+        <section class="mt-10 rounded-lg border border-rose-400/20 bg-rose-400/5 p-6">
           <h2 class="font-black text-rose-200">Nie możemy teraz sprawdzić losowania</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-400">CrowdRelay jest chwilowo niedostępny. Nie zgadujemy stanu losowania — odśwież stronę za moment.</p>
         </section>
       ) : state.kind === "proof_unavailable" ? (
-        <section class="mt-10 rounded-3xl border border-rose-400/20 bg-rose-400/5 p-6">
+        <section class="mt-10 rounded-lg border border-rose-400/20 bg-rose-400/5 p-6">
           <h2 class="font-black text-rose-200">Losowanie zakończone, ale dowód jest chwilowo niedostępny</h2>
           <p class="mt-2 text-sm leading-6 text-zinc-400">Wynik istnieje w CrowdRelay. Nie udało się teraz pobrać publicznego Proof of Fair — spróbuj ponownie za moment.</p>
         </section>
       ) : proof ? (
         <>
-          <section class={`mt-10 rounded-3xl border p-6 ${proof.locally_verified ? "border-emerald-400/25 bg-emerald-400/5" : "border-rose-400/25 bg-rose-400/5"}`}>
+          <section class={`mt-10 rounded-lg border p-6 ${proof.locally_verified ? "border-emerald-400/25 bg-emerald-400/5" : "border-rose-400/25 bg-rose-400/5"}`}>
             <p class="text-xs font-black uppercase tracking-wider text-zinc-400">Proof of Fair</p>
             <strong class={`mt-3 block text-2xl ${proof.locally_verified ? "text-emerald-300" : "text-rose-300"}`}>{proof.locally_verified ? "Wynik zweryfikowany" : "Dowód wymaga uwagi"}</strong>
             <p class="mt-3 text-sm leading-6 text-zinc-400">{proof.locally_verified ? "Publiczny receipt zgadza się z zapisanym wynikiem losowania." : "Automatyczna weryfikacja receiptu wykryła niezgodność."}</p>
@@ -131,7 +131,7 @@ const rekorEntryUrl = (() => {
           </section>
 
           <div class="mt-6 grid gap-4 md:grid-cols-2">
-            <section class="rounded-3xl border border-white/10 bg-white/[.03] p-6">
+            <section class="rounded-lg border border-white/10 bg-white/[.03] p-6">
               <h2 class="font-black">Szczegóły losowania</h2>
               <dl class="mt-4 grid gap-3 text-sm">
                 <div><dt class="text-zinc-500">Algorytm</dt><dd class="mt-1 font-mono text-zinc-200">{proof.algorithm_version}</dd></div>
@@ -140,7 +140,7 @@ const rekorEntryUrl = (() => {
                 <div><dt class="text-zinc-500">Run ID</dt><dd class="mt-1 font-mono text-zinc-200">{proof.run_id}</dd></div>
               </dl>
             </section>
-            <section class="rounded-3xl border border-white/10 bg-white/[.03] p-6">
+            <section class="rounded-lg border border-white/10 bg-white/[.03] p-6">
               <h2 class="font-black">Niezależne potwierdzenie</h2>
               <p class={`mt-4 text-xl font-black ${proof.anchor.status === "confirmed" ? "text-emerald-300" : proof.anchor.status === "dead" ? "text-rose-300" : "text-cyan-200"}`}>{proof.anchor.status === "confirmed" ? "Potwierdzone publicznie" : proof.anchor.status}</p>
               <p class="mt-3 text-sm text-zinc-500">Batch {proof.anchor.batch_id}</p>
@@ -149,11 +149,11 @@ const rekorEntryUrl = (() => {
               {proof.anchor.sequence !== null && proof.anchor.sequence !== undefined && <p class="mt-2 text-xs text-zinc-500">Log index {proof.anchor.sequence}</p>}
               {proof.anchor.integrated_at && <p class="mt-2 text-xs text-zinc-500">Rekor: {new Date(proof.anchor.integrated_at).toLocaleString("pl-PL", { timeZone: "Europe/Warsaw" })}</p>}
               {proof.anchor.signer_fingerprint && <p class="mt-2 break-all font-mono text-[10px] text-zinc-600">Signer {proof.anchor.signer_fingerprint}</p>}
-              {rekorEntryUrl && <a class="mt-4 inline-block rounded-xl border border-cyan-300/30 px-4 py-2 text-sm font-black text-cyan-200" href={rekorEntryUrl} target="_blank" rel="noopener noreferrer">Sprawdź wpis w Rekorze ↗</a>}
+              {rekorEntryUrl && <a class="mt-4 inline-block rounded-lg border border-cyan-300/30 px-4 py-2 text-sm font-black text-cyan-200" href={rekorEntryUrl} target="_blank" rel="noopener noreferrer">Sprawdź wpis w Rekorze ↗</a>}
             </section>
           </div>
 
-          <details class="mt-6 rounded-3xl border border-white/10 bg-white/[.03] p-6">
+          <details class="mt-6 rounded-lg border border-white/10 bg-white/[.03] p-6">
             <summary class="cursor-pointer font-black text-zinc-200">Dane techniczne dowodu</summary>
             <dl class="mt-4 grid gap-4 text-xs">
               <div><dt class="text-zinc-500">Seed commitment</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.seed_hash_sha256}</dd></div>
