@@ -33,7 +33,7 @@ if (typeof policy.expiresOn !== "string" || today > policy.expiresOn) {
 }
 
 const sourceFiles = ["src", "scripts", "tests"]
-const directImportNeedles = ["image-size", "extract-zip"]
+const directImportNeedles = ["image-size", "extract-zip", "http-cache-semantics", "braces"]
 for (const needle of directImportNeedles) {
   const scan = spawnSync("grep", ["-R", "-n", "--include=*.ts", "--include=*.tsx", "--include=*.js", "--include=*.mjs", `from [\\\"']${needle}[\\\"']\\|require([\\\"']${needle}[\\\"']`, ...sourceFiles], {
     cwd: ROOT,
