@@ -110,7 +110,7 @@ test("design-token ratchet — markup stays inside the counted scales", () => {
   // MySignal's mission buttons drop their min-h-[46px] overrides —
   // .virya-button already enforces a taller 3rem floor, so the
   // utilities were both drift and a regression of the component min.
-  ratchet("arbitraryPxTotal", arbitraryPx, 500)
+  ratchet("arbitraryPxTotal", arbitraryPx, 499)
   ratchet("hexOutsideExempt", hex, 12)
   ratchet("buttonsMissingType", buttonsMissingType, 0)
   ratchet("shadowUtilities", shadows, 17)
