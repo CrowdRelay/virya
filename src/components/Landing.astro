@@ -73,10 +73,9 @@
       })
     }
 
-    // Keep decorative motion completely off the loading path. It starts on
-    // the first genuine user activity (not click-only), so the poster remains
-    // the stable LCP and lab/idle visits never download a large background video.
-    window.addEventListener("pointermove", startVideo, { once: true, passive: true })
+    // Keep decorative motion completely off the loading path. Start only after
+    // deliberate interaction; merely moving a desktop pointer must not trigger
+    // a large background-video download. The poster remains the stable LCP.
     window.addEventListener("pointerdown", startVideo, { once: true, passive: true })
     window.addEventListener("touchstart", startVideo, { once: true, passive: true })
     window.addEventListener("scroll", startVideo, { once: true, passive: true })
