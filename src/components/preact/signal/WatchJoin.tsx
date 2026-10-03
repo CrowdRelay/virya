@@ -12,6 +12,7 @@ import {
   campaignIdFromLocation,
   crowdrelay,
   referralCodeFromLocation,
+  signalCityFromLocation,
 } from "../../../lib/crowdrelay"
 
 interface Props {
@@ -55,9 +56,11 @@ export default function WatchJoin({ lang }: Props) {
     try {
       const campaignId = campaignIdFromLocation()
       const referralCode = referralCodeFromLocation()
+      const citySlug = signalCityFromLocation()?.trim()
       const attribution = signupAttribution()
       const result = await submitSignup(signalSignupInput(email, locale, consent, {
         capture_context: captureContextForPage(window.location.pathname, window.location.search),
+        ...(citySlug ? { city_slug: citySlug } : {}),
         ...(campaignId ? { campaign_id: campaignId } : {}),
         ...(referralCode ? { referral_code: referralCode } : {}),
         ...(attribution ? { ad_attribution: attribution } : {}),
