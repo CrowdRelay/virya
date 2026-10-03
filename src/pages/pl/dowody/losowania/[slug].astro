@@ -149,11 +149,11 @@ const rekorEntryUrl = (() => {
               {proof.anchor.sequence !== null && proof.anchor.sequence !== undefined && <p class="mt-2 text-xs text-zinc-500">Log index {proof.anchor.sequence}</p>}
               {proof.anchor.integrated_at && <p class="mt-2 text-xs text-zinc-500">Rekor: {new Date(proof.anchor.integrated_at).toLocaleString("pl-PL", { timeZone: "Europe/Warsaw" })}</p>}
               {proof.anchor.signer_fingerprint && <p class="mt-2 break-all font-mono text-[10px] text-zinc-600">Signer {proof.anchor.signer_fingerprint}</p>}
-              {rekorEntryUrl && <a class="mt-4 inline-block rounded-xl border border-cyan-300/30 px-4 py-2 text-sm font-black text-cyan-200" href={rekorEntryUrl} target="_blank" rel="noopener noreferrer">Sprawdź wpis w Rekorze ↗</a>}
+              {rekorEntryUrl && <a class="mt-4 inline-block rounded-lg border border-cyan-300/30 px-4 py-2 text-sm font-black text-cyan-200" href={rekorEntryUrl} target="_blank" rel="noopener noreferrer">Sprawdź wpis w Rekorze ↗</a>}
             </section>
           </div>
 
-          <details class="mt-6 rounded-3xl border border-white/10 bg-white/[.03] p-6">
+          <details class="mt-6 rounded-lg border border-white/10 bg-white/[.03] p-6">
             <summary class="cursor-pointer font-black text-zinc-200">Dane techniczne dowodu</summary>
             <dl class="mt-4 grid gap-4 text-xs">
               <div><dt class="text-zinc-500">Seed commitment</dt><dd class="mt-1 break-all font-mono text-zinc-300">{proof.seed_hash_sha256}</dd></div>
