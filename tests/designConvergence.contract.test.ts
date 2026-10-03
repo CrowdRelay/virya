@@ -36,3 +36,14 @@ test("staff mobile navigation uses one quiet icon grammar", () => {
   assert.doesNotMatch(shell, /<span aria-hidden="true">(?:●|⌁|◎|◇|•••)<\/span>/)
   assert.doesNotMatch(shell, /text-\[10px\] font-black uppercase tracking-\[\.08em\]/)
 })
+
+test("remaining public utility surfaces stay on the restrained grammar", () => {
+  const hub = read("src/components/preact/signal/SignalHub.tsx")
+  const wallet = read("src/components/preact/tickets/TicketWallet.tsx")
+  const proof = read("src/pages/pl/dowody/losowania/[slug].astro")
+
+  assert.doesNotMatch(hub, /virya-panel[^"\n]*shadow-2xl/)
+  assert.doesNotMatch(wallet, /rounded-xl/)
+  assert.doesNotMatch(wallet, /signalCardTitle}</h3>/)
+  assert.doesNotMatch(proof, /rounded-(?:2xl|3xl)/)
+})
