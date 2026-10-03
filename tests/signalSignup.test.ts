@@ -205,6 +205,30 @@ test("landing offers are truthful, bilingual and selected only from known values
   assert.match(signalOfferCopy("releases", "pl"), /nowej muzyce/)
 })
 
+test("watch capture is the first off-video action and asks only for email plus consent", () => {
+  const root = new URL("../", import.meta.url)
+  const page = readFileSync(new URL("src/components/WatchPage.astro", root), "utf8")
+  const join = readFileSync(
+    new URL("src/components/preact/signal/WatchJoin.tsx", root),
+    "utf8",
+  )
+
+  const capture = page.indexOf("<WatchJoin")
+  const leaveForYoutube = page.indexOf('target="_blank"')
+  assert.ok(capture >= 0, "watch page carries the fan capture")
+  assert.ok(
+    leaveForYoutube > capture,
+    "capture must be visible before the easy off-site YouTube exit",
+  )
+
+  assert.match(join, /name="email"/)
+  assert.match(join, /name="consent"/)
+  assert.doesNotMatch(join, /name="city"|listCities|rememberSignalCity/)
+  assert.match(join, /signalCityFromLocation/)
+  assert.match(join, /captureContextForPage/)
+  assert.match(join, /signupAttribution/)
+})
+
 test("all signup surfaces require consent and the pre-consent Meta relay is retired", () => {
   const root = new URL("../", import.meta.url)
   assert.equal(existsSync(new URL("src/pages/api/signal-preregister.ts", root)), false)
