@@ -223,7 +223,8 @@ test("watch capture is the first off-video action and asks only for email plus c
 
   assert.match(join, /name="email"/)
   assert.match(join, /name="consent"/)
-  assert.doesNotMatch(join, /name="city"|listCities|signalCityFromLocation|rememberSignalCity/)
+  assert.doesNotMatch(join, /name="city"|listCities|rememberSignalCity/)
+  assert.match(join, /signalCityFromLocation/)
   assert.match(join, /captureContextForPage/)
   assert.match(join, /signupAttribution/)
 })
