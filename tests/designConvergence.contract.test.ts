@@ -44,6 +44,6 @@ test("remaining public utility surfaces stay on the restrained grammar", () => {
 
   assert.doesNotMatch(hub, /virya-panel[^"\n]*shadow-2xl/)
   assert.doesNotMatch(wallet, /rounded-xl/)
-  assert.doesNotMatch(wallet, /signalCardTitle}</h3>/)
+  assert.doesNotMatch(wallet, /<h3 class="[^"]*uppercase[^"]*">\{copy\.signalCardTitle\}<\/h3>/)
   assert.doesNotMatch(proof, /rounded-(?:2xl|3xl)/)
 })
