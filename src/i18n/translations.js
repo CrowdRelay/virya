@@ -230,8 +230,8 @@ export const translations = {
     },
     watch: {
       heading: "Get the next one first.",
-      body: "New videos, shows near you and news from us, straight to your inbox and the Signal app. No spam.",
-      join: "Join",
+      body: "Get new videos and Virya news directly. Join with your email now; add your city later if you want nearby-show alerts. No spam.",
+      join: "Get the next one",
     },
     press: {
       eyebrow: "Press",
@@ -807,8 +807,8 @@ export const translations = {
     },
     watch: {
       heading: "Następny dostaniesz pierwszy.",
-      body: "Nowe klipy, koncerty w Twojej okolicy i wieści od nas, prosto na maila i do aplikacji Signal. Bez spamu.",
-      join: "Dołącz",
+      body: "Dostawaj nowe klipy i wieści od Viryi bezpośrednio. Dołącz samym mailem; miasto dodasz później, jeśli chcesz alerty o koncertach w pobliżu. Bez spamu.",
+      join: "Złap następny",
     },
     press: {
       eyebrow: "Prasa",
