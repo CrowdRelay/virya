@@ -14,7 +14,7 @@ import test from "node:test"
 // Counts and what stays out of them:
 //
 // - `radiusVariants` — distinct `rounded*` utilities in markup. Each variant is
-//   a scale someone chose; seven are in use today.
+//   a scale someone chose; five are in use today.
 // - `textPxArbitrary` — `text-[Npx]` utilities. The micro-label scale
 //   (9/10/11px) predates a named scale; new work uses the named sizes.
 // - `arbitraryPxTotal` — every `utility-[Npx]` arbitrary value in markup.
@@ -103,7 +103,7 @@ test("design-token ratchet — markup stays inside the counted scales", () => {
     }
   }
 
-  ratchet("radiusVariants", radii.size, 7)
+  ratchet("radiusVariants", radii.size, 5)
   // The consented single-step Signal form removes three micro-labels and
   // four arbitrary utilities from the obsolete preregistration stage.
   ratchet("textPxArbitrary", textPx, 340)
