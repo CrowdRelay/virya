@@ -197,9 +197,9 @@ export default function TicketWallet({ lang, orderId }: Props) {
             const signalHref =
               "/join/" + (campaignId ? `?campaign_id=${encodeURIComponent(campaignId)}` : "")
             return (
-              <aside class="rounded-xl border border-emerald-400/25 bg-emerald-400/[.04] p-5">
+              <aside class="rounded-lg border border-emerald-400/25 bg-emerald-400/[.04] p-5">
                 <p class="text-[8px] font-black uppercase tracking-[.26em] text-emerald-300">VIRYA // SYGNAŁ</p>
-                <h3 class="mt-2 text-lg font-black uppercase text-white">{copy.signalCardTitle}</h3>
+                <h3 class="mt-2 text-lg font-black tracking-tight text-white">{copy.signalCardTitle}</h3>
                 <p class="mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">{copy.signalCardBody}</p>
                 <a href={signalHref} class="virya-button virya-button--primary mt-4 min-h-[46px] px-5">
                   {copy.signalCardCta} →
