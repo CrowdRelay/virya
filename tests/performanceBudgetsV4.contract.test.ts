@@ -31,11 +31,10 @@ test("public hydration stays deliberately sparse", () => {
   // (shows vs releases) from the captured URL offer, a client-only read on a
   // static page, and client:load so the wrong copy never flashes.
   assert.ok(directives.length <= 16, `public hydrated islands grew to ${directives.length}`)
-  // +1 since 6: SignalHub moved under the hero (the join form is the page's
-  // point, and #50's capture context makes it part of the fold) — at the top
-  // of the layout client:visible hydrates on first paint anyway, so load is
-  // the honest directive for where it now sits.
-  assert.ok(eager.length <= 7, `public eager hydrated islands grew to ${eager.length}`)
+  // SignalHub sits immediately below the hero but no longer hydrates eagerly:
+  // IntersectionObserver can wait until the signup surface is actually near
+  // the viewport. Keep the eager ceiling ratcheted to the lower count.
+  assert.ok(eager.length <= 6, `public eager hydrated islands grew to ${eager.length}`)
   assert.match(source, /client:visible/)
   assert.match(source, /client:idle/)
 })
